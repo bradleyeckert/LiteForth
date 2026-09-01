@@ -91,4 +91,4 @@ Once a trusted application is in place, it is made permanent by digitally signin
 The immutable RoT section checks the signature after every hard reset ensure
 the code has not changed.
 While Flash in a locked down MCU is very hard to tamper,
-signing covers yet unknown side-channel attacks.
+signing covers yet-unknown side-channel attacks.

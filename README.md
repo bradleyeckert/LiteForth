@@ -66,7 +66,7 @@ flowchart LR
     %% Data Flow Connections
     Term <--> PortA
     PortB <--> LF
-    LF <--> SD
+    LF <--v> SD
 
     %% Styling
     style Term fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#000

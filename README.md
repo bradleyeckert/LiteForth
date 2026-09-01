@@ -79,7 +79,7 @@ flowchart LR
     %% style Host System fill:none,stroke:#bbb,stroke-dasharray: 5 5
     style Win1 fill:none,stroke:#b2dfdb
     style Win2 fill:none,stroke:#b2dfdb
-    style VCom fill:#fafafa,stroke:#9e9e9e,stroke-dasharray: 3 3
+    %% style VCom fill:#fafafa,stroke:#9e9e9e,stroke-dasharray: 3 3
 ```
 The architecture of LiteForth is based on C, allowing it to be extended with
 C-based functions where speed is needed. Token threading is used to minimize

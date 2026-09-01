@@ -61,7 +61,7 @@ flowchart LR
     end
 
     %% File System Integration
-    SD[💾 Simulated microSD Card / Image File]
+    SD[💾 Files]
 
     %% Data Flow Connections
     Term <--> PortA
@@ -92,3 +92,33 @@ The immutable RoT section checks the signature after every hard reset ensure
 the code has not changed.
 While Flash in a locked down MCU is very hard to tamper,
 signing covers yet-unknown side-channel attacks.
+
+LiteForth allows more features to be packed into a given MCU because Forth is so compact.
+A space-efficient ISA makes it more compact.
+
+## Code size comparison
+
+The definition `: min  2dup > if swap else drop then ;` compiles to about 40 bytes
+of native RISC V code. I didn't bother to define `>`, so I gave LiteForth this:
+```
+: min  
+   2dup - -if drop drop exit 
+   then drop swap drop 
+;
+
+see min                                                                              
+01AE 8420  over over                                                                    
+01AF 001D  1D call      -                                                               
+01B0 6C02  2 -if                                                                        
+01B1 D6B0  drop drop ;                                                                  
+01B2 D78B  drop swap drop ;                                                             
+```
+That is a 75\% reduction in code size.
+
+Half is due to using 16-bit tokens rather than 32-bit instructions
+and another half is because if MISC-like instructions.
+Yup, it's not fast. It doesn't need to be. Hot spots should be in C.
+
+
+
+                                                                             

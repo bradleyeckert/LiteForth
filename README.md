@@ -32,8 +32,8 @@ flowchart LR
     style SD fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000
     
     %% Group Styling
-    style Host System fill:none,stroke:#ccc,stroke-dasharray: 5 5,color:#000
-    style Embedded System fill:none,stroke:#ccc,stroke-dasharray: 5 5,color:#000
+    %% style Host System fill:none,stroke:#ccc,stroke-dasharray: 5 5
+    %% style Embedded System fill:none,stroke:#ccc,stroke-dasharray: 5 5
 ```
 
 For development without MCU hardware, a LiteForth instance can
@@ -76,7 +76,7 @@ flowchart LR
     style PortB fill:#e8f5e9,stroke:#4caf50,color:#000
     
     %% Bounding Box Styling
-    style Host System fill:none,stroke:#bbb,stroke-dasharray: 5 5
+    %% style Host System fill:none,stroke:#bbb,stroke-dasharray: 5 5
     style Win1 fill:none,stroke:#b2dfdb
     style Win2 fill:none,stroke:#b2dfdb
     style VCom fill:#fafafa,stroke:#9e9e9e,stroke-dasharray: 3 3

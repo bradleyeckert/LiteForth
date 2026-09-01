@@ -27,13 +27,13 @@ flowchart LR
     end
 
     %% Component Styling
-    style Term fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
-    style MCU fill:#efebe9,stroke:#795548,stroke-width:2px
-    style SD fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style Term fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#000
+    style MCU fill:#efebe9,stroke:#795548,stroke-width:2px,color:#000
+    style SD fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000
     
     %% Group Styling
-    style Host System fill:none,stroke:#ccc,stroke-dasharray: 5 5
-    style Embedded System fill:none,stroke:#ccc,stroke-dasharray: 5 5
+    style Host System fill:none,stroke:#ccc,stroke-dasharray: 5 5,color:#000
+    style Embedded System fill:none,stroke:#ccc,stroke-dasharray: 5 5,color:#000
 ```
 
 For development without MCU hardware, a LiteForth instance can
@@ -76,10 +76,10 @@ flowchart LR
     style PortB fill:#e8f5e9,stroke:#4caf50,color:#000
     
     %% Bounding Box Styling
-    style Host System fill:none,stroke:#bbb,stroke-dasharray: 5 5,color:#000
-    style Win1 fill:none,stroke:#b2dfdb,color:#000
-    style Win2 fill:none,stroke:#b2dfdb,color:#000
-    style VCom fill:#fafafa,stroke:#9e9e9e,stroke-dasharray: 3 3,color:#000
+    style Host System fill:none,stroke:#bbb,stroke-dasharray: 5 5
+    style Win1 fill:none,stroke:#b2dfdb
+    style Win2 fill:none,stroke:#b2dfdb
+    style VCom fill:#fafafa,stroke:#9e9e9e,stroke-dasharray: 3 3
 ```
 The architecture of LiteForth is based on C, allowing it to be extended with
 C-based functions where speed is needed. Token threading is used to minimize

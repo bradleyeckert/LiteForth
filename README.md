@@ -36,7 +36,7 @@ flowchart LR
     %% style Embedded System fill:none,stroke:#ccc,stroke-dasharray: 5 5
 ```
 
-For development without MCU hardware, a LiteForth instance can
+For development without MCU hardware, LiteForth can
 run in a terminal window, with `getchar()` replacing the UART input.
 Line Feed (0Ah) means process the line.
 
@@ -50,7 +50,7 @@ code size, so more functionality can be packed into the small MCU environment.
 
 ## Code size reduction
 
-The definition `: min  2dup > if swap else drop then ;` compiles to about 40 bytes
+Mecrisp Stellaris compiles `: min  2dup > if swap else drop then ;` to about 40 bytes
 of native RISC V code. I didn't bother to define `>`, so I gave LiteForth this:
 ```
 : min  
@@ -86,10 +86,7 @@ invitation for subtle bugs. Let's just not have that.
 
 For example, a variable `x` whose value is between 0 and 10 is declared with
 `4 bits x`. `5 x !` stores 5 to x, where `x @` reads it back out.
-This avoids having to keep data sizes straight.
 The `variable` keyword is equivalant to `32 bits`.
-An address consists of a 5-bit size, 5-bit shift count, and 22-bit cell address.
-The size field is 0 for 32-bit.
 
 `char+` and `chars` manipulate the shift and address fields to support chars of any
 width, from 1 to 16 bits. `@` and `!` will work with any width.

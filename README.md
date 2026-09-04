@@ -139,7 +139,7 @@ if (inst & 0x8000) {
     }
 }
 ```
-In hardware, synchronous code memory would be addressed by the PC.
+In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
 The instruction arrives two clock cycles after PC changes.
 When `;` is '1', the instruction bus settles while the group is executing.
 When an *other* instruction executes, a `nop` is inserted to let the next
@@ -190,6 +190,9 @@ Zoo instructions include:
 | y\! | 1 | Y \= T, drop T |
 | throw | 2 | VM quits and returns ior \= T |
 
+## Stacks
 
+For simulation in C, the stacks are 256-deep for implementation
+with uint8_t stack pointers. The data and return stacks share a 256x32 RAM.
 
                                                                              

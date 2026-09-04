@@ -10,7 +10,7 @@ results in either `xte` or `xtc` being executed.
 There are three regions of Flash the boot chain:
 
 | Region | Code type | Write access |
-| ---------------- | --------- | ------------ |
+|:--------|:----------|:------------|
 | Root-of-Trust (RoT) | Native | None | 
 | Sandbox             | Native | RoT, Sandbox |
 | Application         | Forth  | RoT, Sandbox, Application |
@@ -49,19 +49,11 @@ To work within these constraints,
 
 - `align` advances the dictionary pointer to the next 8-byte-aligned address.
 - Strings and `c,` pack bytes, so the dictionary pointer addresses bytes.
-- Non-volatile store, `n2! ( d a -- )` writes needs the 64-bit data
-at `a` to be -1 (`a` is 8-byte-aligned).
+- Non-volatile store, `n2! ( d a -- )` needs the 64-bit data at `a` to be -1
+(`a` is the 8-byte block number).
 - Definitions are 8-byte-aligned.
 - `:` compiles into a RAM buffer, which is flushed by `;`.
 - Long forward references (`later foo`) compile an aligned 64-bit -1.
-
-## Fat vs Thin
-
-Fat Forths add content to the dictionary whose only purpose is to help the programmer.
-This extra data includes source code links, stack pictures, etc.
-Given that there is support for files, the extra dictionary is stored in mass storage.
-To make the data usable across minor revisions, each header entry gets a 128-byte block.
-1000 headers would need 128 KB , fairly small for an SD card.
 
 ## Mass storage
 
@@ -86,17 +78,79 @@ Editing a screen only requires a 4K buffer. Deviating from the 1994 ANS standard
 Forth Blocks (and screens) are 4KB, represented as 128 x 32 chars.
 If you LIST a screen, you get a 32-line screen dump up to 131 characters wide.
 
+## Dual dictionaries
+
+LiteForth uses a split-dictionary scheme where temporary development structures are
+thrown away later. 
+Independent dictionaries are built in Flash memory and RAM.
+The RAM dictionary disappears after a hard reset (usually triggered by power loss).
+The Flash dictionary is persistent.
+There are 3 different compilation styles:
+
+| Style | Headers | Code | Usage |
+|:-------------|:------|:------|:------|
+| `permanent`  | Flash | Flash | Compiling application words into Flash |
+|              | Flash | RAM   | Unused |
+| `temporary`  | RAM   | RAM   | Compiling temporary words into RAM |
+| `headerless` | RAM   | Flash | Compiling headless words into Flash |
+
+`finalize` flushes any buffers not yet written to Flash or other storage.
+It also saves dictionary pointers associated with `permanent`. 
+
+Style transitions:
+
+- permanent to temporary: Direct heads and code to RAM
+- permanent to headerless: Save RAM header pointer, direct heads to RAM
+- temporary to headerless: Save RAM header pointer
+- temporary to permanent: Direct heads and code to Flash
+- headerless to permanent: Restore RAM header pointer, direct heads to Flash
+- headerless to temporary: Restore RAM header pointer
+
+The compiler will throw an error if a permanent definition compiles temporary code.
+
+Memory spaces are statically allocated arrays in C.
+Flash spaces are 4KB-aligned in the linker configuration file.
+The static const headers compile directly to C's `.text` or `.rodata` section.
+
+The sandbox bounds-checks memory addresses and translates them to various regions:
+
+| Memory space | Width | Address Map | Pointer | Section | #define |
+|:-------------|:-------|:----------------|:----|:------------|:----|
+| RAM Data     | 32-bit | 000000 - 0FFFFF | dpr | .bss | DATA_CELLS |
+| Flash Data   | 32-bit | 100000 - 1FFFFF | dpf | .flash | FDATA_CELLS |
+| Peripherals  | 32-bit | 200000 - 2FFFFF |     | | |
+| RAM Code     | 16-bit | 300000 - 37FFFF | cpr | .bss | CODE_CELLS |
+| Flash Code   | 16-bit | 380000 - 3FFFFF | cpf | .flash | FCODE_CELLS |
+| Flash Headers| 32-bit | Access via C API | hpf | .flash | FHEAD_CELLS |
+| RAM Headers  | 32-bit | Access via C API | hpr | .bss | HEAD_CELLS |
+
+Note that .flash must be defined in the `.ld` linker file to be 4KB-aligned.
+Its size in bytes should be at least (FDATA_CELLS\*4 + FCODE_CELLS\*2 + FHEAD_CELLS\*4).
+Also, FCODE_CELLS must be a multiple of 2048, and FDATA_CELLS and FHEAD_CELLS
+must be a multiple of 1024 to align the arrays on Flash sector boundaries.  
+
+The address space is designed for ease of decoding.
+The maximum size of most regions is 1M cells. IRL, they will be smaller.
+Addresses above 003FFFFF are not allowed in LiteForth, but the C API may use them.
+
+RAM and peripherals are placed in a 22-bit address space to work with `@` and `!`.
+Peripheral physical cell address ranges for a CH32H417 are:
+
+- 10000000 to 10003FFF = APB1 peripherals
+- 10004000 to 10007FFF = APB2 peripherals
+- 10008000 to 1000FFFF = AHB / High-Speed Subsystems
+- 14000000 to 1400FFFF = Other AHB
+
+Address translation uses a static table whose index is taken from addr\[21:19].
+Another static table holds the upper address limit.
+
 ## How find works
 
-Headers exist as static const structs in Flash. Static lists are not extensible.
-`find` traverses a singly linked list. It squirrels away the value field of the previous
-header for use by `see`.
-`find` returns a pass/fail flag. Once found,
-Forth access to the various fields relies on C API calls due to their being outside
-the sandbox.
-
-At bootup, only the RoT list is findable. 
-If a valid HMAC is found, the other lists are added.
+Headers exist as static const structs in Flash. Links are C pointers.
+`find` traverses a singly linked list and returns a pass/fail flag.
+It squirrels away the value field of the previous header for use by `see`.
+Forth access to the various header fields relies on C API calls due to
+their being outside the sandbox.
 
 In Forth, if a word is not found in the search order and it is not a number,
 it is an error. LiteForth searches an EQU list before throwing an error.
@@ -107,7 +161,6 @@ these constants are kept in the first few mass storage blocks.
 The QUIT loop, C functions, and the execution table used by the C functions are
 located in an immutable "Root-of-Trust" region called the sandbox.
 Memory regions and the C functions that access them are in the sandbox.
-
 For purposes of the linker file, this is the `sandbox` region.
 There are no C functions in the application region. 
 
@@ -134,7 +187,7 @@ Either way, the compiler will not add padding to align the elements.
 | 2 | exdex index
 | 2 | padding or start of name string
 
-A dedicated 256-byte RAM buffer is used when adding a header to Flash.
+A dedicated 256-byte RAM buffer is used when adding headers to Flash.
 
 static const headers defined at compile time use #define for semantic sugar.
 
@@ -164,10 +217,11 @@ To extend LiteForth without changing the RoT, you would:
 
 1. Include a file that compiles new definitions into Flash to build a new QUIT loop.
 1. Test the new QUIT to verify that it will function.
-1. `gild` the new system to save the initialization values and generate the HMAC.
+1. `finalize` the new system to save the initialization values and generate the HMAC.
 
-The original QUIT is inaccessible after this extension, but the words it is built from
-are part of the C API. The RoT memory region contains an execution table with them.
+The original QUIT may be inaccessible after this extension,
+but the words it is built from are part of the C API.
+The RoT memory region contains an execution table with them.
 
 The application region of flash includes an execution table for the RoT QUIT loop
 to access the application's C API. The start of the application section has:
@@ -175,6 +229,7 @@ to access the application's C API. The start of the application section has:
 - 32-byte HMAC
 - 4-byte offset to the initialization table
 - 4-byte offset to C code startup
+- Middleware API execution table
 - Initialization table
 
 After the C code starts up, it enters a macroloop that calls API function 0
@@ -194,42 +249,3 @@ When an arror is flagged, execution jumps to address 1 in the VM.
 - Accept the next character from the UART or other text stream. Exit if none.
 - If the character was a LF, interpret the input buffer.
 - If a problem occurs during interpretation, reset the stack.
-
-## Memory
-
-Memory is cell-addressed. Cells are 32-bit.
-If bytes or halves are needed, they are bit fields.
-Data space is protected against out-of-bounds access.
-These run-time checks perform the functions of an MMU, which most MCUs don't have.
-
-Instead, the code runs in a virtual machine (VM).
-"VM" has a completely different meaning than it did in the 20th century.
-The meaning of VM here is a token interpreter that executes the binary of an ISA.
-To make things interesting, the ISA is designed for eventual hardware implementation.
-
-The ISA has dedicated Flash and RAM regions, each of which are either code or data spaces.
-These are static arrays.
-`#defines` in the config.h file determine their sizes and accessibility.
-You can change them and recompile if your app is running short of space.
-`unused` ( n -- m ) takes a memory region and returns the number of 32-bit cells remaining.
-The source code could use `FlashCode unused .` to show remaining code space.
-
-### Regions
-
-Addresses are 22-bit. 22-bit literals are supported by the `ok` ISA using
-a 9-bit prefix and 13-bit literal (two 16-bit instructions).
-
-The address space is split into eight 512K-cell regions, selected by bits \[21:19].
-@ and ! use indices (masked to keep the address within bounds) to address
-the various C arrays. 19-bit region size leaves room for growth.
-A CH32H417 could get by with 15-bit region sizes, considering data cells are 4-byte.
-
-Fixed-size C arrays are declared for various memory regions:
-
-0. Flash code space, used by Forth code to build permanent application words.
-2. Flash data space, readable by @. Writable by , and !.
-3. Flash text space, strings and other const data
-4. RAM code space, used by Forth code to build temporary words.
-6. RAM data space, read/write.
-7. I/O data space, read/write.
-

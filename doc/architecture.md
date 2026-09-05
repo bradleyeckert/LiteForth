@@ -175,17 +175,17 @@ With 32-bit pointers, the header is 24 bytes.
 With 64-bit pointers, it is 32 bytes.
 Either way, the compiler will not add padding to align the elements.
 
-|----|---------|
 | BYTES | USAGE |
-| 4/8 | size_t link to previous header
-| 4/8 | size_t pointer to name string
-| 4 | value (number, CFA, text pointer, etc.)
-| 3 | xte (execution xt) xt of execution semantics, negative for C fn
-| 1 | flags (immediate, call-only, smudge)
-| 3 | xtc (compilation xt) xt of compilation semantics, negative for C fn
-| 1 | spare
-| 2 | exdex index
-| 2 | padding or start of name string
+|:----|:---------|
+| 4/8 | size_t link to previous header |
+| 4/8 | size_t pointer to name string |
+| 4 | value (number, CFA, text pointer, etc.) |
+| 3 | xte (execution xt) xt of execution semantics, negative for C fn |
+| 1 | flags (immediate, call-only, smudge) |
+| 3 | xtc (compilation xt) xt of compilation semantics, negative for C fn |
+| 1 | spare |
+| 2 | exdex index |
+| 2 | padding or start of name string |
 
 A dedicated 256-byte RAM buffer is used when adding headers to Flash.
 

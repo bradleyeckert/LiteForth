@@ -30,4 +30,4 @@ For Linux, most distros use a modern terminal like GNOME Terminal or Konsole (KD
 that default to system settings, which are usually UTF-8 and double-width CJK.
 
 For the Windows command prompt, `chcp 65001` enables UTF-8.
-the Windows terminal displays double-wide CJK automatically.
+The Windows terminal displays double-wide CJK automatically.

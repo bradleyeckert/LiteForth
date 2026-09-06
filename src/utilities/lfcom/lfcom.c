@@ -118,10 +118,24 @@ void io_buf_flush(void) {
             for (int i = 0; i < io_write_index; i++) {
                 loopback_write_char(io_write_buffer[i]);
             }
-        } else {
+        }
+        else {
 #ifdef _WIN32
-            DWORD written;
-            WriteFile(serial_fd, io_write_buffer, io_write_index, &written, NULL);
+            DWORD written = 0;
+            OVERLAPPED osWrite = { 0 };
+
+            // Create a local manual-reset event for tracing this asynchronous block write
+            osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+            if (osWrite.hEvent != NULL) {
+                // Issue the overlapped write operation using our buffer index length
+                if (!WriteFile(serial_fd, io_write_buffer, io_write_index, &written, &osWrite)) {
+                    if (GetLastError() == ERROR_IO_PENDING) {
+                        // Operation is pending; wait synchronously until the driver consumes the block
+                        GetOverlappedResult(serial_fd, &osWrite, &written, TRUE);
+                    }
+                }
+                CloseHandle(osWrite.hEvent);
+            }
 #else
             int res = write(serial_fd, io_write_buffer, io_write_index);
             (void)res;
@@ -149,24 +163,31 @@ void list_available_ports(void) {
 #ifdef _WIN32
     HKEY hKey;
     if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        char valueName;
-        BYTE portName;
+        // Zero-initialize both array structures to satisfy strict MSVC linter checks
+        char valueName[256] = { 0 };
+        BYTE portName[256] = { 0 };
         DWORD i = 0, nameLen, portLen, type;
+
         while (1) {
             nameLen = sizeof(valueName);
             portLen = sizeof(portName);
+
             if (RegEnumValueA(hKey, i, valueName, &nameLen, NULL, &type, portName, &portLen) == ERROR_SUCCESS) {
                 printf("  -> %s (%s)\n", (char*)portName, valueName);
                 i++;
-            } else break;
+            }
+            else {
+                break;
+            }
         }
         RegCloseKey(hKey);
     }
 #else
+    // ... POSIX/Linux Glob Implementation remains exactly the same
     glob_t glob_results;
     int r1 = glob("/dev/ttyUSB*", 0, NULL, &glob_results);
     int r2 = glob("/dev/ttyACM*", GLOB_APPEND, NULL, &glob_results);
-    int r3 = glob("/dev/ttyS*",   GLOB_APPEND, NULL, &glob_results);
+    int r3 = glob("/dev/ttyS*", GLOB_APPEND, NULL, &glob_results);
     if (r1 == 0 || r2 == 0 || r3 == 0) {
         for (size_t i = 0; i < glob_results.gl_pathc; i++) {
             int test_fd = open(glob_results.gl_pathv[i], O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -302,26 +323,37 @@ void set_terminal_modes(bool raw) {
 serial_t open_serial(const char *port_name, int baud, bool hw_flow) {
     if (loopback_mode) return (serial_t)1;
 #ifdef _WIN32
-    HANDLE hComm = CreateFileA(port_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    // FIX: Open file with FILE_FLAG_OVERLAPPED to support asynchronous kernel event triggers
+    HANDLE hComm = CreateFileA(port_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
     if (hComm == INVALID_HANDLE_VALUE) return INVALID_SERIAL;
+    
     DCB dcb = {0}; dcb.DCBlength = sizeof(dcb);
     if (!GetCommState(hComm, &dcb)) { CloseHandle(hComm); return INVALID_SERIAL; }
     dcb.BaudRate = baud; dcb.ByteSize = 8; dcb.StopBits = ONESTOPBIT; dcb.Parity = NOPARITY;
     dcb.fOutxCtsFlow = hw_flow ? TRUE : FALSE; dcb.fRtsControl = hw_flow ? RTS_CONTROL_HANDSHAKE : RTS_CONTROL_ENABLE;
     if (!SetCommState(hComm, &dcb)) { CloseHandle(hComm); return INVALID_SERIAL; }
+
+    // Maintain non-blocking fallbacks for the write stream configurations
+    COMMTIMEOUTS timeouts = {0};
+    timeouts.ReadIntervalTimeout         = MAXDWORD; 
+    timeouts.ReadTotalTimeoutMultiplier  = 0;
+    timeouts.ReadTotalTimeoutConstant    = 0;
+    timeouts.WriteTotalTimeoutMultiplier = 0;
+    timeouts.WriteTotalTimeoutConstant   = 0;
+    if (!SetCommTimeouts(hComm, &timeouts)) { CloseHandle(hComm); return INVALID_SERIAL; }
+
+    // Register interest specifically in the RX character arrival event mask
+    if (!SetCommMask(hComm, EV_RXCHAR)) { CloseHandle(hComm); return INVALID_SERIAL; }
+
     return hComm;
 #else
     int fd = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY);
     if (fd == -1) return INVALID_SERIAL;
     
-    // Utilizing Modern Linux termios2 and ioctl to map arbitrary high-speed configurations directly
     struct termios2 tio;
     if (ioctl(fd, TCGETS2, &tio) < 0) { close(fd); return INVALID_SERIAL; }
-    tio.c_cflag &= ~CBAUD;
-    tio.c_cflag |= BOTHER;      // Tells the driver a direct integer value follows
-    tio.c_ispeed = baud;        // Direct target input speed value assignments
-    tio.c_ospeed = baud;        // Direct target output speed value assignments
-    
+    tio.c_cflag &= ~CBAUD; tio.c_cflag |= BOTHER;
+    tio.c_ispeed = baud; tio.c_ospeed = baud;
     tio.c_cflag |= (CLOCAL | CREAD); tio.c_cflag &= ~PARENB; tio.c_cflag &= ~CSTOPB;
     tio.c_cflag &= ~CSIZE; tio.c_cflag |= CS8; tio.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     tio.c_oflag &= ~OPOST;
@@ -384,7 +416,53 @@ THREAD_RETURN uart_to_stdout_thread(void *arg) {
         return 0;
     }
 #ifdef _WIN32
-    DWORD br; while (ReadFile(serial_fd, &c, 1, &br, NULL) && br > 0) { putchar(c); fflush(stdout); }
+    OVERLAPPED osStatus = {0};
+    osStatus.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL); // Manual-reset, unsignaled event
+    if (osStatus.hEvent == NULL) return 0;
+
+    DWORD dwCommEvent = 0;
+    
+    while (1) {
+        // Initiate asynchronous tracking wait
+        if (!WaitCommEvent(serial_fd, &dwCommEvent, &osStatus)) {
+            if (GetLastError() == ERROR_IO_PENDING) {
+                // Thread suspends and waits here with ZERO CPU overhead until com0com delivers characters
+                DWORD dwWait = WaitForSingleObject(osStatus.hEvent, INFINITE);
+                if (dwWait != WAIT_OBJECT_0) {
+                    break;
+                }
+            } else {
+                // Handle port crash or disconnect events safely
+                break;
+            }
+        }
+
+        // Once signaled, continuously consume all characters currently waiting in the buffer
+        DWORD br;
+        while (ReadFile(serial_fd, &c, 1, &br, &osStatus)) {
+            if (br > 0) {
+                putchar(c);
+                fflush(stdout);
+            } else {
+                // Buffer is drained; go back to kernel sleep
+                break;
+            }
+        }
+        
+        // Alternative handle condition verification for overlapped ReadFile calls
+        if (GetLastError() == ERROR_IO_PENDING) {
+            WaitForSingleObject(osStatus.hEvent, INFINITE);
+            if (GetOverlappedResult(serial_fd, &osStatus, &br, FALSE) && br > 0) {
+                putchar(c);
+                fflush(stdout);
+            }
+        }
+        
+        // Reset the event status indicator explicitly before restarting the Wait loop
+        ResetEvent(osStatus.hEvent);
+    }
+    
+    CloseHandle(osStatus.hEvent);
 #else
     while (read(serial_fd, &c, 1) > 0) { putchar(c); fflush(stdout); }
 #endif
@@ -397,7 +475,10 @@ void handle_signal_shutdown(int signum) {
     set_terminal_modes(false); io_buf_flush();
     if (serial_fd != INVALID_SERIAL && !loopback_mode) {
 #ifdef _WIN32
-        CloseHandle(serial_fd); DeleteCriticalSection(&loop_cs);
+        // Cancel outstanding asynchronous IO operations before closing the hardware handle
+        PurgeComm(serial_fd, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+        CloseHandle(serial_fd); 
+        DeleteCriticalSection(&loop_cs);
 #else
         close(serial_fd);
 #endif
@@ -455,11 +536,23 @@ int main(int argc, char *argv[]) {
 
     char in_char;
 #ifdef _WIN32
-    DWORD rl; while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), &in_char, 1, &rl, NULL) && rl > 0)
+    DWORD rl; 
+    while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), &in_char, 1, &rl, NULL) && rl > 0) {
+        // In raw mode, Ctrl+C arrives as literal ASCII byte value 0x03
+        if (is_raw_mode && in_char == 0x03) {
+            handle_signal_shutdown(SIGINT);
+        }
+        parse_bridge_stream(in_char);
+    }
 #else
-    while (read(STDIN_FILENO, &in_char, 1) > 0)
-#endif
-    { parse_bridge_stream(in_char); }
+    while (read(STDIN_FILENO, &in_char, 1) > 0) {
+        // In raw mode, Ctrl+C arrives as literal ASCII byte value 0x03
+        if (is_raw_mode && in_char == 0x03) {
+            handle_signal_shutdown(SIGINT);
+        }
+        parse_bridge_stream(in_char);
+    }
+#endif    
 
     if (loopback_mode) {
 #ifdef _WIN32

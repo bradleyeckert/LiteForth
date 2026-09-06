@@ -31,6 +31,7 @@ MacOS is not supported.
     #include <asm/termbits.h> // Modern Linux direct-baud ioctl structure (struct termios2)
     #include <pthread.h>
     #include <glob.h>
+//    #include <termios.h>
     #define THREAD_RETURN void*
     typedef pthread_t thread_t;
     typedef int serial_t;
@@ -56,8 +57,7 @@ serial_t serial_fd = INVALID_SERIAL;
     struct termios_backup { DWORD stdin_mode; DWORD stdout_mode; };
 #else
     // Save backup using regular system termios to restore raw/cooked console nicely
-    #include <termios.h>
-    struct termios_backup { struct termios stdin_orig; };
+    struct termios_backup { struct termios2 stdin_orig; };
 #endif
 struct termios_backup orig_console_settings;
 
@@ -308,13 +308,30 @@ void set_terminal_modes(bool raw) {
     }
 #else
     if (raw) {
-        struct termios raw_term; tcgetattr(STDIN_FILENO, &orig_console_settings.stdin_orig); raw_term = orig_console_settings.stdin_orig;
-        raw_term.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); raw_term.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+        struct termios2 raw_term;
+        if (ioctl(STDIN_FILENO, TCGETS2, &orig_console_settings.stdin_orig) < 0) {
+            perror("ioctl TCGETS2 failed A");
+            exit (1);
+        }
+    
+//        tcgetattr(STDIN_FILENO, &orig_console_settings.stdin_orig); 
+        raw_term = orig_console_settings.stdin_orig;
+        raw_term.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); 
+        raw_term.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
         raw_term.c_cflag &= ~(CSIZE | PARENB); raw_term.c_cflag |= CS8; raw_term.c_oflag &= ~(OPOST);
-        raw_term.c_cc[VMIN] = 1; raw_term.c_cc[VTIME] = 0; tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw_term);
+        raw_term.c_cc[VMIN] = 1; 
+        raw_term.c_cc[VTIME] = 0; 
+        if (ioctl(STDIN_FILENO, TCSETSF2, &raw_term) < 0) {
+            perror("ioctl TCGETS2 failed B");
+            exit (1);
+        }
         emit_string("\033[?1002h\033[?1006h");
     } else {
-        emit_string("\033[?1006l\033[?1002l"); tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_console_settings.stdin_orig);
+        emit_string("\033[?1006l\033[?1002l"); 
+        if (ioctl(STDIN_FILENO, TCSETSF2, &orig_console_settings.stdin_orig)) {
+            perror("ioctl TCGETS2 failed C");
+            exit (1);
+        }
     }
 #endif
     is_raw_mode = raw;

@@ -1,3 +1,13 @@
+/** 
+
+UART-terminal bridge console app "lfcom" compiles with:
+- Linux using standard C11 toolchains with gcc or clang
+- Windows using standard Win32 SDK allocations
+
+MacOS is not supported.
+
+**/
+
 // Part 1: Global Platform Structs, Contexts, and Header Guard Definitions
 
 #include <stdio.h>
@@ -449,9 +459,9 @@ int main(int argc, char *argv[]) {
 
     if (loopback_mode) {
 #ifdef _WIN32
-        Sleep(50);
+        Sleep(1);
 #else
-        usleep(50000);
+        usleep(1000);
 #endif
     }
     set_terminal_modes(false); io_buf_flush();

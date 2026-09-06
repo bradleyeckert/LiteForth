@@ -16,6 +16,8 @@ MacOS is not supported.
 #include <stdbool.h>
 #include <signal.h>
 
+#define BAUDRATE 115200
+
 #ifdef _WIN32
     #include <windows.h>
     #define THREAD_RETURN DWORD WINAPI
@@ -420,7 +422,9 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[1], "-k") == 0) loopback_mode = true;
     else { if (argv[1][0] == '-') { print_usage(argv[0]); return 1; } port_name = argv[1]; }
 
-    int baud_rate = 115200; bool start_in_raw = false; bool hw_flow = false;
+    int baud_rate = BAUDRATE; 
+    bool start_in_raw = false; 
+    bool hw_flow = false;
     for (int i = 2; i < argc; i++) {
         if (strcmp(argv[i], "-b") == 0 && i + 1 < argc) {
             baud_rate = atoi(argv[++i]);

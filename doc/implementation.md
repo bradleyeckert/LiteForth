@@ -6,12 +6,13 @@ LiteForth runs on either a PC or MCU. Functionality that differs between them ar
 - `flash.c` is the flash memory implementation or simulation
 - `periph.c` is optional peripheral simulation
 - `main.c` is initialization and startup code
+- `vm.s` is the platform-specific token interpreter, if `vm.c` is not used.
 
 The common functionality is:
 
 - `forth.c` is the QUIT interpreter
 - `config.h` is the system configuration
-- `vm.c` or `vm.s` is the token interpreter
+- `vm.c` is the token interpreter
 
 The `src` folder contains the common functionality.
 Platform-specific functionality is in a folder for that platform.
@@ -29,7 +30,8 @@ Terminal I/O uses three functions:
 - `kbhit` returns the status of the input port
 - `kbget` return the next byte from the input port
 
-The console app 
+The console app can use either a terminal or a COM port as stdio.
+Port -1 is the terminal.
 
 ## flash
 
@@ -37,6 +39,7 @@ In a console app, flash and mass storage are simulated by binary files.
 The default filenames are `lfflash.bin` and `lfblocks.bin`,
 but may be changed by command line options `-f` and `-b`.
 `flash.c` gets the flash sector size and page programming size from `options.h`.
+The mass storage size is read from block 0.
 
 MCU Flash the physical flash, in a section placed by the linker file.
 It is read-only, except for a "flash and erase" function that flashes an entire sector

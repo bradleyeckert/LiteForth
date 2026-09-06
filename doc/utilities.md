@@ -4,14 +4,20 @@
 
 ## lfcom
 
-The terminals of Linux and Windows (command line) have some shortcomings:
+`lfcom` is a cross-platform command line utility that pipes a TTY or COM port
+to stdio to provide terminal emulator functionality.
+The system terminal, like Linux xterm or Windows command line, has a history buffer
+in cooked mode.
+The terminal lets you edit a line before you send it by pressing <Enter>.
+
+In raw mode, the terminal sends keystrokes immediately. Raw mode is used for editors.
+
+The terminals of Linux and Windows have some shortcomings:
 
 - Key events have different escape codes between Windows and Linux
 - You can't switch between raw and cooked modes with escape sequences.
 
-Both of these are fixed with `lfcom`. It is a cross-platform utility that
-accepts escape sequences to switch between raw and cooked modes.
+`lfcom` accepts escape sequences to switch between raw and cooked modes.
 Linux key events are translated to Windows format.
-
 When in raw mode, mouse and resize events are enabled,
-so they will send escape sequences (in Windows format).
+so they will send escape sequences.

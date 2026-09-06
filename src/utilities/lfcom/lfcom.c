@@ -1,8 +1,8 @@
 /** 
 
 UART-terminal bridge console app "lfcom" compiles with:
-- Linux using standard C11 toolchains with gcc or clang
-- Windows using standard Win32 SDK allocations
+- Linux using standard C11 with gcc or clang, status = quits after opening port.
+- Windows using standard Win32 SDK, status = ok (runs).
 
 MacOS is not supported.
 
@@ -31,7 +31,6 @@ MacOS is not supported.
     #include <asm/termbits.h> // Modern Linux direct-baud ioctl structure (struct termios2)
     #include <pthread.h>
     #include <glob.h>
-//    #include <termios.h>
     #define THREAD_RETURN void*
     typedef pthread_t thread_t;
     typedef int serial_t;
@@ -365,8 +364,10 @@ serial_t open_serial(const char *port_name, int baud, bool hw_flow) {
     return hComm;
 #else
     int fd = open(port_name, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (fd == -1) return INVALID_SERIAL;
-    
+    if (fd == -1) {
+        perror("tty would not open");
+        return INVALID_SERIAL;
+    }
     struct termios2 tio;
     if (ioctl(fd, TCGETS2, &tio) < 0) { close(fd); return INVALID_SERIAL; }
     tio.c_cflag &= ~CBAUD; tio.c_cflag |= BOTHER;
@@ -417,7 +418,7 @@ void parse_bridge_stream(char c) {
 }
 
 THREAD_RETURN uart_to_stdout_thread(void *arg) {
-    (void)arg; char c;
+    (void)arg; char c=0;
     if (loopback_mode) {
         while (1) {
             int ch = loopback_read_char();
@@ -551,7 +552,7 @@ int main(int argc, char *argv[]) {
     pthread_create(&rx, NULL, uart_to_stdout_thread, NULL);
 #endif
 
-    char in_char;
+    char in_char=0;
 #ifdef _WIN32
     DWORD rl; 
     while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), &in_char, 1, &rl, NULL) && rl > 0) {

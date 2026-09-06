@@ -1,65 +1,83 @@
 # LiteForth Architecture
 
-The QUIT loop of LiteForth is based on C. It uses the dual-xt scheme of Gforth.
-Execution tokens may refer to either C functions or Forth definitions.
-Execution tokens are negative for C functions, positive for definitions.
-The `find` function returns a name token that points to a 3-cell `w, xte, xtc` structure.
-Depending on whether IMMEDIATE is 0 or not, each blank-delimited token fed to `find`
-results in either `xte` or `xtc` being executed.
+The QUIT loop of LiteForth is based on C. 
+Execution tokens (*xt*) may refer to either C functions or Forth definitions.
+They are negative for C functions, positive for Forth definitions.
 
-There are three regions of Flash the boot chain:
+There are three regions of memory in the boot chain:
 
-| Region | Code type | Write access |
-|:--------|:----------|:------------|
-| Root-of-Trust (RoT) | Native | None | 
-| Sandbox             | Native | RoT, Sandbox |
-| Application         | Forth  | RoT, Sandbox, Application |
+| Region  |  Write access |
+|:--------|:--------------|
+| Root-of-Trust (RoT) | None |
+| Application Flash   | RoT  |
+| Application RAM     | RoT, Application |
 
 The QUIT loop lives in the RoT. The RoT is immutable.
 It contains the minimum set of C functions to run Forth and check the digital
-signature of the sandbox and application.
-Security depends on access to the QUIT loop. It should be password-locked.
-The RoT checks the signature of the application before running it.
+signature of the application.
+The RoT checks the signature of the application at each bootup.
 
-The sandbox contains C functions such as middleware and other features that may
-need to be updated, for security patching, bug fixes, etc.
-Firmware updaters would live in the sandbox.
-
-The application lives in the application space as tokenized code running in the sandbox.
+The application lives in the application space as tokenized code.
 An application can be compiled to flash or RAM.
 A RAM application will go away upon reboot.
 
+## Administration
+
+LiteForth has 3 access levels: 0, 1, or 2.
+The `config.h` file's SECURITY setting determines the default setting.
+
+- 0: Lets you re-flash the system.
+- 1: Allows compilation to RAM only.
+- 2: Supports authentication-based level change.
+
+A secure system boots up in access level 2.
+If you don't want to mess with security, leave SECURITY at 0. 
+Challenge-Response Authentication would be used to change levels:
+
+- Enter the security level you want, e.g. `0 challenge`.
+- LiteForth sends a random challenge. Copy the challenge to your clipboard.
+- Paste the challenge into a management server you've logged into.
+- If you have authorization, the server sends a response. Copy it.
+- Paste the response, e.g. `response: e68dcf707c9bfd1765a2db4aad7476c0`.
+- If the response was good, the level gets changed.
+
+The security level is volatile. Only compiling to Flash will permanently change it.
+
 ## Design for Flash
 
-LiteForth compiles to Flash. The notion of compiling code directly to Flash
-is attractive, but modern Flash architectures make it complicated.
+LiteForth compiles to Flash. Modern Flash architectures make it complicated.
 You can't just flip 1s to 0s because the ECC bits can't change from 0 to 1 without
-erasing the sector. The Flash rules (inspired by the CH32H417) are:
+erasing the sector. The Flash rules are:
 
-- A flash word line is 64-bit, ECC-protected. Program once per erase cycle.
+- A flash word line is ECC-protected. Program once per erase cycle.
 - Writing all ones to a flash word line does not count as a write.
-- A 256-byte page write flashes 32 word lines in parallel. Use when possible.
-- Erase sectors are 4K bytes (16 pages).
+- Page program may write multiple word lines in parallel for speed.
 
-Compilation to Flash is more like streaming to Flash.
-The stream goes into a 256-byte buffer that flushes into a page write,
-prefixed by a sector erase when beginning a new sector.
-If an 8-byte-aligned 8-bit value is left blank, it can be programmed later.
-To work within these constraints,
+| MCU       | ECC block | Page size | Sector size |
+|:----------|:----------|:----------|:------------|
+| STM32H743 | 256-bit   | 32 bytes  | 128K bytes  |
+| CH32H417  | 64-bit    | 256 bytes | 4K bytes    |
 
-- `align` advances the dictionary pointer to the next 8-byte-aligned address.
-- Strings and `c,` pack bytes, so the dictionary pointer addresses bytes.
-- Non-volatile store, `n2! ( d a -- )` needs the 64-bit data at `a` to be -1
-(`a` is the 8-byte block number).
-- Definitions are 8-byte-aligned.
-- `:` compiles into a RAM buffer, which is flushed by `;`.
-- Long forward references (`later foo`) compile an aligned 64-bit -1.
+To support large sectors, the dictionary is compiled inside a 128 KB RAM buffer
+rather than physical Flash. The 128 KB sector is flashed at the end,
+which typically takes 1.0s on a STM32H743 but could reach 2 to 4 seconds in rare cases.
+
+The 128 KB buffer is available for use by the application when not compiling to flash.
+Translation between LiteForth addresses and physical addresses uses a table in RAM.
+Changing this table transparently switches between the buffer and the target sector.
+
+The RoT is minimal by design, since it is immutable.
+You should never have to change it.
+The rest of the flash in that 128 KB sector could be filled by a C API.
+If some of those functions turn out to be bad, the application can put good versions
+in the application's native-code API and not use the old ones.
 
 ## Mass storage
 
 MicroSD cards are the ubiquitous mass storage for embedded devices.
 For a given capacity, Flash Translation Layer (FTL) control and erase sector size
-vary quite a bit. Cheap cards have very large sectors that could take 250 ms to erase.
+vary quite a bit. 
+Cheap cards have very large sectors that could take 250 ms to erase.
 High Endurance cards have better wear leveling.
 
 SD cards want to be written in much bigger chunks than 512 byte.
@@ -68,6 +86,7 @@ A block size of 4096 bytes is a good tradeoff between Write Amplification and
 working buffer size.
 
 Blocks are the default mass storage used by LiteForth to minimize RAM.
+They cause much less wear on Flash-based drives than text files.
 
 Editing text files requires a RAM buffer that fits the whole file.
 An MCU does not necessarily have that kind of RAM available.
@@ -80,8 +99,6 @@ If you LIST a screen, you get a 32-line screen dump up to 131 characters wide.
 
 ## Dual dictionaries
 
-LiteForth uses a split-dictionary scheme where temporary development structures are
-thrown away later. 
 Independent dictionaries are built in Flash memory and RAM.
 The RAM dictionary disappears after a hard reset (usually triggered by power loss).
 The Flash dictionary is persistent.
@@ -141,8 +158,8 @@ Peripheral physical cell address ranges for a CH32H417 are:
 - 10008000 to 1000FFFF = AHB / High-Speed Subsystems
 - 14000000 to 1400FFFF = Other AHB
 
-Address translation uses a static table whose index is taken from addr\[21:19].
-Another static table holds the upper address limit.
+Address translation uses a table whose index is taken from addr\[21:19].
+Another table holds the upper address limit.
 
 ## How find works
 
@@ -150,7 +167,7 @@ Headers exist as static const structs in Flash. Links are C pointers.
 `find` traverses a singly linked list and returns a pass/fail flag.
 It squirrels away the value field of the previous header for use by `see`.
 Forth access to the various header fields relies on C API calls due to
-their being outside the sandbox.
+their being inaccessible by `@` and `!`.
 
 In Forth, if a word is not found in the search order and it is not a number,
 it is an error. LiteForth searches an EQU list before throwing an error.
@@ -180,16 +197,24 @@ Either way, the compiler will not add padding to align the elements.
 | 4/8 | size_t link to previous header |
 | 4/8 | size_t pointer to name string |
 | 4 | value (number, CFA, text pointer, etc.) |
-| 3 | xte (execution xt) xt of execution semantics, negative for C fn |
-| 1 | flags (immediate, call-only, smudge) |
-| 3 | xtc (compilation xt) xt of compilation semantics, negative for C fn |
-| 1 | spare |
-| 2 | exdex index |
-| 2 | padding or start of name string |
+| 3 | xt, negative for C fn, positive for Forth |
+| 1 | flags |
+| 4 | documentation index |
 
-A dedicated 256-byte RAM buffer is used when adding headers to Flash.
+A dedicated 256-byte RAM buffer is used when adding headers to Flash at run time.
 
 static const headers defined at compile time use #define for semantic sugar.
+
+The order assumes little-endian, so `flags` is the upper byte of a uint32_t.
+The flags are:
+
+- 7: smudge
+- 6: immediate
+- 5: call-only
+- 4,3: type {word, no compile, no immediate, equ}
+- 2: documentation index included
+- 1: where-used list included
+- 0: reserved
 
 ## Boot sequence
 
@@ -200,7 +225,7 @@ The RoT checks the application image against its HMAC signature before launching
 If the HMAC does not match, it does not launch. Instead, it enters a QUIT loop.
 An MCU pin should be assigned to override the launch
 so that an app cannot brick the device.
-LiteForth generates the HMAC upon application installation using a hardware-locked token
+LiteForth generates a HMAC upon application installation using a hardware-locked token
 in the form of a random key generated the first time a freshly-flashed RoT boots.
 
 If a USB CDC uart is used, nothing is output at startup.
@@ -223,15 +248,6 @@ The original QUIT may be inaccessible after this extension,
 but the words it is built from are part of the C API.
 The RoT memory region contains an execution table with them.
 
-The application region of flash includes an execution table for the RoT QUIT loop
-to access the application's C API. The start of the application section has:
-
-- 32-byte HMAC
-- 4-byte offset to the initialization table
-- 4-byte offset to C code startup
-- Middleware API execution table
-- Initialization table
-
 After the C code starts up, it enters a macroloop that calls API function 0
 in the RoT to step the token interpreter.
 If there is no C app running, the token interpreter is stopped until the RoT's QUIT
@@ -249,3 +265,89 @@ When an arror is flagged, execution jumps to address 1 in the VM.
 - Accept the next character from the UART or other text stream. Exit if none.
 - If the character was a LF, interpret the input buffer.
 - If a problem occurs during interpretation, reset the stack.
+
+Interpretation of the input buffer follows the usual Forth REPL.
+The difference is that after number conversion fails, the token is compared to
+a constant list in block 1.
+
+Blocks 1 and above are treated as a constant list made up of 64-byte blocks.
+The first 4 bytes of the block are the number of table entries.
+
+## Application region Flash contents
+
+The RoT QUIT loop needs to know where the app's C API functions are.
+Data at the beginning of application flash contains that information:
+
+- 32-byte HMAC: If it's good, the following fields apply:
+- 4-byte offset to the initialization table, used to set the lexicon, idata, etc.
+- 2-byte length of size_t datatype in bytes
+- 2-byte number of function pointers, N, in the API execution table
+- N\*size_t API execution table, up to 512 C functions
+- Initialization table
+
+## Block usage
+
+Each mass storage block is 4 KB, not 1 KB as with Forth 79, 83, or 94.
+An SD card with two MBR partitions, with a 16 GB second partition,
+would hold 4M 4KB blocks. MBR (an old classic!) supports 2TB partitions
+if the drive uses 512-byte sectors.
+
+GPT partitioning supports essentially an infinite partition.
+However, a 32-bit block number can only address 16 TB of block storage.
+
+### Block 0
+
+No user code can be stored in Block 0.
+You can't `load` block 0, but you can list it.
+It contains basic boilerplate.
+Essential boilerplate identifies the partition type, so block 0 starts with
+the following human readable strings. Strings are ASCII with no delimiter.
+Blanks (leading or trailing) are ignored.
+Hex strings are hexadecimal (base 16) numbers.
+
+| Content | Index | Data type | For |
+|---------:|-------|:----------|:----|
+| LITEFORTHBLK | 00 | ASCII | Magic Number / Signature (Identifies it as Forth) |
+| 1        | 10 | hex | Version Number of block format |
+| 1000     | 14 | hex | Block size in bytes |
+| 400000   | 18 | hex | Total Blocks allocated in this partition |
+| 2        | 22 | hex | First block of constants list |
+| 5        | 2B | hex | Length of constants list (at 128 bytes each)|
+| 80       | 30 | hex | Columns per screen |
+| | 3A | | reserved (blank) |
+
+Viewed as a 64-column screen, with column numbers:
+```
+LITEFORTHBLK    1   1000    400000        2  3E8      80
+PartitionType   Ver Size Allocated EQUblock EQUs Columns
+0000000000000000111111111111111122222222222222223333333333333333
+0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+A description of this block file is here, maybe instructions too
+```
+Raw drive partitions can be edited with various hex editors:
+
+- **[HxD Hex Editor]**(https://mh-nexus.de) – A popular, free, and lightweight Windows
+editor with "Open disk" menu feature.
+- **[WinHex]**(https://x-ways.net) – An industry-standard commercial tool for Windows,
+capable of parsing MBR/GPT structures natively.
+- **[Active@ Disk Editor]**(https://disk-editor.org) – A free cross-platform tool
+(Windows, Linux, macOS).
+
+### Block 1
+
+Block 1 is loaded at startup.
+
+### Block 2
+
+Supposing EQUbegin is 2, this block contains a list of EQU constants.
+There are 32 EQUs per block.
+The EQUs are 128-byte-aligned, with the following fields:
+
+- 32-character string with trailing blanks
+- 9-character hex value with trailing blank
+- 87-character documentation text
+
+EQUs are in alphabetical order to facilitate binary search.
+If there are 1000 EQUs, the first 8 checks miss the 512-byte sector buffer.
+A search requires about 8 reads from the SDcard.
+At 0.2 to 0.6 ms per read, that would be 1.6 to 5 ms per lookup.

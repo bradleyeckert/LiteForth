@@ -173,10 +173,10 @@ The µops are:
 | bran | 5 | PC \= PC \+ s9 |
 | \-if | 6 | PC \= PC \+ s9 if T \>= 0 |
 | next | 7 | PC \= PC \+ s9 if R \> 0 else drop R | 
-| APIcall | 12 | Call API function in VM, no stack change |
-| APIcall+ | 13 | Call API function in VM, dup before call |
-| APIcall- | 14 | Call API function in VM, drop top of stack after call |
-| APIcall– | 15 | Call API function in VM, 2drop after call |
+| RFcall  | 12 | Call root function in VM, no stack change |
+| RFcall+ | 13 | Call root function in VM, dup before call |
+| AFcall  | 14 | Call app function in VM, no stack change |
+| AFcall+ | 15 | Call app function in VM, dup before call |
 
 The lex register supplies upper bits for literals and long calls/jumps.
 It is 19 bits wide. N `pfx` instructions add 9N bits to the usual 13-bit `imm` data.

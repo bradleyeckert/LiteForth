@@ -22,3 +22,12 @@ raw and cooked modes.
 When in raw mode, mouse and resize events are enabled,
 so they will send escape sequences.
 Linux key and mouse events are translated to Windows format.
+
+Text in LiteForth source blocks assumes UTF-8 and double-width CJK,
+as do most terminals.
+
+For Linux, most distros use a modern terminal like GNOME Terminal or Konsole (KDE)
+that default to system settings, which are usually UTF-8 and double-width CJK.
+
+For the Windows command prompt, `chcp 65001` enables UTF-8.
+the Windows terminal displays double-wide CJK automatically.

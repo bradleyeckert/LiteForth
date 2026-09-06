@@ -17,6 +17,7 @@ MacOS is not supported.
 #include <signal.h>
 
 #define BAUDRATE 115200
+#define STDOUT_SIZE 256
 
 #ifdef _WIN32
     #include <windows.h>
@@ -76,6 +77,23 @@ static volatile int loop_tail = 0;
     #define UNLOCK_LOOP() pthread_mutex_unlock(&loop_mutex)
 #endif
 
+#ifdef _WIN32
+    void enable_ansi() {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (hOut == INVALID_HANDLE_VALUE) return;
+
+        DWORD dwMode = 0;
+        if (!GetConsoleMode(hOut, &dwMode)) return;
+
+        // Inject the Virtual Terminal Processing flag
+        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        SetConsoleMode(hOut, dwMode);
+    }
+#else
+    void enable_ansi() {}
+#endif
+
+
 // Part 2: IO Buffer Drivers, Loopback Framework, and Hardware Port Discovery
 
 void loopback_write_char(char c) {
@@ -99,11 +117,18 @@ int loopback_read_char(void) {
     return res;
 }
 
-void emit_string(const char *str) {
-    while (*str) {
+// Send to stdout
+
+void emit_chars(const char *str, int length) {
+    for (int i = 0; i < length; i++) {
         putchar(*str++);
     }
     fflush(stdout);
+}
+
+void emit_string(const char *str) {
+    int len = strlen(str);
+    emit_chars(str, len);
 }
 
 // Global intermediate stream block-buffer infrastructure
@@ -418,16 +443,18 @@ void parse_bridge_stream(char c) {
 }
 
 THREAD_RETURN uart_to_stdout_thread(void *arg) {
-    (void)arg; char c=0;
+    (void)arg;
+    char buf[STDOUT_SIZE] = {0};
     if (loopback_mode) {
         while (1) {
             int ch = loopback_read_char();
-            if (ch != -1) { putchar(ch); fflush(stdout); }
+            char c = ch;
+            if (ch != -1) { emit_chars(&c, 1); }
             else {
 #ifdef _WIN32
-                Sleep(2);
+                Sleep(50);
 #else
-                usleep(2000);
+                usleep(50000);
 #endif
             }
         }
@@ -444,7 +471,7 @@ THREAD_RETURN uart_to_stdout_thread(void *arg) {
         // Initiate asynchronous tracking wait
         if (!WaitCommEvent(serial_fd, &dwCommEvent, &osStatus)) {
             if (GetLastError() == ERROR_IO_PENDING) {
-                // Thread suspends and waits here with ZERO CPU overhead until com0com delivers characters
+                // Thread suspends and waits here with ZERO CPU overhead until there is data
                 DWORD dwWait = WaitForSingleObject(osStatus.hEvent, INFINITE);
                 if (dwWait != WAIT_OBJECT_0) {
                     break;
@@ -457,10 +484,9 @@ THREAD_RETURN uart_to_stdout_thread(void *arg) {
 
         // Once signaled, continuously consume all characters currently waiting in the buffer
         DWORD br;
-        while (ReadFile(serial_fd, &c, 1, &br, &osStatus)) {
+        while (ReadFile(serial_fd, &buf, STDOUT_SIZE, &br, &osStatus)) {
             if (br > 0) {
-                putchar(c);
-                fflush(stdout);
+                emit_chars(buf, br);
             } else {
                 // Buffer is drained; go back to kernel sleep
                 break;
@@ -471,8 +497,7 @@ THREAD_RETURN uart_to_stdout_thread(void *arg) {
         if (GetLastError() == ERROR_IO_PENDING) {
             WaitForSingleObject(osStatus.hEvent, INFINITE);
             if (GetOverlappedResult(serial_fd, &osStatus, &br, FALSE) && br > 0) {
-                putchar(c);
-                fflush(stdout);
+                emit_chars(buf, br);
             }
         }
         
@@ -482,7 +507,9 @@ THREAD_RETURN uart_to_stdout_thread(void *arg) {
     
     CloseHandle(osStatus.hEvent);
 #else
-    while (read(serial_fd, &c, 1) > 0) { putchar(c); fflush(stdout); }
+    while (int br = read(serial_fd, &buf, STDOUT_SIZE) {
+        emit_chars(buf, br); 
+    }
 #endif
     return 0;
 }
@@ -553,8 +580,11 @@ int main(int argc, char *argv[]) {
 #endif
 
     char in_char=0;
+    setvbuf(stdout, NULL, _IONBF, 0);
 #ifdef _WIN32
-    DWORD rl; 
+	enable_ansi(); // Enable ANSI escape sequence processing on Windows console
+    DWORD rl;
+	// This loop is responsive - stdin is sent out the COM port promptly.
     while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), &in_char, 1, &rl, NULL) && rl > 0) {
         // In raw mode, Ctrl+C arrives as literal ASCII byte value 0x03
         if (is_raw_mode && in_char == 0x03) {

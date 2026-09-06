@@ -31,3 +31,5 @@ that default to system settings, which are usually UTF-8 and double-width CJK.
 
 For the Windows command prompt, `chcp 65001` enables UTF-8.
 The Windows terminal displays double-wide CJK automatically.
+`lfcom` enables ANSI sequences on the Windows command prompt.
+ConEmu is a nice Windows terminal, but a little sluggish handling stdout.

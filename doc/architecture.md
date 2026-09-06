@@ -23,14 +23,14 @@ A RAM application will go away upon reboot.
 
 ## Administration
 
-LiteForth has 3 access levels: 0, 1, or 2.
+LiteForth has 3 security levels: 0, 1, or 2.
 The `config.h` file's SECURITY setting determines the default setting.
 
 - 0: Lets you re-flash the system.
 - 1: Allows compilation to RAM only.
 - 2: Supports authentication-based level change.
 
-A secure system boots up in access level 2.
+A secure system boots up in security level 2.
 If you don't want to mess with security, leave SECURITY at 0. 
 Challenge-Response Authentication would be used to change levels:
 
@@ -41,7 +41,8 @@ Challenge-Response Authentication would be used to change levels:
 - Paste the response, e.g. `response: e68dcf707c9bfd1765a2db4aad7476c0`.
 - If the response was good, the level gets changed.
 
-The security level is volatile. Only compiling to Flash will permanently change it.
+The security level is volatile.
+Only compiling to Flash will permanently change it (jailbreak the device).
 
 ## Design for Flash
 
@@ -90,7 +91,7 @@ They cause much less wear on Flash-based drives than text files.
 
 Editing text files requires a RAM buffer that fits the whole file.
 An MCU does not necessarily have that kind of RAM available.
-In addition, verbose error messages that list the source requires a buffer for
+In addition, verbose error messages that list the source require a buffer for
 the file nesting of `include`.
 
 Editing a screen only requires a 4K buffer. Deviating from the 1994 ANS standard,
@@ -290,10 +291,13 @@ Data at the beginning of application flash contains that information:
 Each mass storage block is 4 KB, not 1 KB as with Forth 79, 83, or 94.
 An SD card with two MBR partitions, with a 16 GB second partition,
 would hold 4M 4KB blocks. MBR (an old classic!) supports 2TB partitions
-if the drive uses 512-byte sectors.
+on SD cards.
 
 GPT partitioning supports essentially an infinite partition.
 However, a 32-bit block number can only address 16 TB of block storage.
+
+Supposing a code space of 256 KB, a 32:1 source-to-object ratio
+(the code has lots of comments) is 8 MB (2K blocks).
 
 ### Block 0
 
@@ -306,20 +310,21 @@ Blanks (leading or trailing) are ignored.
 Hex strings are hexadecimal (base 16) numbers.
 
 | Content | Index | Data type | For |
-|---------:|-------|:----------|:----|
+|--------:|-------|:----------|:----|
 | LITEFORTHBLK | 00 | ASCII | Magic Number / Signature (Identifies it as Forth) |
-| 1        | 10 | hex | Version Number of block format |
-| 1000     | 14 | hex | Block size in bytes |
-| 400000   | 18 | hex | Total Blocks allocated in this partition |
-| 2        | 22 | hex | First block of constants list |
-| 5        | 2B | hex | Length of constants list (at 128 bytes each)|
-| 80       | 30 | hex | Columns per screen |
+| 1       | 10 | hex | Version Number of block format |
+| 1000    | 14 | hex | Block size in bytes |
+| 100     | 18 | hex | Total Blocks allocated in this partition |
+| 100     | 22 | hex | First write-protected block |
+| 2       | 2C | hex | First block of constants list |
+| 5       | 35 | hex | Length of constants list (at 128 bytes each) |
+| 80      | 3A | hex | Columns per screen |
 | | 3A | | reserved (blank) |
 
 Viewed as a 64-column screen, with column numbers:
 ```
-LITEFORTHBLK    1   1000    400000        2  3E8      80
-PartitionType   Ver Size Allocated EQUblock EQUs Columns
+LITEFORTHBLK    1   1000       100       100        2  3E8   80
+PartitionType   Ver Size Allocated WRprotect EQUblock EQUs Cols
 0000000000000000111111111111111122222222222222223333333333333333
 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
 A description of this block file is here, maybe instructions too

@@ -1,7 +1,7 @@
 /** 
 
 UART-terminal bridge console app "lfcom" compiles with:
-- Linux using standard C11 with gcc or clang, status = quits after opening port.
+- Linux using standard C11 with gcc or clang, status = quits after opening port (not sure).
 - Windows using standard Win32 SDK, status = ok (runs).
 
 MacOS is not supported.
@@ -584,7 +584,6 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
 	enable_ansi(); // Enable ANSI escape sequence processing on Windows console
     DWORD rl;
-	// This loop is responsive - stdin is sent out the COM port promptly.
     while (ReadFile(GetStdHandle(STD_INPUT_HANDLE), &in_char, 1, &rl, NULL) && rl > 0) {
         // In raw mode, Ctrl+C arrives as literal ASCII byte value 0x03
         if (is_raw_mode && in_char == 0x03) {

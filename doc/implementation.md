@@ -24,14 +24,17 @@ For an MCU-based platform, the chip vendor's IDE is used.
 
 ## termio
 
-Terminal I/O uses three functions: 
+Terminal I/O uses 6 functions: 
 
-- `kbinit` initializes the UART, COM port, or terminal I/O
-- `kbhit` returns the status of the input port
-- `kbget` return the next byte from the input port
+- `int kbopen(char *port_name, int baud)` initializes the COM port or terminal I/O, return 0 if okay
+- `int kbfull(void)` returns the status of the input port: -1 if full, 0 if no char
+- `int kbready(void)` returns the status of the output port: -1 if ready, 0 if busy
+- `int kbgetc(void)` returns the next byte from the input port, -1 if none
+- `void kbputc(char c)` sends a byte to the output port
+- `void kbclose(void)` closes the open port, if necessary
 
 The console app can use either a terminal or a COM port as stdio.
-Port -1 is the terminal.
+Port "TERM" is the terminal.
 
 ## flash
 

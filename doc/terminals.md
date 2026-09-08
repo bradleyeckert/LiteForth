@@ -10,13 +10,15 @@ Sometimes you want it in raw mode.
 - Cooked mode: REPL loop (console input)
 - Raw mode: Screen editors or other cursor-heavy apps
 
-The Linux and Windows ports of LiteForth natively switch between raw and cooked modes.
-The embedded ports cannot switch, you must do it manually.
+The Linux and Windows ports of LiteForth natively switch the terminal between raw and cooked modes.
+The embedded (MCU) ports cannot switch, you must do it manually.
 
 -----
-## LiteForth in Linux 
+# LiteForth in Linux 
 
 The default terminal is okay.
+
+You can give a serial port name as an argument to connect to a serial port instead of `stdio`.
 
 ## Linux terminal, Embedded LiteForth
 
@@ -36,6 +38,10 @@ There are many alternatives to Windows Terminal. Some that may work are:
 - Alacritty: A cross-platform, GPU-accelerated terminal emulator known for pure speed.
 - WezTerm: A GPU-accelerated terminal emulator for Windows.
 - Mintty: The default terminal wrapper installed alongside Git Bash, MSYS2, and Cygwin.
+
+You can give a serial port name as an argument to connect to a serial port instead of `stdio`.
+In that case, you could use a serial cable emulator like `com0com`.
+Another window on your PC would treat it as a serial-connected MCU port.
 
 ## Windows terminal, Embedded LiteForth
 

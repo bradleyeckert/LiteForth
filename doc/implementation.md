@@ -42,16 +42,21 @@ In a console app, flash and mass storage are simulated by binary files.
 The default filenames are `lfflash.bin` and `lfblocks.bin`,
 but may be changed by command line options `-f` and `-b`.
 `flash.c` gets the flash sector size and page programming size from `options.h`.
-The mass storage size is read from block 0.
+File options.h contains #defines for SIMNUMBLOCKS and FLASHSECTORSIZE.
+File flash.c contains functions that typically return 0 if okay, other if error:
 
-MCU Flash the physical flash, in a section placed by the linker file.
+- `#define SIMNUMBLOCKS` is the number of blocks the simulator has for mass storage.
+- `int mass_init(char *filename)` initializes the SD card or mass storage.
+- `int mass_read(uint32_t blk, uint32_t *dest)` reads a 4KB block, return 0 if okay.
+- `int mass_write(uint32_t blk, uint32_t *src)` writes a 4KB block.
+- `uint32_t flashmem[SIMNUMBLOCKS<<10]` is the flash memory, real or simulated.
+- `int flash_init(char *filename)` initializes the flash for reading.
+- `int flash_sector(uint32_t *m)` copies `m` to a Flash sector of size FLASHSECTORSIZE.
+- `int flash_rndkey(void)` fills in a random key at the end of the sector.
+
+MCU Flash is the physical flash, in a section placed by the linker file.
 It is read-only, except for a "flash and erase" function that flashes an entire sector
 from RAM.
-
-- `flashmem` is the flash memory, real or simulated.
-- `flash_init` initializes the flash for reading.
-- `flash_sector` erases and copies RAM to a Flash sector. Skip programming if blank.
-- `flash_rndkey` fills in a random key.
 
 MCU sector flashing takes some time, depending on the sector size. For a 128 KB sector,
 
@@ -63,12 +68,9 @@ MCU sector flashing takes some time, depending on the sector size. For a 128 KB 
 Erase is a blocking operation, so the terminal may hang for a second or two
 while the sector erases and programs.
 
+The mass storage size is read from block 0.
 Mass storage can be write-protected via its header field in block 0. 
 It's like the write-protect switch on a 3.5" floppy, but more like a slider.
-
-- `mass_init` initializes the SD card or mass storage.
-- `mass_read` reads a 4KB block.
-- `mass_write` writes a 4KB block.
 
 ## periph
 

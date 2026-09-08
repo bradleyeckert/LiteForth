@@ -92,7 +92,7 @@ The `variable` keyword is equivalant to `32 bits`.
 width, from 1 to 16 bits. `@` and `!` will work with any width.
 For compatibility with ANS Forth, `c@` and `c!` are aliases of `@` and `!`.
 
-## ISA
+# ISA
 
 All instructions are 16-bit.
 If more data is needed, a `prefix` instruction pre-loads a register for it.
@@ -189,10 +189,25 @@ Zoo instructions include:
 | x\! | 0 | X \= T, drop T |
 | y\! | 1 | Y \= T, drop T |
 | throw | 2 | VM quits and returns ior \= T |
+| depth | 3 | T = depth |
+
+Root functions and App functions are useful when the ISA is simulated.
+C functions for eliminating hot spots are accessed through two execution tables.
+One set of functions lives in immutable root-of-trust memory.
+The other lives in updatable application memory.
 
 ## Stacks
 
 For simulation in C, the stacks are 256-deep for implementation
 with uint8_t stack pointers. The data and return stacks share a 256x32 RAM.
 
-                                                                             
+The stack pointers are not readable. There is a depth counter, though.
+
+## Because
+
+It's an ISA that's easy to make in hardware.
+The instruction fetch runs in parallel with a 3-clock instruction sequence.
+Return is in parallel with the 3-clock instruction sequence.
+
+So, although the ISA is simulated, the binary could one day be run on real hardware.
+An ASIC would be great, but you can live the dream now. MCUs are cheap. 

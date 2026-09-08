@@ -80,9 +80,7 @@ The line overflow occurs a blank-delimited-word at a time to avoid splitting the
 ## mind detritus
 
 I was given an awesome OLED monitor that has a non-standard RGB layout.
-Cleartype/Truetype does not render well on such a monitor, so some apps look worse.
-Dark mode fixed the look of Notepad++. I opened a WSL Window - it looked fine. 
-Windows Terminal should be a great text editing window.
-But what about all of the wonderful search tools of modern Windows text editors?
-Who cares? An editor integrated into Forth has instant access to glossary, semantic hints,
-and documentation in addition to memory contents.
+ClearType/TrueType does not render well on such a monitor, so some apps look worse.
+If you get one of these babies, change to dark themes and plan on enlarging global text
+to compensate for the loss of ClearType. Not sure I would recommend non-standard RGB.
+But still, terminals look great in OLED.

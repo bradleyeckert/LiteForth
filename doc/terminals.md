@@ -12,8 +12,9 @@ Sometimes you want it in raw mode.
 
 The Linux and Windows ports of LiteForth natively switch between raw and cooked modes.
 The embedded ports cannot switch, you must do it manually.
+
 -----
-## Linux terminal, Linux LiteForth
+## LiteForth in Linux 
 
 The default terminal is okay.
 
@@ -25,7 +26,7 @@ socat -G -,raw,echo=0 /dev/ttyUSB0,raw,b115200,echo=0 # raw mode
 socat - /dev/ttyUSB0,raw,b115200,echo=0            # cooked mode
 ```
 -----
-## Windows terminal, Windows LiteForth
+## LiteForth in Windows
 
 The default terminal is mostly okay. Use Windows Terminal, not `cmd.com`.
 Enter `chcp 65001` to enable UTF-8, if it is not already enabled.
@@ -70,3 +71,14 @@ Insertion simulates a text editor, eating the trailing blanks on a line.
 Text that overflows a line goes onto the next line after inserting a blank line.
 If this results in text being lost from the last line of the block, an error is reported.
 The line overflow occurs a blank-delimited-word at a time to avoid splitting the text.
+
+-----
+## mind detritus
+
+I was given an awesome OLED monitor that has a non-standard RGB layout.
+Cleartype/Truetype does not render well on such a monitor, so some apps look worse.
+Dark mode fixed the look of Notepad++. I opened a WSL Window - it looked fine. 
+Windows Terminal should be a great text editing window.
+But what about all of the wonderful search tools of modern Windows text editors?
+Who cares? An editor integrated into Forth has instant access to glossary, semantic hints,
+and documentation in addition to memory contents.

@@ -22,37 +22,58 @@ Threads are used to make console I/O non-blocking.
 
 For an MCU-based platform, the chip vendor's IDE is used.
 
-## termio
+Flash memory supplies *regions*, which are contiguous runs of *sectors*.
+The application region starts with a data structure that is followed by optional
+C functions, Forth code, and Forth dictionary. This data structure is loaded at boot
+to set up addressing used by the VM.
 
-Terminal I/O uses 6 functions: 
+## serial_io
 
-- `int kbopen(char *port_name, int baud)` initializes the COM port or terminal I/O, return 0 if okay
-- `int kbfull(void)` returns the status of the input port: -1 if full, 0 if no char
-- `int kbready(void)` returns the status of the output port: -1 if ready, 0 if busy
-- `int kbgetc(void)` returns the next byte from the input port, -1 if none
-- `void kbputc(char c)` sends a byte to the output port
-- `void kbclose(void)` closes the open port, if necessary
+Terminal I/O uses these functions: 
+
+- `int set_terminal_mode(int enable)` sets the terminal mode if using `stdio`. 1 for raw, 0 for cooked
+- `int serial_open(char* name, int baudrate)` initialize the COM port or terminal I/O, return 0 if okay
+- `void serial_close(void);` close the open port, if necessary
+- `int serial_ready(void)` return the status of the input port: 1 if has a char, 0 if not
+- `int serial_busy(void)` return the status of the output port: 0 if ready, 1 if busy, else ERR_\*
+- `int serial_getc(void)` return the next byte from the input port, -1 if none
+- `int serial_putc(int c)` send a byte to the output port
 
 The console app can use either a terminal or a COM port as stdio.
 Port "TERM" is the terminal.
 
+## options
+
+An options.h file sets LiteForth options.
+
+- `#define RAMSIZE` sets the VM's data RAM size in 32-bit cells
+- `#define ROMSIZE` sets the VM's data ROM size in 32-bit cells
+- `#define BLOCKFILENAME` is the default mass storage file name
+- `#define SIMNUMBLOCKS` is the number of blocks for mass storage simulation
+- `#define FLASHFILENAME` is the default Flash simulation file name
+- `#define FLASHAPPSECTORSIZE` sets the Flash sector size in uint32s
+- `#define FLASHAPPSECTORS` sets the number of sectors in the app region of Flash
+
 ## flash
 
-In a console app, flash and mass storage are simulated by binary files.
-The default filenames are `lfflash.bin` and `lfblocks.bin`,
-but may be changed by command line options `-f` and `-b`.
-`flash.c` gets the flash sector size and page programming size from `options.h`.
-File options.h contains #defines for SIMNUMBLOCKS and FLASHSECTORSIZE.
 File flash.c contains functions that typically return 0 if okay, other if error:
 
-- `#define SIMNUMBLOCKS` is the number of blocks the simulator has for mass storage.
-- `int mass_init(char *filename)` initializes the SD card or mass storage.
-- `int mass_read(uint32_t blk, uint32_t *dest)` reads a 4KB block, return 0 if okay.
-- `int mass_write(uint32_t blk, uint32_t *src)` writes a 4KB block.
-- `uint32_t flashmem[SIMNUMBLOCKS<<10]` is the flash memory, real or simulated.
+- `uint32_t flashmem[FLASHAPPSECTORSIZE*FLASHAPPSECTORS]` is global flash memory, real or simulated.
 - `int flash_init(char *filename)` initializes the flash for reading.
-- `int flash_sector(uint32_t *m)` copies `m` to a Flash sector of size FLASHSECTORSIZE.
-- `int flash_rndkey(void)` fills in a random key at the end of the sector.
+- `int flash_sector(uint32_t *m, int sector)` copies `m` to a Flash sector of `FLASHAPPSECTORSIZE`.
+- `int flash_rndkey(void)` fills in a random key at the end of the RoT sector.
+
+### Desktop implementation
+
+In a console app, flash is simulated by a binary file.
+The default filename is `FLASHFILENAME`, but may be changed by command line option `-f`.
+`flash.c` get the flash sector size and page programming size from `options.h`.
+`flash_init` check for the file's existence. If it does not exist, create a blank file.
+Initialize `flashmem` with the file contents and close the file.
+`flash_sector` open the file, write a segment of `flashmem` to it, and close the file.
+`flash_rndkey` do nothing.
+
+### MCU implementation
 
 MCU Flash is the physical flash, in a section placed by the linker file.
 It is read-only, except for a "flash and erase" function that flashes an entire sector
@@ -68,9 +89,26 @@ MCU sector flashing takes some time, depending on the sector size. For a 128 KB 
 Erase is a blocking operation, so the terminal may hang for a second or two
 while the sector erases and programs.
 
-The mass storage size is read from block 0.
+## blocks
+
+The mass storage size is read from block 0. A blank file would contain mostly ASCII spaces.
 Mass storage can be write-protected via its header field in block 0. 
 It's like the write-protect switch on a 3.5" floppy, but more like a slider.
+A blank "Block 0" starts with the following minimum text:
+```
+LITEFORTHBLK    1   1000       100       100
+```
+The fields are:
+
+1. Signature (Identifies it as LiteForth blocks)
+1. Version Number of block format
+1. Block size in bytes (hex format)
+1. Total Blocks allocated in this file (hex format, use SIMNUMBLOCKS)
+1. First write-protected block (hex format)
+
+- `int blk_init(char *filename)` initializes mass storage, reads the write-protect value.
+- `int blk_read(uint32_t blk, uint32_t *dest)` read a 4KB block, return 0 if okay.
+- `int blk_write(uint32_t blk, uint32_t *src)` write a 4KB block, return error if write-protected.
 
 ## periph
 

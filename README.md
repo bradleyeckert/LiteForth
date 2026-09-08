@@ -92,6 +92,12 @@ The `variable` keyword is equivalant to `32 bits`.
 width, from 1 to 16 bits. `@` and `!` will work with any width.
 For compatibility with ANS Forth, `c@` and `c!` are aliases of `@` and `!`.
 
+## Unified address space
+
+Code and data addresses start at 0. Memory is 32-bit, cell-addressed.
+To execute 16-bit code from this 32-bit memory, instructions are packed into pairs.
+The address is (PC >> 1) and the data for `inst` is right-shifted by 16 if the LSB of PC is 1.
+
 # ISA
 
 All instructions are 16-bit.
@@ -198,16 +204,8 @@ The other lives in updatable application memory.
 
 ## Stacks
 
-For simulation in C, the stacks are 256-deep for implementation
-with uint8_t stack pointers. The data and return stacks share a 256x32 RAM.
+For simulation, the stacks are power-of-2 deep, plus one register for the
+top of the return stack and two for the top of the data stack.
 
 The stack pointers are not readable. There is a depth counter, though.
-
-## Because
-
-It's an ISA that's easy to make in hardware.
-The instruction fetch runs in parallel with a 3-clock instruction sequence.
-Return is in parallel with the 3-clock instruction sequence.
-
-So, although the ISA is simulated, the binary could one day be run on real hardware.
-An ASIC would be great, but you can live the dream now. MCUs are cheap. 
+Stacks are allowed to underflow or overflow, which makes the stack pointer not match the depth.

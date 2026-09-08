@@ -14,7 +14,7 @@ The Linux and Windows ports of LiteForth natively switch the terminal between ra
 The embedded (MCU) ports cannot switch, you must do it manually.
 
 -----
-# LiteForth in Linux 
+## LiteForth in Linux 
 
 The default terminal is okay.
 
@@ -27,7 +27,6 @@ To connect the terminal to a UART:
 socat -G -,raw,echo=0 /dev/ttyUSB0,raw,b115200,echo=0 # raw mode
 socat - /dev/ttyUSB0,raw,b115200,echo=0            # cooked mode
 ```
------
 ## LiteForth in Windows
 
 The default terminal is mostly okay. Use Windows Terminal, not `cmd.com`.
@@ -78,7 +77,6 @@ Text that overflows a line goes onto the next line after inserting a blank line.
 If this results in text being lost from the last line of the block, an error is reported.
 The line overflow occurs a blank-delimited-word at a time to avoid splitting the text.
 
------
 ## mind detritus
 
 I was given an awesome OLED monitor that has a non-standard RGB layout.

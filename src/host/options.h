@@ -50,12 +50,12 @@
  * The size of a single simulated hardware sector, measured in 32-bit (uint32_t) cells.
  * Example: 1024 cells * 4 bytes/cell = 4096 bytes (4KB) per sector.
  */
-#define FLASHAPPSECTORSIZE      1024
+#define FLASHAPPSECTORSIZE      (128*256)
 
 /**
  * Number of Application Flash Sectors
  * The total count of sectors mapped into the application region of the flash array.
  */
-#define FLASHAPPSECTORS         64
+#define FLASHAPPSECTORS         2
 
 #endif /* OPTIONS_H */

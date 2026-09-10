@@ -1,30 +1,32 @@
 # LiteForth Architecture
 
 The QUIT loop of LiteForth is based on C. 
-Execution tokens (*xt*) may refer to either C functions or Forth definitions.
-They are negative for C functions, positive for Forth definitions.
+Execution tokens (*xt*) may refer to either native instructions or Forth definitions.
+Native instructions are simulated ISA instructions that encode Forth primitives in machine code.
 
-There are three regions of memory in the boot chain:
+LiteForth is meant for MCUs or FPGAs, but being 'C', also runs on a Windows or Linux desktop.
+The C application, whether running in an MCU or a PC, has an empty-by-default RAM-based dictionary for extensibility.
 
-| Region  |  Write access |
-|:--------|:--------------|
-| Root-of-Trust (RoT) | None |
-| Application Flash   | RoT  |
-| Application RAM     | RoT, Application |
+When running in an MCU, Application Flash is included in the dictionary.
+LiteForth looks for the application at a physical `#define APP_FLASH_ADDRESS` and includes it in the search order
+if it exists. The desktop version defines `APP_FLASH_ADDRESS (0)` since desktop C cannot use physical addresses.
+Instead, it includes a Flash memory simulator that loads a binary file. 
 
-The QUIT loop lives in the RoT. The RoT is immutable.
-It contains the minimum set of C functions to run Forth and check the digital
-signature of the application.
-The RoT checks the signature of the application at each bootup.
+In a typical MCU use case, LiteForth would run in the bottom write-protected sector(s) of MCU Flash,
+often called the "Root of Trust" (RoT). It would check the app's HMAC signature at each bootup.
+Application-specific C functions (the RoT API) would be in the RoT. The RoT launches a valid application.
+The RoT is permanent. If the JTAG port is disabled, it is truly permanent.
+The only way to change it would be to desolder the MCU and install a new one.
 
-The application lives in the application space as tokenized code.
-An application can be compiled to flash or RAM.
-A RAM application will go away upon reboot.
+The main application runs in Application Flash. You can change this. If a function in the RoT API is bad,
+it can be re-implemented in the App API, a list of C functions in Application Flash.
+The Forth application would use the new version of the API function.
+In the desktop version, the App API list is empty. Only Forth definitions are supported.
 
 ## Administration
 
 LiteForth has 3 security levels: 0, 1, or 2.
-The `config.h` file's SECURITY setting determines the default setting.
+The `options.h` file's SECURITY setting determines the default setting.
 
 - 0: Lets you re-flash the system.
 - 1: Allows compilation to RAM only.
@@ -59,19 +61,86 @@ erasing the sector. The Flash rules are:
 | STM32H743 | 256-bit   | 32 bytes  | 128K bytes  |
 | CH32H417  | 64-bit    | 256 bytes | 4K bytes    |
 
-To support large sectors, the dictionary is compiled inside a 128 KB RAM buffer
+To support a STM32H743, the dictionary is compiled inside a 128 KB RAM buffer
 rather than physical Flash. The 128 KB sector is flashed at the end,
 which typically takes 1.0s on a STM32H743 but could reach 2 to 4 seconds in rare cases.
 
 The 128 KB buffer is available for use by the application when not compiling to flash.
-Translation between LiteForth addresses and physical addresses uses a table in RAM.
-Changing this table transparently switches between the buffer and the target sector.
+The first write to Flash space switches to virtual Flash by reading Flash into a the buffer. 
+Writes outside of the buffer swap in the new sector after saving the old one.
+An erase counter is maintained for each sector to instrument erase-thrashing.
 
-The RoT is minimal by design, since it is immutable.
-You should never have to change it.
-The rest of the flash in that 128 KB sector could be filled by a C API.
-If some of those functions turn out to be bad, the application can put good versions
-in the application's native-code API and not use the old ones.
+The open sector, if any, should be manually closed at the end of the file with `finalize`
+to avoid data loss.
+
+The dictionary flash consists of:
+
+- 32-byte HMAC
+- 4-byte pointer to system structure
+- Code space
+- Unused
+- Header space
+- Unused
+- Data space
+- Unused
+- System structure
+
+`FLASHAPPSECTORSIZE` should be sized to handle code and header space. If is too small,
+there will be erase-thrashing if code and header writes are to different sectors.
+A nice-sized Forth application may have 1000 words (20 KB of headers) and 20 KB of code.
+In that case, `#define FLASHAPPSECTORSIZE 16384` would make the flash sector size 64 KB.
+The next contiguous sector, starting at cell address 4000h, would be data space.
+
+## VM memory addressing
+
+Memory spaces are statically allocated arrays in C.
+The static const headers compile directly to C's `.text` or `.rodata` section.
+
+The VM bounds-checks memory addresses and translates them to various regions:
+
+| Memory space     | Address Map      | Section  | #define |
+|:-----------------|:-----------------|:---------|:--------|
+| RAM dictionary   | 000000 - 0FFFFF  | .vmram   | RDATA_CELLS |
+| Peripherals      | 100000 - 1FFFFF  | | |
+| Flash dictionary | 200000 - 2FFFFF  | .vflash1 | FLASHAPPSECTORSIZE, FLASHAPPSECTORS |
+| Flash2 dictionary| 300000 - 3FFFFF  | .vflash2 | FLASHAPPSECTORS2 |
+
+The implications on ISA encoding are not much. Thanks to `rcall` and `bran`, code anywhere
+in memory can usually do with compact calls and jumps.
+22-bit literals can be formed by two 16-bit instructions.
+Short literals are 13-bit. They are preferred to access RAM variables, so RAM is at the
+bottom of the memory map space. At reset, the PC jumps to the 9th cell in the Flash dictionary.
+
+Note that .flash must be defined in the `.ld` linker file to be sector-aligned.
+Its size in bytes should be at least (FLASHAPPSECTORSIZE \* FLASHAPPSECTORS + FHEAD_CELLS\*4).
+Flash2 is there to support a gap in physical addresses, such would be seen with STM32H743-xG parts.
+It could be used with SPI Flash instead.
+
+The address space is designed for ease of decoding.
+The maximum size of most regions is 1M cells. IRL, they will be smaller.
+Addresses above 003FFFFF are not allowed in LiteForth, but the C API may use them.
+
+RAM and peripherals are placed in a 22-bit address space to work with `@` and `!`.
+Peripheral physical cell address ranges for a CH32H417 are:
+
+| VM Address       | Physical Address     | MCU usage                   |
+|:-----------------|:---------------------|:----------------------------|
+| 100000 to 303FFF | 10000000 to 10003FFF | APB1 peripherals            |
+| 104000 to 307FFF | 10004000 to 10007FFF | APB2 peripherals            |
+| 108000 to 30FFFF | 10008000 to 1000FFFF | AHB / High-Speed Subsystems |
+| 110000 to 31FFFF | 14000000 to 1400FFFF | Other AHB                   |
+
+There are two instances of the code, header, and data pointers. To choose what `here` means:
+
+- `ram` selects the RAM dictionary
+- `rom` selects the Flash dictionary
+- `code` selects the code pointer
+- `heads` selects the header pointer
+- `data` selects the data pointer
+- `here` gets the current pointer (`code here`, `data here`, `heads here`)
+- `org` sets the section origin (`100 code org`, `4000 heads org`, `8000 data org`)
+- `unused` calculates the unused cells based on the standard layout using the origins and `here`
+- `,` appends to the current space
 
 ## Mass storage
 
@@ -105,7 +174,7 @@ The RAM dictionary disappears after a hard reset (usually triggered by power los
 The Flash dictionary is persistent.
 There are 3 different compilation styles:
 
-| Style | Headers | Code | Usage |
+| Style      | Headers | Code  | Usage |
 |:-------------|:------|:------|:------|
 | `permanent`  | Flash | Flash | Compiling application words into Flash |
 |              | Flash | RAM   | Unused |
@@ -125,42 +194,6 @@ Style transitions:
 - headerless to temporary: Restore RAM header pointer
 
 The compiler will throw an error if a permanent definition compiles temporary code.
-
-Memory spaces are statically allocated arrays in C.
-Flash spaces are 4KB-aligned in the linker configuration file.
-The static const headers compile directly to C's `.text` or `.rodata` section.
-
-The sandbox bounds-checks memory addresses and translates them to various regions:
-
-| Memory space | Width | Address Map | Pointer | Section | #define |
-|:-------------|:-------|:----------------|:----|:------------|:----|
-| RAM Data     | 32-bit | 000000 - 0FFFFF | dpr | .bss | DATA_CELLS |
-| Flash Data   | 32-bit | 100000 - 1FFFFF | dpf | .flash | FDATA_CELLS |
-| Peripherals  | 32-bit | 200000 - 2FFFFF |     | | |
-| RAM Code     | 16-bit | 300000 - 37FFFF | cpr | .bss | CODE_CELLS |
-| Flash Code   | 16-bit | 380000 - 3FFFFF | cpf | .flash | FCODE_CELLS |
-| Flash Headers| 32-bit | Access via C API | hpf | .flash | FHEAD_CELLS |
-| RAM Headers  | 32-bit | Access via C API | hpr | .bss | HEAD_CELLS |
-
-Note that .flash must be defined in the `.ld` linker file to be 4KB-aligned.
-Its size in bytes should be at least (FDATA_CELLS\*4 + FCODE_CELLS\*2 + FHEAD_CELLS\*4).
-Also, FCODE_CELLS must be a multiple of 2048, and FDATA_CELLS and FHEAD_CELLS
-must be a multiple of 1024 to align the arrays on Flash sector boundaries.  
-
-The address space is designed for ease of decoding.
-The maximum size of most regions is 1M cells. IRL, they will be smaller.
-Addresses above 003FFFFF are not allowed in LiteForth, but the C API may use them.
-
-RAM and peripherals are placed in a 22-bit address space to work with `@` and `!`.
-Peripheral physical cell address ranges for a CH32H417 are:
-
-- 10000000 to 10003FFF = APB1 peripherals
-- 10004000 to 10007FFF = APB2 peripherals
-- 10008000 to 1000FFFF = AHB / High-Speed Subsystems
-- 14000000 to 1400FFFF = Other AHB
-
-Address translation uses a table whose index is taken from addr\[21:19].
-Another table holds the upper address limit.
 
 ## How find works
 
@@ -185,37 +218,56 @@ There are no C functions in the application region.
 The sandbox main app runs the Forth app by calling the `VMsteps` function
 in a macroloop.
 
-### Headers
+Headers are created and accessed by C functions.
 
-Headers are created by a C function. When invoked by Forth, a buffer holds the
-parameters used to populate the header.
-With 32-bit pointers, the header is 24 bytes.
-With 64-bit pointers, it is 32 bytes.
-Either way, the compiler will not add padding to align the elements.
+| BYTES| USAGE |
+|:-----|:-------------------------------------------|
+| 4/8  | size_t link to previous header             |
+| 4/8  | size_t pointer to name string              |
+| 4    | value (number, CFA, text pointer, etc.)    |
+| 4    | flags:aux                                  |
 
-| BYTES | USAGE |
-|:----|:---------|
-| 4/8 | size_t link to previous header |
-| 4/8 | size_t pointer to name string |
-| 4 | value (number, CFA, text pointer, etc.) |
-| 3 | xt, negative for C fn, positive for Forth |
-| 1 | flags |
-| 4 | documentation index |
+### flags:xt packing:
 
-A dedicated 256-byte RAM buffer is used when adding headers to Flash at run time.
+| BIT | NAME       | MEANING |
+|:----|:-----------|:--------|
+| 31  | smudge     | Set by `:`, cleared by `;` |
+| 30  | call-only  | Inhibit tail-calls for this word |
+| 29  | immediate  | Interpret this word as immediate |
+| 28:27 | type     | Type of data in value |
+| 26:0 | aux       | Index of mass storage extension data |
 
-static const headers defined at compile time use #define for semantic sugar.
+**2-bit type:**
 
-The order assumes little-endian, so `flags` is the upper byte of a uint32_t.
-The flags are:
+0. Forth definition, value is the LiteForth address (22-bit)
+0. Machine code, value is the instruction (16-bit)
+0. Machine code, macro-copyable
+0. Constant, value is literal data (32-bit)
 
-- 7: smudge
-- 6: immediate
-- 5: call-only
-- 4,3: type {word, no compile, no immediate, equ}
-- 2: documentation index included
-- 1: where-used list included
-- 0: reserved
+**immediate, type** table, useful for a screen editor
+
+| imm | type | color --| meaning |
+|:----|:-----|:--------|:--------|
+| 0   | 00   | green   | word
+| 0   | 01   | green   | native primitive
+| 0   | 10   | cyan    | native macro
+| 0   | 10   | magenta | number |
+| 1   | 00   | yellow  | word
+| 1   | 01   | yellow  | native primitive
+| 1   | 10   | cyan    | native macro
+| 1   | 10   | magenta | number |
+
+**aux**
+
+The block system is used for "everything else" when compiling headers.
+For example, glossary information, links to documentation, links to source code, etc.
+The *aux* value is an index into the next free 256-byte page of block memory.
+This granularity lets you make minor edits without having to recompile.
+The *aux* dictionary uses HTML tags.
+If write a definition with simply a stack picture, its *aux* page will contain the name and stack picture.
+
+Headers are not necessarily volatile, so a "where-used" linked list is impractical.
+For that functionality load your code into a commercial Forth.
 
 ## Boot sequence
 

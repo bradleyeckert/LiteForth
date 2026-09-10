@@ -148,15 +148,18 @@ if (inst & 0x8000) {
 In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
 The instruction arrives two clock cycles after PC changes.
 When `;` is '1', the instruction bus settles while the group is executing.
-When an *other* instruction executes, a `nop` is inserted to let the next
-instruction settle.
-An extra cycle may be added for *other* instructions that use an adder,
-to register the adder inputs, to increase the maximum system clock.
+The unified address space means that instruction pairs would be registered in `inst32`.
+For a synchronous read, `inst32` gets registered right on time.
+Two instruction groups typically execute in sequence, with `inst32` being right-shifted
+by 16 bits after the first instruction group executes.
+Random data memory access would just insert a couple of wait states to get the instruction back on the bus.
 
-The µops are:
+*other* instructions that take input from `inst32` settle quickly, not having to wait for decode.
 
-| \\  | *0* | *1* | *2* | *3* | *4* | *5* | *6* | *7* |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | 
+The µops (note - they don't take immediate data) are:
+
+| \\  | *0*   | *1* | *2*  | *3* | *4* | *5* | *6* | *7*  |
+| --- | ---   | --- | ---  | --- | --- | --- | --- | ---  | 
 | *0* | nop   | inv | over | a!  | +   | xor | and | drop |  
 | *1* | swap  | 2\* | dup  | cy! | @a  | @a+ | @b  | @b+  |  
 | *2* | 2/c   | 2/  |      | u!  | !a  | !a+ | !b  | !b+  |  
@@ -170,19 +173,19 @@ The µops are:
 ## Imm instructions
 
 | *Name* | *12:9* | *8:0* |
-| :---- | :--- | :--- |
-| pfx | 0 | Prefix: lex \= (lex\<\<9) + u9 |
-| zoo | 1 | Other instruction selected by u9 |
-| ax | 2 | A \= X \+ u9 |
-| ay | 3 | A \= Y \+ u9 |
-| if | 4 | PC \= PC \+ s9 if T=0 |
-| bran | 5 | PC \= PC \+ s9 |
-| \-if | 6 | PC \= PC \+ s9 if T \>= 0 |
-| next | 7 | PC \= PC \+ s9 if R \> 0 else drop R | 
-| RFcall  | 12 | Call root function in VM, no stack change |
-| RFcall+ | 13 | Call root function in VM, dup before call |
-| AFcall  | 14 | Call app function in VM, no stack change |
-| AFcall+ | 15 | Call app function in VM, dup before call |
+|:-------|---:|:-------------------------------|
+| pfx    |  0 | Prefix: lex \= (lex\<\<9) + u9 |
+| zoo    |  1 | Other instruction selected by u9 |
+| zif    |  2 | PC \= PC \+ s9 if T=0 |
+| if     |  3 | PC \= PC \+ s9 if T=0, drop T |
+| rcall  |  4 | PC \= PC \+ s9, push PC to return stack |
+| bran   |  5 | PC \= PC \+ s9 |
+| \-if   |  6 | PC \= PC \+ s9 if T \>= 0 |
+| next   |  7 | PC \= PC \+ s9 if R \> 0 else drop R |
+| ax     |  8 | A \= X \+ u9 |
+| ay     |  9 | A \= Y \+ u9 |
+| RFcall | 14 | Call root function in VM, no stack change |
+| AFcall | 15 | Call app function in VM, no stack change |
 
 The lex register supplies upper bits for literals and long calls/jumps.
 It is 19 bits wide. N `pfx` instructions add 9N bits to the usual 13-bit `imm` data.
@@ -191,11 +194,11 @@ A 22-bit literal, jump, or call takes two instructions.
 Zoo instructions include:
 
 | *Name* | *9:0* |
-| :---- | ----- |
+|:-------|:------|
 | x\! | 0 | X \= T, drop T |
 | y\! | 1 | Y \= T, drop T |
-| throw | 2 | VM quits and returns ior \= T |
-| depth | 3 | T = depth |
+| throw | 2 | VM quits and returns ior \= T, or sets PC = 2 |
+| depth | 4 | T = depth |
 
 Root functions and App functions are useful when the ISA is simulated.
 C functions for eliminating hot spots are accessed through two execution tables.

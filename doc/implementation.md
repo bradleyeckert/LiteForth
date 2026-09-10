@@ -96,7 +96,7 @@ Mass storage can be write-protected via its header field in block 0.
 It's like the write-protect switch on a 3.5" floppy, but more like a slider.
 A blank "Block 0" starts with the following minimum text:
 ```
-LITEFORTHBLK    1   1000       100       100
+LITEFORTHBLK 1 1000 100 100
 ```
 The fields are:
 
@@ -115,8 +115,9 @@ The fields are:
 Specialized devices on the APB and AHB busses may be simulated in the desktop version.
 Maybe not all of the devices, since most development will be done on the target.
 
-- `periph-wr` writes to peripheral space
-- `periph-rd` reads from peripheral space
+- `periph-init(void)` initializes peripheral space
+- `int periph-wr(uint32_t addr, uint32_t data)` writes to peripheral space
+- `uint32_t periph-rd(uint32_t addr)` reads from peripheral space
 
 ## main
 
@@ -132,11 +133,36 @@ The console app has command line options that allow you to:
 
 Implements the QUIT interpreter and the C API.
 
-- `quit` is the QUIT loop
+The context is a list of pointers to headers. They may be 64-bit or 32-bit depending
+on the underlying C. Forth cells may not fit them, so a *wid* would need some indirection.
+An array of pointers to headers would satisfy this. The *wid* is an index into the table.
+The C code just has to allocate a big enough array to not run out of space when executing `wordlist`.
+A vocabulary, such as `forth`, needs to associate a name with the *wid*.
+
+The context list contains a list of uint8_s ranging from 0 to 255. These are *wids*,
+indices into the table of structure pointers. Current is also a uint8_s.
+
+- `int quit(void)` is the QUIT loop
+- `void order_only(void)` clears the context list to contain only `root`
+- `void order_also(int wid)` appends `wid` the context list
+- `void order_previous(void)` removes the last list element
+- `void definitions(void)` sets current to context\[0]
+- `*struct tfHeader find_word(char *name)` finds the name in the wordlist, returns a pointer to the header. 
+- `uint32_t header_get();
 
 ## vm
 
 The token interpreter is in either C or assembly.
 
-- `vmstep` runs 1 step of infinite steps until the return stack underflows.
+- `int vmExecute(uint32_t xt)` runs code and returns a result: 0 = okay.
+- `uint32_t vmRegisterGet(int reg)` reads the state of a register.
+- `void vmRegisterSet(int reg, uint32_t data)` writes to a register.
+
+
+xt is initally masked with 0x1FFFFFF.
+If bit 24 of xt is 1, it is an instruction group to be executed once.
+If bit 24 is 0, it is a word that runs until the return stack underflows.
+The 
+
+
 

@@ -155,14 +155,23 @@ indices into the table of structure pointers. Current is also a uint8_s.
 The token interpreter is in either C or assembly.
 
 - `int vmExecute(uint32_t xt)` runs code and returns a result: 0 = okay.
-- `uint32_t vmRegisterGet(int reg)` reads the state of a register.
-- `void vmRegisterSet(int reg, uint32_t data)` writes to a register.
+- `int32_t vmRegisterGet(int reg)` reads the state of a register.
+- `void vmRegisterSet(int reg, int32_t data)` writes to a register.
+- `void vmPush(int32_t val)` pushes a number to the stack.
+- `int32_t vmPop(void)` pops from the stack.
 
+The upper two bits \[31:30] of xt is its type.
 
-xt is initally masked with 0x1FFFFFF.
-If bit 24 of xt is 1, it is an instruction group to be executed once.
-If bit 24 is 0, it is a word that runs until the return stack underflows.
-The 
+If the value is an xt, bits 31:30 indicate its type:
+
+0. Forth definition, value is the code address (30-bit)
+0. Reserved
+0. Machine code, value is the instruction (16-bit)
+0. Machine code, macro-copyable
+
+If bit 31 of xt is 1, it is an instruction group to be executed once.
+If bit 31 is 0, it is a word that runs until the return stack underflows.
+ 
 
 
 

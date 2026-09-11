@@ -184,6 +184,7 @@ The µops (note - they don't take immediate data) are:
 | next   |  7 | PC \= PC \+ s9 if R \> 0 else drop R |
 | ax     |  8 | A \= X \+ u9 |
 | ay     |  9 | A \= Y \+ u9 |
+| qlit   | 13 | Push Y \+ u9 |
 | RFcall | 14 | Call root function in VM, no stack change |
 | AFcall | 15 | Call app function in VM, no stack change |
 

@@ -46,6 +46,25 @@ Challenge-Response Authentication would be used to change levels:
 The security level is volatile.
 Only compiling to Flash will permanently change it (jailbreak the device).
 
+## VM memory
+
+The VM code and data memories are based on pages selected by bits \[21:19] of the VM address:
+```C
+int32_t* vm_memory[8];              // pointer to data for the VM
+uint32_t vm_memory_rd_limit[8];     // index limits for memory read
+uint32_t vm_memory_wp_limit[8];     // index limits for memory write
+uint32_t vm_memory_executable[8];   // execution limit (<= vm_memory_rd_limit)
+```
+
+The memory regions in an MCU would be:
+
+- Flash memory 0
+- Flash memory 1
+- RAM
+- APB1 peripherals (not executable)
+- APB2 peripherals (not executable)
+- Other AXI peripherals (not executable)
+
 ## Design for Flash
 
 LiteForth compiles to Flash. Modern Flash architectures make it complicated.
@@ -66,7 +85,7 @@ rather than physical Flash. The 128 KB sector is flashed at the end,
 which typically takes 1.0s on a STM32H743 but could reach 2 to 4 seconds in rare cases.
 
 The 128 KB buffer is available for use by the application when not compiling to flash.
-The first write to Flash space switches to virtual Flash by reading Flash into a the buffer. 
+The first write to Flash space switches to virtual Flash by reading Flash into a buffer. 
 Writes outside of the buffer swap in the new sector after saving the old one.
 An erase counter is maintained for each sector to instrument erase-thrashing.
 
@@ -100,16 +119,15 @@ The VM bounds-checks memory addresses and translates them to various regions:
 
 | Memory space     | Address Map      | Section  | #define |
 |:-----------------|:-----------------|:---------|:--------|
-| RAM dictionary   | 000000 - 0FFFFF  | .vmram   | RDATA_CELLS |
-| Peripherals      | 100000 - 1FFFFF  | | |
-| Flash dictionary | 200000 - 2FFFFF  | .vflash1 | FLASHAPPSECTORSIZE, FLASHAPPSECTORS |
-| Flash2 dictionary| 300000 - 3FFFFF  | .vflash2 | FLASHAPPSECTORS2 |
+| Flash dictionary | 000000 - 0FFFFF  | .vflash1 | FLASHAPPSECTORSIZE, FLASHAPPSECTORS |
+| Flash2 dictionary| 100000 - 1FFFFF  | .vflash2 | FLASHAPPSECTORS2 |
+| RAM dictionary   | 200000 - 2FFFFF  | .vmram   | RDATA_CELLS |
+| Peripherals      | 300000 - 3FFFFF  | | |
 
 The implications on ISA encoding are not much. Thanks to `rcall` and `bran`, code anywhere
 in memory can usually do with compact calls and jumps.
-22-bit literals can be formed by two 16-bit instructions.
-Short literals are 13-bit. They are preferred to access RAM variables, so RAM is at the
-bottom of the memory map space. At reset, the PC jumps to the 9th cell in the Flash dictionary.
+`ax` and `ay` provide relative RAM addressing.
+At reset, the PC jumps to the 9th cell in the Flash dictionary.
 
 Note that .flash must be defined in the `.ld` linker file to be sector-aligned.
 Its size in bytes should be at least (FLASHAPPSECTORSIZE \* FLASHAPPSECTORS + FHEAD_CELLS\*4).
@@ -224,38 +242,25 @@ Headers are created and accessed by C functions.
 |:-----|:-------------------------------------------|
 | 4/8  | size_t link to previous header             |
 | 4/8  | size_t pointer to name string              |
-| 4    | value (number, CFA, text pointer, etc.)    |
+| 4    | value (number, xt, text pointer, etc.)     |
 | 4    | flags:aux                                  |
 
-### flags:xt packing:
+If the value is an xt, bits 31:30 indicate its type:
+
+0. Forth definition, value is the code address (30-bit)
+0. Reserved
+0. Machine code, value is the instruction (16-bit)
+0. Machine code, macro-copyable
+
+### flags:aux packing:
 
 | BIT | NAME       | MEANING |
 |:----|:-----------|:--------|
 | 31  | smudge     | Set by `:`, cleared by `;` |
 | 30  | call-only  | Inhibit tail-calls for this word |
 | 29  | immediate  | Interpret this word as immediate |
-| 28:27 | type     | Type of data in value |
-| 26:0 | aux       | Index of mass storage extension data |
-
-**2-bit type:**
-
-0. Forth definition, value is the LiteForth address (22-bit)
-0. Machine code, value is the instruction (16-bit)
-0. Machine code, macro-copyable
-0. Constant, value is literal data (32-bit)
-
-**immediate, type** table, useful for a screen editor
-
-| imm | type | color --| meaning |
-|:----|:-----|:--------|:--------|
-| 0   | 00   | green   | word
-| 0   | 01   | green   | native primitive
-| 0   | 10   | cyan    | native macro
-| 0   | 10   | magenta | number |
-| 1   | 00   | yellow  | word
-| 1   | 01   | yellow  | native primitive
-| 1   | 10   | cyan    | native macro
-| 1   | 10   | magenta | number |
+| 28  | constant   | Value is a constant, not an *xt* |
+| 27:0 | aux       | Index of mass storage extension data |
 
 **aux**
 

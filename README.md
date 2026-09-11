@@ -211,5 +211,7 @@ The other lives in updatable application memory.
 For simulation, the stacks are power-of-2 deep, plus one register for the
 top of the return stack and two for the top of the data stack.
 
-The stack pointers are not readable. There is a depth counter, though.
-Stacks are allowed to underflow or overflow, which makes the stack pointer not match the depth.
+## How fast is it?
+
+As a preliminary estimate, the execution rate on a STM32H743 (RV32) at 400 MHz
+should be 15 to 30 MIPS.

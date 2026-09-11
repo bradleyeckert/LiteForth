@@ -52,18 +52,27 @@ The VM code and data memories are based on pages selected by bits \[21:19] of th
 ```C
 int32_t* vm_memory[8];              // pointer to data for the VM
 uint32_t vm_memory_rd_limit[8];     // index limits for memory read
-uint32_t vm_memory_wp_limit[8];     // index limits for memory write
+uint32_t vm_memory_wp_limit[8];     // index limits for memory write-protect
 uint32_t vm_memory_executable[8];   // execution limit (<= vm_memory_rd_limit)
 ```
-
 The memory regions in an MCU would be:
 
 - Flash memory 0
 - Flash memory 1
+- Flash memory 2
+- Flash memory 3
 - RAM
 - APB1 peripherals (not executable)
 - APB2 peripherals (not executable)
 - Other AXI peripherals (not executable)
+
+For example, an MCU system with 128 KB sectors uses 512 KB for Forth dictionary.
+The VM changes `vm_memory` pointers to RAM when "writing" to Flash,
+then erases and flashes the sector when switching back to Flash.
+
+- Code reads are valid from 0 to `vm_memory_executable`.
+- Data reads are valid from 0 to `vm_memory_rd_limit`.
+- Data writes are valid from `vm_memory_wp_limit` to `vm_memory_rd_limit`.
 
 ## Design for Flash
 

@@ -9,9 +9,6 @@
 /* Forces code straight into the Instruction Tightly Coupled Memory section */
 #define PLACE_IN_ITCM // __attribute__((section(".itcm")))
 
-/* Combine ITCM with instruction cache line alignment for maximum efficiency */
-#define CODE_CACHE_ALIGNED // __attribute__((section(".itcm"), aligned(32)))
-
 #define VM_DDUP do {                    \
     datastack[sp] = T;                  \
     sp = (sp + 1) & STACK_MASK;         \
@@ -130,8 +127,8 @@
 #define VMO_ZBRAN               4
 #define VMO_BRAN                5
 #define VMO_PBRAN               6
-#define VMO_NEXT                7
-#define VMO_PY                  8
+#define VMO_RCALL               7
+#define VMO_NEXT                8
 #define VMO_API0                14
 #define VMO_API1                15
 
@@ -140,8 +137,8 @@
 #define VMI_ZBRAN              (VMI_PFX + (VMO_ZBRAN    << 9))
 #define VMI_BRAN               (VMI_PFX + (VMO_BRAN     << 9))
 #define VMI_PBRAN              (VMI_PFX + (VMO_PBRAN    << 9))
+#define VMI_RCALL              (VMI_PFX + (VMO_RCALL    << 9))
 #define VMI_NEXT               (VMI_PFX + (VMO_NEXT     << 9))
-#define VMI_PY                 (VMI_PFX + (VMO_PY       << 9))
 #define VMI_API0               (VMI_PFX + (VMO_API0     << 9))
 #define VMI_API1               (VMI_PFX + (VMO_API1     << 9))
 

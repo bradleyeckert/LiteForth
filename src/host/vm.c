@@ -50,7 +50,7 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
             PC = data;
         }
 
-    fetch: CODE_CACHE_ALIGNED;
+    fetch:
         if (dirty) {                        // fetch inst pair regardless
             dirty = 0;
             goto prefetch;
@@ -75,8 +75,9 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
         }
         PC++;
         int bumpa = 0;
-
-    execute:
+        // Run a 16-bit instruction or instruction group using the lower half
+        // of `inst`. The upper half of 'inst' is a cache for the next one.
+    execute: 
         if (inst & 0x8000) { // Execute a group of 5-bit MISC instructions
             if (inst & 0x4000) {
                 PC = R;
@@ -99,7 +100,7 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                 }
                 int maddr = 0;
 
-                switch (uop) {              // micro operations
+                switch (uop) {
                 case VMU_NOP:
                 case VMU_DUP:
                 case VMU_DROP:                                      break;
@@ -123,7 +124,7 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                 case VMU_OVER:      n = datastack[sp];  T = n;      break;
                 case VMU_PUSH:      VM_RDUP;  R = T;                break;
                 case VMU_R:         T = R;                          break;
-                case VMU_POP:       T = R;  VM_RDROP;             break;
+                case VMU_POP:       T = R;  VM_RDROP;               break;
                 case VMU_UNEXT:     R--;
                     if (R == 0) VM_RDROP;
                     else i = SLOT0_POSITION + 5;
@@ -197,20 +198,20 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
             int32_t immex = (lex << 13) | imm;
             if (!(inst & 0x4000)) {
                 if (!(inst & 0x2000)) {     // push PC
-                    VM_RDUP;
-                    R = PC;
+                    VM_RDUP; R = PC;
                 }
                 PC = immex;                 // jump
                 dirty = 1;
+                lex = 0;
             }
             else {
                 if (!(inst & 0x2000)) {
-                    VM_DDUP;
-                    T = immex;              // literal
+                    VM_DDUP; T = immex;     // literal
+                    lex = 0;
                 }
                 else {
-                    imm &= 0x1FF;
-                    int32_t simm = imm;     // sign-extended imm
+                    imm &= 0x1FF;           // u9
+                    int32_t simm = imm;     // s9
                     if (simm & 0x100) {
                         simm |= 0xFFFFFE00;
                     }
@@ -233,7 +234,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                     case VMO_BY: B = Y + imm;                   break;
                     case VMO_ZBRAN: if (T == 0) {
                         PC = PC + simm;
-                    }   VM_DDROP;                               break;
+                    }   VM_DDROP;                               break;                 
+                    case VMO_RCALL: VM_RDUP; R = PC;
                     case VMO_BRAN: PC = PC + simm;              break;
                     case VMO_PBRAN: if ((T & 0x80000000) == 0) {
                         PC = PC + simm;
@@ -263,9 +265,9 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
         uint8_t bsize;
         uint8_t bshift;
         if (bumpa & 1) {
-            if (A & 0xF8000000) { A++; }
+            bsize = (A >> 27) & 0x1F;
+            if (bsize == 0) { A++; }
             else {
-                bsize = (A >> 27) & 0x1F;
                 bshift = ((A >> 22) & 0x1F) + bsize;
                 if ((bshift + bsize) > 32) {
                     bshift = (bshift - 32) & 0x1F;
@@ -276,9 +278,9 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
             goto postex;
         }
         if (bumpa & 2) {
-            if (A & 0xF8000000) { B++; }
+            bsize = (B >> 27) & 0x1F;
+            if (bsize == 0) { B++; }
             else {
-                bsize = (B >> 27) & 0x1F;
                 bshift = ((B >> 22) & 0x1F) + bsize;
                 if ((bshift + bsize) > 32) {
                     bshift = (bshift - 32) & 0x1F;
@@ -353,10 +355,6 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
         T = 0; PC = 0; R = 0;
         A = 0; B = 0; X = 0; Y = 0;
         cy = 0; sp = 0; rp = 0;
-        for (int i = 0; i < STACK_CAPACITY; i++) {
-            datastack[i] = 0;
-            returnstack[i] = 0;
-        }
         return 0;
 
     default:

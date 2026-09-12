@@ -5,16 +5,20 @@
 #include "vm.h"
 #include "vm_labels.h"
 
-int32_t* vm_memory[8];              // pointer to data for the VM
-uint32_t vm_memory_rd_limit[8];     // index limits for memory read
-uint32_t vm_memory_wp_limit[8];     // index limits for memory write-protect
-uint32_t vm_memory_executable[8];   // execution limit (<= vm_memory_rd_limit)
+int32_t* vm_memory[VM_SEGMENTS];           
+uint32_t vm_memory_rd_limit[VM_SEGMENTS];  
+uint32_t vm_memory_wp_limit[VM_SEGMENTS];  
+uint32_t vm_memory_executable[VM_SEGMENTS];
 
-static int32_t VMapi0Call(int32_t T, int32_t n, int fn);
-static int32_t VMapi1Call(int32_t T, int32_t n, int fn);
+// External API call handlers for the VM.
+// These functions are expected to be defined elsewhere in the codebase.
+int32_t VMapi0Call(int32_t tos, int32_t nos, int fn);
+int32_t VMapi1Call(int32_t tos, int32_t nos, int fn);
 
 PLACE_IN_DTCM;
 static const uint8_t stackeffects[32] = VM_STACKEFFECTS;
+static int32_t datastack[STACK_CAPACITY];
+static int32_t returnstack[STACK_CAPACITY];
 
 PLACE_IN_ITCM;
 int32_t vmRun(int mode, uint32_t inst, int32_t data) {
@@ -30,10 +34,6 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
     static int8_t  cy = 0;  // Carry
     static int8_t  sp = 0;  // Data Stack Pointer
     static int8_t  rp = 0;  // Return Stack Pointer
-
-    // Circular Stack Memory
-    static int32_t datastack[STACK_CAPACITY];
-    static int32_t returnstack[STACK_CAPACITY];
 
     int32_t ior = 0;                        // 0 = okay
 
@@ -61,31 +61,31 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
         else {
             int page;
         prefetch:
-            page = PC >> 21;
-            if (page > 3) {
+            page = PC >> (24 - VM_SEGMENT_BITS);
+            if (page >= VM_SEGMENTS) {
                 if (PC == (int32_t)0xDEADC0DE) return VM_ENDED_NORMALLY;
                 return VM_BAD_CODE_ADDR;
             }
-            int a = (PC >> 1) & 0x3FFFFF;
-            if (a >= (int)vm_memory_executable[page]) return VM_BAD_CODE_ADDR;
+            int a = (PC >> 1) & VM_SEGMASK;
+            if (a >= vm_memory_executable[page]) return VM_BAD_CODE_ADDR;
             inst = vm_memory[page][a];
             if (!(PC & 1)) {
                 inst = inst >> 16;
             }
         }
         PC++;
-        int bumpa = 0;
         // Run a 16-bit instruction or instruction group using the lower half
         // of `inst`. The upper half of 'inst' is a cache for the next one.
     execute: 
-        if (inst & 0x8000) { // Execute a group of 5-bit MISC instructions
-            if (inst & 0x4000) {
+        if (inst & VM_UOPS) {
+            if (inst & VM_RET) {
                 PC = R;
                 VM_RDROP;
                 dirty = 1;
             }
             int i = SLOT0_POSITION + 5;
-            while (i > 0) {
+            int bumpa = 0;
+            while (i > 0) { // Execute a group of 5-bit MISC instructions
                 i -= 5;
                 int32_t n = T;
                 int uop;
@@ -151,8 +151,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
 
                 memfetch: {
                     int bitfield_size = maddr >> 27;
-                    int page = (maddr >> 19) & 7; // 8 pages of 0-7FFFF
-                    uint32_t a = maddr & 0x7FFFF;
+                    int page = (maddr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
+                    uint32_t a = maddr & VM_SEGMASK;
                     if (a >= vm_memory_rd_limit[page]) {
                         return VM_BAD_DATA_ADDR;
                     }
@@ -161,7 +161,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                         int bshift = (a >> 22) & 0x1F;
                         T = (T >> bshift) & ~(0xFFFFFFFF << bitfield_size);
                     }
-                    if (bumpa) { goto postinc; }
+                    if (bumpa & 1) { goto postincA; }
+                    if (bumpa & 2) { goto postincB; }
                     break;
                 }
 
@@ -172,8 +173,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
 
                 memstore: {
                     int bitfield_size = maddr >> 27;
-                    int page = (maddr >> 19) & 7;
-                    uint32_t a = maddr & 0x7FFFF;
+                    int page = (maddr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
+                    uint32_t a = maddr & VM_SEGMASK;
                     if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
                         return VM_BAD_DATA_ADDR;
                     }
@@ -186,7 +187,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                         n = (vm_memory[page][a] & (~(mask << bshift))) | ((n >> bshift) & mask);
                     }
                     vm_memory[page][a] = n;
-                    if (bumpa) { goto postinc; }
+                    if (bumpa & 1) { goto postincA; }
+                    if (bumpa & 2) { goto postincB; }
                     break;
                 }
                 default: break;
@@ -232,19 +234,21 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                         break;
                     case VMO_AX: A = X + imm;                   break;
                     case VMO_BY: B = Y + imm;                   break;
-                    case VMO_ZBRAN: if (T == 0) {
-                        PC = PC + simm;
-                    }   VM_DDROP;                               break;                 
-                    case VMO_RCALL: VM_RDUP; R = PC;
-                    case VMO_BRAN: PC = PC + simm;              break;
-                    case VMO_PBRAN: if ((T & 0x80000000) == 0) {
-                        PC = PC + simm;
+                    case VMO_ZBRAN: {
+                        int32_t t = T; 
+                        VM_DDROP;
+                        if (t == 0) goto qbranch;
                     }                                           break;
+                    case VMO_RCALL: VM_RDUP; R = PC;
+                    case VMO_BRAN:
+                qbranch:
+                        PC = PC + simm;                         break;
+                    case VMO_PBRAN: if ((T & 0x80000000) == 0) 
+                        { goto qbranch; }                       break;
                     case VMO_NEXT:
                         R--;
-                        if (R == 0) VM_RDROP;
-                        else PC = PC + immex;
-                        break;
+                        if (R) goto qbranch;
+                        VM_RDROP;                               break;
                     case VMO_API0: T = VMapi0Call(T, NOS, imm); break;
                     case VMO_API1: T = VMapi1Call(T, NOS, imm); break;
                     default:                                    break;
@@ -260,34 +264,35 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
         }
         if (ior) return ior;
         goto fetch;
-
-    postinc: {
+    // End of the main loop. A and B post-increment are placed here 
+    postincA: {
         uint8_t bsize;
         uint8_t bshift;
-        if (bumpa & 1) {
-            bsize = (A >> 27) & 0x1F;
-            if (bsize == 0) { A++; }
-            else {
-                bshift = ((A >> 22) & 0x1F) + bsize;
-                if ((bshift + bsize) > 32) {
-                    bshift = (bshift - 32) & 0x1F;
-                    A++;
-                }
-                A = (bsize << 27) | (bshift << 22) | (A & 0x3FFFFF);
+        bsize = (A >> 27) & 0x1F;
+        if (bsize == 0) { A++; }
+        else {
+            bshift = ((A >> 22) & 0x1F) + bsize;
+            if ((bshift + bsize) > 32) {
+                bshift = (bshift - 32) & 0x1F;
+                A++;
             }
-            goto postex;
+            A = (bsize << 27) | (bshift << 22) | (A & 0x3FFFFF);
         }
-        if (bumpa & 2) {
-            bsize = (B >> 27) & 0x1F;
-            if (bsize == 0) { B++; }
-            else {
-                bshift = ((B >> 22) & 0x1F) + bsize;
-                if ((bshift + bsize) > 32) {
-                    bshift = (bshift - 32) & 0x1F;
-                    B++;
-                }
-                B = (bsize << 27) | (bshift << 22) | (B & 0x3FFFFF);
+        goto postex;
+        }
+
+    postincB: {
+        uint8_t bsize;
+        uint8_t bshift;
+        bsize = (B >> 27) & 0x1F;
+        if (bsize == 0) { B++; }
+        else {
+            bshift = ((B >> 22) & 0x1F) + bsize;
+            if ((bshift + bsize) > 32) {
+                bshift = (bshift - 32) & 0x1F;
+                B++;
             }
+            B = (bsize << 27) | (bshift << 22) | (B & 0x3FFFFF);
         }
         goto postex;
         }
@@ -360,16 +365,4 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
     default:
         return -1;
     }
-}
-
-static int32_t VMapi0Call(int32_t T, int32_t n, int fn) {
-    (void)T; (void)n;
-    fn &= 0x7F;
-    return -1;
-}
-
-static int32_t VMapi1Call(int32_t T, int32_t n, int fn) {
-    (void)T; (void)n;
-    fn &= 0x7F;
-    return -1;
 }

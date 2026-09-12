@@ -5,15 +5,6 @@
 extern "C" {
 #endif
 
-// --- SYSTEM ERROR CODES ---
-#define SERIAL_SUCCESS            0
-#define ERR_NOT_A_TTY            -1  // Device is not an interactive terminal
-#define ERR_PORT_OPEN_FAILED     -2  // OS failed to open the serial port
-#define ERR_GET_STATE_FAILED     -3  // Failed to read port/terminal capabilities
-#define ERR_SET_STATE_FAILED     -4  // Failed to write new configurations
-#define ERR_INVALID_HANDLE       -5  // The active port handle is invalid or uninitialized
-#define ERR_IO_CHECK_FAILED      -6  // Driver query or select() polling failed
-
 /**
  * Sets the standard input terminal/console to either raw or cooked mode.
  * Compatible with macOS, Linux, and Windows.
@@ -27,7 +18,7 @@ int set_terminal_mode(int enable);
  * Opens a hardware serial/COM port based on string inputs.
  * Supports standard speeds up to 3,000,000 bits per second.
  * 
- * @param name      The system device string (e.g. "COM3", "/dev/ttyUSB0", or "TERM").
+ * @param name      The system device string (e.g. "COM3", "/dev/ttyUSB0").
  * @param baudrate  The desired integer bit speed.
  * @return          SERIAL_SUCCESS on success, or a negative ERR_* code on failure.
  */

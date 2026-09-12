@@ -65,3 +65,4 @@ int main(void) {
 
     return 0;
 }
+// riscv64-unknown-elf-gcc -O2 -march=rv32im -mabi=ilp32 -S vm_3.c -o vm_3.s

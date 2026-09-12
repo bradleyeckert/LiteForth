@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "serial_io.h"
+#include "errcodes.h"
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
-    #include <io.h>
+    #include <conio.h>
     #define TARGET_ISATTY() _isatty(0)
 #else
     #include <unistd.h>
@@ -28,7 +28,7 @@ int set_terminal_mode(int enable) {
     static int is_initialized = 0;
 
     if (!TARGET_ISATTY()) {
-        return ERR_NOT_A_TTY;
+        return ERR_TERM_NOT_A_TTY;
     }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -41,7 +41,7 @@ int set_terminal_mode(int enable) {
 
     if (!is_initialized) {
         if (!GetConsoleMode(hInput, &orig_input_mode)) {
-            return ERR_GET_STATE_FAILED;
+            return ERR_GET_TERM_FAILED;
         }
         is_initialized = 1;
     }
@@ -50,11 +50,11 @@ int set_terminal_mode(int enable) {
         DWORD raw_mode = orig_input_mode;
         raw_mode &= ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT);
         if (!SetConsoleMode(hInput, raw_mode)) {
-            return ERR_SET_STATE_FAILED;
+            return ERR_SET_TERM_FAILED;
         }
     } else {
         if (!SetConsoleMode(hInput, orig_input_mode)) {
-            return ERR_SET_STATE_FAILED;
+            return ERR_SET_TERM_FAILED;
         }
     }
 #else
@@ -62,7 +62,7 @@ int set_terminal_mode(int enable) {
     
     if (!is_initialized) {
         if (tcgetattr(STDIN_FILENO, &orig_termios) < 0) {
-            return ERR_GET_STATE_FAILED;
+            return ERR_GET_TERM_FAILED;
         }
         is_initialized = 1;
     }
@@ -78,22 +78,22 @@ int set_terminal_mode(int enable) {
         raw.c_cc[VTIME] = 0;
 
         if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) < 0) {
-            return ERR_SET_STATE_FAILED;
+            return ERR_SET_TERM_FAILED;
         }
     } else {
         if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) < 0) {
-            return ERR_SET_STATE_FAILED;
+            return ERR_SET_TERM_FAILED;
         }
     }
 #endif
 
-    return SERIAL_SUCCESS;
+    return 0;
 }
 
 int serial_open(char* name, int baudrate) {
-    if (strcmp(name, "TERM") == 0) {
+    if (baudrate == 0) {
         is_terminal_mode = 1;
-        return SERIAL_SUCCESS;
+        return 0;
     }
 
     is_terminal_mode = 0;
@@ -114,7 +114,7 @@ int serial_open(char* name, int baudrate) {
     if (!GetCommState(hCommPort, &dcb)) {
         CloseHandle(hCommPort);
         hCommPort = INVALID_HANDLE_VALUE;
-        return ERR_GET_STATE_FAILED;
+        return ERR_GET_TERM_FAILED;
     }
 
     dcb.BaudRate = (DWORD)baudrate;
@@ -125,7 +125,7 @@ int serial_open(char* name, int baudrate) {
     if (!SetCommState(hCommPort, &dcb)) {
         CloseHandle(hCommPort);
         hCommPort = INVALID_HANDLE_VALUE;
-        return ERR_SET_STATE_FAILED;
+        return ERR_SET_TERM_FAILED;
     }
 
     COMMTIMEOUTS timeouts = { MAXDWORD, 0, 0, 0, 0 };
@@ -140,7 +140,7 @@ int serial_open(char* name, int baudrate) {
     if (tcgetattr(comm_fd, &tty) < 0) {
         close(comm_fd);
         comm_fd = -1;
-        return ERR_GET_STATE_FAILED;
+        return ERR_GET_TERM_FAILED;
     }
 
     speed_t speed;
@@ -173,11 +173,11 @@ int serial_open(char* name, int baudrate) {
     if (tcsetattr(comm_fd, TCSANOW, &tty) < 0) {
         close(comm_fd);
         comm_fd = -1;
-        return ERR_SET_STATE_FAILED;
+        return ERR_SET_TERM_FAILED;
     }
 #endif
 
-    return SERIAL_SUCCESS;
+    return 0;
 }
 
 void serial_close(void) {
@@ -197,9 +197,14 @@ void serial_close(void) {
 
 int serial_ready(void) {
     if (is_terminal_mode) {
-        if (!TARGET_ISATTY()) return ERR_NOT_A_TTY;
+        if (!TARGET_ISATTY()) return ERR_TERM_NOT_A_TTY;
 #if defined(_WIN32) || defined(_WIN64)
-        return _kbhit() ? 1 : 0;
+        int c = fgetc(stdin);
+        if (c != EOF) {
+            ungetc(c, stdin); // Push character back into stdio buffer
+            return 1;         // Character is available
+        }
+        return 0;             // EOF or buffer empty
 #else
         fd_set read_fds;
         struct timeval timeout = {0, 0};
@@ -284,7 +289,7 @@ int serial_putc(int c) {
     if (is_terminal_mode) {
         int res = fputc(c, stdout);
         fflush(stdout);
-        return res;
+        return 0;
     }
 
 #if defined(_WIN32) || defined(_WIN64)

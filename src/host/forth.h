@@ -8,6 +8,20 @@
 #define WIDS_MAX 8
 #define STACK_MAX 16
 
+/*
+vm_memory[1] is the RAM page. Forth variables are placed at fixed locations for
+accessibility by Forth or by C.
+*/
+
+#define BASE      vm_memory[1][0]
+#define STATE     vm_memory[1][1]
+#define DPL       vm_memory[1][2]
+#define TOIN      vm_memory[1][3]               // offset into tib
+#define BLK       vm_memory[1][4]
+#define TIB       ((char *)&vm_memory[1][5])    // text input buffer
+#define TIBSIZE   ((26-5) * sizeof(int32_t))
+
+
 /* ========================================================================= */
 /* 1. STRUCTURE DEFINITIONS                                                  */
 /* ========================================================================= */
@@ -15,18 +29,18 @@
 /**
  * Structure representing an individual entry (word) in the dictionary.
  */
-struct header { 
-    struct header *link;  /* Pointer to the previous word in the list */
+typedef struct s_head { 
+    struct s_head *link;  /* Pointer to the previous word in the list */
     char *name;           /* Pointer to a C-string representing the word name */
     uint32_t w;           /* Execution token / Word identifier payload */
     uint32_t aux;         /* Auxiliary storage parameter */
-}; 
+} s_head;
 
 /**
  * Structure representing a Wordlist / Vocabulary Identifier (WID).
  */
-struct wid_structure {         /* Uses WIDS_MAX sizeof(wid_structure) of RAM */
-    const struct header *head; /* Pointer to the top/latest word in this list */
+struct s_wid {         /* Uses WIDS_MAX sizeof(s_wid) of RAM */
+    const struct s_head *head; /* Pointer to the top/latest word in this list */
     char *name;                /* Descriptive name of the vocabulary */
 }; 
 
@@ -43,7 +57,7 @@ struct wid_structure {         /* Uses WIDS_MAX sizeof(wid_structure) of RAM */
  * @param case_insensitive If non-zero, performs a case-insensitive match.
  * @return                 A const pointer to the matching header, or NULL if not found.
  */
-const struct header* search_wordlist(int wid_index, const char *target_name, int case_insensitive);
+const struct s_head* search_wordlist(int wid_index, const char *target_name, int case_insensitive);
 
 /**
  * Iterates through the active wordlists defined in the 'context' array.
@@ -53,7 +67,7 @@ const struct header* search_wordlist(int wid_index, const char *target_name, int
  * @param case_insensitive If non-zero, performs a case-insensitive match.
  * @return                 A const pointer to the matching header, or NULL if not found.
  */
-const struct header* search_context(const char *target_name, int case_insensitive);
+const struct s_head* search_context(const char *target_name, int case_insensitive);
 
 /* ========================================================================= */
 /* 4. INTERPRETER INTERFACE                                                  */

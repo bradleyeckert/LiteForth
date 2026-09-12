@@ -36,6 +36,7 @@
 #define SLOT0_POSITION   9
 #define LAST_SLOT_WIDTH (14 % 5)
 #define LAST_SLOT_MASK  ((1 << LAST_SLOT_WIDTH) - 1)
+#define VM_SEGMASK      (~((~0) << (21 - VM_SEGMENT_BITS)))
 
 #define UOP_NAMES { \
     "nop",   "inv",   "over",  "a!",    "xor",   "+",    "and",   ">r", \

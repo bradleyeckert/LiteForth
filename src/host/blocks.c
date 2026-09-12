@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "blocks.h"
+#include "errcodes.h"
 
 /* Active file path tracker */
 static char active_blk_filename[256] = {0};

@@ -192,14 +192,17 @@ The lex register supplies upper bits for literals and long calls/jumps.
 It is 19 bits wide. N `pfx` instructions add 9N bits to the usual 13-bit `imm` data.
 A 22-bit literal, jump, or call takes two instructions.
 
-Zoo instructions include:
+Zoo instructions push the stack if `imm[8]`=1, and pop the stack if `imm[7]`=1.
+They include:
 
-| *Name* | *9:0* |
-|:-------|:------|
-| x\! | 0 | X \= T, drop T |
-| y\! | 1 | Y \= T, drop T |
+| *Name* | *6:0* | Action |
+|:-------|:------|:-------|
+| x\!   | 0 | X \= T, drop T |
+| y\!   | 1 | Y \= T, drop T |
 | throw | 2 | VM quits and returns ior \= T, or sets PC = 2 |
-| depth | 4 | T = depth |
+| x\@   | 3 | T \= X |
+| y\@   | 4 | T \= Y |
+| depth | 5 | T \= depth |
 
 Root functions and App functions are useful when the ISA is simulated.
 C functions for eliminating hot spots are accessed through two execution tables.
@@ -213,5 +216,5 @@ top of the return stack and two for the top of the data stack.
 
 ## How fast is it?
 
-As a preliminary estimate, the execution rate on a STM32H743 (RV32) at 400 MHz
+As a preliminary estimate, the execution rate on a CH32H417 (RV32) at 400 MHz
 should be 15 to 30 MIPS.

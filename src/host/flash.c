@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "flash.h"
+#include "errcodes.h"
 
 /* Define global flash memory */
 uint32_t flashmem[FLASHAPPSECTORSIZE * FLASHAPPSECTORS];

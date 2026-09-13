@@ -117,5 +117,9 @@
 #define ERR_FLASH_OPEN_WRITE       (-123)   /* Failed to open the simulation file for writing/updating */
 #define ERR_FLASH_SEEK_FAIL        (-124)   /* Failed to seek to the start offset of the requested sector */
 #define ERR_FLASH_WRITE_SECTOR     (-125)   /* Failed to write the complete block data to the sector slot */
+// vm.c
+#define VM_ENDED_NORMALLY		   (-130)   /* VM execution completed without error */
+#define ERR_EXEC_PROTECTED	       (-131)   /* execution address prohibited */
+
 
 #endif // ERRCODES_H

@@ -10,23 +10,23 @@
 #define PLACE_IN_ITCM // __attribute__((section(".itcm")))
 
 #define VM_DDUP do {                    \
-    datastack[sp] = T;                  \
     sp = (sp + 1) & STACK_MASK;         \
+    datastack[sp] = T;                  \
 } while(0)      
 
 #define VM_RDUP do {                    \
-    returnstack[rp] = R;                \
     rp = (rp + 1) & STACK_MASK;         \
+    returnstack[rp] = R;                \
 } while(0)      
 
 #define VM_DDROP do {                   \
-    sp = (sp - 1) & STACK_MASK;         \
     T = datastack[sp];                  \
+    sp = (sp - 1) & STACK_MASK;         \
 } while(0)      
 
 #define VM_RDROP do {                   \
-    rp = (rp - 1) & STACK_MASK;         \
     R = returnstack[rp];                \
+    rp = (rp - 1) & STACK_MASK;         \
 } while(0)    
 
 #define NOS datastack[sp]

@@ -49,23 +49,23 @@ Only compiling to Flash will permanently change it (jailbreak the device).
 ## VM memory
 
 The virtual machine's entire 22-bit memory space is divided into segments.
-VM_SEGMENTS is the number of memory segments in the virtual machine.
+`VM_SEGMENTS` is the number of memory segments in the virtual machine.
 Each segment can have its own read, write-protect, and executable limits.
 
 - Code reads are valid from 0 to `vm_memory_executable`-1.
 - Data reads are valid from 0 to `vm_memory_rd_limit`-1.
 - Data writes are valid from `vm_memory_wp_limit` to `vm_memory_rd_limit`-1.
 
-The memory regions in an MCU could be:
+The (2 MB) memory regions in an MCU could be:
 
-- Flash memory 0
-- Flash memory 1
-- Flash memory 2
-- Flash memory 3
-- RAM
-- APB1 peripherals (not executable)
-- APB2 peripherals (not executable)
-- Other AXI peripherals (not executable)
+- 000000 - 07FFFF, Flash memory 0
+- 080000 - 0FFFFF, Flash memory 1
+- 100000 - 17FFFF, Flash memory 2
+- 180000 - 1FFFFF, Flash memory 3
+- 200000 - 27FFFF, RAM
+- 280000 - 2FFFFF, APB1 peripherals (not executable)
+- 300000 - 37FFFF, APB2 peripherals (not executable)
+- 380000 - 3FFFFF, Other AXI peripherals (not executable)
 
 For example, an MCU system with 128 KB sectors uses 512 KB for Forth dictionary.
 The VM changes `vm_memory` pointers to RAM when "writing" to Flash,
@@ -115,44 +115,6 @@ there will be erase-thrashing if code and header writes are to different sectors
 A nice-sized Forth application may have 1000 words (20 KB of headers) and 20 KB of code.
 In that case, `#define FLASHAPPSECTORSIZE 16384` would make the flash sector size 64 KB.
 The next contiguous sector, starting at cell address 4000h, would be data space.
-
-## VM memory addressing
-
-Memory spaces are statically allocated arrays in C.
-The static const headers compile directly to C's `.text` or `.rodata` section.
-
-The VM bounds-checks memory addresses and translates them to various regions:
-
-| Memory space     | Address Map      | Section  | #define |
-|:-----------------|:-----------------|:---------|:--------|
-| Flash dictionary | 000000 - 0FFFFF  | .vflash1 | FLASHAPPSECTORSIZE, FLASHAPPSECTORS |
-| Flash2 dictionary| 100000 - 1FFFFF  | .vflash2 | FLASHAPPSECTORS2 |
-| RAM dictionary   | 200000 - 2FFFFF  | .vmram   | RDATA_CELLS |
-| Peripherals      | 300000 - 3FFFFF  | | |
-
-The implications on ISA encoding are not much. Thanks to `rcall` and `bran`, code anywhere
-in memory can usually do with compact calls and jumps.
-`ax` and `ay` provide relative RAM addressing.
-At reset, the PC jumps to the 9th cell in the Flash dictionary.
-
-Note that .flash must be defined in the `.ld` linker file to be sector-aligned.
-Its size in bytes should be at least (FLASHAPPSECTORSIZE \* FLASHAPPSECTORS + FHEAD_CELLS\*4).
-Flash2 is there to support a gap in physical addresses, such would be seen with STM32H743-xG parts.
-It could be used with SPI Flash instead.
-
-The address space is designed for ease of decoding.
-The maximum size of most regions is 1M cells. IRL, they will be smaller.
-Addresses above 003FFFFF are not allowed in LiteForth, but the C API may use them.
-
-RAM and peripherals are placed in a 22-bit address space to work with `@` and `!`.
-Peripheral physical cell address ranges for a CH32H417 are:
-
-| VM Address       | Physical Address     | MCU usage                   |
-|:-----------------|:---------------------|:----------------------------|
-| 100000 to 303FFF | 10000000 to 10003FFF | APB1 peripherals            |
-| 104000 to 307FFF | 10004000 to 10007FFF | APB2 peripherals            |
-| 108000 to 30FFFF | 10008000 to 1000FFFF | AHB / High-Speed Subsystems |
-| 110000 to 31FFFF | 14000000 to 1400FFFF | Other AHB                   |
 
 There are two instances of the code, header, and data pointers. To choose what `here` means:
 

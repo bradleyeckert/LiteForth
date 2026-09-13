@@ -22,10 +22,6 @@ extern uint32_t vm_memory_executable[VM_SEGMENTS];
 
 int32_t vmRun(int mode, uint32_t inst, int32_t data);
 
-#define VM_ENDED_NORMALLY   0x80000000
-#define VM_BAD_CODE_ADDR    -100
-#define VM_BAD_DATA_ADDR    -101
-
 #define STACK_CAPACITY 64
 #define STACK_MASK            (STACK_CAPACITY - 1)
 #if (STACK_CAPACITY <= 0) || ((STACK_CAPACITY & STACK_MASK) != 0)

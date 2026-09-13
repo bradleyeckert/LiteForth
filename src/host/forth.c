@@ -5,40 +5,80 @@
 #include "serial_io.h"
 #include <stdio.h>
 
-#define INST(val) (0x8000 | val) 
+#define IS_PRIMITIVE 0x80000000
+#define IS_MACRO     0xC0000000
+#define IS_CONSTANT  0x10000000
+#define UOP(val) (IS_PRIMITIVE | VM_UOPS | (val << 9) )
+#define MACRO(s0, s1, s2) (IS_MACRO | VM_UOPS | (s0 << 9)| (s1 << 4)| s2 )
+#define DATA(idx) ((RAM_PAGE << (22 - VM_SEGMENT_BITS)) + idx)
+
+static int vmPush(int32_t value) {
+    vmRun(1, UOP(VMU_DUP), 0);
+    vmRun(2, 0, value); // Push the number onto the data stack
+    return 0;
+}
+
+static int execute_word(const struct s_head* word) {
+    if (word->aux & IS_CONSTANT) {
+		return vmPush(word->w);
+	}
+    if (word->w & IS_PRIMITIVE) {
+        // Handle primitive word execution
+        int32_t ior = vmRun(1, word->w & 0xFFFF, 0);
+        if (ior == VM_ENDED_NORMALLY) return 0;
+        if (ior) return ior;
+    } else {
+        // Handle non-primitive word execution (e.g., user-defined)
+        // For now, we just print a message
+        printf("Executing word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
+	}
+    return 0;
+}
+
+#define LINK(val) (struct s_head*)&lf_heads[(val)]
 
 static const struct s_head lf_heads[] = { 
-    { NULL,                         "BYE",  INST(VMU_DUP), 0x200},
-    { (struct s_head*)&lf_heads[ 0], "inv",  INST(VMU_INV       ), 0x200},
-    { (struct s_head*)&lf_heads[ 1], "over", INST(VMU_OVER      ), 0x201},
-    { (struct s_head*)&lf_heads[ 2], "a!",   INST(VMU_ASTORE    ), 0x202},
-    { (struct s_head*)&lf_heads[ 3], "xor",  INST(VMU_XOR       ), 0x203},
-    { (struct s_head*)&lf_heads[ 4], "+",    INST(VMU_PLUS      ), 0x204},
-    { (struct s_head*)&lf_heads[ 5], "and",  INST(VMU_AND       ), 0x205},
-    { (struct s_head*)&lf_heads[ 6], ">r",   INST(VMU_PUSH      ), 0x206},
-    { (struct s_head*)&lf_heads[ 7], "unext",INST(VMU_UNEXT     ), 0x207},
-    { (struct s_head*)&lf_heads[ 8], "2*",   INST(VMU_TWOSTAR   ), 0x208},
-    { (struct s_head*)&lf_heads[ 9], "dup",  INST(VMU_DUP       ), 0x209},
-    { (struct s_head*)&lf_heads[10], "drop", INST(VMU_DROP      ), 0x20A},
-    { (struct s_head*)&lf_heads[11], "@a",   INST(VMU_FETCHA    ), 0x20B},
-    { (struct s_head*)&lf_heads[12], "@a+",  INST(VMU_FETCHAPLUS), 0x20C},
-    { (struct s_head*)&lf_heads[13], "r@",   INST(VMU_R         ), 0x20D},
-    { (struct s_head*)&lf_heads[14], "r>",   INST(VMU_POP       ), 0x20E},
-    { (struct s_head*)&lf_heads[15], "2/c",  INST(VMU_TWODIVC   ), 0x20F},
-    { (struct s_head*)&lf_heads[16], "2/",   INST(VMU_TWODIV    ), 0x210},
-    { (struct s_head*)&lf_heads[17], "!a",   INST(VMU_STOREA    ), 0x211},
-    { (struct s_head*)&lf_heads[18], "!a+",  INST(VMU_STOREAPLUS), 0x212},
-    { (struct s_head*)&lf_heads[19], "!b",   INST(VMU_STOREB    ), 0x213},
-    { (struct s_head*)&lf_heads[20], "!b+",  INST(VMU_STOREBPLUS), 0x214},
-    { (struct s_head*)&lf_heads[21], "swap", INST(VMU_SWAP      ), 0x215},
-    { (struct s_head*)&lf_heads[22], "+*",   INST(VMU_PLUSSTAR  ), 0x216},
-    { (struct s_head*)&lf_heads[23], "b",    INST(VMU_B         ), 0x217},
-    { (struct s_head*)&lf_heads[24], "b!",   INST(VMU_BSTORE    ), 0x218},
-    { (struct s_head*)&lf_heads[25], "@b",   INST(VMU_FETCHB    ), 0x219},
-    { (struct s_head*)&lf_heads[26], "@b+",  INST(VMU_FETCHBPLUS), 0x21A},
-    { (struct s_head*)&lf_heads[27], "a",    INST(VMU_A         ), 0x21B},
-    { (struct s_head*)&lf_heads[28], "cy",   INST(VMU_CY        ), 0x21C},
-};                               
+    { NULL,     "bye",  UOP(VMU_DUP), 0x200},
+    { LINK( 0), "inv",  UOP(VMU_INV), 0x200},
+    { LINK( 1), "over", UOP(VMU_OVER      ), 0x201},
+    { LINK( 2), "a!",   UOP(VMU_ASTORE    ), 0x202},
+    { LINK( 3), "xor",  UOP(VMU_XOR       ), 0x203},
+    { LINK( 4), "+",    UOP(VMU_PLUS      ), 0x204},
+    { LINK( 5), "and",  UOP(VMU_AND       ), 0x205},
+    { LINK( 6), ">r",   UOP(VMU_PUSH      ), 0x206},
+    { LINK( 7), "unext",UOP(VMU_UNEXT     ), 0x207},
+    { LINK( 8), "2*",   UOP(VMU_TWOSTAR   ), 0x208},
+    { LINK( 9), "dup",  UOP(VMU_DUP       ), 0x209},
+    { LINK(10), "drop", UOP(VMU_DROP      ), 0x20A},
+    { LINK(11), "@a",   UOP(VMU_FETCHA    ), 0x20B},
+    { LINK(12), "@a+",  UOP(VMU_FETCHAPLUS), 0x20C},
+    { LINK(13), "r@",   UOP(VMU_R         ), 0x20D},
+    { LINK(14), "r>",   UOP(VMU_POP       ), 0x20E},
+    { LINK(15), "2/c",  UOP(VMU_TWODIVC   ), 0x20F},
+    { LINK(16), "2/",   UOP(VMU_TWODIV    ), 0x210},
+    { LINK(17), "!a",   UOP(VMU_STOREA    ), 0x211},
+    { LINK(18), "!a+",  UOP(VMU_STOREAPLUS), 0x212},
+    { LINK(19), "!b",   UOP(VMU_STOREB    ), 0x213},
+    { LINK(20), "!b+",  UOP(VMU_STOREBPLUS), 0x214},
+    { LINK(21), "swap", UOP(VMU_SWAP      ), 0x215},
+    { LINK(22), "+*",   UOP(VMU_PLUSSTAR  ), 0x216},
+    { LINK(23), "b",    UOP(VMU_B         ), 0x217},
+    { LINK(24), "b!",   UOP(VMU_BSTORE    ), 0x218},
+    { LINK(25), "@b",   UOP(VMU_FETCHB    ), 0x219},
+    { LINK(26), "@b+",  UOP(VMU_FETCHBPLUS), 0x21A},
+    { LINK(27), "a",    UOP(VMU_A         ), 0x21B},
+    { LINK(28), "cy",   UOP(VMU_CY        ), 0x21C},
+    { LINK(29), "base", DATA(F_BASE),             IS_CONSTANT | 0x21D},
+    { LINK(30), "state",DATA(F_STATE),            IS_CONSTANT | 0x21E},
+    { LINK(31), "dpl",  DATA(F_DPL),              IS_CONSTANT | 0x21F},
+    { LINK(32), ">in",  DATA(F_TOIN),             IS_CONSTANT | 0x220},
+    { LINK(33), "blk",  DATA(F_BLK),              IS_CONSTANT | 0x221},
+    { LINK(34), "tib",  DATA(F_BASE),             IS_CONSTANT | 0x222},
+    { LINK(35), "2dup", MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x223},
+    { LINK(36), "!",    MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),   0x224},
+    { LINK(37), "@",    MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),   0x225},
+    { LINK(38), "nip",  MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),       0x226},
+};
 
 struct s_wid wids[WIDS_MAX] = {// wordlists
     [0] = { .head = &lf_heads[(sizeof(lf_heads) / sizeof(s_head)) - 1],
@@ -67,33 +107,24 @@ const struct s_head* search_wordlist(int wid_index, const char *target_name, int
 
     const struct s_head *link = wids[wid_index].head;
 
-    printf("List last name = '%s'\n", link->name);
-
     while (link != NULL) {
         const char *s1 = link->name;
         const char *s2 = target_name;
-        int match = 1;
+        char c1;
+        char c2;
 
 		while (1) {
-            char c1 = *s1;
-            char c2 = *s2;
+            c1 = *s1++;
+            c2 = *s2++;
             if (c1 == '\0') break;
             if (c2 == '\0') break;
             if (case_insensitive) {
-                if (c1 >= 'A' && c1 <= 'Z') c1 += 32;
                 if (c2 >= 'A' && c2 <= 'Z') c2 += 32;
             }
-
-            if (c1 != c2) {
-                match = 0;
-                break;
-            }
-
-            s1++;
-            s2++;
+			if (c1 != c2) break;
         }
 
-        if (match) {
+        if ((c1 | c2) == 0) {
             return link;
         }
         
@@ -128,7 +159,6 @@ const struct s_head* search_context(const char *target_name, int case_insensitiv
     return NULL; // Word not found in any active wordlist
 }
 
-#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -146,7 +176,7 @@ static int serial_puts(const char* s) {
 }
 
 static int dot(int64_t val, int base) {
-    char buf[68]; // Enough for 32-bit integer
+    char buf[68] = { 0 }; // Enough for 32-bit integer
     char* p = &buf[sizeof(buf)];
     *--p = 0; // Null terminator
     if (val < 0) {
@@ -154,7 +184,7 @@ static int dot(int64_t val, int base) {
         serial_putc('-');
     }
     *--p = ' ';
-    while (val > 0) {
+    do {
         int digit = val % base;
         val /= base;
         if (digit < 10) {
@@ -164,15 +194,15 @@ static int dot(int64_t val, int base) {
             *--p = 'A' + (digit - 10);
         }
         if (p == buf) break;
-    }
+    } while (val > 0);
     return serial_puts(p);
 }
 
 static int vmDotS(void) {
     int32_t val;
     int8_t depth = (int8_t)vmRun(3, 8, 0);
-    if (depth) {
-        while (--depth) {
+    if (depth--) {
+        while (depth--) { // under T
             val = vmRun(3, 0x100 + depth, 0);
             dot((int64_t)val, BASE);
         }
@@ -182,18 +212,12 @@ static int vmDotS(void) {
 	return 0;
 }
 
-static uint32_t char2digit(char c) {
+static int char2digit(char c) {
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
     if (c >= 'a' && c <= 'z') return c - 'a' + 10;
     return 100; // Invalid character for a digit
 }
-
-int execute_word(const struct s_head* word) {
-    printf(" Executing word: %s (w=%u, aux=%u)\n", word->name, word->w, word->aux);
-    return 0;
-}
-
 
 
 /* ========================================================================= 
@@ -283,7 +307,7 @@ int parseNumber(int base) {
     while (1) {
         int8_t c = (int8_t)token[i++];
         if (c == '\0') break;
-        uint32_t digit = char2digit(c);
+        int digit = char2digit(c);
 		if (digit >= base) return ERR_UNDEFINED_WORD;
         value = (value * base) + digit;
 	}
@@ -332,14 +356,12 @@ int interpret(char* str, size_t len) {
             }
             continue;
         }
-		printf(" Token %s not found in dictionary. Attempting numeric parse.\n", token);
         ior = parseNumber(BASE);        // Fall back to numeric evaluation
         if (ior) return ior;
         if (STATE) {                    // valid number
         }
         else {
-            vmRun(1, INST(VMU_DUP), 0);
-            vmRun(2, 0, value); // Push the number onto the data stack
+            vmPush(value);
         }
     }
     return ior;
@@ -349,7 +371,7 @@ int interpret(char* str, size_t len) {
 /* OUTER 'QUIT' MAIN TERMINAL REPL LOOP                                      */
 /* ========================================================================= */
 
-void QUIT(void) {
+int QUIT(void) {
     serial_puts("May the Forth be with you. Type 'BYE' to exit.\n");
 
     while (1) {

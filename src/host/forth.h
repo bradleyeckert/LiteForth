@@ -7,18 +7,26 @@
 #define CONTEXT_MAX 8
 #define WIDS_MAX 8
 #define STACK_MAX 16
+#define RAM_PAGE     1
 
 /*
-vm_memory[1] is the RAM page. Forth variables are placed at fixed locations for
-accessibility by Forth or by C.
+vm_memory[RAM_PAGE] is the RAM page. Forth variables are placed at fixed
+locations for accessibility by Forth or by C.
 */
 
-#define BASE      vm_memory[1][0]
-#define STATE     vm_memory[1][1]
-#define DPL       vm_memory[1][2]
-#define TOIN      vm_memory[1][3]               // offset into tib
-#define BLK       vm_memory[1][4]
-#define TIB       ((char *)&vm_memory[1][5])    // text input buffer
+#define F_BASE    0
+#define F_STATE   1
+#define F_DPL     2
+#define F_TOIN    3
+#define F_BLK     4
+#define F_TIB     5
+
+#define BASE      vm_memory[RAM_PAGE][F_BASE]
+#define STATE     vm_memory[RAM_PAGE][F_STATE]
+#define DPL       vm_memory[RAM_PAGE][F_DPL]
+#define TOIN      vm_memory[RAM_PAGE][F_TOIN]
+#define BLK       vm_memory[RAM_PAGE][F_BLK ]
+#define TIB       ((char *)&vm_memory[RAM_PAGE][F_TIB])
 #define TIBSIZE   ((26-5) * sizeof(int32_t))
 
 
@@ -88,6 +96,6 @@ int interpret(char *str, size_t len);
  * Enters an infinite terminal interaction stream, reading lines from console
  * and feeding them to the text interpreter layer.
  */
-void QUIT(void);
+int QUIT(void);
 
 #endif /* FORTH_H */

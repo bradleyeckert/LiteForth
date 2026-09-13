@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "vm.h"
 #include "vm_labels.h"
+#include "errcodes.h"
 
 int32_t* vm_memory[VM_SEGMENTS];           
 uint32_t vm_memory_rd_limit[VM_SEGMENTS];  
@@ -64,10 +65,10 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
             page = PC >> (24 - VM_SEGMENT_BITS);
             if (page >= VM_SEGMENTS) {
                 if (PC == (int32_t)0xDEADC0DE) return VM_ENDED_NORMALLY;
-                return VM_BAD_CODE_ADDR;
+                return ERR_EXEC_PROTECTED;
             }
             int a = (PC >> 1) & VM_SEGMASK;
-            if (a >= vm_memory_executable[page]) return VM_BAD_CODE_ADDR;
+            if (a >= vm_memory_executable[page]) return ERR_EXEC_PROTECTED;
             inst = vm_memory[page][a];
             if (!(PC & 1)) {
                 inst = inst >> 16;
@@ -87,11 +88,11 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
             int bumpa = 0;
             while (i > 0) { // Execute a group of 5-bit MISC instructions
                 i -= 5;
-                int32_t n = T;
                 int uop;
                 if (i < 0) uop = inst & LAST_SLOT_MASK;
                 else uop = (inst >> i) & 0x1F;
                 int se = stackeffects[uop];
+                int32_t n = T;
                 if (se & 1) {
                     VM_DDUP;
                 }
@@ -117,12 +118,15 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                 }                                                   break;
                 case VMU_XOR:       T = n ^ T;                      break;
                 case VMU_AND:       T = n & T;                      break;
-                case VMU_SWAP:      n = datastack[sp];
-                    datastack[sp] = T;  T = n;                      break;
+                case VMU_SWAP: {
+                    int32_t temp = datastack[sp];
+                    datastack[sp] = T;  
+                    T = temp;
+                }                                                   break;
                 case VMU_CY:        T = cy;                         break;
                 case VMU_B:         T = B;                          break;
-                case VMU_OVER:      n = datastack[sp];  T = n;      break;
-                case VMU_PUSH:      VM_RDUP;  R = T;                break;
+                case VMU_OVER:      T = datastack[(sp - 1) & STACK_MASK]; break;
+                case VMU_PUSH:      VM_RDUP;  R = n;                break;
                 case VMU_R:         T = R;                          break;
                 case VMU_POP:       T = R;  VM_RDROP;               break;
                 case VMU_UNEXT:     R--;
@@ -154,7 +158,7 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                     int page = (maddr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
                     uint32_t a = maddr & VM_SEGMASK;
                     if (a >= vm_memory_rd_limit[page]) {
-                        return VM_BAD_DATA_ADDR;
+                        return ERR_INVALID_ADDRESS;
                     }
                     T = vm_memory[page][a];
                     if (bitfield_size) {
@@ -176,10 +180,10 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                     int page = (maddr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
                     uint32_t a = maddr & VM_SEGMASK;
                     if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
-                        return VM_BAD_DATA_ADDR;
+                        return ERR_INVALID_ADDRESS;
                     }
                     if (a < vm_memory_wp_limit[page]) { // and above the write protect limit
-                        return VM_BAD_DATA_ADDR;
+                        return ERR_WRITE_PROTECTED;
                     }
                     if (bitfield_size) { // bit fields need a RMW operation
                         int bshift = (a >> 22) & 0x1F;

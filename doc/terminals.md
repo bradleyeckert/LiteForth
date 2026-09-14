@@ -41,6 +41,13 @@ You can provide a serial port name as an argument to connect to a serial port in
 In that case, you could use a serial cable emulator like `com0com`.
 A terminal emulator (like PuTTY) would treat it as a serial-connected MCU port.
 
+To demonstrate CJK character output, LiteForth sends "幸运狐" in UTF-8.
+The following Windows terminals were tried:
+
+- ConEmu, displays correctly.
+- Command Prompt, displays square boxes instead of CJK. 
+- Windows Powershell, displays square boxes instead of CJK. 
+
 ## Windows terminal, Embedded LiteForth
 
 WezTerm supports raw mode only: `wezterm serial COM3 --baud 115200`
@@ -76,10 +83,8 @@ Text that overflows a line goes onto the next line after inserting a blank line.
 If this results in text being lost from the last line of the block, an error is reported.
 The line overflow occurs a blank-delimited-word at a time to avoid splitting the text.
 
-## mind detritus
+## Other terminal notes
 
-I was given an awesome OLED monitor that has a non-standard RGB layout.
-ClearType/TrueType does not render well on such a monitor, so some apps look worse.
-If you get one of these babies, change to dark themes and plan on enlarging global text
-to compensate for the loss of ClearType. Not sure I would recommend non-standard RGB.
-But still, terminals look great in OLED.
+Some OLED monitors do not use a RGB sequence of vertical bars for pixels. Who knew?
+That wrecks ClearType, so you have to work without ClearType.
+Terminals still look okay, but watch out for that when shopping for monitors.

@@ -1,4 +1,4 @@
-#include "forth.h"
+﻿#include "forth.h"
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
@@ -475,7 +475,7 @@ int interpret(char* str, size_t len) {
 
 // `serial_open` before you call QUIT
 int QUIT(void) {
-    serial_puts("LiteForth v0");
+    serial_puts(u8"幸运狐 v0");
     lfDotB(TF_VERSION, 10, 2);
     lfCR();
     while (1) {

@@ -1,16 +1,16 @@
 #ifndef FORTH_H
 #define FORTH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
+#include "options.h"
 
-#define CONTEXT_MAX 8
-#define WIDS_MAX    8
-#define STACK_MAX  16
-#define RAM_PAGE    1
-#define TIBCELLS   21
-
-/*
+/**
 vm_memory[RAM_PAGE] is the RAM page. Forth variables are placed at fixed
 locations for accessibility by Forth or by C.
 */
@@ -22,6 +22,7 @@ locations for accessibility by Forth or by C.
 #define F_TOIN      4
 #define F_TIB       5
 #define F_BLK       (F_TIB + TIBCELLS)
+#define F_LINECOUNT (F_BLK + 1)
 
 #define TIBSTATE    vm_memory[RAM_PAGE][F_TIBSTATE]
 #define BASE        vm_memory[RAM_PAGE][F_BASE]
@@ -31,6 +32,11 @@ locations for accessibility by Forth or by C.
 #define TIB         ((char *)&vm_memory[RAM_PAGE][F_TIB])
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t))
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
+#define LINECOUNT   vm_memory[RAM_PAGE][F_LINECOUNT]
+
+#define SYS_FLAGS_LOCKED      0x80000000
+#define SYS_FLAG_VERBOSE      0x00000002 // quit immediately upon throwing an error
+#define SYS_FLAG_VALIDATION   0x00000001 // quit immediately upon throwing an error
 
 
 /* ========================================================================= */
@@ -103,5 +109,9 @@ int QUIT(void);
 
 int lfDotB(int32_t val, int base);
 int lfDot(int32_t val);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FORTH_H */

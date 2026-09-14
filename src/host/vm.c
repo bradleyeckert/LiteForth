@@ -99,7 +99,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
 }
 
 PLACE_IN_ITCM;
-int32_t vmRun(int once, uint32_t inst, int32_t data) {
+int32_t vmRun(int once, uint32_t inst, int32_t address) {
 
     int32_t ior = 0;                    // 0 = okay
     uint32_t steps = 0;
@@ -116,7 +116,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t data) {
         if (steps == 0) {               // run a word indefinitely
             VM_RDUP;                    // launch it with a terminator
             R = 0xDEADC0DE;             // on the return stack
-            PC = data;
+            PC = address;
         }
 
     fetch:                              // outer loop starts here...
@@ -129,7 +129,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t data) {
         else {
             page = PC >> (24 - VM_SEGMENT_BITS);
             if (page >= VM_SEGMENTS) {
-                if (PC == (int32_t)0xDEADC0DE) return VM_ENDED_NORMALLY;
+                if (PC == (int32_t)0xDEADC0DE) return 0;
                 return ERR_EXEC_PROTECTED;
             }
             uint32_t a = (PC >> 1) & VM_SEGMASK;
@@ -288,7 +288,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t data) {
 
         if (steps) {
             steps--;
-            if (steps == 0) return VM_ENDED_NORMALLY;
+            if (steps == 0) return 0;
         }
         if (ior) return ior;
         if (once == 0) goto fetch;

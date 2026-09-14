@@ -3,7 +3,8 @@
 #include "vm_labels.h"
 #include "errcodes.h"
 #include "serial_io.h"
-#include <stdio.h>
+#include "options.h"
+#include <stdio.h> // remove for production code
 
 #define DOT_S_MAX    8  // maximum depth to display in .s
 #define IS_PRIMITIVE 0x80000000
@@ -15,7 +16,13 @@
 #define API0(idx) (IS_PRIMITIVE | VMI_API0 | (idx))
 
 static uint32_t system_flags = 0;
-#define SUDDEN_DEATH 0x00000001 // quit immediately upon throwing an error
+
+static int lfCR(void) {
+    if (CR_IS_CRLF) {
+        serial_putc('\r');
+    }
+    return serial_putc('\n');
+}
 
 static int vmPush(int32_t value) {
     return vmPoke(-1, value);;
@@ -28,7 +35,6 @@ static int execute_word(const struct s_head* word) {
     if (word->w & IS_PRIMITIVE) {
         // Handle primitive word execution
         int32_t ior = vmRun(1, word->w & 0xFFFF, 0);
-        if (ior == VM_ENDED_NORMALLY) return 0;
         if (ior) return ior;
     } else {
         // Handle non-primitive word execution (e.g., user-defined)
@@ -40,7 +46,9 @@ static int execute_word(const struct s_head* word) {
 
 #define LINK(val) (struct s_head*)&lf_heads[(val)]
 
-static const struct s_head lf_heads[] = {
+// Flash cost per entry: 16 bytes plus name string (length+1 bytes).
+// 64 entries is about 1.4 KB
+static const struct s_head lf_heads[] = {  
     { NULL,     "bye",      API0(0),                                0x200},
     { LINK( 0), "inv",      UOP(VMU_INV),                           0x201},
     { LINK( 1), "over",     UOP(VMU_OVER),                          0x202},
@@ -90,8 +98,11 @@ static const struct s_head lf_heads[] = {
     { LINK(45), "}t",       API0(6),                                0x230},
     { LINK(46), "->",       API0(7),                                0x231},
     { LINK(47), "t{",       API0(8),                                0x232},
-    { LINK(48), "sysflags!",API0(9),                                0x233},
-    { LINK(49), "sysflags@",API0(10),                               0x234},
+    { LINK(48), ">options", API0(9),                                0x233},
+    { LINK(49), "options>", API0(10),                               0x234},
+    { LINK(50), "(",        API0(11),                               0x235},
+    { LINK(51), ".(",       API0(12),                               0x236},
+    { LINK(52), "cr",       API0(13),                               0x237},
 };
 
 struct s_wid wids[WIDS_MAX] = {// wordlists
@@ -190,7 +201,7 @@ static int serial_puts(const char* s) {
 }
 
 
-int lfDotB(int32_t val, int base) {
+int lfDotB(int32_t val, int base, int dpl) {
     char buf[36] = { 0 }; // Enough for 32-bit integer
     char* p = &buf[sizeof(buf)];
     *--p = 0; // Null terminator
@@ -199,6 +210,7 @@ int lfDotB(int32_t val, int base) {
         serial_putc('-');
     }
     do {
+        if (p == buf) break; // no more room
         int digit = val % base;
         val /= base;
         if (digit < 10) {
@@ -207,8 +219,12 @@ int lfDotB(int32_t val, int base) {
         else {
             *--p = 'A' + (digit - 10);
         }
-        if (p == buf) break;
-    } while (val > 0);
+        if (dpl) {
+            if (--dpl == 0) {
+                *--p = '.';
+            }
+        }
+    } while (val | dpl);
 	int result = serial_puts(p);
     if (BASE == 16) {
         serial_putc('H');
@@ -217,7 +233,7 @@ int lfDotB(int32_t val, int base) {
 }
 
 int lfDot(int32_t val) {
-    lfDotB(val, BASE);
+    lfDotB(val, BASE, 0);
     return serial_putc(' ');
 }
 
@@ -227,7 +243,7 @@ static int lfDotS(void) {
         serial_puts("( ");
         if (depth > DOT_S_MAX) {
             serial_putc('[');
-            lfDotB(depth, BASE);
+            lfDotB(depth, BASE, 0);
             serial_puts("]... ");
             depth = DOT_S_MAX;
         }
@@ -252,10 +268,12 @@ static int char2digit(char c) {
 used to manage the input buffer and block number for file-based input.
 TIB is a fixed buffer in Forth data space for terminal input.
 ========================================================================= */
+#define TERMINAL_CLOSED 0x8000
 
 static int loadTIB(void) {
     char *tib = (char*)TIB; // reset the TIB pointer
 	int remaining = TIBSIZE; // remaining space in TIB
+    int aux_result = 0;
 
     if (TIBSTATE) {
         // Announce to Forth that the terminal is waiting for TIBSTATE = 2
@@ -270,15 +288,15 @@ static int loadTIB(void) {
                 continue;
             }
             int c = serial_getc();
-            if (c == EOF) { break; }
+            if (c == EOF) { aux_result = TERMINAL_CLOSED; break; }
 			if (c == '\r') { continue; }
             if (c == '\n') { break; }
 			*tib++ = (char)c;
             remaining--;
 			if (remaining <= 1) { break; } // Leave space for null terminator
         }
-        while (remaining--) {
-            *tib++ = 0; // Null-terminate and wipe the remaining TIB
+        if (remaining--) {
+            *tib++ = 0; // Null-terminate
         }
         if (TIBSTATE) {
             TIBSTATE = 2; // Indicate that TIB is ready for processing
@@ -288,7 +306,8 @@ static int loadTIB(void) {
             }
 #endif
         }
-        return TIBSIZE - remaining; // Return the number of bytes loaded into TIB
+        int length = (TIBSIZE - remaining) | aux_result;
+        return length;
     }
 	return 0; // For now, we only handle keyboard input (BLK == 0)
 }
@@ -304,34 +323,41 @@ to the next character after the token. If no token is found, it returns NULL.
 The extracted token is stored in a static buffer for later use.
 */
 
-static char thisChar(void) {
+static char TOINchar(void) {
     return source[TOIN];
 }
 
-static int parseStr(char terminator) {
+static void TOINbump(void) {
+    TOIN++;
+}
+
+static int parseWord(void) {
     int ior = 0;
     // Skip leading whitespace
     while(1) {
-        char c = thisChar();
+        char c = TOINchar();
         if (c == '\0') break;
         if (c != ' ') break;
-        TOIN++;
+        TOINbump();
     }
 	// Copy characters into the token buffer
     int i = 0;
+    char c;
     while(1) {
-		char c = thisChar();
+		c = TOINchar();
         if (c == '\0') break;
-        if (c == terminator) break;
+        if (c == ' ') break;
 		token[i++] = c;
         if (i >= sizeof(token) - 1) {
             ior = ERR_DEFINITION_TOO_LONG;
             break; // Prevent buffer overflow
         }
-        TOIN++;
+        TOINbump();
     }
 	// Terminate the token string
     token[i] = 0;
+    // skip the blank delimiter
+    if (c != '\0') TOINbump();
     return ior;
 }
 
@@ -398,82 +424,87 @@ static int parseNumber(int base) {
 }
 
 /**
- * Core Forth Text Interpreter (EVALUATE).
- * Processes a specific raw text memory buffer slice of a given length.
+ * Forth Text Interpreter for a buffer anywhere in memory
+ * The character just after the end of the buffer is set to \0 as a backstop.
+ * Make sure the buffer has room for that.
  *
- * @param str Ptr to the character stream data to interpret.
- * @param len The exact byte boundary size of the string string.
- * @return    0 on normal execution, -1 if a termination word (like BYE) is trapped.
+ * @param str Character stream to interpret.
+ * @param len Stream length.
+ * @return    0 on normal execution, else Forth error code from errcodes.h
  */
 int interpret(char* str, size_t len) {
     if (str == NULL || len == 0) {
         return 0;
     }
-    // Safety implementation boundary: Ensure the working block slice is null-terminated
-    // so standard string tokenizers do not run past the parameter boundary.
-	// After this, parsing does not require additional length checks (len is not used).
-
-    if (str[len] != '\0') {
-        str[len] = '\0';
-    }
-    source = str;
+    str[len] = '\0';                    // backstop the buffer 
+    source = str;                       // use str for TOINchar
     TOIN = 0;
     int ior = 0;
-    while (thisChar() != 0) {
+    while (TOINchar() != 0) {
         if (ior) return ior;
-        ior = parseStr(' '); // Parse the next token delimited by space
+        ior = parseWord();              // Parse the next token delimited by space
 		if (ior) return ior;
         // A. Check the current active vocabulary lists
-        const struct s_head* word = search_context(token, 1); // 1 = Case Insensitive
-
-		if (word != NULL) {             // word was found in the dictionary
-            if (STATE) {
-                ior = execute_word(word);
-            } else {
-                ior = execute_word(word);
-			}
-            int base = BASE;            // safety-check the base
-            if (base < 2 || base > 36) {
-                ior = ERR_INVALID_BASE;
-                BASE = 10;
+        const struct s_head* word = search_context(token, CASE_SENSITIVE);
+        if (token[0] != '\0') {         // ignore empty strings
+            if (word != NULL) {         // word was found in the dictionary
+                if (STATE) {
+                    ior = execute_word(word);
+                }
+                else {
+                    ior = execute_word(word);
+                }
+                int base = BASE;        // safety-check the base
+                if (base < 2 || base > 36) {
+                    ior = ERR_INVALID_BASE;
+                    BASE = 10;
+                }
+                continue;
             }
-            continue;
-        }
-        ior = parseNumber(BASE);        // Fall back to numeric evaluation
-        if (ior) return ior;
-        if (STATE) {                    // valid number
-        }
-        else {
-            vmPush(value);
+            ior = parseNumber(BASE);    // Fall back to numeric evaluation
+            if (ior) return ior;
+            if (STATE) {                // valid number
+            }
+            else {
+                vmPush(value);
+            }
         }
     }
     return ior;
 }
 
-/* ========================================================================= */
-/* OUTER 'QUIT' MAIN TERMINAL REPL LOOP                                      */
-/* ========================================================================= */
-
+// `serial_open` before you call QUIT
 int QUIT(void) {
-    serial_puts("May the Forth be with you. Type 'BYE' to exit.\n");
+    serial_puts("LiteForth v0");
+    lfDotB(TF_VERSION, 10, 2);
+    lfCR();
     while (1) {
         BASE = 10;
         STATE = 0;
         DPL = 0;
         TOIN = 0;
         BLK = 0;
+        LINECOUNT = 0;
         vmReset();
         // REPL until an error (or bye) occurs starting with a clean stack
         int32_t ior = 0;
         while (ior == 0) {
-            lfDotS();
-            if (ior) break;
-            serial_puts("ok>");
+            if ((system_flags & SYS_FLAG_VALIDATION) == 0) {
+                lfDotS();
+                serial_puts("ok>");
+            }
             int len = loadTIB();
-            ior = interpret((char*)TIB, len);
+            if (system_flags & SYS_FLAG_VERBOSE) {
+                lfCR();
+                serial_puts("Line ");
+                lfDot(++LINECOUNT);
+                serial_puts(TIB);
+            }
+            ior = interpret((char*)TIB, len & 0x7FFF);
             int depth = vmPeek(VM_REG_depth);
             if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
             else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
+            if (len & TERMINAL_CLOSED) ior = ERR_QUIT;
         }
 		// handle the ior here if needed (e.g., exit on BYE)
         switch (ior) {
@@ -487,16 +518,16 @@ int QUIT(void) {
             lfDot(ior);
             break;
 		}
-        if (SUDDEN_DEATH & system_flags) {
-            return 1;                   // quit after the first error
+        if (system_flags & SYS_FLAG_VALIDATION) {
+            return ior; // quit after the first error
         }
     }
 }
 
-/*
+/*==========================================================================
 * API 0 (internal)
 * Functions that access the stack must be in this file.
-*/
+*=========================================================================*/
 
 static int APIbye(void) {
     return ERR_QUIT;
@@ -586,15 +617,40 @@ static int APIgetFlags(void) {
 }
 
 static int APIsetFlags(void) {
-    system_flags = vmPeek(-1);
+    int32_t val = vmPeek(-1);
+    if ((system_flags & SYS_FLAGS_LOCKED) == 0) {
+        system_flags = val;
+    }
     return 0;
+}
+
+static int APIparenX(int echo) {
+    while (1) {
+        char c = TOINchar();
+        if (c == '\0') break;
+        TOINbump();
+        if (c == ')') break;
+        if (echo) {
+            serial_putc(c);
+        }
+    }
+    return 0;
+}
+
+static int APIparen(void) {
+    return APIparenX(0);
+}
+
+static int APIdotParen(void) {
+    return APIparenX(1);
 }
 
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
     APIbye, APIemit, APIdot, APIsegment, API_umstar, API_mstar,
-    APIendTest, APIdoTest, APIbeginTest, APIsetFlags, APIgetFlags
+    APIendTest, APIdoTest, APIbeginTest, APIsetFlags, APIgetFlags,
+    APIparen, APIdotParen, lfCR
 
     /*, API_NVMbeginWrite, API_NVMread, API_NVMwrite, // 0
     API_NVMendRW, API_Emit, API_umstar, API_mudivmod,               // 4

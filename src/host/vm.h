@@ -1,9 +1,13 @@
 #ifndef _VM_H_
 #define _VM_H_
 
-#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define VM_SEGMENT_BITS 3
+#include <stdint.h>
+#include "options.h"
+
 #define VM_SEGMENTS (1 << VM_SEGMENT_BITS)
 
 /*
@@ -20,18 +24,83 @@ extern uint32_t vm_memory_rd_limit[VM_SEGMENTS];
 extern uint32_t vm_memory_wp_limit[VM_SEGMENTS];  
 extern uint32_t vm_memory_executable[VM_SEGMENTS];
 
-int32_t vmRun(int mode, uint32_t inst, int32_t data);
+/**
+ * @name VM Execution and State Control
+ * @{
+ */
+
+ /**
+  * @brief Simulates a Forth CPU
+  * 
+  * - vmRun(1, inst, 0)
+  * - vmRun(0, steps, 0)
+  * - vmRun(0, 0, address)
+  *
+  * @param once `1` if single instruction, `0` if executing code.
+  * @param inst 16-bit instruction to execute, or number of steps.
+  * If 0 steps, run until last `;` starting at `address`.
+  * @param address Address of word to run.
+  * @return Return code IOR, see errcodes.h.
+  */
+int32_t vmRun(int once, uint32_t inst, int32_t address);
+
+/**
+ * @brief Reads the contents of a specific VM register.
+ *
+ * @param reg Register to fetch, pop if -1. See vm_labels.h.
+ * @return The 32-bit signed value stored in the specified register.
+ */
 int32_t vmPeek(int reg);
+
+/**
+ * @brief Writes a value directly to a VM register.
+ *
+ * @param reg Register to store, push if -1. See vm_labels.h.
+ * @param data 32-bit signed value to store in the register.
+ * @return Previous register value or status indicator.
+ */
 int32_t vmPoke(int reg, int32_t data);
+
+/**
+ * @brief Resets the virtual machine registers, memory limits, and execution state.
+ *
+ * @return Status code indicating successful reset (0 on success).
+ */
 int32_t vmReset(void);
 
+/** @} */
+
+
+/**
+ * @name VM API Dispatch Handlers
+ * @{
+ */
+
+/**
+ * @brief Invokes the LiteForth API function handler (API 0).
+ *
+ * @param fn API function identifier or dispatch ID to execute.
+ * @return IOR result code (see errcodes.h) from host function call.
+ */
 int VMapi0Call(int fn);
+
+/**
+ * @brief Invokes a user API function handler (API 1).
+ *
+ * @param fn API function identifier or dispatch ID to execute.
+ * @return IOR result code (see errcodes.h) from host function call.
+ */
 int VMapi1Call(int fn);
 
-#define STACK_CAPACITY 64
+/** @} */
+
 #define STACK_MASK            (STACK_CAPACITY - 1)
 #if (STACK_CAPACITY <= 0) || ((STACK_CAPACITY & STACK_MASK) != 0)
 #error "STACK_CAPACITY must be a non-zero power of 2 for masking to work."
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* _VM_H_ */

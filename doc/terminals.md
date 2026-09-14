@@ -30,7 +30,6 @@ socat - /dev/ttyUSB0,raw,b115200,echo=0            # cooked mode
 ## LiteForth in Windows
 
 The default terminal is mostly okay. Use Windows Terminal, not `cmd.com`.
-Enter `chcp 65001` to enable UTF-8, if it is not already enabled.
 
 There are many alternatives to Windows Terminal. Some that may work are:
 
@@ -38,9 +37,9 @@ There are many alternatives to Windows Terminal. Some that may work are:
 - WezTerm: A GPU-accelerated terminal emulator for Windows.
 - Mintty: The default terminal wrapper installed alongside Git Bash, MSYS2, and Cygwin.
 
-You can give a serial port name as an argument to connect to a serial port instead of `stdio`.
+You can provide a serial port name as an argument to connect to a serial port instead of `stdio`.
 In that case, you could use a serial cable emulator like `com0com`.
-Another window on your PC would treat it as a serial-connected MCU port.
+A terminal emulator (like PuTTY) would treat it as a serial-connected MCU port.
 
 ## Windows terminal, Embedded LiteForth
 

@@ -118,7 +118,6 @@
 #define ERR_FLASH_SEEK_FAIL         (-99)   /* Failed to seek to the start offset of the requested sector */
 #define ERR_FLASH_WRITE_SECTOR     (-100)   /* Failed to write the complete block data to the sector slot */
 // vm.c
-#define VM_ENDED_NORMALLY		   (-101)   /* VM execution completed without error */
 #define ERR_EXEC_PROTECTED	       (-102)   /* execution address prohibited */
 #define ERR_INVALID_API_CALL       (-103)   /* invalid API call */
 #define ERR_INVALID_OPCODE         (-104)   /* invalid VM opcode */

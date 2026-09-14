@@ -94,6 +94,12 @@ int set_terminal_mode(int enable) {
 int serial_open(char* name, int baudrate) {
     if (baudrate == 0) {
         is_terminal_mode = 1;
+#if defined(_WIN32) || defined(_WIN64)
+        // Set console output to UTF-8 (CP 65001)
+        SetConsoleOutputCP(CP_UTF8);
+        // Set console input to UTF-8 (CP 65001)
+        SetConsoleCP(CP_UTF8);
+#endif
         return 0;
     }
 

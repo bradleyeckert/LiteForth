@@ -6,8 +6,8 @@
 
 int main(void) {
 
-    int32_t code_page0[TEST_MEM_SIZE];
-    int32_t ram_page[TEST_MEM_SIZE];
+    int32_t code_page0[TEST_MEM_SIZE] = { 0 };
+    int32_t ram_page[TEST_MEM_SIZE] = { 0 };
 
     for (int i = 0; i < VM_SEGMENTS; i++) {
         vm_memory[i] = code_page0;

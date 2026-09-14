@@ -1,6 +1,19 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+// forth.c
+#define TF_VERSION       0  // version 0.00
+#define CONTEXT_MAX      8  // depth of possible search order
+#define WIDS_MAX         8  // number of different wordlists supported
+#define RAM_PAGE         1  // The memory page used by system variables
+#define TIBCELLS        21  // The size of the TIB in cells
+#define CASE_SENSITIVE   1  // is FIND case sensitive?
+#define CR_IS_CRLF       1  // 0 if Unix style line endings
+// vm.c                   
+#define VM_SEGMENT_BITS  3  // log2 of the number of pages in the memory space
+#define STACK_CAPACITY  64  // Size of the data and return stacks in cells
+
+
 /* ==========================================================================
    LiteForth Virtual Machine Memory Configuration
    ========================================================================== */

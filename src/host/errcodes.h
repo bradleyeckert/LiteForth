@@ -94,32 +94,36 @@
  * LiteForth-specific Exception Codes
  */
 // serial_io.c
-#define ERR_INVALID_HANDLE         (-100)   /* The active port handle is invalid or uninitialized */
-#define ERR_TERM_NOT_A_TTY         (-101)   /* Device is not an interactive terminal */
-#define ERR_PORT_OPEN_FAILED       (-102)   /* OS failed to open the serial port */
-#define ERR_GET_TERM_FAILED        (-103)   /* Failed to read port/terminal capabilities */
-#define ERR_SET_TERM_FAILED        (-104)   /* Failed to write new configurations */
-#define ERR_IO_CHECK_FAILED        (-105)   /* Driver query or select() polling failed */
+#define ERR_INVALID_HANDLE          (-80)   /* The active port handle is invalid or uninitialized */
+#define ERR_TERM_NOT_A_TTY          (-81)   /* Device is not an interactive terminal */
+#define ERR_PORT_OPEN_FAILED        (-82)   /* OS failed to open the serial port */
+#define ERR_GET_TERM_FAILED         (-83)   /* Failed to read port/terminal capabilities */
+#define ERR_SET_TERM_FAILED         (-84)   /* Failed to write new configurations */
+#define ERR_IO_CHECK_FAILED         (-85)   /* Driver query or select() polling failed */
 // block.c
-#define ERR_BLK_CREATE_FAIL        (-110)   /* Failed to create the binary simulation file */
-#define ERR_BLK_WRITE_INIT         (-111)   /* Failed to format initial blank file template */
-#define ERR_BLK_OPEN_FAIL          (-112)   /* Failed to open the mass storage file */
-#define ERR_BLK_PARSE_FAIL         (-113)   /* Block 0 header missing signature or parsing failed */
-#define ERR_BLK_BOUNDS             (-114)   /* Target block index exceeds allocated file capacity */
-#define ERR_BLK_SEEK_FAIL          (-115)   /* Failed to seek to target block offset */
-#define ERR_BLK_READ_FAIL          (-116)   /* Disk read failed to yield full 4KB payload */
-#define ERR_BLK_WRITE_FAIL         (-117)   /* Disk write failed to persist full 4KB payload */
-#define ERR_BLK_WRITE_PROTECTED    (-118)   /* Attempted write onto a write-protected block range */
+#define ERR_BLK_CREATE_FAIL         (-86)   /* Failed to create the binary simulation file */
+#define ERR_BLK_WRITE_INIT          (-87)   /* Failed to format initial blank file template */
+#define ERR_BLK_OPEN_FAIL           (-88)   /* Failed to open the mass storage file */
+#define ERR_BLK_PARSE_FAIL          (-89)   /* Block 0 header missing signature or parsing failed */
+#define ERR_BLK_BOUNDS              (-90)   /* Target block index exceeds allocated file capacity */
+#define ERR_BLK_SEEK_FAIL           (-91)   /* Failed to seek to target block offset */
+#define ERR_BLK_READ_FAIL           (-92)   /* Disk read failed to yield full 4KB payload */
+#define ERR_BLK_WRITE_FAIL          (-93)   /* Disk write failed to persist full 4KB payload */
+#define ERR_BLK_WRITE_PROTECTED     (-94)   /* Attempted write onto a write-protected block range */
 // flash.c                             
-#define ERR_FLASH_CREATE_FAIL      (-120)   /* Failed to create the binary simulation file */
-#define ERR_FLASH_WRITE_INIT       (-121)   /* Failed to write the full initial blank state to disk */
-#define ERR_FLASH_INVALID_SECTOR   (-122)   /* The requested sector index falls outside valid bounds */
-#define ERR_FLASH_OPEN_WRITE       (-123)   /* Failed to open the simulation file for writing/updating */
-#define ERR_FLASH_SEEK_FAIL        (-124)   /* Failed to seek to the start offset of the requested sector */
-#define ERR_FLASH_WRITE_SECTOR     (-125)   /* Failed to write the complete block data to the sector slot */
+#define ERR_FLASH_CREATE_FAIL       (-95)   /* Failed to create the binary simulation file */
+#define ERR_FLASH_WRITE_INIT        (-96)   /* Failed to write the full initial blank state to disk */
+#define ERR_FLASH_INVALID_SECTOR    (-97)   /* The requested sector index falls outside valid bounds */
+#define ERR_FLASH_OPEN_WRITE        (-98)   /* Failed to open the simulation file for writing/updating */
+#define ERR_FLASH_SEEK_FAIL         (-99)   /* Failed to seek to the start offset of the requested sector */
+#define ERR_FLASH_WRITE_SECTOR     (-100)   /* Failed to write the complete block data to the sector slot */
 // vm.c
-#define VM_ENDED_NORMALLY		   (-130)   /* VM execution completed without error */
-#define ERR_EXEC_PROTECTED	       (-131)   /* execution address prohibited */
+#define VM_ENDED_NORMALLY		   (-101)   /* VM execution completed without error */
+#define ERR_EXEC_PROTECTED	       (-102)   /* execution address prohibited */
+#define ERR_INVALID_API_CALL       (-103)   /* invalid API call */
+#define ERR_INVALID_OPCODE         (-104)   /* invalid VM opcode */
+#define ERR_WRONG_RESULTS          (-105)   /* assertion - wrong results */
+#define ERR_WRONG_NUM_RESULTS      (-106)   /* assertion - wrong number of results */
 
 
 #endif // ERRCODES_H

@@ -228,7 +228,8 @@ If the value is an xt, bits 31:30 indicate its type:
 | 30  | call-only  | Inhibit tail-calls for this word |
 | 29  | immediate  | Interpret this word as immediate |
 | 28  | constant   | Value is a constant, not an *xt* |
-| 27:0 | aux       | Index of mass storage extension data |
+| 27  | no-compile | Interpret only |
+| 26:0 | aux       | Index of mass storage extension data |
 
 **aux**
 
@@ -294,10 +295,21 @@ When an arror is flagged, execution jumps to address 1 in the VM.
 
 Interpretation of the input buffer follows the usual Forth REPL.
 The difference is that after number conversion fails, the token is compared to
-a constant list in block 1.
+a constant list in the constant blocks.
 
-Blocks 1 and above are treated as a constant list made up of 64-byte blocks.
-The first 4 bytes of the block are the number of table entries.
+Forth and C coexist by Forth running a macroloop that triggers the TIB interpreter
+once per loop. It does this with the `tsync` instruction.
+The `loadTIB` function, inside the C QUIT loop, spins a `yield2c` call
+which steps the VM while waiting for input and/or the sync signal.
+The sequence for this handoff is:
+
+- Once `loadTIB` has an input line, it sets `TIBSTATE` to 2 and waits for it to reach 3.
+- The Forth macroloop sees `TIBSTATE` at 2 and bumps it to 3. It spins until `TIBSTATE` is 1.
+- `loadTIB` sees `TIBSTATE` at 3 and un-pauses, allowing TIB evaluation.
+- QUIT invokes `loadTIB`, which initially sets `TIBSTATE` to 1.
+- If no Forth code is running, set `TIBSTATE` = 0. `loadTIB` will bypass the handshake.
+
+This allows yield2c to execute multiple steps of the VM. 
 
 ## Application region Flash contents
 

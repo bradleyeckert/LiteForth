@@ -21,6 +21,12 @@ extern uint32_t vm_memory_wp_limit[VM_SEGMENTS];
 extern uint32_t vm_memory_executable[VM_SEGMENTS];
 
 int32_t vmRun(int mode, uint32_t inst, int32_t data);
+int32_t vmPeek(int reg);
+int32_t vmPoke(int reg, int32_t data);
+int32_t vmReset(void);
+
+int VMapi0Call(int fn);
+int VMapi1Call(int fn);
 
 #define STACK_CAPACITY 64
 #define STACK_MASK            (STACK_CAPACITY - 1)

@@ -5,29 +5,32 @@
 #include <stddef.h>
 
 #define CONTEXT_MAX 8
-#define WIDS_MAX 8
-#define STACK_MAX 16
-#define RAM_PAGE     1
+#define WIDS_MAX    8
+#define STACK_MAX  16
+#define RAM_PAGE    1
+#define TIBCELLS   21
 
 /*
 vm_memory[RAM_PAGE] is the RAM page. Forth variables are placed at fixed
 locations for accessibility by Forth or by C.
 */
 
-#define F_BASE    0
-#define F_STATE   1
-#define F_DPL     2
-#define F_TOIN    3
-#define F_BLK     4
-#define F_TIB     5
+#define F_TIBSTATE  0
+#define F_BASE      1
+#define F_STATE     2
+#define F_DPL       3
+#define F_TOIN      4
+#define F_TIB       5
+#define F_BLK       (F_TIB + TIBCELLS)
 
-#define BASE      vm_memory[RAM_PAGE][F_BASE]
-#define STATE     vm_memory[RAM_PAGE][F_STATE]
-#define DPL       vm_memory[RAM_PAGE][F_DPL]
-#define TOIN      vm_memory[RAM_PAGE][F_TOIN]
-#define BLK       vm_memory[RAM_PAGE][F_BLK ]
-#define TIB       ((char *)&vm_memory[RAM_PAGE][F_TIB])
-#define TIBSIZE   ((26-5) * sizeof(int32_t))
+#define TIBSTATE    vm_memory[RAM_PAGE][F_TIBSTATE]
+#define BASE        vm_memory[RAM_PAGE][F_BASE]
+#define STATE       vm_memory[RAM_PAGE][F_STATE]
+#define DPL         vm_memory[RAM_PAGE][F_DPL]
+#define TOIN        vm_memory[RAM_PAGE][F_TOIN]
+#define TIB         ((char *)&vm_memory[RAM_PAGE][F_TIB])
+#define TIBSIZE     (TIBCELLS * sizeof(int32_t))
+#define BLK         vm_memory[RAM_PAGE][F_BLK]
 
 
 /* ========================================================================= */
@@ -97,5 +100,8 @@ int interpret(char *str, size_t len);
  * and feeding them to the text interpreter layer.
  */
 int QUIT(void);
+
+int lfDotB(int32_t val, int base);
+int lfDot(int32_t val);
 
 #endif /* FORTH_H */

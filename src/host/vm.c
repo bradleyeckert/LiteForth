@@ -1,73 +1,138 @@
-#include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
-#include <ctype.h>
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
 
-int32_t* vm_memory[VM_SEGMENTS];           
-uint32_t vm_memory_rd_limit[VM_SEGMENTS];  
-uint32_t vm_memory_wp_limit[VM_SEGMENTS];  
+int32_t* vm_memory[VM_SEGMENTS];
+uint32_t vm_memory_rd_limit[VM_SEGMENTS];
+uint32_t vm_memory_wp_limit[VM_SEGMENTS];
 uint32_t vm_memory_executable[VM_SEGMENTS];
-
-// External API call handlers for the VM.
-// These functions are expected to be defined elsewhere in the codebase.
-int32_t VMapi0Call(int32_t tos, int32_t nos, int fn);
-int32_t VMapi1Call(int32_t tos, int32_t nos, int fn);
 
 PLACE_IN_DTCM;
 static const uint8_t stackeffects[32] = VM_STACKEFFECTS;
 static int32_t datastack[STACK_CAPACITY];
 static int32_t returnstack[STACK_CAPACITY];
+static int32_t T = 0;  // Top of Data Stack
+static int32_t PC = 0;  // Program Counter
+static int32_t R = 0;  // Top of Return Stack
+static int32_t A = 0;  // Address A
+static int32_t B = 0;  // Address B
+static int32_t X = 0;  // Scratchpad X
+static int32_t Y = 0;  // Scratchpad Y
+static int32_t lex = 0;  // Literal extension
+static int32_t depth = 0;  // Depth counter
+static int8_t  cy = 0;  // Carry
+static int8_t  sp = 0;  // Data Stack Pointer
+static int8_t  rp = 0;  // Return Stack Pointer
+
+static vm_postincA(void) {
+    int bsize = (A >> 27) & 0x1F;
+    if (bsize == 0) { A++; }
+    else {
+        int bshift = ((A >> 22) & 0x1F) + bsize;
+        if ((bshift + bsize) > 32) {
+            bshift = (bshift - 32) & 0x1F;
+            A++;
+        }
+        A = (bsize << 27) | (bshift << 22) | (A & 0x3FFFFF);
+    }
+}
+
+static vm_postincB(void) {
+    int bsize = (B >> 27) & 0x1F;
+    if (bsize == 0) { B++; }
+    else {
+        int bshift = ((B >> 22) & 0x1F) + bsize;
+        if ((bshift + bsize) > 32) {
+            bshift = (bshift - 32) & 0x1F;
+            B++;
+        }
+        B = (bsize << 27) | (bshift << 22) | (B & 0x3FFFFF);
+    }
+}
+
+static int vmLitIns9(uint16_t inst, int32_t imm) {
+    imm &= 0x1FF;       // u9
+    int32_t simm = imm; // s9
+    if (simm & 0x100) {
+        simm |= ~0x100;
+    }
+    int imm9opcode = (inst >> 9) & 0x0F;
+    switch (imm9opcode) {
+    case VMO_API0: return VMapi0Call(imm); 
+    case VMO_API1: return VMapi1Call(imm); 
+    case VMO_LEX: lex = (lex << 9) | imm; break;
+    case VMO_ZOO:
+        if (inst & 0x100) { VM_DDUP; }
+        switch (inst & 0x3F) {
+        case VMZ_XSTORE:  X = T;   break;
+        case VMZ_YSTORE:  Y = T;   break;
+        case VMZ_THROW:   return T;
+        case VMZ_XFETCH:  T = X;   break;
+        case VMZ_YFETCH:  T = Y;   break;
+        default:                   break;
+        }
+        if (inst & 0x80) { VM_DDROP; }
+        break;
+    case VMO_AX: A = X + imm;  break;
+    case VMO_BY: B = Y + imm;  break;
+    case VMO_ZBRAN: {
+        int32_t t = T;
+        VM_DDROP;
+        if (t == 0) goto qbranch;
+    } break;
+    case VMO_RCALL: VM_RDUP; R = PC;
+    case VMO_BRAN:
+    qbranch:
+        PC = PC + simm; break;
+    case VMO_PBRAN:
+        if ((T & 0x80000000) == 0) {
+            goto qbranch;
+        } break;
+    case VMO_NEXT:
+        R--;
+        if (R) goto qbranch;
+        VM_RDROP;  break;
+    default: return ERR_INVALID_OPCODE;
+    }
+    return 0;
+}
 
 PLACE_IN_ITCM;
-int32_t vmRun(int mode, uint32_t inst, int32_t data) {
-    // Core Architecture Registers
-    static int32_t T = 0;  // Top of Data Stack
-    static int32_t PC = 0;  // Program Counter
-    static int32_t R = 0;  // Top of Return Stack
-    static int32_t A = 0;  // Address A
-    static int32_t B = 0;  // Address B
-    static int32_t X = 0;  // Scratchpad X
-    static int32_t Y = 0;  // Scratchpad Y
-    static int32_t lex = 0;  // Literal extension
-    static int8_t  cy = 0;  // Carry
-    static int8_t  sp = 0;  // Data Stack Pointer
-    static int8_t  rp = 0;  // Return Stack Pointer
+int32_t vmRun(int once, uint32_t inst, int32_t data) {
 
-    int32_t ior = 0;                        // 0 = okay
+    int32_t ior = 0;                    // 0 = okay
+    uint32_t steps = 0;
+    int dirty = 1;
 
-    switch (mode) {
+    if (once) {
+        goto execute;                   // vmRun(1, inst, 0)
+    }
+    else {                              // RUN 'inst' steps of code
 
-    case 0: /* RUN 'inst' STEPS (0 = INFINITE) */ {
+        steps = inst;                   // vmRun(0,steps,0) or
+        int page;                       // vmRun(0,0,address)
 
-        uint32_t steps = inst;              // steps or `infinite` flag
-        uint32_t dirty = 1;                 // mark inst as dirty
-
-        if (steps == 0) {                   // run a word indefinitely
-            VM_RDUP;                        // launch it with a terminator
-            R = 0xDEADC0DE;                 // on the return stack
+        if (steps == 0) {               // run a word indefinitely
+            VM_RDUP;                    // launch it with a terminator
+            R = 0xDEADC0DE;             // on the return stack
             PC = data;
         }
 
-    fetch:
-        if (dirty) {                        // fetch inst pair regardless
+    fetch:                              // outer loop starts here...
+        if (dirty) {                    // fetch inst pair regardless
             dirty = 0;
-            goto prefetch;
         }
-        if (PC & 1) {                       // 2nd instruction in pair
+        else if (PC & 1) {              // 2nd instruction in pair
             inst = inst >> 16;
         }
         else {
-            int page;
-        prefetch:
             page = PC >> (24 - VM_SEGMENT_BITS);
             if (page >= VM_SEGMENTS) {
                 if (PC == (int32_t)0xDEADC0DE) return VM_ENDED_NORMALLY;
                 return ERR_EXEC_PROTECTED;
             }
-            int a = (PC >> 1) & VM_SEGMASK;
+            uint32_t a = (PC >> 1) & VM_SEGMASK;
             if (a >= vm_memory_executable[page]) return ERR_EXEC_PROTECTED;
             inst = vm_memory[page][a];
             if (!(PC & 1)) {
@@ -77,7 +142,7 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
         PC++;
         // Run a 16-bit instruction or instruction group using the lower half
         // of `inst`. The upper half of 'inst' is a cache for the next one.
-    execute: 
+    execute:
         if (inst & VM_UOPS) {
             if (inst & VM_RET) {
                 PC = R;
@@ -120,7 +185,7 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                 case VMU_AND:       T = n & T;                      break;
                 case VMU_SWAP: {
                     int32_t temp = datastack[sp];
-                    datastack[sp] = T;  
+                    datastack[sp] = T;
                     T = temp;
                 }                                                   break;
                 case VMU_CY:        T = cy;                         break;
@@ -165,8 +230,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                         int bshift = (a >> 22) & 0x1F;
                         T = (T >> bshift) & ~(0xFFFFFFFF << bitfield_size);
                     }
-                    if (bumpa & 1) { goto postincA; }
-                    if (bumpa & 2) { goto postincB; }
+                    if (bumpa & 1) { vm_postincA(); }
+                    if (bumpa & 2) { vm_postincB(); }
                     break;
                 }
 
@@ -191,8 +256,8 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                         n = (vm_memory[page][a] & (~(mask << bshift))) | ((n >> bshift) & mask);
                     }
                     vm_memory[page][a] = n;
-                    if (bumpa & 1) { goto postincA; }
-                    if (bumpa & 2) { goto postincB; }
+                    if (bumpa & 1) { vm_postincA(); break; }
+                    if (bumpa & 2) { vm_postincB(); }
                     break;
                 }
                 default: break;
@@ -216,157 +281,80 @@ int32_t vmRun(int mode, uint32_t inst, int32_t data) {
                     lex = 0;
                 }
                 else {
-                    imm &= 0x1FF;           // u9
-                    int32_t simm = imm;     // s9
-                    if (simm & 0x100) {
-                        simm |= 0xFFFFFE00;
-                    }
-                    switch (((inst >> 9) & 0x0F)) {
-                    case VMO_LEX: lex = (lex << 9) | imm;       break;
-                    case VMO_ZOO:
-                        if (inst & 0x100) { VM_DDUP; }
-                        switch (inst & 0x3F) {
-                        case VMZ_XSTORE:  X = T;                break;
-                        case VMZ_YSTORE:  Y = T;                break;
-                        case VMZ_BCISYNC: R = 2;                break;
-                        case VMZ_THROW:   ior = T;              break;
-                        case VMZ_XFETCH:  T = X;                break;
-                        case VMZ_YFETCH:  T = Y;                break;
-                        default:                                break;
-                        }
-                        if (inst & 0x80) { VM_DDROP; }
-                        break;
-                    case VMO_AX: A = X + imm;                   break;
-                    case VMO_BY: B = Y + imm;                   break;
-                    case VMO_ZBRAN: {
-                        int32_t t = T; 
-                        VM_DDROP;
-                        if (t == 0) goto qbranch;
-                    }                                           break;
-                    case VMO_RCALL: VM_RDUP; R = PC;
-                    case VMO_BRAN:
-                qbranch:
-                        PC = PC + simm;                         break;
-                    case VMO_PBRAN: if ((T & 0x80000000) == 0) 
-                        { goto qbranch; }                       break;
-                    case VMO_NEXT:
-                        R--;
-                        if (R) goto qbranch;
-                        VM_RDROP;                               break;
-                    case VMO_API0: T = VMapi0Call(T, NOS, imm); break;
-                    case VMO_API1: T = VMapi1Call(T, NOS, imm); break;
-                    default:                                    break;
-                    }
+                    ior = vmLitIns9((uint16_t)inst, imm);
                 }
             }
         }
 
-    postex:     /* Post-execution tests */
         if (steps) {
             steps--;
             if (steps == 0) return VM_ENDED_NORMALLY;
         }
         if (ior) return ior;
-        goto fetch;
-    // End of the main loop. A and B post-increment are placed here 
-    postincA: {
-        uint8_t bsize;
-        uint8_t bshift;
-        bsize = (A >> 27) & 0x1F;
-        if (bsize == 0) { A++; }
-        else {
-            bshift = ((A >> 22) & 0x1F) + bsize;
-            if ((bshift + bsize) > 32) {
-                bshift = (bshift - 32) & 0x1F;
-                A++;
-            }
-            A = (bsize << 27) | (bshift << 22) | (A & 0x3FFFFF);
-        }
-        goto postex;
-        }
-
-    postincB: {
-        uint8_t bsize;
-        uint8_t bshift;
-        bsize = (B >> 27) & 0x1F;
-        if (bsize == 0) { B++; }
-        else {
-            bshift = ((B >> 22) & 0x1F) + bsize;
-            if ((bshift + bsize) > 32) {
-                bshift = (bshift - 32) & 0x1F;
-                B++;
-            }
-            B = (bsize << 27) | (bshift << 22) | (B & 0x3FFFFF);
-        }
-        goto postex;
-        }
+        if (once == 0) goto fetch;
     }
+    return ior;
+}
 
-    case 1: /* EXECUTE ONE INSTRUCTION GROUP 'inst' (NO CODE FETCH) */
-        ior = VM_ENDED_NORMALLY;
-        goto execute;
 
-    case 2: /* WRITE TO INTERNAL REGISTER */
-        if (inst <= 0x0FF) {
-            switch (inst) {
-            case 0: T = data; return 0;
-            case 1: PC = data; return 0;
-            case 2: R = data; return 0;
-            case 3: A = data; return 0;
-            case 4: B = data; return 0;
-            case 5: X = data; return 0;
-            case 6: Y = data; return 0;
-            case 7: cy = data; return 0;
-            case 8: sp = data & STACK_MASK; return 0;
-            case 9: rp = data & STACK_MASK; return 0;
-            default: return -1;
-            }
-        }
-        else if (inst >= 0x100 && inst <= 0x1FF) {
-            uint8_t index = (sp - inst) & STACK_MASK;
-            datastack[index] = data;
-            return 0;
-        }
-        else if (inst >= 0x200 && inst <= 0x2FF) {
-            uint8_t index = (sp - inst) & STACK_MASK;
-            returnstack[index] = data;
-            return 0;
-        }
-        return -1;
 
-    case 3: /* READ FROM INTERNAL REGISTER */
-        if (inst <= 0x0FF) {
-            switch (inst) {
-            case 0: return T;
-            case 1: return PC;
-            case 2: return R;
-            case 3: return A;
-            case 4: return B;
-            case 5: return X;
-            case 6: return Y;
-            case 7: return cy;
-            case 8: return sp;
-            case 9: return rp;
-            default: return -1;
-            }
-        }
-        else if (inst >= 0x100 && inst <= 0x1FF) {
-            uint8_t index = (sp - inst) & STACK_MASK;
+int32_t vmPeek(int reg) {
+    if (reg < 0) {
+        int32_t tos = T;
+        VM_DDROP;
+        return tos;
+    }
+    switch (reg) {
+        case 0:         return T;
+        case VM_REG_depth: return depth;
+        case VM_REG_PC: return PC;
+        case VM_REG_R : return R;
+        case VM_REG_A : return A;
+        case VM_REG_B : return B;
+        case VM_REG_X : return X;
+        case VM_REG_Y : return Y;
+        case VM_REG_cy: return cy;
+        case VM_REG_sp: return sp;
+        case VM_REG_rp: return rp;
+        default:
+        if (reg < STACK_MASK) {
+            int index = (sp + 1 - reg) & STACK_MASK;
             return datastack[index];
-        }
-        else if (inst >= 0x200 && inst <= 0x2FF) {
-            uint8_t index = (sp - inst) & STACK_MASK;
-            return returnstack[index];
-        }
-        return -1;
-
-    case 4: /* RESET SYSTEM STATE */
-        T = 0; PC = 0; R = 0;
-        A = 0; B = 0; X = 0; Y = 0;
-        cy = 0; sp = 0; rp = 0;
-        return 0;
-
-    default:
-        return -1;
+        }   return -1;
     }
 }
+
+int32_t vmPoke(int reg, int32_t data) {
+    if (reg < 0) {
+        reg = 0;
+        VM_DDUP;
+    }
+    switch (reg) {
+        case 0:         T = data; break;
+        case VM_REG_depth: depth = data; break;
+        case VM_REG_PC: PC = data; break;
+        case VM_REG_R : R = data; break;
+        case VM_REG_A : A = data; break;
+        case VM_REG_B : B = data; break;
+        case VM_REG_X : X = data; break;
+        case VM_REG_Y : Y = data; break;
+        case VM_REG_cy: cy = data & 1; break;
+        case VM_REG_sp: sp = data & STACK_MASK; break;
+        case VM_REG_rp: rp = data & STACK_MASK; break;
+        default:
+        if (reg < STACK_MASK) {
+            int index = (sp + 1 - reg) & STACK_MASK;
+            datastack[index] = data;
+            break;
+        }   return -1;
+    }
+    return 0;
+}
+
+int32_t vmReset(void) {
+    for (int i = VM_REG_depth; i <= VM_REG_rp; i++) {
+        vmPoke(i, 0);
+    }
+    return 0;
+}
+

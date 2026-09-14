@@ -4,13 +4,14 @@
 // These are internal labels and macros used by vm.c.
 
 /* Forces data straight into the Data Tightly Coupled Memory section */
-#define PLACE_IN_DTCM // __attribute__((section(".dtcm")))
+#define PLACE_IN_DTCM /* __attribute__((section(".dtcm"))) */
 
 /* Forces code straight into the Instruction Tightly Coupled Memory section */
-#define PLACE_IN_ITCM // __attribute__((section(".itcm")))
+#define PLACE_IN_ITCM /* __attribute__((section(".itcm"))) */
 
 #define VM_DDUP do {                    \
     sp = (sp + 1) & STACK_MASK;         \
+    depth++;                            \
     datastack[sp] = T;                  \
 } while(0)      
 
@@ -22,6 +23,7 @@
 #define VM_DDROP do {                   \
     T = datastack[sp];                  \
     sp = (sp - 1) & STACK_MASK;         \
+    depth--;                            \
 } while(0)      
 
 #define VM_RDROP do {                   \
@@ -31,12 +33,24 @@
 
 #define NOS datastack[sp]
 
-#define VM_UOPS       0x8000 // uops bit location
-#define VM_RET        0x4000 // return bit location
-#define SLOT0_POSITION   9
+#define VM_UOPS         0x8000 // uops bit location
+#define VM_RET          0x4000 // return bit location
+#define SLOT0_POSITION  9      // [13:9] is the first 5-bit slot
 #define LAST_SLOT_WIDTH (14 % 5)
 #define LAST_SLOT_MASK  ((1 << LAST_SLOT_WIDTH) - 1)
 #define VM_SEGMASK      (~((~0) << (21 - VM_SEGMENT_BITS)))
+
+#define VM_REG_depth    0x100
+#define VM_REG_PC       0x101
+#define VM_REG_R        0x102
+#define VM_REG_A        0x103
+#define VM_REG_B        0x104
+#define VM_REG_X        0x105
+#define VM_REG_Y        0x106
+#define VM_REG_cy       0x107
+#define VM_REG_sp       0x108
+#define VM_REG_rp       0x109
+
 
 #define UOP_NAMES { \
     "nop",   "inv",   "over",  "a!",    "xor",   "+",    "and",   ">r", \
@@ -103,14 +117,12 @@
 
 #define ZOO_NAMES  {"bcisync", "err!", "x!", "y!", "x@", "y@"}
 
-#define VMZ_BCISYNC             0
 #define VMZ_THROW               1
 #define VMZ_XSTORE              2
 #define VMZ_YSTORE              3
 #define VMZ_XFETCH              4
 #define VMZ_YFETCH              5
 
-#define VMI_BCISYNC             (VMI_ZOO + VMZ_BCISYNC)
 #define VMI_THROW               (VMI_ZOO + VMZ_THROW   + VMI_ZOODROP)
 #define VMI_XSTORE              (VMI_ZOO + VMZ_XSTORE  + VMI_ZOODROP)
 #define VMI_YSTORE              (VMI_ZOO + VMZ_YSTORE  + VMI_ZOODROP)

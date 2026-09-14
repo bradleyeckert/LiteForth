@@ -6,7 +6,8 @@
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
     #include <conio.h>
-    #define TARGET_ISATTY() _isatty(0)
+    #include <io.h>
+#define TARGET_ISATTY() _isatty(0)
 #else
     #include <unistd.h>
     #include <fcntl.h>

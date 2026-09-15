@@ -354,7 +354,7 @@ static int parseWord(void) {
         if (c == '\0') break;
         if (c == ' ') break;
 		token[i++] = c;
-        if (i >= sizeof(token) - 1) {
+        if (i >= (int)sizeof(token) - 1) {
             ior = ERR_DEFINITION_TOO_LONG;
             break; // Prevent buffer overflow
         }
@@ -481,7 +481,7 @@ int interpret(char* str, size_t len) {
 
 // `serial_open` before you call QUIT
 int QUIT(void) {
-    serial_puts(u8"幸运狐 v0");
+    serial_puts(u8"LiteForth v0"); // 幸运狐 (lucky fox)
     lfDotB(TF_VERSION, 10, 2);
     lfCR();
     while (1) {
@@ -586,7 +586,7 @@ static int API_mstar(void) {
 
 static uint8_t sp0;
 static uint8_t actual_sp;
-static uint32_t expected_results[STACK_CAPACITY];
+static int32_t expected_results[STACK_CAPACITY];
 
 static int APIbeginTest(void) { // t{
     sp0 = vmPeek(VM_REG_sp);
@@ -668,7 +668,7 @@ static const APIfn API0fns[] = {
     */
 };
 
-#define API0fs (sizeof(API0fns)/sizeof(API0fns[0]))
+#define API0fs ((int)(sizeof(API0fns)/sizeof(API0fns[0])))
 
 int VMapi0Call(int fn) {
     if (fn < API0fs) {
@@ -684,6 +684,7 @@ int VMapi0Call(int fn) {
 */
 
 int VMapi1Call(int fn) {
+    (void)fn;
     return ERR_INVALID_API_CALL;
 }
 

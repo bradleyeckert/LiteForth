@@ -25,7 +25,7 @@ static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
 
-static vm_postincA(void) {
+static void vm_postincA(void) {
     int bsize = (A >> 27) & 0x1F;
     if (bsize == 0) { A++; }
     else {
@@ -38,7 +38,7 @@ static vm_postincA(void) {
     }
 }
 
-static vm_postincB(void) {
+static void vm_postincB(void) {
     int bsize = (B >> 27) & 0x1F;
     if (bsize == 0) { B++; }
     else {
@@ -82,6 +82,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         if (t == 0) goto qbranch;
     } break;
     case VMO_RCALL: VM_RDUP; R = PC;
+        goto qbranch;
     case VMO_BRAN:
     qbranch:
         PC = PC + simm; break;

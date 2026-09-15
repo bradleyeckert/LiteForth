@@ -38,7 +38,7 @@
 #define SLOT0_POSITION  9      // [13:9] is the first 5-bit slot
 #define LAST_SLOT_WIDTH (14 % 5)
 #define LAST_SLOT_MASK  ((1 << LAST_SLOT_WIDTH) - 1)
-#define VM_SEGMASK      (~((~0) << (21 - VM_SEGMENT_BITS)))
+#define VM_SEGMASK      ((1 << (22 - VM_SEGMENT_BITS)) - 1)
 
 #define VM_REG_depth    0x100
 #define VM_REG_PC       0x101

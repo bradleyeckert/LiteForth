@@ -100,23 +100,24 @@
 #define ERR_GET_TERM_FAILED         (-83)   /* Failed to read port/terminal capabilities */
 #define ERR_SET_TERM_FAILED         (-84)   /* Failed to write new configurations */
 #define ERR_IO_CHECK_FAILED         (-85)   /* Driver query or select() polling failed */
+#define ERR_TERM_TX_FAILED          (-86)   /* Driver query or select() polling failed */
 // block.c
-#define ERR_BLK_CREATE_FAIL         (-86)   /* Failed to create the binary simulation file */
-#define ERR_BLK_WRITE_INIT          (-87)   /* Failed to format initial blank file template */
-#define ERR_BLK_OPEN_FAIL           (-88)   /* Failed to open the mass storage file */
-#define ERR_BLK_PARSE_FAIL          (-89)   /* Block 0 header missing signature or parsing failed */
-#define ERR_BLK_BOUNDS              (-90)   /* Target block index exceeds allocated file capacity */
-#define ERR_BLK_SEEK_FAIL           (-91)   /* Failed to seek to target block offset */
-#define ERR_BLK_READ_FAIL           (-92)   /* Disk read failed to yield full 4KB payload */
-#define ERR_BLK_WRITE_FAIL          (-93)   /* Disk write failed to persist full 4KB payload */
-#define ERR_BLK_WRITE_PROTECTED     (-94)   /* Attempted write onto a write-protected block range */
+#define ERR_BLK_CREATE_FAIL         (-87)   /* Failed to create the binary simulation file */
+#define ERR_BLK_WRITE_INIT          (-88)   /* Failed to format initial blank file template */
+#define ERR_BLK_OPEN_FAIL           (-89)   /* Failed to open the mass storage file */
+#define ERR_BLK_PARSE_FAIL          (-80)   /* Block 0 header missing signature or parsing failed */
+#define ERR_BLK_BOUNDS              (-91)   /* Target block index exceeds allocated file capacity */
+#define ERR_BLK_SEEK_FAIL           (-92)   /* Failed to seek to target block offset */
+#define ERR_BLK_READ_FAIL           (-93)   /* Disk read failed to yield full 4KB payload */
+#define ERR_BLK_WRITE_FAIL          (-94)   /* Disk write failed to persist full 4KB payload */
+#define ERR_BLK_WRITE_PROTECTED     (-95)   /* Attempted write onto a write-protected block range */
 // flash.c                             
-#define ERR_FLASH_CREATE_FAIL       (-95)   /* Failed to create the binary simulation file */
-#define ERR_FLASH_WRITE_INIT        (-96)   /* Failed to write the full initial blank state to disk */
-#define ERR_FLASH_INVALID_SECTOR    (-97)   /* The requested sector index falls outside valid bounds */
-#define ERR_FLASH_OPEN_WRITE        (-98)   /* Failed to open the simulation file for writing/updating */
-#define ERR_FLASH_SEEK_FAIL         (-99)   /* Failed to seek to the start offset of the requested sector */
-#define ERR_FLASH_WRITE_SECTOR     (-100)   /* Failed to write the complete block data to the sector slot */
+#define ERR_FLASH_CREATE_FAIL       (-96)   /* Failed to create the binary simulation file */
+#define ERR_FLASH_WRITE_INIT        (-97)   /* Failed to write the full initial blank state to disk */
+#define ERR_FLASH_INVALID_SECTOR    (-98)   /* The requested sector index falls outside valid bounds */
+#define ERR_FLASH_OPEN_WRITE        (-99)   /* Failed to open the simulation file for writing/updating */
+#define ERR_FLASH_SEEK_FAIL        (-100)   /* Failed to seek to the start offset of the requested sector */
+#define ERR_FLASH_WRITE_SECTOR     (-101)   /* Failed to write the complete block data to the sector slot */
 // vm.c
 #define ERR_EXEC_PROTECTED	       (-102)   /* execution address prohibited */
 #define ERR_INVALID_API_CALL       (-103)   /* invalid API call */

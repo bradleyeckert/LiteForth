@@ -296,7 +296,7 @@ int serial_putc(int c) {
     if (is_terminal_mode) {
         int res = fputc(c, stdout);
         fflush(stdout);
-        return 0;
+        return res & ERR_TERM_TX_FAILED;
     }
 
 #if defined(_WIN32) || defined(_WIN64)

@@ -107,9 +107,6 @@ int interpret(char *str, size_t len);
  */
 int QUIT(void);
 
-int lfDotB(int32_t val, int base);
-int lfDot(int32_t val);
-
 #ifdef __cplusplus
 }
 #endif

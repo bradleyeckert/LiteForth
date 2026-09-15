@@ -17,13 +17,6 @@
 
 static uint32_t system_flags = 0;
 
-static int lfCR(void) {
-    if (CR_IS_CRLF) {
-        serial_putc('\r');
-    }
-    return serial_putc('\n');
-}
-
 static int vmPush(int32_t value) {
     return vmPoke(-1, value);;
 }
@@ -232,9 +225,22 @@ int lfDotB(int32_t val, int base, int dpl) {
     return result;
 }
 
-int lfDot(int32_t val) {
+static int lfCR(void) {
+    if (CR_IS_CRLF) {
+        serial_putc('\r');
+    }
+    return serial_putc('\n');
+}
+
+static int lfDot(int32_t val) {
     lfDotB(val, BASE, 0);
     return serial_putc(' ');
+}
+
+static void lfDotLinecount(void) {
+    lfCR();
+    serial_puts("Line ");
+    lfDot(LINECOUNT);
 }
 
 static int lfDotS(void) {
@@ -486,18 +492,19 @@ int QUIT(void) {
         BLK = 0;
         LINECOUNT = 0;
         vmReset();
-        // REPL until an error (or bye) occurs starting with a clean stack
+        // REPL until an error (or bye) occurs, starting with a clean stack.
+        // The `ok>` prompt is at the beginning for compatibility with
+        // cooked input. The terminal echoes newline locally.
         int32_t ior = 0;
         while (ior == 0) {
             if ((system_flags & SYS_FLAG_VALIDATION) == 0) {
                 lfDotS();
                 serial_puts("ok>");
             }
+            LINECOUNT++;
             int len = loadTIB();
             if (system_flags & SYS_FLAG_VERBOSE) {
-                lfCR();
-                serial_puts("Line ");
-                lfDot(++LINECOUNT);
+                lfDotLinecount();
                 serial_puts(TIB);
             }
             ior = interpret((char*)TIB, len & 0x7FFF);
@@ -519,6 +526,7 @@ int QUIT(void) {
             break;
 		}
         if (system_flags & SYS_FLAG_VALIDATION) {
+            lfDotLinecount();
             return ior; // quit after the first error
         }
     }

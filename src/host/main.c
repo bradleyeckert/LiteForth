@@ -17,7 +17,7 @@ int main(void) {
     }
     vm_memory[1] = ram_page;
 	serial_open(NULL, 0); // Open in terminal mode
-    QUIT();
+    int ior = QUIT();
     serial_close();
-    return 0; // or in an embedded system, do a hard reset
+    return ior; // or in an embedded system, do a hard reset
 }

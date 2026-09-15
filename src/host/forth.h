@@ -107,6 +107,11 @@ int interpret(char *str, size_t len);
  */
 int QUIT(void);
 
+int serial_puts(const char* s);
+int lfSpace(void);
+int lfDot(int32_t val);
+int lfDotB(uint32_t val, int base, int dpl);
+
 #ifdef __cplusplus
 }
 #endif

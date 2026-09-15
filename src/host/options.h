@@ -9,6 +9,8 @@
 #define TIBCELLS        21  // The size of the TIB in cells
 #define CASE_SENSITIVE   1  // is FIND case sensitive?
 #define CR_IS_CRLF       1  // 0 if Unix style line endings
+#define DOT_S_MAX        8  // maximum depth to display in .s
+#define FAT_FORTH        1  // all options
 // vm.c                   
 #define VM_SEGMENT_BITS  3  // log2 of the number of pages in the memory space
 #define STACK_CAPACITY  64  // Size of the data and return stacks in cells

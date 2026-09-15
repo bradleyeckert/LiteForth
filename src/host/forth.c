@@ -6,7 +6,6 @@
 #include "options.h"
 #include <stdio.h> // remove for production code
 
-#define DOT_S_MAX    8  // maximum depth to display in .s
 #define IS_PRIMITIVE 0x80000000
 #define IS_MACRO     0xC0000000
 #define IS_CONSTANT  0x10000000
@@ -14,6 +13,10 @@
 #define MACRO(s0, s1, s2) (IS_MACRO | VM_UOPS | ((s0) << 9)| ((s1) << 4)| (s2) )
 #define DATA(idx) ((RAM_PAGE << (22 - VM_SEGMENT_BITS)) + (idx))
 #define API0(idx) (IS_PRIMITIVE | VMI_API0 | (idx))
+
+#if (FAT_FORTH & 1)
+#include "fatso.h"
+#endif
 
 static uint32_t system_flags = 0;
 
@@ -78,14 +81,14 @@ static const struct s_head lf_heads[] = {
     { LINK(32), ">in",      DATA(F_TOIN),           IS_CONSTANT |   0x221},
     { LINK(33), "blk",      DATA(F_BLK),            IS_CONSTANT |   0x222},
     { LINK(34), "tib",      DATA(F_BASE),           IS_CONSTANT |   0x223},
-    { LINK(35), "sectors",  VM_SEGMENTS,            IS_CONSTANT |   0x224},
+    { LINK(35), "pages",    VM_SEGMENTS,            IS_CONSTANT |   0x224},
     { LINK(36), "2dup",     MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x225},
     { LINK(37), "!",        MACRO(VMU_BSTORE,VMU_STOREB,VMU_NOP),   0x226},
     { LINK(38), "@",        MACRO(VMU_BSTORE,VMU_FETCHB,VMU_NOP),   0x227},
     { LINK(39), "nip",      MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),       0x228},
     { LINK(40), "emit",     API0(1),                                0x229},
     { LINK(41), ".",        API0(2),                                0x22A},
-    { LINK(42), "sector",   API0(3),                                0x22B},
+    { LINK(42), "page'",    API0(3),                                0x22B},
     { LINK(43), "um*",      API0(4),                                0x22C},
     { LINK(44), "m*",       API0(5),                                0x22D},
     { LINK(45), "}t",       API0(6),                                0x230},
@@ -96,6 +99,12 @@ static const struct s_head lf_heads[] = {
     { LINK(50), "(",        API0(11),                               0x235},
     { LINK(51), ".(",       API0(12),                               0x236},
     { LINK(52), "cr",       API0(13),                               0x237},
+    { LINK(53), "words",    API0(14),                               0x238},
+    { LINK(54), "'",        API0(15),                               0x239},
+#if (FAT_FORTH & 1)
+    { LINK(55), "hex",      API0(16),                               0x23A},
+    { LINK(56), "decimal",  API0(17),                               0x23B},
+#endif
 };
 
 struct s_wid wids[WIDS_MAX] = {// wordlists
@@ -184,7 +193,7 @@ const struct s_head* search_context(const char *target_name, int case_insensitiv
 * String output functions
 ========================================================================= */
 
-static int serial_puts(const char* s) {
+int serial_puts(const char* s) {
     int ior = 0;
     while (*s) {
         ior = serial_putc(*s++);
@@ -194,12 +203,12 @@ static int serial_puts(const char* s) {
 }
 
 
-int lfDotB(int32_t val, int base, int dpl) {
+int lfDotB(uint32_t val, int base, int dpl) {
     char buf[36] = { 0 }; // Enough for 32-bit integer
     char* p = &buf[sizeof(buf)];
     *--p = 0; // Null terminator
-    if (val < 0) {
-        val = -val;
+    if ((val & 0x80000000) && (base == 10)) {
+        val = 0 - val;
         serial_putc('-');
     }
     do {
@@ -219,7 +228,7 @@ int lfDotB(int32_t val, int base, int dpl) {
         }
     } while (val | dpl);
 	int result = serial_puts(p);
-    if (BASE == 16) {
+    if (base == 16) {
         result = serial_putc('H');
 	}
     return result;
@@ -232,9 +241,13 @@ static int lfCR(void) {
     return serial_putc('\n');
 }
 
-static int lfDot(int32_t val) {
-    lfDotB(val, BASE, 0);
+int lfSpace(void) {
     return serial_putc(' ');
+}
+
+int lfDot(int32_t val) {
+    lfDotB(val, BASE, 0);
+    return lfSpace();
 }
 
 static void lfDotLinecount(void) {
@@ -524,6 +537,11 @@ int QUIT(void) {
         default:
             serial_puts("Error: ior=");
             lfDot(ior);
+#if (FAT_FORTH & 1)
+            const char* msg = get_error_message(ior);
+            serial_puts(msg);
+            lfCR();
+#endif
             break;
 		}
         if (system_flags & SYS_FLAG_VALIDATION) {
@@ -538,6 +556,14 @@ int QUIT(void) {
 * Functions that access the stack must be in this file.
 *=========================================================================*/
 
+static int APItick(void) {
+    int ior = parseWord();
+    if (ior) return ior;
+    const struct s_head* word = search_context(token, CASE_SENSITIVE);
+    if (word == NULL) return ERR_UNDEFINED_WORD;
+    return vmPoke(-1, word->w);
+}
+
 static int APIbye(void) {
     return ERR_QUIT;
 }
@@ -550,7 +576,18 @@ static int APIdot(void) {
     return lfDot(vmPeek(-1));
 }
 
-static int APIsegment(void) {
+static int APIwords(void) {
+    const struct s_head* link = wids[0].head;
+    while (link != NULL) {
+        serial_puts(link->name);
+        lfSpace();
+        link = link->link;
+    }
+    return 0;
+}
+
+
+static int APIpage(void) {
     int32_t val = vmPeek(0);
     val = val << (22 - VM_SEGMENT_BITS);
     return vmPoke(0, val);
@@ -569,7 +606,7 @@ static int API_umstar_x(int sign) {
     if (invert) {
         p = -(signed)p;
     }
-    vmPoke(1, (int32_t)p);
+    vmPoke(1, (int32_t)(p & 0xFFFFFFFF));
     vmPoke(0, (int32_t)(p >> 32));
     return 0;
 }
@@ -657,9 +694,12 @@ static int APIdotParen(void) {
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
-    APIbye, APIemit, APIdot, APIsegment, API_umstar, API_mstar,
+    APIbye, APIemit, APIdot, APIpage, API_umstar, API_mstar,
     APIendTest, APIdoTest, APIbeginTest, APIsetFlags, APIgetFlags,
-    APIparen, APIdotParen, lfCR
+    APIparen, APIdotParen, lfCR, APIwords, APItick
+#if (FAT_FORTH & 1)
+    , lfAPIhex, lfAPIdecimal
+#endif
 
     /*, API_NVMbeginWrite, API_NVMread, API_NVMwrite, // 0
     API_NVMendRW, API_Emit, API_umstar, API_mudivmod,               // 4

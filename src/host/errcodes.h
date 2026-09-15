@@ -125,5 +125,4 @@
 #define ERR_WRONG_RESULTS          (-105)   /* assertion - wrong results */
 #define ERR_WRONG_NUM_RESULTS      (-106)   /* assertion - wrong number of results */
 
-
 #endif // ERRCODES_H

@@ -125,37 +125,6 @@ The ISA splits into *micro* and *other*.
 | lit  | 010  | 13-bit literal (push onto data stack) |
 | imm  | 011  | 4-bit opcode, 9-bit immediate data |
 
-In simulation, this would be decoded by `if` statements.
-Assuming the common case is the `if` clause:
-```C
-if (inst & 0x8000) {
-    // Execute a group of 5-bit MISC instructions
-} else {
-    if (!(inst & 0x4000)) {
-        // Load PC with prefix:inst[12:0] and clear prefix
-        if (!(inst & 0x2000)) {
-            // Push PC to the return stack
-        }
-    } else {
-        if (!(inst & 0x2000)) {
-            // Push prefix:inst[12:0] to the data stack and clear prefix
-        } else {
-            // Execute a specialized instruction using 16-way jump
-        }
-    }
-}
-```
-In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
-The instruction arrives two clock cycles after PC changes.
-When `;` is '1', the instruction bus settles while the group is executing.
-The unified address space means that instruction pairs would be registered in `inst32`.
-For a synchronous read, `inst32` gets registered right on time.
-Two instruction groups typically execute in sequence, with `inst32` being right-shifted
-by 16 bits after the first instruction group executes.
-Random data memory access would just insert a couple of wait states to get the instruction back on the bus.
-
-*other* instructions that take input from `inst32` settle quickly, not having to wait for decode.
-
 The µops (note - they don't take immediate data) are:
 
 | \\  | *0*   | *1* | *2*  | *3* | *4* | *5* | *6* | *7*  |
@@ -202,12 +171,24 @@ They include:
 | throw | 2 | VM quits and returns ior \= T, or sets PC = 2 |
 | x\@   | 3 | T \= X |
 | y\@   | 4 | T \= Y |
-| depth | 5 | T \= depth |
 
 Root functions and App functions are useful when the ISA is simulated.
 C functions for eliminating hot spots are accessed through two execution tables.
 One set of functions lives in immutable root-of-trust memory.
 The other lives in updatable application memory.
+
+In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
+The instruction arrives two clock cycles after PC changes.
+When `;` is '1', the instruction bus settles while the group is executing.
+The unified address space means that instruction pairs would be registered in `inst32`.
+For a synchronous read, `inst32` gets registered right on time.
+Two instruction groups typically execute in sequence, with `inst32` being right-shifted
+by 16 bits after the first instruction group executes.
+Random data memory access would just insert a couple of wait states to get the instruction back on the bus.
+
+*other* instructions that take input from `inst32` settle quickly, not having to wait for decode.
+
+The code compiled by LiteForth will run in a real Forth chip, but it would have to avoid API calls.
 
 ## Stacks
 
@@ -218,3 +199,8 @@ top of the return stack and two for the top of the data stack.
 
 As a preliminary estimate, the execution rate on a CH32H417 (RV32) at 400 MHz
 should be 15 to 30 MIPS.
+
+## Revision history
+
+- 0.00 Interpret-only, set up to run a short test script, tested in Windows and WSL.
+The serial port connection was not tested, just stdio. CI/CD is set up and working.

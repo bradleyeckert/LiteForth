@@ -205,20 +205,12 @@ void serial_close(void) {
 int serial_ready(void) {
     if (is_terminal_mode) {
         if (!TARGET_ISATTY()) return ERR_TERM_NOT_A_TTY;
-#if defined(_WIN32) || defined(_WIN64)
         int c = fgetc(stdin);
         if (c != EOF) {
             ungetc(c, stdin); // Push character back into stdio buffer
             return 1;         // Character is available
         }
         return 0;             // EOF or buffer empty
-#else
-        fd_set read_fds;
-        struct timeval timeout = {0, 0};
-        FD_ZERO(&read_fds);
-        FD_SET(STDIN_FILENO, &read_fds);
-        return select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &timeout) > 0 ? 1 : 0;
-#endif
     }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -296,7 +288,8 @@ int serial_putc(int c) {
     if (is_terminal_mode) {
         int res = fputc(c, stdout);
         fflush(stdout);
-        return res & ERR_TERM_TX_FAILED;
+        if (res == EOF) return ERR_TERM_TX_FAILED;
+        return 0;
     }
 
 #if defined(_WIN32) || defined(_WIN64)

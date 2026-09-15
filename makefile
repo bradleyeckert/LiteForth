@@ -1,8 +1,11 @@
 # Executable name
 TARGET = lf
 
-# Explicitly list source files (in the same directory as this Makefile)
-SRCS = main.c forth.c vm.c serial_io.c
+# Source directory containing the C files
+SRC_DIR = src/host
+
+# Explicitly list source files (prefixed with the source directory)
+SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/forth.c $(SRC_DIR)/vm.c $(SRC_DIR)/serial_io.c
 
 # Compiler and flags
 CC = gcc
@@ -10,7 +13,10 @@ CFLAGS = -Wall -Wextra -O2
 
 # Directory for intermediate object files
 BUILD_DIR = build
-OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
+
+# Map source files in src/host to object files in build/
+# e.g., src/host/main.c becomes build/main.o
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Default target
 all: $(TARGET) clean_build
@@ -19,8 +25,8 @@ all: $(TARGET) clean_build
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-# Compile source files to object files inside the build directory
-$(BUILD_DIR)/%.o: %.c
+# Compile source files from the src/host directory into the build directory
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 

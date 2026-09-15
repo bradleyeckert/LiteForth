@@ -220,7 +220,7 @@ int lfDotB(int32_t val, int base, int dpl) {
     } while (val | dpl);
 	int result = serial_puts(p);
     if (BASE == 16) {
-        serial_putc('H');
+        result = serial_putc('H');
 	}
     return result;
 }
@@ -481,7 +481,7 @@ int interpret(char* str, size_t len) {
 
 // `serial_open` before you call QUIT
 int QUIT(void) {
-    serial_puts(u8"LiteForth v0"); // 幸运狐 (lucky fox)
+    serial_puts(u8"幸运狐 v0");
     lfDotB(TF_VERSION, 10, 2);
     lfCR();
     while (1) {
@@ -499,7 +499,8 @@ int QUIT(void) {
         while (ior == 0) {
             if ((system_flags & SYS_FLAG_VALIDATION) == 0) {
                 lfDotS();
-                serial_puts("ok>");
+                ior = serial_puts("ok>");
+                if (ior) break; // lost output channel
             }
             LINECOUNT++;
             int len = loadTIB();

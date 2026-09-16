@@ -45,6 +45,32 @@ extern uint32_t vm_memory_executable[VM_SEGMENTS];
 int32_t vmRun(int once, uint32_t inst, int32_t address);
 
 /**
+ * @brief Reads from the memory space
+ *
+ * @param addr Address to fetch
+ * @param *data Pointer to destination of the read data
+ * @return ior, 0 if okay
+ */
+int vmFetch(uint32_t addr, int32_t* data);
+
+/**
+ * @brief Writes to the memory space
+ *
+ * @param addr Address to store
+ * @param data 32-bit data to store
+ * @return ior, 0 if okay
+ */
+int vmStore(uint32_t addr, int32_t data);
+
+/**
+ * @brief Calculates the next RAM address
+ *
+ * @param addr Cell or bitfield address
+ * @return Next cell or bitfield address
+ */
+int32_t vmCharPlus(int32_t addr);
+
+/**
  * @brief Reads the contents of a specific VM register.
  *
  * @param reg Register to fetch, pop if -1. See vm_labels.h.

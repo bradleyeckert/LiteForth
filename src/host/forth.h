@@ -15,24 +15,26 @@ vm_memory[RAM_PAGE] is the RAM page. Forth variables are placed at fixed
 locations for accessibility by Forth or by C.
 */
 
-#define F_TIBSTATE  0
-#define F_BASE      1
-#define F_STATE     2
-#define F_DPL       3
-#define F_TOIN      4
-#define F_TIB       5
-#define F_BLK       (F_TIB + TIBCELLS)
-#define F_LINECOUNT (F_BLK + 1)
+#define BITFIELD(size, pos, addr) ((size << 27) | (pos << 22) | (RAM_PAGE << (22 - VM_SEGMENT_BITS)) | addr)
+#define BFADDR(idx) (RAM_BASE << (22 - VM_SEGMENT_BITS))
 
-#define TIBSTATE    vm_memory[RAM_PAGE][F_TIBSTATE]
-#define BASE        vm_memory[RAM_PAGE][F_BASE]
-#define STATE       vm_memory[RAM_PAGE][F_STATE]
-#define DPL         vm_memory[RAM_PAGE][F_DPL]
-#define TOIN        vm_memory[RAM_PAGE][F_TOIN]
+#define LF_PACKEDSTATE vm_memory[RAM_PAGE][0]
+#define LF_BASE      BITFIELD(6, 0, 0)  /* Packed Forth state    */
+#define LF_TIBSTATE  BITFIELD(2, 6, 0)
+#define LF_STATE     BITFIELD(1, 8, 0)
+#define LF_DPL       BITFIELD(6, 9, 0)
+#define LF_TOIN      BITFIELD(13, 15, 0)
+    // 1 = reserved cell for whatever
+#define LF_TIB       BITFIELD(8, 0, 2)  /* Terminal Input Buffer */
+#define LF_BLK       (F_TIB + TIBCELLS) /* Allow 4G blocks       */
+
+
+#define F_TIB       2
+#define F_BLK       (F_TIB + TIBCELLS)
+
 #define TIB         ((char *)&vm_memory[RAM_PAGE][F_TIB])
-#define TIBSIZE     (TIBCELLS * sizeof(int32_t))
+#define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
-#define LINECOUNT   vm_memory[RAM_PAGE][F_LINECOUNT]
 
 #define SYS_FLAGS_LOCKED      0x80000000
 #define SYS_FLAG_VERBOSE      0x00000002 // quit immediately upon throwing an error
@@ -111,6 +113,8 @@ int serial_puts(const char* s);
 int lfSpace(void);
 int lfDot(int32_t val);
 int lfDotB(uint32_t val, int base, int dpl);
+int lfBASEfetch(void);
+int lfBASEstore(int base);
 
 #ifdef __cplusplus
 }

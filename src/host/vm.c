@@ -25,29 +25,18 @@ static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
 
-static void vm_postincA(void) {
-    int bsize = (A >> 27) & 0x1F;
-    if (bsize == 0) { A++; }
-    else {
-        int bshift = ((A >> 22) & 0x1F) + bsize;
-        if ((bshift + bsize) > 32) {
-            bshift = (bshift - 32) & 0x1F;
-            A++;
-        }
-        A = (bsize << 27) | (bshift << 22) | (A & 0x3FFFFF);
+int32_t vmCharPlus(int32_t addr) {
+    int bsize = (addr >> 27) & 0x1F;
+    if (bsize == 0) {
+        return addr + 1;
     }
-}
-
-static void vm_postincB(void) {
-    int bsize = (B >> 27) & 0x1F;
-    if (bsize == 0) { B++; }
     else {
-        int bshift = ((B >> 22) & 0x1F) + bsize;
+        int bshift = ((addr >> 22) & 0x1F) + bsize;
         if ((bshift + bsize) > 32) {
             bshift = (bshift - 32) & 0x1F;
-            B++;
+            addr++;
         }
-        B = (bsize << 27) | (bshift << 22) | (B & 0x3FFFFF);
+        return (bsize << 27) | (bshift << 22) | (addr & 0x3FFFFF);
     }
 }
 
@@ -100,6 +89,42 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
 }
 
 PLACE_IN_ITCM;
+int vmFetch(uint32_t addr, int32_t* data) {
+    int bitfield_size = addr >> 27;
+    int page = (addr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
+    uint32_t a = addr & VM_SEGMASK;
+    if (a >= vm_memory_rd_limit[page]) {
+        return ERR_INVALID_ADDRESS;
+    }
+    uint32_t res = vm_memory[page][a];
+    if (bitfield_size) {
+        int bshift = (addr >> 22) & 0x1F;
+        res = (res >> bshift) & ((1 << bitfield_size) - 1);
+    }
+    *data = res;
+    return 0;
+}
+
+int vmStore(uint32_t addr, int32_t data) {
+    int bitfield_size = addr >> 27;
+    int page = (addr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
+    uint32_t a = addr & VM_SEGMASK;
+    if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
+        return ERR_INVALID_ADDRESS;
+    }
+    if (a < vm_memory_wp_limit[page]) { // and above the write protect limit
+        return ERR_WRITE_PROTECTED;
+    }
+    if (bitfield_size) { // bit fields need a RMW operation
+        int bshift = (addr >> 22) & 0x1F;
+        uint32_t mask = (1 << bitfield_size) - 1;
+        data = ((data & mask) << bshift) |
+            (vm_memory[page][a] & (~(mask << bshift)));
+    }
+    vm_memory[page][a] = data;
+    return 0;
+}
+
 int32_t vmRun(int once, uint32_t inst, int32_t address) {
 
     int32_t ior = 0;                    // 0 = okay
@@ -218,49 +243,42 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
                 case VMU_FETCHAPLUS: maddr = A; bumpa = 1; goto memfetch;
                 case VMU_FETCHB:     maddr = B; bumpa = 0; goto memfetch;
                 case VMU_FETCHBPLUS: maddr = B; bumpa = 2; goto memfetch;
+                case VMU_FETCHASIGN: maddr = A; bumpa = 4; goto memfetch;
 
-                memfetch: {
-                    int bitfield_size = maddr >> 27;
-                    int page = (maddr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
-                    uint32_t a = maddr & VM_SEGMASK;
-                    if (a >= vm_memory_rd_limit[page]) {
-                        return ERR_INVALID_ADDRESS;
+                memfetch: 
+                    ior = vmFetch(maddr, &T);
+                    if (bumpa & 1) {
+                        A = vmCharPlus(A);
                     }
-                    T = vm_memory[page][a];
-                    if (bitfield_size) {
-                        int bshift = (a >> 22) & 0x1F;
-                        T = (T >> bshift) & ~(0xFFFFFFFF << bitfield_size);
+                    else if (bumpa & 2) {
+                        B = vmCharPlus(B);
                     }
-                    if (bumpa & 1) { vm_postincA(); }
-                    if (bumpa & 2) { vm_postincB(); }
+                    else if (bumpa & 4) {
+                        int bsize = maddr >> 27;
+                        if (bsize) {
+                            int32_t sign = 1 << (bsize - 1);
+                            if (T & sign) {
+                                T |= (-sign);
+                            }
+                        }
+                    }
                     break;
-                }
 
                 case VMU_STOREA:     maddr = A; bumpa = 0; goto memstore;
                 case VMU_STOREAPLUS: maddr = A; bumpa = 1; goto memstore;
                 case VMU_STOREB:     maddr = B; bumpa = 0; goto memstore;
                 case VMU_STOREBPLUS: maddr = B; bumpa = 2; goto memstore;
 
-                memstore: {
-                    int bitfield_size = maddr >> 27;
-                    int page = (maddr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
-                    uint32_t a = maddr & VM_SEGMASK;
-                    if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
-                        return ERR_INVALID_ADDRESS;
+                memstore:
+                    ior = vmStore(maddr, n);
+                    if (bumpa & 1) {
+                        A = vmCharPlus(A);
                     }
-                    if (a < vm_memory_wp_limit[page]) { // and above the write protect limit
-                        return ERR_WRITE_PROTECTED;
+                    else if (bumpa & 2) {
+                        B = vmCharPlus(B);
                     }
-                    if (bitfield_size) { // bit fields need a RMW operation
-                        int bshift = (a >> 22) & 0x1F;
-                        uint32_t mask = ~(0xFFFFFFFF << bitfield_size);
-                        n = (vm_memory[page][a] & (~(mask << bshift))) | ((n >> bshift) & mask);
-                    }
-                    vm_memory[page][a] = n;
-                    if (bumpa & 1) { vm_postincA(); break; }
-                    if (bumpa & 2) { vm_postincB(); }
                     break;
-                }
+                
                 default: break;
                 }
             }

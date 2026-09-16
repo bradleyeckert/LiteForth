@@ -2,6 +2,7 @@
 #include "errcodes.h"
 #include "forth.h"
 #include "vm.h"
+#include "vm_labels.h"
 
 typedef struct {
     int code;
@@ -153,12 +154,19 @@ const char* get_error_message(int err_code) {
 ==========================================================================*/
 
 int lfAPIdecimal(void) {
-    BASE = 10;
+    lfBASEstore(10);
     return 0;
 }
 
 int lfAPIhex(void) {
-    BASE = 16;
+    lfBASEstore(16);
     return 0;
 }
 
+/* DUMP ( addr len -- ) uses VM instructions to load A, execute @A, and get T
+*/
+
+int lfAPIdump(void) {
+ //   int32_t length = vmPeek(-1);
+    return 0;
+}

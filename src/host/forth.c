@@ -5,9 +5,11 @@
 #include "serial_io.h"
 #include "options.h"
 #include <stdio.h> // remove for production code
-
+// cd /mnt/c/Users/User/Documents/GitHub/LiteForth
 #define IS_PRIMITIVE 0x80000000
 #define IS_MACRO     0xC0000000
+#define IS_IMMEDIATE 0x40000000
+//#define IS_IMM_ONLY  0x20000000
 #define IS_CONSTANT  0x10000000
 #define UOP(val) (IS_PRIMITIVE | VM_UOPS | ((val) << 9) )
 #define MACRO(s0, s1, s2) (IS_MACRO | VM_UOPS | ((s0) << 9)| ((s1) << 4)| (s2) )
@@ -19,6 +21,48 @@
 #endif
 
 static uint32_t system_flags = 0;
+static uint32_t linecount = 0;
+
+int lfBASEfetch(void) {
+    int32_t result;
+    vmFetch(LF_BASE, &result);
+    return result;
+}
+
+int lfBASEstore(int base) {
+    return vmStore(LF_BASE, base);
+}
+
+int lfSTATEfetch(void) {
+    int32_t result;
+    vmFetch(LF_STATE, &result);
+    return result;
+}
+
+int lfSTATEstore(int compiling) {
+    return vmStore(LF_STATE, compiling);
+}
+
+int lfTOINfetch(void) {
+    int32_t result;
+    vmFetch(LF_TOIN, &result);
+    return result;
+}
+
+int lfTOINstore(int position) {
+    return vmStore(LF_TOIN, position);
+}
+
+int lfTIBSTATEfetch(void) {
+    int32_t result;
+    vmFetch(LF_TIBSTATE, &result);
+    return result;
+}
+
+int lfTIBSTATEstore(int state) {
+    return vmStore(LF_TIBSTATE, state);
+}
+
 
 static int vmPush(int32_t value) {
     return vmPoke(-1, value);;
@@ -39,6 +83,12 @@ static int execute_word(const struct s_head* word) {
 	}
     return 0;
 }
+
+static int compile_word(const struct s_head* word) {
+    printf("Compiling word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
+    return 0;
+}
+
 
 #define LINK(val) (struct s_head*)&lf_heads[(val)]
 
@@ -75,39 +125,41 @@ static const struct s_head lf_heads[] = {
     { LINK(26), "@b+",      UOP(VMU_FETCHBPLUS),                    0x21B},
     { LINK(27), "a",        UOP(VMU_A),                             0x21C},
     { LINK(28), "cy",       UOP(VMU_CY),                            0x21D},
-    { LINK(29), "base",     DATA(F_BASE),           IS_CONSTANT |   0x21E},
-    { LINK(30), "state",    DATA(F_STATE),          IS_CONSTANT |   0x21F},
-    { LINK(31), "dpl",      DATA(F_DPL),            IS_CONSTANT |   0x220},
-    { LINK(32), ">in",      DATA(F_TOIN),           IS_CONSTANT |   0x221},
-    { LINK(33), "blk",      DATA(F_BLK),            IS_CONSTANT |   0x222},
-    { LINK(34), "tib",      DATA(F_BASE),           IS_CONSTANT |   0x223},
+    { LINK(29), "base",     LF_BASE,                IS_CONSTANT |   0x21E},
+    { LINK(30), "state",    LF_STATE,               IS_CONSTANT |   0x21F},
+    { LINK(31), "dpl",      LF_DPL,                 IS_CONSTANT |   0x220},
+    { LINK(32), ">in",      LF_TOIN,                IS_CONSTANT |   0x221},
+    { LINK(33), "blk",      LF_BLK,                 IS_CONSTANT |   0x222},
+    { LINK(34), "tib",      LF_TIB,                 IS_CONSTANT |   0x223},
     { LINK(35), "pages",    VM_SEGMENTS,            IS_CONSTANT |   0x224},
     { LINK(36), "2dup",     MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x225},
     { LINK(37), "!",        MACRO(VMU_BSTORE,VMU_STOREB,VMU_NOP),   0x226},
     { LINK(38), "@",        MACRO(VMU_BSTORE,VMU_FETCHB,VMU_NOP),   0x227},
     { LINK(39), "nip",      MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),       0x228},
-    { LINK(40), "emit",     API0(1),                                0x229},
-    { LINK(41), ".",        API0(2),                                0x22A},
-    { LINK(42), "page'",    API0(3),                                0x22B},
-    { LINK(43), "um*",      API0(4),                                0x22C},
-    { LINK(44), "m*",       API0(5),                                0x22D},
-    { LINK(45), "}t",       API0(6),                                0x230},
-    { LINK(46), "->",       API0(7),                                0x231},
-    { LINK(47), "t{",       API0(8),                                0x232},
-    { LINK(48), ">options", API0(9),                                0x233},
-    { LINK(49), "options>", API0(10),                               0x234},
-    { LINK(50), "(",        API0(11),                               0x235},
-    { LINK(51), ".(",       API0(12),                               0x236},
-    { LINK(52), "cr",       API0(13),                               0x237},
-    { LINK(53), "words",    API0(14),                               0x238},
-    { LINK(54), "'",        API0(15),                               0x239},
+    { LINK(40), "]",        API0(1),                                0x229},
+    { LINK(41), "[",        API0(2),                 IS_IMMEDIATE | 0x229},
+    { LINK(42), "emit",     API0(3),                                0x229},
+    { LINK(43), ".",        API0(4),                                0x22A},
+    { LINK(44), "'page",    API0(5),                                0x22B},
+    { LINK(45), "um*",      API0(6),                                0x22C},
+    { LINK(46), "m*",       API0(7),                                0x22D},
+    { LINK(47), "}t",       API0(8),                                0x230},
+    { LINK(48), "->",       API0(9),                                0x231},
+    { LINK(49), "t{",       API0(10),                               0x232},
+    { LINK(50), ">options", API0(11),                               0x233},
+    { LINK(51), "options>", API0(12),                               0x234},
+    { LINK(52), "(",        API0(13),                IS_IMMEDIATE | 0x235},
+    { LINK(53), ".(",       API0(14),                               0x236},
+    { LINK(54), "cr",       API0(15),                               0x237},
+    { LINK(55), "words",    API0(16),                               0x238},
+    { LINK(56), "'",        API0(17),                               0x239},
 #if (FAT_FORTH & 1)
-    { LINK(55), "hex",      API0(16),                               0x23A},
-    { LINK(56), "decimal",  API0(17),                               0x23B},
+    { LINK(57), "hex",      API0(18),                               0x23A},
+    { LINK(58), "decimal",  API0(19),                               0x23B},
 #endif
 };
 
-struct s_wid wids[WIDS_MAX] = {// wordlists
+struct s_wid wids[WIDS_MAX] = { // wordlists
     [0] = { .head = &lf_heads[(sizeof(lf_heads) / sizeof(s_head)) - 1],
     .name = "root" }
 };
@@ -246,14 +298,14 @@ int lfSpace(void) {
 }
 
 int lfDot(int32_t val) {
-    lfDotB(val, BASE, 0);
+    lfDotB(val, lfBASEfetch(), 0);
     return lfSpace();
 }
 
 static void lfDotLinecount(void) {
     lfCR();
     serial_puts("Line ");
-    lfDot(LINECOUNT);
+    lfDot(linecount);
 }
 
 static int lfDotS(void) {
@@ -262,7 +314,7 @@ static int lfDotS(void) {
         serial_puts("( ");
         if (depth > DOT_S_MAX) {
             serial_putc('[');
-            lfDotB(depth, BASE, 0);
+            lfDotB(depth, lfBASEfetch(), 0);
             serial_puts("]... ");
             depth = DOT_S_MAX;
         }
@@ -294,9 +346,9 @@ static int loadTIB(void) {
 	int remaining = TIBSIZE; // remaining space in TIB
     int aux_result = 0;
 
-    if (TIBSTATE) {
+    if (lfTIBSTATEfetch()) {
         // Announce to Forth that the terminal is waiting for TIBSTATE = 2
-		TIBSTATE = 1;
+        lfTIBSTATEstore(1);
     }
 	if (BLK == 0) { // Load the TIB with keyboard input
         while (1) {
@@ -317,10 +369,10 @@ static int loadTIB(void) {
         if (remaining--) {
             *tib++ = 0; // Null-terminate
         }
-        if (TIBSTATE) {
-            TIBSTATE = 2; // Indicate that TIB is ready for processing
+        if (lfTIBSTATEfetch()) {
+            lfTIBSTATEstore(2); // Indicate that TIB is ready for processing
 #ifdef yield2c
-            while (TIBSTATE != 3) {
+            while (lfTIBSTATEfetch() != 3) {
                 yield2c();
             }
 #endif
@@ -343,11 +395,11 @@ The extracted token is stored in a static buffer for later use.
 */
 
 static char TOINchar(void) {
-    return source[TOIN];
+    return source[lfTOINfetch()];
 }
 
 static void TOINbump(void) {
-    TOIN++;
+    lfTOINstore(1 + lfTOINfetch());
 }
 
 static int parseWord(void) {
@@ -387,7 +439,7 @@ static int parseWord(void) {
  * point is present, leaves it at -1 otherwise. Blame: Gemini
  */
 static int parseNumber(int base) {
-    DPL = -1; // -1 indicates no decimal point was encountered
+    int dpl = -1; // -1 indicates no decimal point was encountered
     value = 0;
     int i = 0;
     int sign = 0;
@@ -410,7 +462,7 @@ static int parseNumber(int base) {
         // Handle decimal point '.'
         if (c == '.') {
             has_dpl = 1;
-            DPL = 0;
+            dpl = 0;
             continue;
         }
 
@@ -418,7 +470,7 @@ static int parseNumber(int base) {
 
         // Guard against invalid characters or digits >= base
         if (digit < 0 || digit >= base) {
-            return ERR_UNDEFINED_WORD; // -13[cite: 1]
+            return ERR_UNDEFINED_WORD;
         }
 
         has_digits = 1;
@@ -426,19 +478,20 @@ static int parseNumber(int base) {
 
         // Increment DPL for every valid digit parsed after '.'
         if (has_dpl) {
-            DPL++;
+            dpl++;
         }
     }
 
     // Must have contained at least one actual digit
     if (!has_digits) {
-        return ERR_UNDEFINED_WORD; // -13[cite: 1]
+        return ERR_UNDEFINED_WORD;
     }
 
     if (sign) {
         value = -value;
     }
 
+    vmStore(LF_DPL, dpl);
     return 0; // Success
 }
 
@@ -457,7 +510,7 @@ int interpret(char* str, size_t len) {
     }
     str[len] = '\0';                    // backstop the buffer 
     source = str;                       // use str for TOINchar
-    TOIN = 0;
+    lfTOINstore(0);
     int ior = 0;
     while (TOINchar() != 0) {
         if (ior) return ior;
@@ -466,23 +519,28 @@ int interpret(char* str, size_t len) {
         // A. Check the current active vocabulary lists
         const struct s_head* word = search_context(token, CASE_SENSITIVE);
         if (token[0] != '\0') {         // ignore empty strings
+            int state = lfSTATEfetch();
             if (word != NULL) {         // word was found in the dictionary
-                if (STATE) {
-                    ior = execute_word(word);
+                if (word->aux & IS_IMMEDIATE) {
+                    state = 0;
+                }
+                if (state) {
+                    ior = compile_word(word);
                 }
                 else {
                     ior = execute_word(word);
                 }
-                int base = BASE;        // safety-check the base
-                if (base < 2 || base > 36) {
+                int base = lfBASEfetch();
+                if (base < 2) {         // safety-check the base
                     ior = ERR_INVALID_BASE;
-                    BASE = 10;
+                    lfBASEstore(10);
                 }
                 continue;
             }
-            ior = parseNumber(BASE);    // Fall back to numeric evaluation
-            if (ior) return ior;
-            if (STATE) {                // valid number
+            ior = parseNumber(lfBASEfetch());    
+            if (ior) return ior;        // Fall back to numeric evaluation
+            if (state) {
+                printf("Compiling number %d\n", value);
             }
             else {
                 vmPush(value);
@@ -498,12 +556,9 @@ int QUIT(void) {
     lfDotB(TF_VERSION, 10, 2);
     lfCR();
     while (1) {
-        BASE = 10;
-        STATE = 0;
-        DPL = 0;
-        TOIN = 0;
+        LF_PACKEDSTATE = 10;
         BLK = 0;
-        LINECOUNT = 0;
+        linecount = 0;
         vmReset();
         // REPL until an error (or bye) occurs, starting with a clean stack.
         // The `ok>` prompt is at the beginning for compatibility with
@@ -515,7 +570,7 @@ int QUIT(void) {
                 ior = serial_puts("ok>");
                 if (ior) break; // lost output channel
             }
-            LINECOUNT++;
+            linecount++;
             int len = loadTIB();
             if (system_flags & SYS_FLAG_VERBOSE) {
                 lfDotLinecount();
@@ -555,6 +610,14 @@ int QUIT(void) {
 * API 0 (internal)
 * Functions that access the stack must be in this file.
 *=========================================================================*/
+
+static int APIbracketOpen(void) {
+    return lfSTATEstore(0);
+}
+
+static int APIbracketClose(void) {
+    return lfSTATEstore(1);
+}
 
 static int APItick(void) {
     int ior = parseWord();
@@ -694,7 +757,7 @@ static int APIdotParen(void) {
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
-    APIbye, APIemit, APIdot, APIpage, API_umstar, API_mstar,
+    APIbye, APIbracketClose, APIbracketOpen, APIemit, APIdot, APIpage, API_umstar, API_mstar,
     APIendTest, APIdoTest, APIbeginTest, APIsetFlags, APIgetFlags,
     APIparen, APIdotParen, lfCR, APIwords, APItick
 #if (FAT_FORTH & 1)

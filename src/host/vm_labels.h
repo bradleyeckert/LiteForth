@@ -55,7 +55,7 @@
 #define UOP_NAMES { \
     "nop",   "inv",   "over",  "a!",    "xor",   "+",    "and",   ">r", \
     "unext", "2*",    "dup",   "drop",  "@a",    "@a+",   "r@",    "r>", \
-    "2/c",   "2/",    "?",     "?",     "!a",    "!a+",   "!b",    "!b+", \
+    "2/c",   "2/",    "@as",   "?",     "!a",    "!a+",   "!b",    "!b+", \
     "swap",  "+*",    "b",     "b!",    "@b",    "@b+",   "a",     "cy"}
 
 #define VM_STACKEFFECTS { /* 0=none, 1=dup, 2=drop */ \
@@ -87,6 +87,7 @@
 #define VMU_POP                 0x0F
 #define VMU_TWODIVC             0x10
 #define VMU_TWODIV              0x11
+#define VMU_FETCHASIGN          0x12
 #define VMU_STOREA              0x14
 #define VMU_STOREAPLUS          0x15
 #define VMU_STOREB              0x16

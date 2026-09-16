@@ -91,6 +91,7 @@ The `variable` keyword is equivalant to `32 bits`.
 `char+` and `chars` manipulate the shift and address fields to support chars of any
 width, from 1 to 16 bits. `@` and `!` will work with any width.
 For compatibility with ANS Forth, `c@` and `c!` are aliases of `@` and `!`.
+The `@as` instruction is the sign-extending version of `@a`.
 
 ## Unified address space
 
@@ -127,12 +128,12 @@ The ISA splits into *micro* and *other*.
 
 The µops (note - they don't take immediate data) are:
 
-| \\  | *0*   | *1* | *2*  | *3* | *4* | *5* | *6* | *7*  |
-| --- | ---   | --- | ---  | --- | --- | --- | --- | ---  | 
-| *0* | nop   | inv | over | a!  | +   | xor | and | drop |  
-| *1* | swap  | 2\* | dup  | cy! | @a  | @a+ | @b  | @b+  |  
-| *2* | 2/c   | 2/  |      | u!  | !a  | !a+ | !b  | !b+  |  
-| *3* | unext |     | >r   | u   | cy  | a   | r@  | r>   |
+| \\  | *0*   | *1*  | *2*  | *3*  | *4*  | *5*  | *6*  | *7*  |
+|-----|-------|------|------|------|------|------|------|------|
+| *0* | nop   | inv  | over | a!   | xor  | +    | and  | >r   |
+| *1* | unext | 2\*  | dup  | drop | @a   | @a+  | r@   | r>   |
+| *2* | 2/c   | 2/   | @as  |      | !a   | !a+  | !b   | !b+  |
+| *3* | swap  | +\*  | b    | b!   | @b   | @b+  | a    | cy   |
 
 - cy = carry caused by addition or shift
 - u = general purpose register

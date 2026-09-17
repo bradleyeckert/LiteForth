@@ -114,7 +114,7 @@ int serial_open(char* name, int baudrate) {
         return ERR_PORT_OPEN_FAILED;
     }
 
-    DCB dcb;
+    DCB dcb = { 0 };
     SecureZeroMemory(&dcb, sizeof(DCB));
     dcb.DCBlength = sizeof(DCB);
 
@@ -267,7 +267,7 @@ int serial_getc(void) {
 
 #if defined(_WIN32) || defined(_WIN64)
     if (hCommPort == INVALID_HANDLE_VALUE) return EOF;
-    unsigned char ch;
+    unsigned char ch = 0;
     DWORD bytes_read = 0;
     if (ReadFile(hCommPort, &ch, 1, &bytes_read, NULL) && bytes_read == 1) {
         return (int)ch;

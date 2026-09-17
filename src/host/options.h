@@ -2,36 +2,26 @@
 #define OPTIONS_H
 
 // forth.c
-#define TF_VERSION       0  // version 0.00
-#define CONTEXT_MAX      8  // depth of possible search order
-#define WIDS_MAX         8  // number of different wordlists supported
-#define RAM_PAGE         1  // The memory page used by system variables
-#define TIBCELLS        21  // The size of the TIB in cells
-#define CASE_SENSITIVE   1  // is FIND case sensitive?
-#define CR_IS_CRLF       1  // 0 if Unix style line endings
-#define DOT_S_MAX        8  // maximum depth to display in .s
-#define FAT_FORTH        1  // all options
-// vm.c                   
-#define VM_SEGMENT_BITS  3  // log2 of the number of pages in the memory space
-#define STACK_CAPACITY  64  // Size of the data and return stacks in cells
+#define TF_VERSION            0 // version 0.00
+#define CONTEXT_MAX           8 // depth of possible search order
+#define WIDS_MAX              8 // number of different wordlists supported
+#define TIBCELLS             21 // The size of the TIB in cells
+#define CASE_SENSITIVE        1 // is FIND case sensitive?
+#define CR_IS_CRLF            1 // 0 if Unix style line endings
+#define DOT_S_MAX             8 // maximum depth to display in .s
+#define FAT_FORTH             1 // all options
+// vm.c                     
+#define VM_LOG2_PAGES         3 // log2 of the number of pages in the memory space
+#define STACK_CAPACITY	     64 // Size of the data and return stacks in cells
+// main.c
+#define FLASH_PAGE_CELLS   1024 // Flash memory page size [1]
+#define RAM_PAGE              1 // The memory page used by system variables
+#define RAM_PAGE_CELLS     1024 // RAM page size
 
-
-/* ==========================================================================
-   LiteForth Virtual Machine Memory Configuration
-   ========================================================================== */
-
-/** 
- * VM Data RAM Size
- * Number of 32-bit cells allocated for the virtual machine's RAM region.
- */
-#define RAMSIZE                 16384
-
-/** 
- * VM Data ROM Size
- * Number of 32-bit cells allocated for the virtual machine's ROM/dictionary region.
- */
-#define ROMSIZE                 32768
-
+/* NOTES:
+[1] All pages below page RAM_PAGE are Flash pages, which are 1 or more
+    physical sectors of Flash memory. All Flash pages are the same size.
+*/
 
 /* ==========================================================================
    Mass Storage (Block) Simulation Configuration
@@ -41,7 +31,7 @@
  * Default Mass Storage Filename
  * The name of the binary file used to simulate block storage.
  */
-#define BLOCKFILENAME           "forth_blocks.bin"
+#define BLOCKFILENAME           "lfblocks.bin"
 
 /**
  * Number of Mass Storage Blocks
@@ -58,7 +48,7 @@
  * Default Flash Simulation Filename
  * The fallback binary file name used by flash.c if no custom argument is provided.
  */
-#define FLASHFILENAME           "flash_sim.bin"
+#define FLASHFILENAME           "lfflash.bin"
 
 /**
  * Flash Sector Size
@@ -67,10 +57,5 @@
  */
 #define FLASHAPPSECTORSIZE      (128*256)
 
-/**
- * Number of Application Flash Sectors
- * The total count of sectors mapped into the application region of the flash array.
- */
-#define FLASHAPPSECTORS         2
 
 #endif /* OPTIONS_H */

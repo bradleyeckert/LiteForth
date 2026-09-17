@@ -3,8 +3,7 @@
 #include "forth.h"
 #include "vm.h"
 #include "serial_io.h"
-
-#define TEST_MEM_SIZE 1024
+#include "options.h"
 
 int main(int argc, char* argv[]) {
     char* port_name = NULL;
@@ -49,18 +48,44 @@ int main(int argc, char* argv[]) {
         baudrate = 0; // default to stdio
     }
 
-    int32_t code_page0[TEST_MEM_SIZE] = { 0 };
-    int32_t ram_page[TEST_MEM_SIZE] = { 0 };
+    int32_t flash_pages[RAM_PAGE][FLASH_PAGE_CELLS] = { 0 };
+    int32_t ram_page[RAM_PAGE_CELLS] = { 0 };
 
-    for (int i = 0; i < VM_SEGMENTS; i++) {
-        vm_memory[i] = code_page0;
-        vm_memory_rd_limit[i] = TEST_MEM_SIZE;
+    for (int i = 0; i < VM_MEM_PAGES; i++) {
+        vm_memory[i] = NULL;
+        vm_memory_rd_limit[i] = 0;
         vm_memory_wp_limit[i] = 0;
-        vm_memory_executable[i] = TEST_MEM_SIZE;
+        vm_memory_executable[i] = 0;
+        if (i < RAM_PAGE) {
+            // Assign pointer to row i of flash memory
+            vm_memory[i] = flash_pages[i];
+            vm_memory_name[i] = "Flash";
+            vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
+            vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // initially write-protected
+            vm_memory_executable[i] = FLASH_PAGE_CELLS;
+        }
+        else if (i == RAM_PAGE) {
+            // Assign pointer to the RAM page
+            vm_memory[i] = ram_page;
+            vm_memory_name[i] = "RAM";
+            vm_memory_rd_limit[i] = RAM_PAGE_CELLS;
+            vm_memory_executable[i] = RAM_PAGE_CELLS;
+        }
+        else {
+            // Reserved/Unmapped segments
+            vm_memory_name[i] = "reserved";
+        }
     }
-    vm_memory[1] = ram_page;
-	serial_open(port_name, baudrate);
+    vm_memory[RAM_PAGE] = ram_page;
+    vm_memory_rd_limit[RAM_PAGE] = RAM_PAGE_CELLS;
+    vm_memory_executable[RAM_PAGE] = RAM_PAGE_CELLS;
+    vm_memory_name[RAM_PAGE] = "RAM";
+    serial_open(port_name, baudrate);
     int ior = QUIT();
     serial_close();
     return ior; // or in an embedded system, do a hard reset
 }
+/*
+#define FLASH_PAGE_CELLS   1024 // Flash memory page size (>=1 sectors)
+#define RAM_PAGE_CELLS     1024 // RAM page size
+*/

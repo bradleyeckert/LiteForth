@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include "options.h"
 
-#define VM_SEGMENTS (1 << VM_SEGMENT_BITS)
+#define VM_MEM_PAGES (1 << VM_LOG2_PAGES)
 
 /*
 The virtual machine's entire 22-bit memory space is divided into segments.
@@ -17,12 +17,14 @@ Each segment can have its own read, write-protect, and executable limits.
 - Code reads are valid from 0 to `vm_memory_executable`-1.
 - Data reads are valid from 0 to `vm_memory_rd_limit`-1.
 - Data writes are valid from `vm_memory_wp_limit` to `vm_memory_rd_limit`-1.
+These pointers take 256 bytes of RAM if VM_SEGMENTS = 8.
 */
 
-extern int32_t* vm_memory[VM_SEGMENTS];           
-extern uint32_t vm_memory_rd_limit[VM_SEGMENTS];  
-extern uint32_t vm_memory_wp_limit[VM_SEGMENTS];  
-extern uint32_t vm_memory_executable[VM_SEGMENTS];
+extern int32_t* vm_memory[VM_MEM_PAGES];           
+extern uint32_t vm_memory_rd_limit[VM_MEM_PAGES];  
+extern uint32_t vm_memory_wp_limit[VM_MEM_PAGES];  
+extern uint32_t vm_memory_executable[VM_MEM_PAGES];
+extern char* vm_memory_name[VM_MEM_PAGES];
 
 /**
  * @name VM Execution and State Control

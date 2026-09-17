@@ -1,12 +1,13 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
 
-int32_t* vm_memory[VM_SEGMENTS];
-uint32_t vm_memory_rd_limit[VM_SEGMENTS];
-uint32_t vm_memory_wp_limit[VM_SEGMENTS];
-uint32_t vm_memory_executable[VM_SEGMENTS];
+int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
+uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
+uint32_t vm_memory_wp_limit[VM_MEM_PAGES] = { 0 };
+uint32_t vm_memory_executable[VM_MEM_PAGES] = { 0 };
 
 PLACE_IN_DTCM;
 static const uint8_t stackeffects[32] = VM_STACKEFFECTS;
@@ -91,7 +92,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
 PLACE_IN_ITCM;
 int vmFetch(uint32_t addr, int32_t* data) {
     int bitfield_size = addr >> 27;
-    int page = (addr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
+    int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_SEGMASK;
     if (a >= vm_memory_rd_limit[page]) {
         return ERR_INVALID_ADDRESS;
@@ -107,7 +108,7 @@ int vmFetch(uint32_t addr, int32_t* data) {
 
 int vmStore(uint32_t addr, int32_t data) {
     int bitfield_size = addr >> 27;
-    int page = (addr >> (22 - VM_SEGMENT_BITS)) & (VM_SEGMENTS - 1);
+    int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_SEGMASK;
     if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
         return ERR_INVALID_ADDRESS;
@@ -153,8 +154,8 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
             inst = inst >> 16;
         }
         else {
-            page = PC >> (24 - VM_SEGMENT_BITS);
-            if (page >= VM_SEGMENTS) {
+            page = PC >> (24 - VM_LOG2_PAGES);
+            if (page >= VM_MEM_PAGES) {
                 if (PC == (int32_t)0xDEADC0DE) return 0;
                 return ERR_EXEC_PROTECTED;
             }

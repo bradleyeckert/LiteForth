@@ -1,8 +1,11 @@
 #include <stdint.h>
 #include "errcodes.h"
 #include "forth.h"
+#include "serial_io.h"
 #include "vm.h"
 #include "vm_labels.h"
+
+extern struct s_dictptr dictptr[VM_MEM_PAGES];
 
 typedef struct {
     int code;
@@ -120,7 +123,8 @@ static const ErrorMapping error_table[] = {
     { ERR_INVALID_API_CALL, "invalid API call" },
     { ERR_INVALID_OPCODE, "invalid VM opcode" },
     { ERR_WRONG_RESULTS, "assertion - wrong results" },
-    { ERR_WRONG_NUM_RESULTS, "assertion - wrong number of results" }
+    { ERR_WRONG_NUM_RESULTS, "assertion - wrong number of results" },
+    { ERR_INVALID_MEMORY_PAGE, "invalid memory page (>= `pages`)" }
 };
 
 /**
@@ -160,6 +164,81 @@ int lfAPIdecimal(void) {
 
 int lfAPIhex(void) {
     lfBASEstore(16);
+    return 0;
+}
+
+/**
+ * Page allocation listing
+ *
+ * `.page` lists the current page's memory allocations
+ * `.pages` lists every page's memory allocations
+ */
+
+int lfEmitses(int n, char c) {
+    while (n--) serial_putc(c);
+    return 0;
+}
+
+int lfSpaces(int n) {
+    return lfEmitses(n, ' ');
+}
+
+static void dotFieldHex(int32_t n, int digits) {
+    lfSpace();
+    if (n) {
+        lfDotB(n, 16, 0, digits);
+    }
+    else {
+        while (digits--) serial_putc('-');
+    }
+}
+
+static void dotPageHeader(void) {
+    serial_puts("PAGE _ADDR_ __WP_ _SIZE _EXEC ___CP___ ___HP___ ");
+    serial_puts("___DP___ _UNUSED_C_H_D_  _TYPE___\r\n");
+}
+
+static int APIdotPageX(int page) { // list specifics for the current page
+    if (page >= VM_MEM_PAGES) return ERR_INVALID_MEMORY_PAGE;
+    lfSpace();    lfDotB(page, 16, 0, 2);
+    int32_t base = page << (22 - VM_LOG2_PAGES);
+    lfSpaces(2);  lfDotB(base, 16, 0, 6);
+    dotFieldHex(vm_memory_wp_limit[page], 5);
+    dotFieldHex(vm_memory_rd_limit[page], 5);
+    dotFieldHex(vm_memory_executable[page], 5);
+    s_dictptr* dict = &dictptr[page];
+    dotFieldHex(dict->cp, 8);
+    dotFieldHex(dict->hp, 8);
+    dotFieldHex(dict->dp, 8);
+    if (dict->cp) {
+        dotFieldHex(lfUnused(0, page), 4);
+        dotFieldHex(lfUnused(1, page), 4);
+        dotFieldHex(lfUnused(2, page), 4);
+    }
+    else {
+        lfSpace();
+        lfEmitses(14, '-');
+    }
+    lfSpaces(2); serial_puts(vm_memory_name[page]);
+    lfSpace();
+    return 0;
+}
+
+int lfAPIdotPage(void) {
+    uint32_t current_page = lfPAGEfetch();
+    dotPageHeader();
+    APIdotPageX(current_page);
+    return 0;
+}
+
+int lfAPIdotPages(void) {
+    int page = lfPAGEfetch();
+    dotPageHeader();
+    for (int i = 0; i < VM_MEM_PAGES; i++) {
+        APIdotPageX(i);
+        if (page == i) serial_putc('<');
+        lfCR();
+    }
     return 0;
 }
 

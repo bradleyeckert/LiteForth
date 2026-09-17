@@ -45,7 +45,7 @@
 #define VM_REG_R        0x102
 #define VM_REG_A        0x103
 #define VM_REG_B        0x104
-#define VM_REG_X        0x105
+#define VM_REG_U        0x105
 #define VM_REG_Y        0x106
 #define VM_REG_cy       0x107
 #define VM_REG_sp       0x108
@@ -53,9 +53,9 @@
 
 
 #define UOP_NAMES { \
-    "nop",   "inv",   "over",  "a!",    "xor",   "+",    "and",   ">r", \
+    "nop",   "inv",   "over",  "a!",    "xor",   "+",     "and",   ">r", \
     "unext", "2*",    "dup",   "drop",  "@a",    "@a+",   "r@",    "r>", \
-    "2/c",   "2/",    "@as",   "?",     "!a",    "!a+",   "!b",    "!b+", \
+    "2/c",   "2/",    "@as",   "u!",    "!a",    "!a+",   "!b",    "!b+", \
     "swap",  "+*",    "b",     "b!",    "@b",    "@b+",   "a",     "cy"}
 
 #define VM_STACKEFFECTS { /* 0=none, 1=dup, 2=drop */ \
@@ -64,8 +64,9 @@
     0x00,    0x00,    0x01,    0x02,    0x02,    0x02,    0x02,    0x02, \
     0x00,    0x00,    0x01,    0x02,    0x01,    0x01,    0x01,    0x01}
 
+// These need to be fixed...
 #define API_NAMES { \
-    "NVM@[", "NMV![", "NVM@", "NVM!", "]NVM", "semit", "um*", "mu/mod", \
+    "semit", "um*", "mu/mod", \
     "LCDraw", "LCDparm!", "LCDparm", "LCDemit"  \
 }
 
@@ -88,6 +89,7 @@
 #define VMU_TWODIVC             0x10
 #define VMU_TWODIV              0x11
 #define VMU_FETCHASIGN          0x12
+#define VMU_USTORE              0x13
 #define VMU_STOREA              0x14
 #define VMU_STOREAPLUS          0x15
 #define VMU_STOREB              0x16
@@ -101,59 +103,55 @@
 #define VMU_A                   0x1E
 #define VMU_CY                  0x1F
 
-#define OP_NAMES  {"call", "jump", "lit"}
+#define OP_NAMES  {"jump", "call", "lit"}
 
 #define VM_IMMBITS              13
-#define VMO_CALL                0
-#define VMO_JUMP                1
+#define VMO_JUMP                0
+#define VMO_CALL                1
 #define VMO_LIT                 2
-#define VMO_PFX                 3
+#define VMO_OTHER               3
 #define VMI_CALL                (VMO_CALL << VM_IMMBITS)
 #define VMI_JUMP                (VMO_JUMP << VM_IMMBITS)
 #define VMI_LIT                 (VMO_LIT << VM_IMMBITS)
-#define VMI_PFX                 (VMO_PFX << VM_IMMBITS)
-#define VMI_ZOODUP              (1 << 8)
-#define VMI_ZOODROP             (1 << 7)
-#define VMI_ZOO                 (VMI_PFX + (1 << 9))
+#define VMI_OTHER               (VMO_OTHER << VM_IMMBITS)
 
-#define ZOO_NAMES  {"bcisync", "err!", "x!", "y!", "x@", "y@"}
+#define VMSTO_TASK              0
+#define VMSTO_BARF              1
+#define VMSFROM_TASK            0
 
-#define VMZ_THROW               1
-#define VMZ_XSTORE              2
-#define VMZ_YSTORE              3
-#define VMZ_XFETCH              4
-#define VMZ_YFETCH              5
-
-#define VMI_THROW               (VMI_ZOO + VMZ_THROW   + VMI_ZOODROP)
-#define VMI_XSTORE              (VMI_ZOO + VMZ_XSTORE  + VMI_ZOODROP)
-#define VMI_YSTORE              (VMI_ZOO + VMZ_YSTORE  + VMI_ZOODROP)
-#define VMI_XFETCH              (VMI_ZOO + VMZ_XFETCH  + VMI_ZOODUP)
-#define VMI_YFETCH              (VMI_ZOO + VMZ_YFETCH  + VMI_ZOODUP)
+/*
+*/
 
 #define IMM_NAMES { \
-    "pfx", "zoo", "ax", "by", "if", "bran", "-if", "next", \
-    "py!", "?", "?", "?", "APIcall", "APIcall+", "APIcall-", "APIcall--"}
+    "if", "bran", "-if", "rcall", "next", "?", "sys", "pfx", \
+    ">sys", "user", "sys>", "qlit", "?", "?", "RFcall", "AFcall"}
 
-#define VMO_LEX                 0
-#define VMO_ZOO                 1
-#define VMO_AX                  2
-#define VMO_BY                  3
-#define VMO_ZBRAN               4
-#define VMO_BRAN                5
-#define VMO_PBRAN               6
-#define VMO_RCALL               7
-#define VMO_NEXT                8
+#define VMO_ZBRAN               0
+#define VMO_BRAN                1
+#define VMO_PBRAN               2
+#define VMO_RCALL               3
+#define VMO_NEXT                4
+#define VMO_SYS                 6
+#define VMO_PFX                 7
+#define VMO_TOSYS               8
+#define VMO_USER                9
+#define VMO_FROMSYS             10
+#define VMO_QLIT                11
 #define VMO_API0                14
 #define VMO_API1                15
 
-#define VMI_AX                 (VMI_PFX + (VMO_AX       << 9))
-#define VMI_BY                 (VMI_PFX + (VMO_BY       << 9))
-#define VMI_ZBRAN              (VMI_PFX + (VMO_ZBRAN    << 9))
-#define VMI_BRAN               (VMI_PFX + (VMO_BRAN     << 9))
-#define VMI_PBRAN              (VMI_PFX + (VMO_PBRAN    << 9))
-#define VMI_RCALL              (VMI_PFX + (VMO_RCALL    << 9))
-#define VMI_NEXT               (VMI_PFX + (VMO_NEXT     << 9))
-#define VMI_API0               (VMI_PFX + (VMO_API0     << 9))
-#define VMI_API1               (VMI_PFX + (VMO_API1     << 9))
+#define VMI_ZBRAN              (VMI_OTHER + (VMO_ZBRAN    << 9))
+#define VMI_BRAN               (VMI_OTHER + (VMO_BRAN     << 9))
+#define VMI_PBRAN              (VMI_OTHER + (VMO_PBRAN    << 9))
+#define VMI_RCALL              (VMI_OTHER + (VMO_RCALL    << 9))
+#define VMI_NEXT               (VMI_OTHER + (VMO_NEXT     << 9))
+#define VMI_SYS                (VMI_OTHER + (VMO_SYS      << 9))
+#define VMI_PFX                (VMI_OTHER + (VMO_PFX      << 9))
+#define VMI_TOSYS              (VMI_OTHER + (VMO_TOSYS    << 9))
+#define VMI_USER               (VMI_OTHER + (VMO_USER     << 9))
+#define VMI_FROMSYS            (VMI_OTHER + (VMO_FROMSYS  << 9))
+#define VMI_QLIT               (VMI_OTHER + (VMO_QLIT     << 9))
+#define VMI_API0               (VMI_OTHER + (VMO_API0     << 9))
+#define VMI_API1               (VMI_OTHER + (VMO_API1     << 9))
 
 #endif /* _VM_LABELS_H_ */

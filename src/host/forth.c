@@ -17,7 +17,7 @@
 #define API0(idx) (IS_PRIMITIVE | VMI_API0 | (idx))
 
 #if (FAT_FORTH & 1)
-#include "fatso.h"
+#include "utils.h"
 #endif
 
 static uint32_t system_flags = 0;
@@ -182,6 +182,9 @@ static const struct s_head lf_heads[] = {
     { LINK(76), "decimal",  API0(29),                               0x23B},
     { LINK(77), ".page",    API0(30),                               0x23B},
     { LINK(78), ".pages",   API0(31),                               0x23B},
+    { LINK(79), "dump",     API0(32),                               0x23B},
+    { LINK(80), "dumpi",    API0(33),                               0x23B},
+    { LINK(81), "dasm",     API0(34),                               0x23B},
 #endif
 };
 
@@ -973,7 +976,8 @@ static const APIfn API0fns[] = {
     APIheadSpace, APIdataSpace, APIcodeSpace, APIunused, APIpageBase,
     APItoBits, APIcharPlus, APIcomma
 #if (FAT_FORTH & 1)
-    , lfAPIhex, lfAPIdecimal, lfAPIdotPage, lfAPIdotPages
+    , lfAPIhex, lfAPIdecimal, lfAPIdotPage, lfAPIdotPages, lfAPIdump
+    , lfAPIdumpIns, lfAPIdasm
 #endif
 
     /*, API_NVMbeginWrite, API_NVMread, API_NVMwrite, // 0

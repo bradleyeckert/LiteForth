@@ -18,8 +18,7 @@ static int32_t PC = 0;  // Program Counter
 static int32_t R = 0;  // Top of Return Stack
 static int32_t A = 0;  // Address A
 static int32_t B = 0;  // Address B
-static int32_t X = 0;  // Scratchpad X
-static int32_t Y = 0;  // Scratchpad Y
+static int32_t U = 0;  // User pointer
 static int32_t lex = 0;  // Literal extension
 static int32_t depth = 0;  // Depth counter
 static int8_t  cy = 0;  // Carry
@@ -49,30 +48,11 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     }
     int imm9opcode = (inst >> 9) & 0x0F;
     switch (imm9opcode) {
-    case VMO_API0: return VMapi0Call(imm); 
-    case VMO_API1: return VMapi1Call(imm); 
-    case VMO_LEX: lex = (lex << 9) | imm; break;
-    case VMO_ZOO:
-        if (inst & 0x100) { VM_DDUP; }
-        switch (inst & 0x3F) {
-        case VMZ_XSTORE:  X = T;   break;
-        case VMZ_YSTORE:  Y = T;   break;
-        case VMZ_THROW:   return T;
-        case VMZ_XFETCH:  T = X;   break;
-        case VMZ_YFETCH:  T = Y;   break;
-        default:                   break;
-        }
-        if (inst & 0x80) { VM_DDROP; }
-        break;
-    case VMO_AX: A = X + imm;  break;
-    case VMO_BY: B = Y + imm;  break;
     case VMO_ZBRAN: {
-        int32_t t = T;
+        int32_t tos = T;
         VM_DDROP;
-        if (t == 0) goto qbranch;
+        if (tos == 0) goto qbranch;
     } break;
-    case VMO_RCALL: VM_RDUP; R = PC;
-        goto qbranch;
     case VMO_BRAN:
     qbranch:
         PC = PC + simm; break;
@@ -80,10 +60,44 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         if ((T & 0x80000000) == 0) {
             goto qbranch;
         } break;
+    case VMO_RCALL: VM_RDUP; R = PC;
+        goto qbranch;
     case VMO_NEXT:
         R--;
         if (R) goto qbranch;
         VM_RDROP;  break;
+    case VMO_SYS:  break;
+    case VMO_PFX: lex = (lex << 9) | imm; break;
+    case VMO_TOSYS: {
+        int32_t tos = T;
+        VM_DDROP;
+        switch (imm) {
+        case VMSTO_BARF:    return tos;
+        case VMSTO_TASK: // ]task
+            sp = tos & 0xFFFF;
+            rp = (tos >> 16) & 0xFFFF;
+            R = B;
+            break;
+        default: break;
+        }
+    } break;
+    case VMO_USER: A = U + imm;  break;
+    case VMO_FROMSYS: 
+        VM_DDUP;
+        switch (imm) {
+        case VMSFROM_TASK: // task[
+            VM_RDUP;
+            T = (rp << 16) | sp;
+            A = U;
+            break;
+        default: break;
+        }
+    break;
+    case VMO_QLIT:
+        VM_DDUP;  T = U + imm;
+        break;
+    case VMO_API0: return VMapi0Call(imm);
+    case VMO_API1: return VMapi1Call(imm);
     default: return ERR_INVALID_OPCODE;
     }
     return 0;
@@ -288,7 +302,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
             int32_t imm = inst & 0x1FFF;
             int32_t immex = (lex << 13) | imm;
             if (!(inst & 0x4000)) {
-                if (!(inst & 0x2000)) {     // push PC
+                if (inst & 0x2000) {        // push PC
                     VM_RDUP; R = PC;
                 }
                 PC = immex;                 // jump
@@ -331,8 +345,7 @@ int32_t vmPeek(int reg) {
         case VM_REG_R : return R;
         case VM_REG_A : return A;
         case VM_REG_B : return B;
-        case VM_REG_X : return X;
-        case VM_REG_Y : return Y;
+        case VM_REG_U : return U;
         case VM_REG_cy: return cy;
         case VM_REG_sp: return sp;
         case VM_REG_rp: return rp;
@@ -356,8 +369,7 @@ int32_t vmPoke(int reg, int32_t data) {
         case VM_REG_R : R = data; break;
         case VM_REG_A : A = data; break;
         case VM_REG_B : B = data; break;
-        case VM_REG_X : X = data; break;
-        case VM_REG_Y : Y = data; break;
+        case VM_REG_U : U = data; break;
         case VM_REG_cy: cy = data & 1; break;
         case VM_REG_sp: sp = data & STACK_MASK; break;
         case VM_REG_rp: rp = data & STACK_MASK; break;

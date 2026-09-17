@@ -113,7 +113,7 @@ Stacks are a power-of-2 deep and keep the top of the stack in a register.
 Stack memory would be 2KB-aligned to allow simple bit masking to wrap the stacks
 to protect other memory.
 
-The ISA splits into *micro* and *other*.
+The ISA splits into *micro* and *other*. 
 
 | *Name* | *15* | *14* | *13:9* | *8:4* | *3:0* |
 | :----- | ---- | ---- |------- |------ |------ |
@@ -126,57 +126,87 @@ The ISA splits into *micro* and *other*.
 | lit  | 010  | 13-bit literal (push onto data stack) |
 | imm  | 011  | 4-bit opcode, 9-bit immediate data |
 
+Instructions may **push** or *pop* the data stack.
 The µops (note - they don't take immediate data) are:
 
-| \\  | *0*   | *1*  | *2*  | *3*  | *4*  | *5*  | *6*  | *7*  |
-|-----|-------|------|------|------|------|------|------|------|
-| *0* | nop   | inv  | over | a!   | xor  | +    | and  | >r   |
-| *1* | unext | 2\*  | dup  | drop | @a   | @a+  | r@   | r>   |
-| *2* | 2/c   | 2/   | @as  |      | !a   | !a+  | !b   | !b+  |
-| *3* | swap  | +\*  | b    | b!   | @b   | @b+  | a    | cy   |
+| \\  | *0*   | *1*  | *2*      | *3*    | *4*    | *5*     | *6*    | *7*    |
+|-----|-------|------|----------|--------|--------|---------|--------|--------|
+| *0* | nop   | inv  | **over** | *a!*   | *xor*  | *+*     | *and*  | *>r*   |
+| *1* | unext | 2\*  | **dup**  | *drop* | **@a** | **@a+** | **r@** | **r>** |
+| *2* | 2/c   | 2/   | **@as**  | *u!*   | *!a*   | *!a+*   | *!b*   | *!b+*  |
+| *3* | swap  | +\*  | **b**    | *b!*   | **@b** | **@b+** | **a**  | **cy** |
 
 - cy = carry caused by addition or shift
-- u = general purpose register
+- u = user pointer register
 - a, b = address registers for memory
 - @ and ! support bit fields: auto-increment handles bit fields
 
 ## Imm instructions
 
-| *Name* | *12:9* | *8:0* |
-|:-------|---:|:-------------------------------|
-| pfx    |  0 | Prefix: lex \= (lex\<\<9) + u9 |
-| zoo    |  1 | Other instruction selected by u9 |
-| zif    |  2 | PC \= PC \+ s9 if T=0 |
-| if     |  3 | PC \= PC \+ s9 if T=0, drop T |
-| rcall  |  4 | PC \= PC \+ s9, push PC to return stack |
-| bran   |  5 | PC \= PC \+ s9 |
-| \-if   |  6 | PC \= PC \+ s9 if T \>= 0 |
-| next   |  7 | PC \= PC \+ s9 if R \> 0 else drop R |
-| ax     |  8 | A \= X \+ u9 |
-| ay     |  9 | A \= Y \+ u9 |
-| qlit   | 13 | Push Y \+ u9 |
-| RFcall | 14 | Call root function in VM, no stack change |
-| AFcall | 15 | Call app function in VM, no stack change |
+| ***Name*** | ***12:9*** | ***8:0*** |
+|:-------|---:|:----------------------|
+| *if*   |  0 | PC \= PC \+ s9 if T=0, drop T |
+| bran   |  1 | PC \= PC \+ s9 |
+| \-if   |  2 | PC \= PC \+ s9 if T \>= 0 |
+| rcall  |  3 | PC \= PC \+ s9, push PC to return stack |
+| next   |  4 | PC \= PC \+ s9 if R \> 0 else drop R |
+|        |  5 | |
+| sys    |  6 | Other instruction selected by u9 |
+| pfx    |  7 | Prefix: lex \= (lex\<\<9) + u9 |
+| *>sys* |  8 | sys instructions that pop from the stack |
+| user   |  9 | A \= U \+ u9 |
+|**sys>**| 10 | sys instructions that push to the stack |
+|**qlit**| 11 | Push U \+ u9 |
+|        | 12 | |
+|        | 13 | |
+| RFcall | 14 | Call root function in VM |
+| AFcall | 15 | Call app function in VM |
 
 The lex register supplies upper bits for literals and long calls/jumps.
 It is 19 bits wide. N `pfx` instructions add 9N bits to the usual 13-bit `imm` data.
 A 22-bit literal, jump, or call takes two instructions.
 
-Zoo instructions push the stack if `imm[8]`=1, and pop the stack if `imm[7]`=1.
-They include:
+`sys`, `>sys`, and `sys>` instructions are for everything else. They include:
 
-| *Name* | *6:0* | Action |
-|:-------|:------|:-------|
-| x\!   | 0 | X \= T, drop T |
-| y\!   | 1 | Y \= T, drop T |
-| throw | 2 | VM quits and returns ior \= T, or sets PC = 2 |
-| x\@   | 3 | T \= X |
-| y\@   | 4 | T \= Y |
+| ***Name*** | ***12:9*** | ***8:0*** | ***Action*** |
+|:-------|:------|:-------|:-------|
+| *barf* | 8  | 0 | VM quits and returns ior \= T |
+|**task\[**| 10 | 0 | Get task state |
+|*]task*| 8 | 1 | Save task state |
+
+## pause
+
+Multitasking involves swapping out user state. To handle this, register U points to
+a user space in memory. When `pause` is called, the return address is on the stack.
+A minimum user task space contains:
+
+- STATUS, the execution address of the task's handler
+- FOLLOWER, the link to the next task in the chain
+- TASKNOW, task state data
+
+`: pause  [ 0 ] ,user @a+ >r ;` jumps to the task handler, which is either:  
+`: sleeping  @a >r ;` which skips to the next task, or:  
+`: woke  @a+ b!  task[ @a swap !a ]task ;` which swaps out the task:
+
+- `@a+ b!` saves FOLLOWER in B
+- `[ 0 ] ,user` compiles `0 user`, which loads A with U.
+- `task[` pushes R to the return stack, T to the data stack, loads A with U,
+and packs T with rp:sp.
+- `@a swap !a` swaps out the state.
+- `]task` unpacks T into rp and sp, and loads R with B.
+- `;` returns to the caller of `pause`.
+
+The core of the multitasker, `pause`, `sleeping`, and `woke`,
+is 10 instructions (20 bytes).
+
+## C API
 
 Root functions and App functions are useful when the ISA is simulated.
 C functions for eliminating hot spots are accessed through two execution tables.
 One set of functions lives in immutable root-of-trust memory.
 The other lives in updatable application memory.
+
+## HDL
 
 In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
 The instruction arrives two clock cycles after PC changes.
@@ -188,6 +218,10 @@ by 16 bits after the first instruction group executes.
 Random data memory access would just insert a couple of wait states to get the instruction back on the bus.
 
 *other* instructions that take input from `inst32` settle quickly, not having to wait for decode.
+Hardware optimizations to be realized are:
+
+- Skip to the next instruction group if there are only nops left to execute.
+- Read from code memory with "next_PC" instead of "PC" to avoid stalls.
 
 The code compiled by LiteForth will run in a real Forth chip, but it would have to avoid API calls.
 

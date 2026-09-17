@@ -135,16 +135,16 @@ const char* get_error_message(int err_code) {
         return "No error";
     }
 
-    size_t table_size = sizeof(error_table) / sizeof(error_table[0]);
+    int table_size = sizeof(error_table) / sizeof(error_table[0]);
     
     // Check if error fits standard array index bounds (-1 to -106)
     int index = (-err_code) - 1;
-    if (index >= 0 && (size_t)index < table_size && error_table[index].code == err_code) {
+    if (index >= 0 && (int)index < table_size && error_table[index].code == err_code) {
         return error_table[index].msg;
     }
 
     // Fallback search for out-of-order codes
-    for (size_t i = 0; i < table_size; i++) {
+    for (int i = 0; i < table_size; i++) {
         if (error_table[i].code == err_code) {
             return error_table[i].msg;
         }
@@ -242,10 +242,142 @@ int lfAPIdotPages(void) {
     return 0;
 }
 
-/* DUMP ( addr len -- ) uses VM instructions to load A, execute @A, and get T
-*/
-
+/**
+ * Forth DUMP implementation for 32-bit cell-addressed VM memory.
+ * Displays memory in lines of 4 cells (16 bytes total).
+ *
+ * @param start_cell Base VM cell address to start dumping from.
+ * @param cell_count Number of 32-bit cells to dump.
+ * @return 0 on success, or non-zero ior error code from vmFetch.
+ */
 int lfAPIdump(void) {
- //   int32_t length = vmPeek(-1);
+    int32_t length = vmPeek(-1);
+    int32_t origin = vmPeek(-1);
+    int tally = 0;
+
+    while (tally < length) {
+        uint32_t addr = origin + tally;
+
+        // Print cell base address (hex formatted)
+        lfDotB(addr, 16, 0, 6);
+        serial_puts(": ");
+
+        int cells_in_line = (length - tally < 4) ? (length - tally) : 4;
+        int32_t line_data[4] = { 0 };
+
+        // Fetch up to 4 cells for current line
+        for (int i = 0; i < cells_in_line; i++) {
+            int ior = vmFetch(addr + i, &line_data[i]);
+            if (ior) return ior;
+            lfDotB(line_data[i], 16, 0, 8);
+            lfSpace();
+        }
+
+        // Align partial trailing lines
+        for (int i = cells_in_line; i < 4; i++) {
+            lfSpaces(9);
+        }
+
+        lfSpace();
+
+        // Print ASCII equivalent (unpacking 32-bit cells byte-by-byte)
+        for (int i = 0; i < cells_in_line; i++) {
+            uint32_t cell_val = (uint32_t)line_data[i];
+            for (int b = 0; b < 4; b++) {
+                uint8_t byte = (cell_val >> (b * 8)) & 0xFF; // Little-endian byte extraction
+                if ((byte < ' ') || (byte > 0x7F)) byte = '.';
+                serial_putc(byte);
+            }
+        }
+
+        lfCR();
+        tally += cells_in_line;
+    }
+
+    return 0;
+}
+
+/*
+ * Disassembler `dasm` ( addr len -- )
+ * 
+ * The address is a cell address. Instruction addresses are shown.
+ * The instruction address is twice the cell address.
+ * The length is the number of instructions.
+ */
+
+static const char* uopName[] = UOP_NAMES;
+static const char* opName[] = OP_NAMES;
+static const char* immName[] = IMM_NAMES;
+
+static int lfDotHex(int32_t n) {
+    lfDotB(n, 16, 0, 0);
+    return lfSpace();
+}
+
+static int DisassembleInsn(uint16_t inst) {
+    static uint32_t lex;
+    int32_t _lex = -1;
+    lfDotB(inst, 16, 0, 4);
+    lfSpace();
+    if (inst & VM_UOPS) {
+        int returning = inst & VM_RET;
+        inst &= (VM_RET - 1);
+        for (int i = SLOT0_POSITION; i > -5; i -= 5) {
+            uint8_t slot;
+            if (i < 0) slot = inst & LAST_SLOT_MASK;
+            else slot = (inst >> i) & 0x1F;
+            if (inst & ((1 << (i + 5)) - 1)) {
+                serial_puts(uopName[slot]);
+                lfSpace();
+            }
+        }
+        if (returning) return serial_putc(';');
+    }
+    else {
+        int opcode = (inst >> 13) & 3;
+        int32_t immex = (lex << 13) | (inst & ((1 << 13) - 1));
+        if (opcode < 3) { // call, jump, imm
+            lfDotHex(immex);
+            serial_puts(opName[opcode]);
+        }
+        else {
+            uint32_t imm = inst & ((1 << 9) - 1);
+            int simm = imm;
+            if (simm & (1 << 8)) { // sign-extend
+                simm |= ~((1 << 9) - 1);
+            }
+            opcode = (inst >> 9) & 0x0F;
+            if (opcode == VMO_PFX) _lex = imm;
+            lfDotHex(simm);
+            serial_puts(immName[opcode]);
+        }
+    }
+    if (_lex < 0) lex = 0;
+    else lex = (lex << 9) | _lex;
+    _lex = -1;
+    return 0;
+}
+
+int lfAPIdumpIns(void) {
+    uint16_t inst = (uint16_t)vmPeek(-1);
+    DisassembleInsn(inst);
+    return 0;
+}
+
+int lfAPIdasm(void) {
+    int32_t length = vmPeek(-1);
+    int32_t addr = vmPeek(-1);
+    addr = (addr & 0x3FFFFF) << 1;
+    while (length--) {
+        lfDotB(addr, 16, 0, 6);
+        lfSpace();
+        int32_t inst = 0;
+        int ior = vmFetch((addr >> 1), &inst);
+        if (ior) return ior;
+        if (addr & 1) inst >>= 16;
+        DisassembleInsn(inst);
+        lfCR();
+        addr++;
+    }
     return 0;
 }

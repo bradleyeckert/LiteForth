@@ -210,6 +210,11 @@ int serial_ready(void) {
             ungetc(c, stdin); // Push character back into stdio buffer
             return 1;         // Character is available
         }
+#if defined(_WIN32) || defined(_WIN64)
+        Sleep(1);
+#else
+        usleep(1000);
+#endif
         return 0;             // EOF or buffer empty
     }
 

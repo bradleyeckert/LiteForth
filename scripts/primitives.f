@@ -1,4 +1,4 @@
-cr .( Testing Forth primitives ) 1 >options ( validation mode )
+cr .( Testing Forth primitives ) 7 >options ( validation mode )
 cr  ( This file is intended to replace stdin on a console app. )
 
 ( --- Arithmetic & Bitwise Operations --- )
@@ -112,4 +112,4 @@ T{ base @        -> 10 }T
 
 ram-page page !  ram-base 200 200 init-here udata
 
-.( Tests completed successfully ) cr
+.( Tests completed successfully ) cr bye

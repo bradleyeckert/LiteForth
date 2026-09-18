@@ -1,20 +1,3 @@
-# ok
-
-What is the purpose of language standards?
-It's to keep things the way they are and to clear up ambiguities.
-Language standards are there to protect the existing code base.
-
-Forth traditionally prints "ok" after processing an input line.
-This is at odds with cooked input. Industry standard terminals let you edit your
-input line locally and hit <Enter>, at which point it sends the entire line and emits a local newline.
-
-If you want to use one of the many off-the-shelf terminals instead of writing your own,
-complete with line editing, a history buffer, and cut-and-paste, you can't go by the standard
-[reference](https://forth-standard.org/standard/implement "Annex E: Reference Implementations")
-implementation of QUIT. LiteForth puts "ok>" at the beginning of the line instead.
-
-It makes you wonder what else the standards guys are missing.
-
 # Prefetch buffers
 
 128-bit prefetch buffers are often used in modern MCUs. How does that impact the ISA?

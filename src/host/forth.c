@@ -370,7 +370,8 @@ static int char2digit(char c) {
 used to manage the input buffer and block number for file-based input.
 TIB is a fixed buffer in Forth data space for terminal input.
 ========================================================================= */
-#define TERMINAL_CLOSED 0x8000
+
+#define TERMINAL_OVERFLOWED 0x8000
 
 static int loadTIB(void) {
     char *tib = (char*)TIB; // reset the TIB pointer
@@ -390,16 +391,19 @@ static int loadTIB(void) {
                 continue;
             }
             int c = serial_getc();
-            if (c == EOF) { aux_result = TERMINAL_CLOSED; break; }
-			if (c == '\r') { continue; }
-            if (c == '\n') { break; }
-			*tib++ = (char)c;
-            remaining--;
-			if (remaining <= 1) { break; } // Leave space for null terminator
+            if (c == EOF) break;        // treat EOF as a normal terminator
+			if (c == '\r') continue; 
+            if (c == '\n') break; 
+            if (remaining > 1) {
+                *tib++ = (char)c;
+                remaining--;
+            }
+            else {                      // ignore input remaining until EOL
+                aux_result = TERMINAL_OVERFLOWED;
+            }
         }
-        if (remaining--) {
-            *tib++ = 0; // Null-terminate
-        }
+        *tib++ = 0;                     // Null-terminate the TIB
+        remaining--;
         if (lfTIBSTATEfetch()) {
             lfTIBSTATEstore(2); // Indicate that TIB is ready for processing
 #ifdef yield2c
@@ -597,10 +601,12 @@ int QUIT(void) {
         // cooked input. The terminal echoes newline locally.
         int32_t ior = 0;
         while (ior == 0) {
-            if ((system_flags & SYS_FLAG_VALIDATION) == 0) {
+            if ((system_flags & SYS_FLAG_NO_DOTESS) == 0) {
                 lfDotS();
+            }
+            if ((system_flags & SYS_FLAG_NO_OK) == 0) {
                 ior = serial_puts("ok>");
-                if (ior) break; // lost output channel
+                if (ior) break; // lost the output stream
             }
             linecount++;
             int len = loadTIB();
@@ -612,7 +618,7 @@ int QUIT(void) {
             int depth = vmPeek(VM_REG_depth);
             if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
             else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
-            if (len & TERMINAL_CLOSED) ior = ERR_QUIT;
+            if (len & TERMINAL_OVERFLOWED) ior = ERR_TIB_OVERFLOW;
         }
 		// handle the ior here if needed (e.g., exit on BYE)
         switch (ior) {

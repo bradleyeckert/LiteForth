@@ -210,11 +210,6 @@ int serial_ready(void) {
             ungetc(c, stdin); // Push character back into stdio buffer
             return 1;         // Character is available
         }
-#if defined(_WIN32) || defined(_WIN64)
-        Sleep(1);
-#else
-        usleep(1000);
-#endif
         return 0;             // EOF or buffer empty
     }
 
@@ -265,9 +260,56 @@ int serial_busy(void) {
 #endif
 }
 
+/*
+ * Cross-platform "restore stdin to terminal"
+ * 
+ * This allows an input file to be redirected (aka ./lf < foo.f)
+ * When this stream runs out, further `getc` will only return EOF.
+ * Returning stdin to the terminal lets you start up LiteForth with
+ * file input. When that file is exhausted, LiteForth switches you
+ * back to terminal input.
+ */
+#if defined(_WIN32) || defined(_WIN64)
+#include <fcntl.h>
+#define TTY_DEVICE "CONIN$"
+#define READ_FLAGS _O_RDONLY
+#define sys_open   _open
+#define sys_dup2   _dup2
+#define sys_close  _close
+#else
+#define TTY_DEVICE "/dev/tty"
+#define READ_FLAGS O_RDONLY
+#define sys_open   open
+#define sys_dup2   dup2
+#define sys_close  close
+#endif
+
+int restore_stdin_to_terminal(void) {
+    int tty_fd = sys_open(TTY_DEVICE, READ_FLAGS);
+    if (tty_fd < 0) {
+        perror("Failed to open terminal device");
+        return -1;
+    }
+
+    if (sys_dup2(tty_fd, 0) < 0) {
+        perror("Failed to restore stdin");
+        sys_close(tty_fd);
+        return -1;
+    }
+
+    sys_close(tty_fd);
+    clearerr(stdin);
+
+    return 0;
+}
 int serial_getc(void) {
     if (is_terminal_mode) {
-        return fgetc(stdin);
+        int c = fgetc(stdin);
+        if (c == EOF) {
+            restore_stdin_to_terminal();
+            c = '\n';
+        }
+        return c;
     }
 
 #if defined(_WIN32) || defined(_WIN64)

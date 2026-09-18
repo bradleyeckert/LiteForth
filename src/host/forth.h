@@ -21,47 +21,49 @@ locations for accessibility by Forth or by C.
 
 #define F_TIB        2
 #define F_BLK        (F_TIB + TIBCELLS)
-#define F_HERE0      (F_BLK + 1)            /* offset to first free RAM */
+#define F_HERE0      (F_BLK + 1)            /* offset to first free RAM    */
 
-#define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state    */
+#define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)
 #define LF_TIBSTATE  BITFIELD(2, 6, 0)
 #define LF_STATE     BITFIELD(1, 8, 0)
 #define LF_DPL       BITFIELD(6, 9, 0)
 #define LF_TOIN      BITFIELD(13, 15, 0)
 #define LF_PAGE      BITFIELD(8, 0, 1)
-#define LF_TIB       BITFIELD(8, 0, F_TIB)  /* Terminal Input Buffer */
-#define LF_BLK       VARIABLE(F_BLK)        /* Allow 4G blocks       */
+#define LF_TIB       BITFIELD(8, 0, F_TIB)  /* Terminal Input Buffer       */
+#define LF_BLK       VARIABLE(F_BLK)        /* Allow 4G blocks             */
 
 #define TIB         ((char *)&vm_memory[RAM_PAGE][F_TIB])
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
 
-#define SYS_FLAGS_LOCKED      0x80000000
-#define SYS_FLAG_VERBOSE      0x00000002    // echo input lines
-#define SYS_FLAG_VALIDATION   0x00000001    // quit immediately upon error
+#define SYS_FLAGS_LOCKED      0x0010        /* `>options` ignores changes  */
+#define SYS_FLAG_VERBOSE      0x0008        /* echo input lines            */
+#define SYS_FLAG_VALIDATION   0x0004        /* quit immediately upon error */
+#define SYS_FLAG_NO_DOTESS    0x0002        /* do not display the stack    */
+#define SYS_FLAG_NO_OK        0x0001        /* do not display "ok>"        */
 
 
-/* ========================================================================= */
-/* 1. STRUCTURE DEFINITIONS                                                  */
-/* ========================================================================= */
+/* ======================================================================= */
+/* 1. STRUCTURE DEFINITIONS                                                */
+/* ======================================================================= */
 
 /**
  * Structure representing an individual entry (word) in the dictionary.
  */
 typedef struct s_head { 
-    struct s_head *link; /* Pointer to the previous word in the list */
-    char *name;          /* Pointer to a C-string representing the word name */
-    uint32_t w;          /* Execution token / Word identifier payload */
-    uint32_t aux;        /* Auxiliary storage parameter */
+    struct s_head *link; /* Pointer to the previous word in the list       */
+    char *name;          /* Pointer to a C-string representing word name   */
+    uint32_t w;          /* Execution token / Word identifier payload      */
+    uint32_t aux;        /* Auxiliary storage parameter                    */
 } s_head;
 
 /**
  * Structure representing a Wordlist / Vocabulary Identifier (WID).
  */
-typedef struct s_wid {   /* Uses WIDS_MAX sizeof(s_wid) of RAM */
-    const struct s_head* head; /* Pointer to the latest word in this list */
-    char* name;          /* Descriptive name of the vocabulary */
+typedef struct s_wid {   /* Uses WIDS_MAX sizeof(s_wid) of RAM             */
+    const struct s_head* head; /* Pointer to the latest word in this list  */
+    char* name;          /* Descriptive name of the vocabulary             */
 } s_wid;
 
 /**
@@ -85,9 +87,9 @@ typedef struct s_dictptr {
 
 
 
-/* ========================================================================= */
-/* 2. DICTIONARY API FUNCTIONS                                               */
-/* ========================================================================= */
+/* ======================================================================= */
+/* 2. DICTIONARY API FUNCTIONS                                             */
+/* ======================================================================= */
 
 /**
  * Searches a specific vocabulary list for a header matching 'target_name'.
@@ -96,9 +98,11 @@ typedef struct s_dictptr {
  * @param wid_index        The index inside the 'wids' array (0 to 15).
  * @param target_name      The string identifier to search for.
  * @param case_insensitive If non-zero, performs a case-insensitive match.
- * @return                 A const pointer to the matching header, or NULL if not found.
+ * @return                 A const pointer to the matching header, or 
+ *                         NULL if not found.
  */
-const struct s_head* search_wordlist(int wid_index, const char *target_name, int case_insensitive);
+const struct s_head* search_wordlist(int wid_index, const char *target_name,
+    int case_insensitive);
 
 /**
  * Iterates through the active wordlists defined in the 'context' array.
@@ -106,8 +110,9 @@ const struct s_head* search_wordlist(int wid_index, const char *target_name, int
  * 
  * @param target_name      The string identifier to search for.
  * @param case_insensitive If non-zero, performs a case-insensitive match.
- * @return                 A const pointer to the matching header, or NULL if not found.
- */
+ * @return                 A const pointer to the matching header, or 
+ *                         NULL if not found.
+*/
 const struct s_head* search_context(const char *target_name, int case_insensitive);
 
 /* ========================================================================= */
@@ -120,7 +125,7 @@ const struct s_head* search_context(const char *target_name, int case_insensitiv
  * 
  * @param str Pointer to the character stream data to interpret.
  * @param len The exact byte boundary size of the string string.
- * @return    0 on normal execution, -1 if a termination word (like BYE) is trapped.
+ * @return    0 on normal execution, error code if error.
  */
 int interpret(char *str, size_t len);
 

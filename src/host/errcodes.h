@@ -125,5 +125,6 @@
 #define ERR_WRONG_RESULTS          (-105)   /* assertion - wrong results */
 #define ERR_WRONG_NUM_RESULTS      (-106)   /* assertion - wrong number of results */
 #define ERR_INVALID_MEMORY_PAGE    (-107)   /* invalid memory page (>= `pages`) */
+#define ERR_TIB_OVERFLOW           (-108)   /* TIB filled up before EOL was seen */
 
 #endif // ERRCODES_H

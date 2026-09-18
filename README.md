@@ -184,12 +184,12 @@ A minimum user task space contains:
 - FOLLOWER, the link to the next task in the chain
 - TASKNOW, task state data
 
-`: pause  [ 0 ] ,user @a+ >r ;` jumps to the task handler, which is either:  
+`: pause  status @a+ >r ;` jumps to the task handler, which is either:  
 `: sleeping  @a >r ;` which skips to the next task, or:  
 `: woke  @a+ b!  task[ @a swap !a ]task ;` which swaps out the task:
 
 - `@a+ b!` saves FOLLOWER in B
-- `[ 0 ] ,user` compiles `0 user`, which loads A with U.
+- `status` compiles `0 user`, which loads A with U.
 - `task[` pushes R to the return stack, T to the data stack, loads A with U,
 and packs T with rp:sp.
 - `@a swap !a` swaps out the state.

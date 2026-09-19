@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
             vm_memory[i] = flash_pages[i];
             vm_memory_name[i] = "Flash";
             vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
-            vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // initially write-protected
+    //        vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // initially write-protected
             vm_memory_executable[i] = FLASH_PAGE_CELLS;
         }
         else if (i == RAM_PAGE) {

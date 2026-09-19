@@ -4,13 +4,7 @@
 #include "serial_io.h"
 #include "vm.h"
 #include "vm_labels.h"
-
-extern struct s_dictptr dictptr[VM_MEM_PAGES];
-
-typedef struct {
-    int code;
-    const char *msg;
-} ErrorMapping;
+#include "utils.h"
 
 static const ErrorMapping error_table[] = {
     /* ANS Forth-94 Standard Exception Codes */
@@ -157,6 +151,49 @@ const char* get_error_message(int err_code) {
 * Extra API words
 ==========================================================================*/
 
+/*
+ * Assertion tests for Forth words
+ *
+ * From the John Hayes test suite, for example:
+ * T{ 0 0 AND -> 0 }T
+ */
+
+static uint8_t sp0;
+static uint8_t actual_sp;
+static int32_t expected_results[STACK_CAPACITY];
+
+int lfAPIbeginTest(void) { // t{
+    sp0 = vmPeek(VM_REG_sp);
+    return 0;
+}
+
+int lfAPIdoTest(void) { // ->
+    actual_sp = vmPeek(VM_REG_sp);
+    int i = actual_sp;
+    if (i >= STACK_MASK) return ERR_STACK_OVERFLOW;
+    while (i--) {
+        expected_results[i] = vmPeek(i);
+    }
+    vmPoke(VM_REG_sp, sp0);
+    return 0;
+}
+
+int lfAPIendTest(void) { // }t 
+    if (actual_sp != vmPeek(VM_REG_sp)) {
+        return ERR_WRONG_NUM_RESULTS;
+    }
+    int i = actual_sp;
+    if (i >= STACK_MASK) return ERR_STACK_OVERFLOW;
+    while (i--) {
+        if (expected_results[i] != vmPeek(i)) {
+            return ERR_WRONG_RESULTS;
+        }
+    }
+    vmPoke(VM_REG_sp, sp0);
+    vmPoke(VM_REG_depth, sp0);
+    return 0;
+}
+
 int lfAPIdecimal(void) {
     lfBASEstore(10);
     return 0;
@@ -194,8 +231,7 @@ static void dotFieldHex(int32_t n, int digits) {
 }
 
 static void dotPageHeader(void) {
-    serial_puts("PAGE _ADDR_ __WP_ _SIZE _EXEC ___CP___ ___HP___ ");
-    serial_puts("___DP___ _UNUSED_C_H_D_  _TYPE___\r\n");
+    serial_puts("PAGE _ADDR_ __WP_ _SIZE _EXEC  _TYPE___\r\n");
 }
 
 static int APIdotPageX(int page) { // list specifics for the current page
@@ -206,37 +242,22 @@ static int APIdotPageX(int page) { // list specifics for the current page
     dotFieldHex(vm_memory_wp_limit[page], 5);
     dotFieldHex(vm_memory_rd_limit[page], 5);
     dotFieldHex(vm_memory_executable[page], 5);
-    s_dictptr* dict = &dictptr[page];
-    dotFieldHex(dict->cp, 8);
-    dotFieldHex(dict->hp, 8);
-    dotFieldHex(dict->dp, 8);
-    if (dict->cp) {
-        dotFieldHex(lfUnused(0, page), 4);
-        dotFieldHex(lfUnused(1, page), 4);
-        dotFieldHex(lfUnused(2, page), 4);
-    }
-    else {
-        lfSpace();
-        lfEmitses(14, '-');
-    }
     lfSpaces(2); serial_puts(vm_memory_name[page]);
     lfSpace();
     return 0;
 }
 
 int lfAPIdotPage(void) {
-    uint32_t current_page = lfPAGEfetch();
+    uint32_t current_page = vmPeek(-1);
     dotPageHeader();
     APIdotPageX(current_page);
     return 0;
 }
 
 int lfAPIdotPages(void) {
-    int page = lfPAGEfetch();
     dotPageHeader();
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         APIdotPageX(i);
-        if (page == i) serial_putc('<');
         lfCR();
     }
     return 0;
@@ -307,7 +328,7 @@ int lfAPIdump(void) {
 
 static const char* uopName[] = UOP_NAMES;
 static const char* opName[] = OP_NAMES;
-static const char* immName[] = IMM_NAMES;
+static const char* immName[] = IMM_NAMES; 
 
 static int lfDotHex(int32_t n) {
     lfDotB(n, 16, 0, 0);
@@ -347,9 +368,12 @@ static int DisassembleInsn(uint16_t inst) {
                 simm |= ~((1 << 9) - 1);
             }
             opcode = (inst >> 9) & 0x0F;
+            serial_puts(immName[opcode]);
             if (opcode == VMO_PFX) _lex = imm;
             lfDotHex(simm);
-            serial_puts(immName[opcode]);
+            if (opcode == VMO_API0) {
+                // traverse dictionary looking for this api call name
+            }
         }
     }
     if (_lex < 0) lex = 0;

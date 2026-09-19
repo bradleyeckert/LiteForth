@@ -121,20 +121,20 @@ The ISA splits into *micro* and *other*.
 
 | *Name* | *15:13* | *12:0* |
 | :----- | ------- | ------ |
-| call | 000  | 13-bit address, push PC to return stack   |
-| jump | 001  | 13-bit address |
+| jump | 000  | 13-bit address |
+| call | 001  | 13-bit address, push PC to return stack   |
 | lit  | 010  | 13-bit literal (push onto data stack) |
 | imm  | 011  | 4-bit opcode, 9-bit immediate data |
 
-Instructions may **push** or *pop* the data stack.
+Instructions may <u>push</u> or *pop* the data stack.
 The µops (note - they don't take immediate data) are:
 
 | \\  | *0*   | *1*  | *2*      | *3*    | *4*    | *5*     | *6*    | *7*    |
 |-----|-------|------|----------|--------|--------|---------|--------|--------|
-| *0* | nop   | inv  | **over** | *a!*   | *xor*  | *+*     | *and*  | *>r*   |
-| *1* | unext | 2\*  | **dup**  | *drop* | **@a** | **@a+** | **r@** | **r>** |
-| *2* | 2/c   | 2/   | **@as**  | *u!*   | *!a*   | *!a+*   | *!b*   | *!b+*  |
-| *3* | swap  | +\*  | **b**    | *b!*   | **@b** | **@b+** | **a**  | **cy** |
+| *0* | nop   | inv  | <u>over</u> | *a!*   | *xor*  | *+*     | *and*  | *>r*   |
+| *1* | unext | 2\*  | <u>dup</u>  | *drop* | <u>@a</u> | <u>@a+</u> | <u>r@</u> | <u>r></u> |
+| *2* | 2/c   | 2/   | <u>@as</u>  | *u!*   | *!a*   | *!a+*   | *!b*   | *!b+*  |
+| *3* | swap  | +\*  | <u>b</u>    | *b!*   | <u>@b</u> | <u>@b+</u> | <u>a</u>  | <u>cy</u> |
 
 - cy = carry caused by addition or shift
 - u = user pointer register
@@ -155,8 +155,8 @@ The µops (note - they don't take immediate data) are:
 | pfx    |  7 | Prefix: lex \= (lex\<\<9) + u9 |
 | *>sys* |  8 | sys instructions that pop from the stack |
 | user   |  9 | A \= U \+ u9 |
-|**sys>**| 10 | sys instructions that push to the stack |
-|**qlit**| 11 | Push U \+ u9 |
+|<u>sys></u>| 10 | sys instructions that push to the stack |
+|<u>qlit</u>| 11 | Push U \+ u9 |
 |        | 12 | |
 |        | 13 | |
 | RFcall | 14 | Call root function in VM |
@@ -171,7 +171,7 @@ A 22-bit literal, jump, or call takes two instructions.
 | ***Name*** | ***12:9*** | ***8:0*** | ***Action*** |
 |:-------|:------|:-------|:-------|
 | *barf* | 8  | 0 | VM quits and returns ior \= T |
-|**task\[**| 10 | 0 | Get task state |
+|<u>task\[</u>| 10 | 0 | Get task state |
 |*]task*| 8 | 1 | Save task state |
 
 ## pause
@@ -205,25 +205,6 @@ Root functions and App functions are useful when the ISA is simulated.
 C functions for eliminating hot spots are accessed through two execution tables.
 One set of functions lives in immutable root-of-trust memory.
 The other lives in updatable application memory.
-
-## HDL
-
-In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
-The instruction arrives two clock cycles after PC changes.
-When `;` is '1', the instruction bus settles while the group is executing.
-The unified address space means that instruction pairs would be registered in `inst32`.
-For a synchronous read, `inst32` gets registered right on time.
-Two instruction groups typically execute in sequence, with `inst32` being right-shifted
-by 16 bits after the first instruction group executes.
-Random data memory access would just insert a couple of wait states to get the instruction back on the bus.
-
-*other* instructions that take input from `inst32` settle quickly, not having to wait for decode.
-Hardware optimizations to be realized are:
-
-- Skip to the next instruction group if there are only nops left to execute.
-- Read from code memory with "next_PC" instead of "PC" to avoid stalls.
-
-The code compiled by LiteForth will run in a real Forth chip, but it would have to avoid API calls.
 
 ## Stacks
 

@@ -7,8 +7,16 @@ extern "C" {
 
 #include <stdint.h>
 
+typedef struct {
+    int code;
+    const char* msg;
+} ErrorMapping;
+
 const char* get_error_message(int err_code);
 
+int lfAPIbeginTest(void);
+int lfAPIdoTest(void);
+int lfAPIendTest(void);
 int lfAPIdecimal(void);
 int lfAPIhex(void);
 int lfAPIdotPage(void);

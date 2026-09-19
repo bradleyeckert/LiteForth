@@ -64,12 +64,6 @@
     0x00,    0x00,    0x01,    0x02,    0x02,    0x02,    0x02,    0x02, \
     0x00,    0x00,    0x01,    0x02,    0x01,    0x01,    0x01,    0x01}
 
-// These need to be fixed...
-#define API_NAMES { \
-    "semit", "um*", "mu/mod", \
-    "LCDraw", "LCDparm!", "LCDparm", "LCDemit"  \
-}
-
 #define VMU_NOP                 0x00
 #define VMU_INV                 0x01
 #define VMU_OVER                0x02

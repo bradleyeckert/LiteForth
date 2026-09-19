@@ -69,6 +69,60 @@ Bytes have always been a conundrum for cell-addressed machines.
 Treating bytes as 8-bit-wide bit fields,
 with `@` and `!` supporting bit fields in hardware, is one solution.
 
-`cell+` steps to the next bit field, so you can have an array of 8-bit bytes, 
+`char+` steps to the next bit field, so you can have an array of 8-bit bytes, 
 or an array of any width of data between 1- and 32-bit.
 
+Variables smaller than 32-bit are bit fields (`: variable 32 bits ;`).
+You could define several small variables in 1 cell. For example,
+```
+4 bits mynybl
+8 bits mybit
+1 bits myflag
+19 bits whateverelse
+```
+Bit fields compile using `,`.
+Use `bit` to set the bit field width of the data you want to compile.
+`bit` starts a new cell if the current cell doesn't have enough unused bits left.
+`: align  32 bit ;` unconditionally aligns whichever memory space you are in.
+To compile everyone's favorite bit field, the byte, use `8 bit`.
+`,` will behave like `c,`.
+
+## Dictionary pointers
+
+The `dp[]` data structure maintains pointer context for the dictionary.
+On some Forths, such as those with interleaved everything, a variable `dp` will do.
+Not so in LiteForth. Different pointers are used for code, data, and header spaces.
+
+`dp[]` is a 6-cell 3x2 matrix arranged like this:
+
+| *data* | *code* | *head* |
+|--------|--------|--------|
+| `dp`   | `cp`   | `hp`   |
+| `dp0`  | `cp0`  | `hp0`  |
+
+The 2-bit variable `dp^` selects the column to be used by `here` and `,`.
+Some definitions that are built from `dp[]` and `dp^` are:
+```forth
+: 'here   dp^ @ cells dp[] + ;
+: here    'here @ ;
+: unused  'here dup 3 + @ swap @ - ;
+: _data   0 dp^ ! ;
+: _code   1 dp^ ! ;
+: _head   2 dp^ ! ;
+: ,       'here @ dup >r ! r> char+ ; 
+```
+# create does>
+
+- `create` creates a word that returns a data pointer.
+- `does>` replaces the return code with a jump to new code.
+
+In LiteForth, `does>` has two use cases:
+
+1. `create` compiles to Flash, so its data is read-only.
+2. `create` compiles to RAM, so its data is volatile.
+
+```forth
+variable doesptr
+: create  : here dup ,lit  there doesptr !  postpone ; ;
+: does>   doesptr @ torg ] ;
+```

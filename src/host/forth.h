@@ -15,13 +15,12 @@ vm_memory[RAM_PAGE] is the RAM page. Forth variables are placed at fixed
 locations for accessibility by Forth or by C.
 */
 
-#define VARIABLE(addr) ((RAM_PAGE << (22 - VM_LOG2_PAGES)) | addr)
+#define VARIABLE(addr) ((RAM_PAGE << (22 - VM_LOG2_PAGES)) | (addr))
 #define BITFIELD(size, pos, addr) ((size << 27) | (pos << 22) | VARIABLE(addr))
 #define BFADDR(idx) (RAM_BASE << (22 - VM_LOG2_PAGES))
 
 #define F_TIB        2
 #define F_BLK        (F_TIB + TIBCELLS)
-#define F_HERE0      (F_BLK + 1)            /* offset to first free RAM    */
 
 #define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)
@@ -29,9 +28,12 @@ locations for accessibility by Forth or by C.
 #define LF_STATE     BITFIELD(1, 8, 0)
 #define LF_DPL       BITFIELD(6, 9, 0)
 #define LF_TOIN      BITFIELD(13, 15, 0)
-#define LF_PAGE      BITFIELD(8, 0, 1)
+#define LF_MSPACE    BITFIELD(2, 28, 0)
+//#define LF_PAGE      BITFIELD(8, 0, 1)
 #define LF_TIB       BITFIELD(8, 0, F_TIB)  /* Terminal Input Buffer       */
 #define LF_BLK       VARIABLE(F_BLK)        /* Allow 4G blocks             */
+#define LF_PTRS      VARIABLE(F_BLK + 1)    /* dictionary pointers 6-cell  */
+#define LF_HERE0     VARIABLE(F_BLK + 7)    /* first free RAM              */
 
 #define TIB         ((char *)&vm_memory[RAM_PAGE][F_TIB])
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
@@ -65,26 +67,6 @@ typedef struct s_wid {   /* Uses WIDS_MAX sizeof(s_wid) of RAM             */
     const struct s_head* head; /* Pointer to the latest word in this list  */
     char* name;          /* Descriptive name of the vocabulary             */
 } s_wid;
-
-/**
- * Structure representing dictionary pointers.
- * 
- * These are set up for the current page using:
- * `<codesize> <headsize> init_here`
- * The three `unused` values for the page can be calculated from these fields.
- * CODE always begins at `page-base 1 +`, leaving `page-base` for a link.
- * cp0 is hard-wired at 1.
- * hp0 is cp0 + codesize.
- * dp0 is hp0 + datasize.
- */
-typedef struct s_dictptr {
-    uint32_t cp;         /* Address of code in page (16-bit fields) */
-    uint32_t hp;         /* Address of headers in page */
-    uint32_t dp;         /* Address of data in page */
-    uint16_t hp0;        /* Offset to start of headers in page */
-    uint16_t dp0;        /* Offset to start of data in page */
-} s_dictptr;
-
 
 
 /* ======================================================================= */
@@ -143,8 +125,6 @@ int lfDot(int32_t val);
 int lfDotB(uint32_t val, int base, int dpl, int digits);
 int lfBASEfetch(void);
 int lfBASEstore(int base);
-int lfUnused(int type, int page);
-int lfPAGEfetch(void);
 
 #ifdef __cplusplus
 }

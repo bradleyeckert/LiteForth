@@ -5,7 +5,7 @@
 #define TF_VERSION            0 // version 0.00
 #define CASE_SENSITIVE        1 // is FIND case sensitive?
 #define FAT_FORTH             1 // all options
-#define CONTEXT_MAX           8 // depth of possible search order
+#define CONTEXT_MAX          15 // depth of possible search order
 #define WIDS_MAX              8 // number of different wordlists supported
 #define DOT_S_MAX             8 // maximum depth to display in .s
 #define TIBCELLS             21 // The size of the TIB in cells

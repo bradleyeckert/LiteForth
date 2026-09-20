@@ -8,6 +8,7 @@ int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
 uint32_t vm_memory_wp_limit[VM_MEM_PAGES] = { 0 };
 uint32_t vm_memory_executable[VM_MEM_PAGES] = { 0 };
+char* vm_memory_name[VM_MEM_PAGES] = { NULL };
 
 PLACE_IN_DTCM;
 static const uint8_t stackeffects[32] = VM_STACKEFFECTS;
@@ -66,7 +67,13 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         R--;
         if (R) goto qbranch;
         VM_RDROP;  break;
-    case VMO_SYS:  break;
+    case VMO_SYS:
+        switch (imm) {
+        case VMS_CHARPLUS: // char+
+            T = vmCharPlus(T);
+            break;
+        default: break;
+        } break;
     case VMO_PFX: lex = (lex << 9) | imm; break;
     case VMO_TOSYS: {
         int32_t tos = T;
@@ -91,8 +98,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
             A = U;
             break;
         default: break;
-        }
-    break;
+        } break;
     case VMO_QLIT:
         VM_DDUP;  T = U + imm;
         break;

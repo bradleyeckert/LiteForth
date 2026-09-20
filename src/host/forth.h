@@ -19,8 +19,12 @@ locations for accessibility by Forth or by C.
 #define BITFIELD(size, pos, addr) ((size << 27) | (pos << 22) | VARIABLE(addr))
 #define BFADDR(idx) (RAM_BASE << (22 - VM_LOG2_PAGES))
 
+#define F_CURRENT    1
 #define F_TIB        2
 #define F_BLK        (F_TIB + TIBCELLS)
+#define F_PTRS       (F_BLK + 1)
+#define F_CONTEXT    (F_PTRS + 6)
+#define F_HERE0      (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
 
 #define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)
@@ -29,12 +33,15 @@ locations for accessibility by Forth or by C.
 #define LF_DPL       BITFIELD(6, 9, 0)
 #define LF_TOIN      BITFIELD(13, 15, 0)
 #define LF_MSPACE    BITFIELD(2, 28, 0)
-//#define LF_PAGE      BITFIELD(8, 0, 1)
+#define LF_CURRENT   BITFIELD(8, 0, F_CURRENT)
 #define LF_TIB       BITFIELD(8, 0, F_TIB)  /* Terminal Input Buffer       */
 #define LF_BLK       VARIABLE(F_BLK)        /* Allow 4G blocks             */
-#define LF_PTRS      VARIABLE(F_BLK + 1)    /* dictionary pointers 6-cell  */
-#define LF_HERE0     VARIABLE(F_BLK + 7)    /* first free RAM              */
+#define LF_PTRS      VARIABLE(F_PTRS)       /* dictionary pointers 6-cell  */
+#define LF_CONTEXT   BITFIELD(8, 0, F_CONTEXT)    /* context list          */
+#define LF_HERE0     VARIABLE(F_HERE0)      /* first free RAM              */
 
+#define CURRENT     ((int8_t *)&vm_memory[RAM_PAGE][F_CURRENT])
+#define CONTEXT     ((int8_t *)&vm_memory[RAM_PAGE][F_CONTEXT])
 #define TIB         ((char *)&vm_memory[RAM_PAGE][F_TIB])
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
@@ -125,6 +132,7 @@ int lfDot(int32_t val);
 int lfDotB(uint32_t val, int base, int dpl, int digits);
 int lfBASEfetch(void);
 int lfBASEstore(int base);
+int vmPush(int32_t value);
 
 #ifdef __cplusplus
 }

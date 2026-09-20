@@ -24,39 +24,98 @@ int lfBASEstore(int base) {
     return vmStore(LF_BASE, base);
 }
 
-int lfSTATEfetch(void) {
+static int lfSTATEfetch(void) {
     int32_t result;
     vmFetch(LF_STATE, &result);
     return result;
 }
 
-int lfSTATEstore(int compiling) {
-    return vmStore(LF_STATE, compiling);
-}
-
-int lfTOINfetch(void) {
+static int lfTOINfetch(void) {
     int32_t result;
     vmFetch(LF_TOIN, &result);
     return result;
 }
 
-int lfTOINstore(int position) {
+static int lfTOINstore(int position) {
     return vmStore(LF_TOIN, position);
 }
 
-int lfTIBSTATEfetch(void) {
+static int lfTIBSTATEfetch(void) {
     int32_t result;
     vmFetch(LF_TIBSTATE, &result);
     return result;
 }
 
-int lfTIBSTATEstore(int state) {
+static int lfTIBSTATEstore(int state) {
     return vmStore(LF_TIBSTATE, state);
 }
 
-static int vmPush(int32_t value) {
+int vmPush(int32_t value) {
     return vmPoke(-1, value);;
 }
+
+/* =========================================================================
+* String output functions
+========================================================================= */
+
+int serial_puts(const char* s) {
+    int ior = 0;
+    while (*s) {
+        ior = serial_putc(*s++);
+        if (ior) return ior;
+    }
+    return 0;
+}
+
+int lfDotB(uint32_t val, int base, int dpl, int digits) {
+    char buf[36] = { 0 }; // Enough for 32-bit integer
+    char* p = &buf[sizeof(buf)];
+    *--p = 0; // Null terminator
+    if ((val & 0x80000000) && (base == 10)) {
+        val = 0 - val;
+        serial_putc('-');
+    }
+    do {
+        if (p == buf) break; // no more room
+        int digit = val % base;
+        val /= base;
+        if (digit < 10) {
+            *--p = '0' + digit;
+        }
+        else {
+            *--p = 'A' + (digit - 10);
+        }
+        digits--;
+        if (dpl) {          // optional decimal
+            if (--dpl == 0) {
+                *--p = '.';
+            }
+        }
+    } while (val | dpl | (digits > 0));
+    int result = serial_puts(p);
+    return result;
+}
+
+int lfCR(void) {
+    return serial_puts("\r\n");
+}
+
+int lfSpace(void) {
+    return serial_putc(' ');
+}
+
+int lfDot(int32_t val) {
+    int base = lfBASEfetch();
+    lfDotB(val, base, 0, 0);
+    if (base == 16) {
+        serial_putc('H');
+    }
+    return lfSpace();
+}
+
+/* =========================================================================
+* Define a Forth
+========================================================================= */
 
 // Flags in word->w[31:27]
 #define IS_PRIMITIVE 0x80000000 // the xt is a primitive in slot 1
@@ -73,6 +132,9 @@ static int vmPush(int32_t value) {
 #define MACRO(s0, s1, s2) (IS_MACRO | VM_UOPS | ((s0) << 9)| ((s1) << 4)| (s2) )
 #define DATA(idx) ((RAM_PAGE << (22 - VM_LOG2_PAGES)) + (idx))
 #define API0(idx) (IS_PRIMITIVE | VMI_API0 | (idx))
+#define SYS(idx) (IS_PRIMITIVE | VMI_SYS | (idx))
+#define SYSTO(idx) (IS_PRIMITIVE | VMI_TOSYS | (idx))
+#define SYSFM(idx) (IS_PRIMITIVE | VMI_FROMSYS | (idx))
 
 static int execute_word(const struct s_head* word) {
     if (word->aux & IS_NOTHING)  return 0;
@@ -95,108 +157,160 @@ static int compile_word(const struct s_head* word) {
     return 0;
 }
 
+#define LINKO(val) (struct s_head*)&only_heads[(val)]
 
-#define LINK(val) (struct s_head*)&lf_heads[(val)]
+static const struct s_head only_heads[] = {
+    { NULL,     "bye",      API0(0), 0},
+    { LINKO(0), "words",    API0(1), 0},
+    { LINKO(1), "forth",    API0(2), 0},
+    { LINKO(2), "only",     API0(3), 0},
+};
+
+#define LINK(val) (struct s_head*)&forth_heads[(val)]
 
 // Flash cost per entry: 16 bytes plus name string (length+1 bytes).
 // 64 entries is about 1.4 KB
-static const struct s_head lf_heads[] = {  
-    { NULL,     "bye",      API0(0),                                0x200},
-    { LINK( 0), "invert",   UOP(VMU_INV),                           0x201},
-    { LINK( 1), "over",     UOP(VMU_OVER),                          0x202},
-    { LINK( 2), "a!",       UOP(VMU_ASTORE),                        0x203},
-    { LINK( 3), "xor",      UOP(VMU_XOR),                           0x204},
-    { LINK( 4), "+",        UOP(VMU_PLUS),                          0x205},
-    { LINK( 5), "and",      UOP(VMU_AND),                           0x206},
-    { LINK( 6), ">r",       UOP(VMU_PUSH),                          0x207},
-    { LINK( 7), "unext",    UOP(VMU_UNEXT),                         0x208},
-    { LINK( 8), "2*",       UOP(VMU_TWOSTAR),                       0x209},
-    { LINK( 9), "dup",      UOP(VMU_DUP),                           0x20A},
-    { LINK(10), "drop",     UOP(VMU_DROP),                          0x20B},
-    { LINK(11), "@a",       UOP(VMU_FETCHA),                        0x20C},
-    { LINK(12), "@a+",      UOP(VMU_FETCHAPLUS),                    0x20D},
-    { LINK(13), "@as",      UOP(VMU_FETCHASIGN),                    0x20D},
-    { LINK(14), "r@",       UOP(VMU_R),                             0x20E},
-    { LINK(15), "r>",       UOP(VMU_POP),                           0x20F},
-    { LINK(16), "2/c",      UOP(VMU_TWODIVC),                       0x210},
-    { LINK(17), "2/",       UOP(VMU_TWODIV),                        0x211},
-    { LINK(18), "!a",       UOP(VMU_STOREA),                        0x212},
-    { LINK(19), "!a+",      UOP(VMU_STOREAPLUS),                    0x213},
-    { LINK(20), "!b",       UOP(VMU_STOREB),                        0x214},
-    { LINK(21), "!b+",      UOP(VMU_STOREBPLUS),                    0x215},
-    { LINK(22), "swap",     UOP(VMU_SWAP),                          0x216},
-    { LINK(23), "+*",       UOP(VMU_PLUSSTAR),                      0x217},
-    { LINK(24), "b",        UOP(VMU_B),                             0x218},
-    { LINK(25), "b!",       UOP(VMU_BSTORE),                        0x219},
-    { LINK(26), "@b",       UOP(VMU_FETCHB),                        0x21A},
-    { LINK(27), "@b+",      UOP(VMU_FETCHBPLUS),                    0x21B},
-    { LINK(28), "a",        UOP(VMU_A),                             0x21C},
-    { LINK(29), "cy",       UOP(VMU_CY),                            0x21D},
-    { LINK(30), "base",     LF_BASE,                IS_CONSTANT |   0x21E},
-    { LINK(31), "state",    LF_STATE,               IS_CONSTANT |   0x21F},
-    { LINK(32), "dpl",      LF_DPL,                 IS_CONSTANT |   0x220},
-    { LINK(33), ">in",      LF_TOIN,                IS_CONSTANT |   0x221},
-    { LINK(34), "blk",      LF_BLK,                 IS_CONSTANT |   0x222},
-    { LINK(35), "tib",      LF_TIB,                 IS_CONSTANT |   0x223},
-    { LINK(36), "pages",    VM_MEM_PAGES,           IS_CONSTANT |   0x224},
-    { LINK(37), "dp[]",     LF_PTRS,                IS_CONSTANT |   0x224},
-    { LINK(38), "ram-base", LF_HERE0,               IS_CONSTANT |   0x224},
-    { LINK(39), "true",     -1,                     IS_CONSTANT |   0x224},
-    { LINK(40), "false",    0,                      IS_CONSTANT |   0x224},
-    { LINK(41), "dp^",      LF_MSPACE,              IS_CONSTANT |   0x224},
-    { LINK(42), "cells",    0,                       IS_NOTHING |   0x224},
-    { LINK(43), "2dup",     MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x225},
-    { LINK(44), "!",        MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),   0x226},
-    { LINK(45), "@",        MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),   0x227},
-    { LINK(46), "s@",       MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0x227},
-    { LINK(47), "nip",      MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),       0x228},
-    { LINK(48), "tuck",     MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),       0x228},
-    { LINK(49), "um*",      API0( 1), /* u1 u2 -- ud            */ 0x22C},
-    { LINK(50), "m*",       API0( 2), /* n1 n2 -- d             */ 0x22D},
-    { LINK(51), "mu/mod",   API0( 3), /* ud u -- rem dquot      */ 0x22D},
-    { LINK(52), "*/mod",    API0( 4), /* n1 n2 -- rem quot      */ 0x22D},
-    { LINK(53), "key?",     API0( 5), /* -- flag                */ 0x229},
-    { LINK(54), "key",      API0( 6), /* -- c                   */ 0x229},
-    { LINK(55), "emit",     API0( 7), /* c --                   */ 0x229},
-    { LINK(56), "char+",    API0( 8), /* a1 -- a2               */ 0x23B},
-    { LINK(57), "header",   API0( 9), /* <name> w aux --        */ 0x22A},
-    { LINK(58), ">options", API0(10), /* n --                   */ 0x233},
-    { LINK(59), "options>", API0(11), /* -- n                   */ 0x234},
-    { LINK(60), "(",        API0(12), /* -- */      IS_IMMEDIATE | 0x235},
-    { LINK(61), ".(",       API0(13), /* --                     */ 0x236},
-    { LINK(62), ".s",       API0(14), /* --                     */ 0x235},
-    { LINK(63), ".",        API0(15), /* n --                   */ 0x23B},
-    { LINK(64), "cr",       API0(16), /* --                     */ 0x237},
-    { LINK(65), "space",    API0(17), /* --                     */ 0x238},
-    { LINK(66), "words",    API0(18), /* --                     */ 0x238},
-    { LINK(67), "p'",       API0(19), /* <name> -- w aux        */ 0x239},
-    { LINK(68), "page",     API0(20), /* page -- a              */ 0x239},
-#if (FAT_FORTH & 1)
-    { LINK(69), "}t",       API0(21), /* ? --                   */ 0x230},
-    { LINK(70), "->",       API0(22), /* ? --                   */ 0x231},
-    { LINK(71), "t{",       API0(23), /* --                     */ 0x232},
-    { LINK(72), "hex",      API0(24), /* --                     */ 0x23A},
-    { LINK(73), "decimal",  API0(25), /* --                     */ 0x23B},
-    { LINK(74), ".page",    API0(26), /* n --                   */ 0x23B},
-    { LINK(75), ".pages",   API0(27), /* --                     */ 0x23B},
-    { LINK(76), "dump",     API0(28), /* addr length --         */ 0x23B},
-    { LINK(77), "dumpi",    API0(29), /* inst --                */ 0x23B},
-    { LINK(78), "dasm",     API0(30), /* addr length --         */ 0x23B},
+static const struct s_head forth_heads[] = {  
+    { LINKO(3), "invert",   UOP(VMU_INV),                          0x0},
+    { LINK( 0), "inv",      UOP(VMU_INV),                          0x0},
+    { LINK( 1), "over",     UOP(VMU_OVER),                         0x0},
+    { LINK( 2), "a!",       UOP(VMU_ASTORE),                       0x0},
+    { LINK( 3), "xor",      UOP(VMU_XOR),                          0x0},
+    { LINK( 4), "+",        UOP(VMU_PLUS),                         0x0},
+    { LINK( 5), "and",      UOP(VMU_AND),                          0x0},
+    { LINK( 6), ">r",       UOP(VMU_PUSH),                         0x0},
+    { LINK( 7), "unext",    UOP(VMU_UNEXT),                        0x0},
+    { LINK( 8), "2*",       UOP(VMU_TWOSTAR),                      0x0},
+    { LINK( 9), "dup",      UOP(VMU_DUP),                          0x0},
+    { LINK(10), "drop",     UOP(VMU_DROP),                         0x0},
+    { LINK(11), "@a",       UOP(VMU_FETCHA),                       0x0},
+    { LINK(12), "@a+",      UOP(VMU_FETCHAPLUS),                   0x0},
+    { LINK(13), "@as",      UOP(VMU_FETCHASIGN),                   0x0},
+    { LINK(14), "r@",       UOP(VMU_R),                            0x0},
+    { LINK(15), "r>",       UOP(VMU_POP),                          0x0},
+    { LINK(16), "2/c",      UOP(VMU_TWODIVC),                      0x0},
+    { LINK(17), "2/",       UOP(VMU_TWODIV),                       0x0},
+    { LINK(18), "!a",       UOP(VMU_STOREA),                       0x0},
+    { LINK(19), "!a+",      UOP(VMU_STOREAPLUS),                   0x0},
+    { LINK(20), "!b",       UOP(VMU_STOREB),                       0x0},
+    { LINK(21), "!b+",      UOP(VMU_STOREBPLUS),                   0x0},
+    { LINK(22), "swap",     UOP(VMU_SWAP),                         0x0},
+    { LINK(23), "+*",       UOP(VMU_PLUSSTAR),                     0x0},
+    { LINK(24), "b",        UOP(VMU_B),                            0x0},
+    { LINK(25), "b!",       UOP(VMU_BSTORE),                       0x0},
+    { LINK(26), "@b",       UOP(VMU_FETCHB),                       0x0},
+    { LINK(27), "@b+",      UOP(VMU_FETCHBPLUS),                   0x0},
+    { LINK(28), "a",        UOP(VMU_A),                            0x0},
+    { LINK(29), "cy",       UOP(VMU_CY),                           0x0},
+    { LINK(30), "base",     LF_BASE,                 IS_CONSTANT | 0x0},
+    { LINK(31), "state",    LF_STATE,                IS_CONSTANT | 0x0},
+    { LINK(32), "dpl",      LF_DPL,                  IS_CONSTANT | 0x0},
+    { LINK(33), ">in",      LF_TOIN,                 IS_CONSTANT | 0x0},
+    { LINK(34), "blk",      LF_BLK,                  IS_CONSTANT | 0x0},
+    { LINK(35), "tib",      LF_TIB,                  IS_CONSTANT | 0x0},
+    { LINK(36), "current",  LF_CURRENT,              IS_CONSTANT | 0x0},
+    { LINK(37), "|context|",CONTEXT_MAX,             IS_CONSTANT | 0x0},
+    { LINK(38), "context",  LF_CONTEXT,              IS_CONSTANT | 0x0},
+    { LINK(39), "dp[]",     LF_PTRS,                 IS_CONSTANT | 0x0},
+    { LINK(40), "pages",    VM_MEM_PAGES,            IS_CONSTANT | 0x0},
+    { LINK(41), "ram-base", LF_HERE0,                IS_CONSTANT | 0x0},
+    { LINK(42), "//////",   1,                       IS_CONSTANT | 0x0},
+    { LINK(43), "true",     -1,                      IS_CONSTANT | 0x0},
+    { LINK(44), "false",    0,                       IS_CONSTANT | 0x0},
+    { LINK(45), "dp^",      LF_MSPACE,               IS_CONSTANT | 0x0},
+    { LINK(46), "cells",    0,                        IS_NOTHING | 0x0},
+    { LINK(47), "2dup",     MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x0},
+    { LINK(48), "!",        MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),   0x0},
+    { LINK(49), "@",        MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),   0x0},
+    { LINK(50), "s@",       MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0x0},
+    { LINK(51), "nip",      MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),      0x0},
+    { LINK(52), "tuck",     MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),      0x0},
+    { LINK(53), "char+",    SYS(VMS_CHARPLUS),   /* a1 -- a2    */ 0x0},
+    { LINK(54), "]task",    SYSTO(VMS_CHARPLUS), /* tstate --   */ 0x0},
+    { LINK(55), "barf",     SYSTO(VMS_CHARPLUS), /* ior --      */ 0x0},
+    { LINK(56), "task[",    SYSFM(VMS_CHARPLUS), /* -- tstate   */ 0x0},
+    { LINK(57), "um*",      API0( 4), /* u1 u2 -- ud            */ 0x0},
+    { LINK(58), "m*",       API0( 5), /* n1 n2 -- d             */ 0x0},
+    { LINK(59), "mu/mod",   API0( 6), /* ud u -- rem dquot      */ 0x0},
+    { LINK(60), "*/mod",    API0( 7), /* n1 n2 -- rem quot      */ 0x0},
+    { LINK(61), "key?",     API0( 8), /* -- flag                */ 0x0},
+    { LINK(62), "key",      API0( 9), /* -- c                   */ 0x0},
+    { LINK(63), "emit",     API0(10), /* c --                   */ 0x0},
+    { LINK(64), "header",   API0(11), /* w aux <name> --        */ 0x0},
+    { LINK(65), ">options", API0(12), /* n --                   */ 0x0},
+    { LINK(66), "options>", API0(13), /* -- n                   */ 0x0},
+    { LINK(67), "(",        API0(14), /* -- */      IS_IMMEDIATE | 0x0},
+    { LINK(68), ".(",       API0(15), /* --                     */ 0x0},
+    { LINK(69), ".s",       API0(16), /* --                     */ 0x0},
+    { LINK(70), ".",        API0(17), /* n --                   */ 0x0},
+    { LINK(71), "cr",       API0(18), /* --                     */ 0x0},
+    { LINK(72), "space",    API0(19), /* --                     */ 0x0},
+    { LINK(73), ".wid",     API0(20), /* wid --                 */ 0x0},
+    { LINK(74), "p'",       API0(21), /* <name> -- w aux        */ 0x0},
+    { LINK(75), "page",     API0(22), /* page -- a              */ 0x0},
+    { LINK(76), "------",   API0(23), /*                        */ 0x0},
+    { LINK(77), "------",   API0(24), /*                        */ 0x0},
+#if (FAT_FORTH & 1)                                                  
+    { LINK(78), "}t",       API0(25), /* ? --                   */ 0x0},
+    { LINK(79), "->",       API0(26), /* ? --                   */ 0x0},
+    { LINK(80), "t{",       API0(27), /* --                     */ 0x0},
+    { LINK(81), "hex",      API0(28), /* --                     */ 0x0},
+    { LINK(82), "decimal",  API0(29), /* --                     */ 0x0},
+    { LINK(83), ".page",    API0(30), /* n --                   */ 0x0},
+    { LINK(84), ".pages",   API0(31), /* --                     */ 0x0},
+    { LINK(85), "dump",     API0(32), /* addr length --         */ 0x0},
+    { LINK(86), "dumpi",    API0(33), /* inst --                */ 0x0},
+    { LINK(87), "dasm",     API0(34), /* addr length --         */ 0x0},
 #endif
-};
-
-struct s_wid wids[WIDS_MAX] = { // wordlists
-    [0] = { .head = &lf_heads[(sizeof(lf_heads) / sizeof(s_head)) - 1],
-    .name = "root" }
 };
 
 /* ========================================================================= */
 /* FORTH SEARCH CONTEXT STRUCTURES                                           */
 /* ========================================================================= */
 
+struct s_wid wids[WIDS_MAX] = { // wordlists
+    [0] = {.head = &only_heads[(sizeof(only_heads) / sizeof(s_head)) - 1],
+           .name = "`only" },
+    [1] = {.head = &forth_heads[(sizeof(forth_heads) / sizeof(s_head)) - 1],
+           .name = "`forth" }
+};
+
 /* CONTEXT array holds indices into the wids array, ordered by search priority.
    Terminated with -1 to indicate the end of the search order. */
-int8_t context[CONTEXT_MAX] = { 0, -1 };
+
+/* ONLY */
+static int APIonly(void) {
+    int8_t* ctx = CONTEXT;
+    *ctx++ = 0;
+    *ctx++ = -1;
+    return 0;
+}
+
+/* FORTH */
+static int APIforth(void) {
+    CONTEXT[0] = 1;
+    return 0;
+}
+
+/* .WID  ( n -- ) */
+static int APIdotWid(void) {
+    uint8_t wid = vmPeek(-1);
+    if (wid >= CONTEXT_MAX) return ERR_SEARCH_ORDER_OVERFLOW;
+    char* s = wids[wid].name;
+    if (s == NULL)  return lfDot(wid);
+    serial_puts(s); return lfSpace();
+}
+
+/* WORDS */
+static int APIwords(void) {
+    const struct s_head* link = wids[CONTEXT[0]].head;
+    while (link != NULL) {
+        serial_puts(link->name);
+        lfSpace();
+        link = link->link;
+    }
+    return 0;
+}
 
 /* ========================================================================= */
 /* LOOKUP FUNCTION                                                           */
@@ -249,7 +363,7 @@ const struct s_head* search_wordlist(int wid_index, const char *target_name, int
  */
 const struct s_head* search_context(const char *target_name, int case_insensitive) {
     for (int i = 0; i < CONTEXT_MAX; i++) {
-        int wid_idx = context[i];
+        int wid_idx = CONTEXT[i];
 
         // Stop searching if we hit the end of the defined context order (-1)
         if (wid_idx == -1) {
@@ -262,69 +376,6 @@ const struct s_head* search_context(const char *target_name, int case_insensitiv
         }
     }
     return NULL; // Word not found in any active wordlist
-}
-
-#include <ctype.h>
-#include <string.h>
-
-/* =========================================================================
-* String output functions
-========================================================================= */
-
-int serial_puts(const char* s) {
-    int ior = 0;
-    while (*s) {
-        ior = serial_putc(*s++);
-        if (ior) return ior;
-    }
-    return 0;
-}
-
-
-int lfDotB(uint32_t val, int base, int dpl, int digits) {
-    char buf[36] = { 0 }; // Enough for 32-bit integer
-    char* p = &buf[sizeof(buf)];
-    *--p = 0; // Null terminator
-    if ((val & 0x80000000) && (base == 10)) {
-        val = 0 - val;
-        serial_putc('-');
-    }
-    do {
-        if (p == buf) break; // no more room
-        int digit = val % base;
-        val /= base;
-        if (digit < 10) {
-            *--p = '0' + digit;
-        }
-        else {
-            *--p = 'A' + (digit - 10);
-        }
-        digits--;
-        if (dpl) {
-            if (--dpl == 0) {
-                *--p = '.';
-            }
-        }
-    } while (val | dpl | (digits > 0));
-	int result = serial_puts(p);
-    return result;
-}
-
-int lfCR(void) {
-    return serial_puts("\r\n");
-}
-
-int lfSpace(void) {
-    return serial_putc(' ');
-}
-
-int lfDot(int32_t val) {
-    int base = lfBASEfetch();
-    lfDotB(val, base, 0, 0);
-    if (base == 16) {
-        serial_putc('H');
-    }
-    return lfSpace();
 }
 
 static void lfDotLinecount(void) {
@@ -449,7 +500,7 @@ static int parseWord(void) {
         if (c == ' ') break;
 		token[i++] = c;
         if (i >= (int)sizeof(token) - 1) {
-            ior = ERR_DEFINITION_TOO_LONG;
+            ior = ERR_PARSED_STRING_OVERFLOW;
             break; // Prevent buffer overflow
         }
         TOINbump();
@@ -459,6 +510,100 @@ static int parseWord(void) {
     // skip the blank delimiter
     if (c != '\0') TOINbump();
     return ior;
+}
+
+/* HEADER  ( w aux <name> -- ) */
+static int APIheader(void) {
+    int ior = parseWord();
+    if (ior) return ior;
+
+    // 1. Pop aux and w off the Forth stack (TOS = aux, NOS = w)
+    uint32_t aux = (uint32_t)vmPeek(-1);
+    uint32_t w = (uint32_t)vmPeek(-1);
+
+    // 2. Resolve destination memory location in 32-bit cells
+    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS];
+    int32_t  f_hp = headptr[2];
+    int32_t  f_hmax = headptr[5];
+    int page = f_hp >> (22 - VM_LOG2_PAGES);
+    int32_t  start_f_hp = f_hp & 0x3FFFFF;
+
+    int32_t* cell_dest = &vm_memory[page][start_f_hp];
+
+    // 3. Pack string name into 32-bit cells (4 chars / cell)
+    char* name_dest = (char*)cell_dest;
+    char* char_ptr = name_dest;
+    char* src = token;
+    char c = 0;
+    uint8_t length = 0;
+
+    do {
+        c = *src++;
+        *char_ptr++ = c; // Write character
+        length++;
+    } while (c);
+
+    // Zero-pad to complete the last 32-bit cell (4-byte alignment)
+    while (length & 3) {
+        *char_ptr++ = 0;
+        length++;
+    }
+
+    // Advance cell_dest by the number of cells consumed by the packed string
+    int32_t string_cells = length / sizeof(int32_t);
+    cell_dest += string_cells;
+
+    // 4. Construct struct s_head header directly in the next cell boundary
+    struct s_head* target_head = (struct s_head*)cell_dest;
+    target_head->name = name_dest;
+    target_head->w = w;
+    target_head->aux = aux;
+
+    // 5. Insert header at top of current wordlist (linked list)
+    s_wid* current = &wids[*CURRENT];
+    target_head->link = (struct s_head*)current->head; // Point new node to current head
+
+    // 6. Update current wordlist head pointer
+    current->head = target_head;
+
+    // Advance cell_dest past the struct s_head
+    int32_t head_cells = (sizeof(struct s_head) + sizeof(int32_t) - 1) / sizeof(int32_t);
+    cell_dest += head_cells;
+
+    // 7. Calculate new f_hp address (start_f_hp + total cell delta)
+    int32_t total_cells_used = (int32_t)(cell_dest - &vm_memory[page][start_f_hp]);
+    int32_t new_f_hp = (page << (22 - VM_LOG2_PAGES)) | ((start_f_hp + total_cells_used) & 0x3FFFFF);
+
+    // 8. Bounds check before writing back to F_PTRS
+    if (new_f_hp >= f_hmax) {
+ //       return ERR_DICTIONARY_OVERFLOW;
+    }
+
+    headptr[2] = new_f_hp;
+    return 0;
+}
+
+static int lfParenthesis(int echo) {
+    while (1) {
+        char c = TOINchar();
+        if (c == '\0') break;
+        TOINbump();
+        if (c == ')') break;
+        if (echo) {
+            serial_putc(c);
+        }
+    }
+    return 0;
+}
+
+/* ( */
+static int APIparen(void) {
+    return lfParenthesis(0);
+}
+
+/* .( */
+static int APIdotParen(void) {
+    return lfParenthesis(1);
 }
 
 /**
@@ -579,11 +724,37 @@ int interpret(char* str, size_t len) {
     return ior;
 }
 
+/**
+ * QUIT loop 
+ *
+ * `>options` ( flags -- ) sets the display (etc.) options
+ * `options>` ( -- flags ) gets them
+ * `bye`      ( ? -- ? )   ends QUIT
+ */
+static int APIgetFlags(void) {
+    return vmPush(system_flags);
+}
+
+static int APIsetFlags(void) {
+    int32_t val = vmPeek(-1);
+    if ((system_flags & SYS_FLAGS_LOCKED) == 0) {
+        system_flags = val;
+    }
+    return 0;
+}
+
+/* BYE */
+static int APIbye(void) {
+    return ERR_QUIT;
+}
+
 // `serial_open` before you call QUIT
 int QUIT(void) {
     serial_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();
+    APIonly();
+    APIforth();
     while (1) {
         LF_PACKEDSTATE[0] = 10;
         LF_PACKEDSTATE[1] = 0;
@@ -641,18 +812,7 @@ int QUIT(void) {
 
 /*==========================================================================
 * API 0 (internal)
-* Functions that access the stack must be in this file.
 *=========================================================================*/
-
-/* HEADER */
-static int APIheader(void) {
-    return ERR_QUIT;
-}
-
-/* BYE */
-static int APIbye(void) {
-    return ERR_QUIT;
-}
 
 /* EMIT */
 static int APIemit(void) {
@@ -681,30 +841,6 @@ static int APIdotEss(void) {
     return lfDotS();
 }
 
-/* WORDS */
-static int APIwords(void) {
-    const struct s_head* link = wids[0].head;
-    while (link != NULL) {
-        serial_puts(link->name);
-        lfSpace();
-        link = link->link;
-    }
-    return 0;
-}
-
-
-char* vm_memory_name[VM_MEM_PAGES] = { NULL };
-
-
-/*
- * Bit field `char+`
- */
-static int APIcharPlus(void) {
-    int32_t addr = vmPeek(0);
-    return vmPoke(0, vmCharPlus(addr));
-}
-
-
 /* `D'` */
 static int APItickx(void) {
     int ior = parseWord();
@@ -717,9 +853,9 @@ static int APItickx(void) {
 
 /* `'PAGE` */
 static int APIpage(void) {
-    int32_t val = vmPeek(0);
+    int32_t val = vmPeek(-1);
     val = val << (22 - VM_LOG2_PAGES);
-    return vmPoke(0, val);
+    return vmPush(val);
 }
 
 static int API_umstar_x(int sign) {
@@ -781,57 +917,14 @@ static int API_stardivmod(void) {
     return 0;
 }
 
-/*
- * Option flags: 
- *
- * `>options` ( flags -- )
- * `options>` ( -- flags )
- * 
- * Bit 0 = Verification: Quit the app upon the first error
- * Bit 1 = Verbose: Echo the input line
- */
-static int APIgetFlags(void) {
-    return vmPush(system_flags);
-}
-
-static int APIsetFlags(void) {
-    int32_t val = vmPeek(-1);
-    if ((system_flags & SYS_FLAGS_LOCKED) == 0) {
-        system_flags = val;
-    }
-    return 0;
-}
-
-static int lfParenthesis(int echo) {
-    while (1) {
-        char c = TOINchar();
-        if (c == '\0') break;
-        TOINbump();
-        if (c == ')') break;
-        if (echo) {
-            serial_putc(c);
-        }
-    }
-    return 0;
-}
-
-/* ( */
-static int APIparen(void) {
-    return lfParenthesis(0);
-}
-
-/* .( */
-static int APIdotParen(void) {
-    return lfParenthesis(1);
-}
-
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
-    APIbye, API_umstar, API_mstar, API_mudivmod, API_stardivmod,
-    APIqkey, APIkey, APIemit, APIcharPlus, APIheader,
-    APIsetFlags, APIgetFlags, APIparen, APIdotParen, APIdotEss,
-    APIdot, lfCR, lfSpace, APIwords, APItickx, APIpage
+    APIbye, APIwords, APIforth, APIonly, API_umstar,
+    API_mstar, API_mudivmod, API_stardivmod, APIqkey, APIkey, 
+    APIemit, APIheader, APIsetFlags, APIgetFlags, APIparen, 
+    APIdotParen, APIdotEss, APIdot, lfCR, lfSpace, 
+    APIdotWid, APItickx, APIpage, APIbye, APIbye
 #if (FAT_FORTH & 1)
     , lfAPIendTest, lfAPIdoTest, lfAPIbeginTest, lfAPIhex, lfAPIdecimal
     , lfAPIdotPage, lfAPIdotPages, lfAPIdump, lfAPIdumpIns, lfAPIdasm
@@ -847,25 +940,11 @@ int VMapi0Call(int fn) {
     return ERR_INVALID_API_CALL;
 }
 
-
 /*
 * API 1 (external)
-* This would use an execution table at a known address.
 */
 
 int VMapi1Call(int fn) {
     (void)fn;
     return ERR_INVALID_API_CALL;
 }
-
-//
-//VMcell_t API_mudivmod(vm_ctx* ctx) {
-//    /* MU/MOD ( dividendL dividendH divisor -- rem ql qh ) */
-//    VMdblcell_t dividend = ((VMdblcell_t)(ctx->n & VM_MASK) << VM_CELLBITS) | (THIRD & VM_MASK);
-//    VMdblcell_t divisor = (VMdblcell_t)(ctx->t & VM_MASK);
-//    VMdblcell_t q = dividend / divisor;
-//    THIRD = (VMcell_t)(dividend % divisor);
-//    ctx->n = (VMcell_t)(q & VM_MASK);
-//    return (VMcell_t)(q >> VM_CELLBITS) & VM_MASK;
-//}
-

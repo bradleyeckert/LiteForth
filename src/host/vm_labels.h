@@ -109,6 +109,7 @@
 #define VMI_LIT                 (VMO_LIT << VM_IMMBITS)
 #define VMI_OTHER               (VMO_OTHER << VM_IMMBITS)
 
+#define VMS_CHARPLUS            0
 #define VMSTO_TASK              0
 #define VMSTO_BARF              1
 #define VMSFROM_TASK            0
@@ -147,5 +148,7 @@
 #define VMI_QLIT               (VMI_OTHER + (VMO_QLIT     << 9))
 #define VMI_API0               (VMI_OTHER + (VMO_API0     << 9))
 #define VMI_API1               (VMI_OTHER + (VMO_API1     << 9))
+
+// VMI_SYS | VMS_CHARPLUS
 
 #endif /* _VM_LABELS_H_ */

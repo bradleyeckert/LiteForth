@@ -95,10 +95,10 @@ Not so in LiteForth. Different pointers are used for code, data, and header spac
 
 `dp[]` is a 6-cell 3x2 matrix arranged like this:
 
-| *data* | *code* | *head* |
-|--------|--------|--------|
-| `dp`   | `cp`   | `hp`   |
-| `dp0`  | `cp0`  | `hp0`  |
+| *data*  | *code*  | *head*  |
+|---------|---------|---------|
+| `dp`    | `cp`    | `hp`    |
+| `dpmax` | `cpmax` | `hpmax` |
 
 The 2-bit variable `dp^` selects the column to be used by `here` and `,`.
 Some definitions that are built from `dp[]` and `dp^` are:

@@ -5,6 +5,7 @@
 #include "serial_io.h"
 #include "options.h"
 #include "memalloc.h"
+#include "flash.h"
 
 int main(int argc, char* argv[]) {
     char* port_name = NULL;
@@ -49,21 +50,23 @@ int main(int argc, char* argv[]) {
         baudrate = 0; // default to stdio
     }
 
-    int32_t flash_pages[RAM_PAGE][FLASH_PAGE_CELLS] = { 0 };
-    int32_t ram_page[RAM_PAGE_CELLS] = { 0 };
+    pool_reset();
+    int32_t* ram = pool_alloc(RAM_PAGE_CELLS);
+    int32_t* flash = NULL;
+    int ior = flash_init(FLASHFILENAME, &flash);
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         if (i < RAM_PAGE) {
-            // Assign pointer to row i of flash memory
-            vm_memory[i] = flash_pages[i];
+            // Assign pointer to page i of flash memory
+            vm_memory[i] = &flash[i * FLASH_PAGE_CELLS];
             vm_memory_name[i] = "Flash";
             vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
-    //        vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // initially write-protected
+            vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected
             vm_memory_executable[i] = FLASH_PAGE_CELLS;
         }
         else if (i == RAM_PAGE) {
             // Assign pointer to the RAM page
-            vm_memory[i] = ram_page;
+            vm_memory[i] = ram;
             vm_memory_name[i] = "RAM";
             vm_memory_rd_limit[i] = RAM_PAGE_CELLS;
             vm_memory_executable[i] = RAM_PAGE_CELLS;
@@ -95,13 +98,12 @@ int main(int argc, char* argv[]) {
 
 // Launch LiteForth
 
-    int ior = serial_open(port_name, baudrate);
+    ior = serial_open(port_name, baudrate);
     if (ior) return ior;
     ior = QUIT();
     serial_close();
-    return ior; // or in an embedded system, do a hard reset
+
+    int err = pool_free(ram);
+    if (err) return err;
+    return ior; 
 }
-/*
-#define FLASH_PAGE_CELLS   1024 // Flash memory page size (>=1 sectors)
-#define RAM_PAGE_CELLS     1024 // RAM page size
-*/

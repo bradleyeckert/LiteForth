@@ -101,31 +101,31 @@
 #define ERR_SET_TERM_FAILED         (-84)   /* Failed to write new configurations */
 #define ERR_IO_CHECK_FAILED         (-85)   /* Driver query or select() polling failed */
 #define ERR_TERM_TX_FAILED          (-86)   /* TTY transmission failed */
-#define ERR_TERM_RX_FAILED          (-187)   /* TTY reception failed */
+#define ERR_TERM_RX_FAILED          (-87)   /* TTY reception failed */
 // block.c
-#define ERR_BLK_CREATE_FAIL         (-87)   /* Failed to create the binary simulation file */
-#define ERR_BLK_WRITE_INIT          (-88)   /* Failed to format initial blank file template */
-#define ERR_BLK_OPEN_FAIL           (-89)   /* Failed to open the mass storage file */
-#define ERR_BLK_PARSE_FAIL          (-80)   /* Block 0 header missing signature or parsing failed */
-#define ERR_BLK_BOUNDS              (-91)   /* Target block index exceeds allocated file capacity */
-#define ERR_BLK_SEEK_FAIL           (-92)   /* Failed to seek to target block offset */
-#define ERR_BLK_READ_FAIL           (-93)   /* Disk read failed to yield full 4KB payload */
-#define ERR_BLK_WRITE_FAIL          (-94)   /* Disk write failed to persist full 4KB payload */
-#define ERR_BLK_WRITE_PROTECTED     (-95)   /* Attempted write onto a write-protected block range */
+#define ERR_BLK_CREATE_FAIL         (-88)   /* Failed to create the binary simulation file */
+#define ERR_BLK_WRITE_INIT          (-89)   /* Failed to format initial blank file template */
+#define ERR_BLK_OPEN_FAIL           (-80)   /* Failed to open the mass storage file */
+#define ERR_BLK_PARSE_FAIL          (-91)   /* Block 0 header missing signature or parsing failed */
+#define ERR_BLK_BOUNDS              (-92)   /* Target block index exceeds allocated file capacity */
+#define ERR_BLK_SEEK_FAIL           (-93)   /* Failed to seek to target block offset */
+#define ERR_BLK_READ_FAIL           (-94)   /* Disk read failed to yield full 4KB payload */
+#define ERR_BLK_WRITE_FAIL          (-95)   /* Disk write failed to persist full 4KB payload */
+#define ERR_BLK_WRITE_PROTECTED     (-96)   /* Attempted write onto a write-protected block range */
 // flash.c                             
-#define ERR_FLASH_CREATE_FAIL       (-96)   /* Failed to create the binary simulation file */
-#define ERR_FLASH_WRITE_INIT        (-97)   /* Failed to write the full initial blank state to disk */
-#define ERR_FLASH_INVALID_SECTOR    (-98)   /* The requested sector index falls outside valid bounds */
-#define ERR_FLASH_OPEN_WRITE        (-99)   /* Failed to open the simulation file for writing/updating */
-#define ERR_FLASH_SEEK_FAIL        (-100)   /* Failed to seek to the start offset of the requested sector */
-#define ERR_FLASH_WRITE_SECTOR     (-101)   /* Failed to write the complete block data to the sector slot */
+#define ERR_FLASH_CREATE_FAIL       (-97)   /* Failed to create the binary simulation file */
+#define ERR_FLASH_WRITE_INIT        (-98)   /* Failed to write the full initial blank state to disk */
+#define ERR_FLASH_INVALID_SECTOR    (-99)   /* The requested sector index falls outside valid bounds */
+#define ERR_FLASH_OPEN_WRITE       (-100)   /* Failed to open the simulation file for writing/updating */
+#define ERR_FLASH_SEEK_FAIL        (-101)   /* Failed to seek to the start offset of the requested sector */
+#define ERR_FLASH_WRITE_SECTOR     (-102)   /* Failed to write the complete block data to the sector slot */
 // vm.c
-#define ERR_EXEC_PROTECTED	       (-102)   /* execution address prohibited */
-#define ERR_INVALID_API_CALL       (-103)   /* invalid API call */
-#define ERR_INVALID_OPCODE         (-104)   /* invalid VM opcode */
-#define ERR_WRONG_RESULTS          (-105)   /* assertion - wrong results */
-#define ERR_WRONG_NUM_RESULTS      (-106)   /* assertion - wrong number of results */
-#define ERR_INVALID_MEMORY_PAGE    (-107)   /* invalid memory page (>= `pages`) */
-#define ERR_TIB_OVERFLOW           (-108)   /* TIB filled up before EOL was seen */
+#define ERR_EXEC_PROTECTED	       (-103)   /* execution address prohibited */
+#define ERR_INVALID_API_CALL       (-104)   /* invalid API call */
+#define ERR_INVALID_OPCODE         (-105)   /* invalid VM opcode */
+#define ERR_WRONG_RESULTS          (-106)   /* assertion - wrong results */
+#define ERR_WRONG_NUM_RESULTS      (-107)   /* assertion - wrong number of results */
+#define ERR_INVALID_MEMORY_PAGE    (-108)   /* invalid memory page (>= `pages`) */
+#define ERR_TIB_OVERFLOW           (-109)   /* TIB filled up before EOL was seen */
 
 #endif // ERRCODES_H

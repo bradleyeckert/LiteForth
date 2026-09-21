@@ -207,7 +207,10 @@ void serial_close(void) {
 
 int serial_ready(void) {
     if (is_terminal_mode) {
-        if (!TARGET_ISATTY()) return ERR_TERM_NOT_A_TTY;
+        if (!TARGET_ISATTY()) {
+            // If we haven't hit EOF yet, a character is available to read
+            return !feof(stdin) ? 1 : 0;
+        }
         int c = fgetc(stdin);
         if (c != EOF) {
             ungetc(c, stdin); // Push character back into stdio buffer
@@ -287,7 +290,7 @@ int serial_busy(void) {
 #define sys_close  close
 #endif
 
-int restore_stdin_to_terminal(void) {
+static int restore_stdin_to_terminal(void) {
     int tty_fd = sys_open(TTY_DEVICE, READ_FLAGS);
     if (tty_fd < 0) {
         perror("Failed to open terminal device");

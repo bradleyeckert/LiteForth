@@ -5,6 +5,13 @@
 #include "serial_io.h"
 #include "options.h"
 #include "utils.h"
+#include "memalloc.h"
+#include "flash.h"
+#include <string.h>
+
+#include <stdio.h> ///////////////////////////////////////////////
+// globals
+
 
 /*==========================================================================
 * API 0 
@@ -84,33 +91,151 @@ static int mstar(void) {
 static int mudivmod(void) {
     uint32_t divisorS = (uint32_t)vmPop();
     if (divisorS == 0) return ERR_DIVISION_BY_ZERO;
+
     uint32_t dividendH = (uint32_t)vmPop();
     uint32_t dividendL = (uint32_t)vmPop();
-    uint64_t dividend = ((uint64_t)dividendH << 32) | dividendL;
-    uint64_t divisor = (uint64_t)divisorS;
-    uint64_t q = dividend / divisor;
-    vmPush((uint32_t)(dividend % divisor));
+    uint64_t dividend = ((uint64_t)dividendH << 32) | (uint64_t)dividendL;
+
+    uint64_t q = 0;
+    uint64_t rem = 0;
+
+    // Unsigned 64-bit by 32-bit long division
+    for (int i = 63; i >= 0; i--) {
+        rem <<= 1;
+        rem |= (dividend >> i) & 1ULL;
+
+        if (rem >= (uint64_t)divisorS) {
+            rem -= (uint64_t)divisorS;
+            q |= (1ULL << i);
+        }
+    }
+
+    // Push remainder, quotient low, quotient high
+    vmPush((uint32_t)rem);
     vmPush((uint32_t)q);
     vmPush((uint32_t)(q >> 32));
+
     return 0;
 }
 
 // */MOD ( n multiplier divisor -- rem quot )
 // : */  */MOD NIP ;
 static int stardivmod(void) {
-    int32_t divisorS = (uint32_t)vmPop();
+    int32_t divisorS = (int32_t)vmPop();
     if (divisorS == 0) return ERR_DIVISION_BY_ZERO;
-    int32_t multiplier = (uint32_t)vmPop();
-    int32_t n = (uint32_t)vmPop();
+
+    int32_t multiplier = (int32_t)vmPop();
+    int32_t n = (int32_t)vmPop();
+
+    // Compute 64-bit full product
     int64_t d = (int64_t)n * (int64_t)multiplier;
-    vmPush((uint32_t)(int32_t)(d % divisorS));
-    vmPush((uint32_t)(int32_t)(d / divisorS));
+
+    // Determine signs
+    int dividend_negative = (d < 0);
+    int divisor_negative = (divisorS < 0);
+    int quot_negative = dividend_negative ^ divisor_negative;
+
+    // Get absolute values (64-bit dividend, 32-bit divisor)
+    uint64_t u_dividend = dividend_negative ? (uint64_t)(-d) : (uint64_t)d;
+    uint32_t u_divisor = divisor_negative ? (uint32_t)(-divisorS) : (uint32_t)divisorS;
+
+    uint64_t u_quotient = 0;
+    uint64_t u_remainder = 0;
+
+    // Bitwise 64-bit / 32-bit long division
+    for (int i = 63; i >= 0; i--) {
+        u_remainder <<= 1;
+        u_remainder |= (u_dividend >> i) & 1ULL;
+
+        if (u_remainder >= u_divisor) {
+            u_remainder -= u_divisor;
+            u_quotient |= (1ULL << i);
+        }
+    }
+
+    // Apply signs (Symmetric division: remainder takes sign of dividend)
+    int32_t quotient = quot_negative ? -(int32_t)u_quotient : (int32_t)u_quotient;
+    int32_t remainder = dividend_negative ? -(int32_t)u_remainder : (int32_t)u_remainder;
+
+    vmPush((uint32_t)remainder);
+    vmPush((uint32_t)quotient);
+
     return 0;
 }
 
 /* ,LIT */
 static int commaLit(void) {
     return lfCompileLit(vmPop());
+}
+
+int openpage = -1;
+int32_t* cache = NULL;
+int32_t* flash = NULL;
+
+/* CLOSE-FLASH  ( -- ) */
+static int flashClose(void) {
+    if (openpage < 0) return 0; // already closed
+    if (openpage >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
+
+    // 1. Calculate base pointer for this page in flash memory
+    int32_t* flash_page_ptr = flash + (openpage * FLASH_PAGE_CELLS);
+
+    // 2. Restore vm_memory page pointer back to backing flash memory
+    vm_memory[openpage] = flash_page_ptr;
+    vm_memory_wp_limit[openpage] = FLASH_PAGE_CELLS; // write-protect
+
+    // 3. Persist RAM cache contents to disk/flashmem
+    int ior = flash_program((uint32_t*)cache, openpage);
+
+    openpage = -1;
+
+    // 4. Burn (zero-fill) the cache buffer before freeing
+    if (cache != NULL) {
+        memset(cache, 0, FLASH_PAGE_CELLS * sizeof(int32_t));
+    }
+
+    // 5. Free allocated cache memory and check for errors
+    int free_res = pool_free(cache);
+    cache = NULL;
+
+    if (free_res != 0) return free_res;
+    if (ior != 0) return ERR_FLASH_INVALID_SECTOR;
+
+    return 0;
+}
+
+/* OPEN-FLASH  ( addr -- ) */
+static int flashOpen(void) {
+    int ior = 0;
+    int32_t addr = vmPop();
+    int page = (addr & 0x3FFFFF) >> (22 - VM_LOG2_PAGES);
+
+    if (page >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
+
+    // If a page is already open, flush/close it first
+    if (openpage >= 0) {
+        if (openpage == page) return 0; // Already open
+        ior = flashClose();
+        if (ior) return ior;
+    }
+
+    cache = pool_alloc(FLASH_PAGE_CELLS);
+    if (!cache) return ERR_ALLOCATE_FAILED; // Guard against allocation failure
+
+    flash = vm_memory[page]; // the currently closed flash page
+
+    // 1. Calculate source pointer for target page in backing flash memory
+    int32_t* flash_page_ptr = flash + (page * FLASH_PAGE_CELLS);
+
+    // 2. Copy backing flash memory contents into RAM cache
+    memcpy(cache, vm_memory[page], FLASH_PAGE_CELLS * sizeof(int32_t));
+
+    // 3. Point vm_memory page to RAM cache and remove write protection
+    vm_memory[page] = cache;
+    vm_memory_wp_limit[page] = 0;
+
+    openpage = page;
+    return 0;
 }
 
 typedef int(*APIfn) (void);
@@ -120,7 +245,7 @@ static const APIfn API0fns[] = {
     mstar, mudivmod, stardivmod, qkey, key, 
     emit, lfAPI_header, lfAPI_setFlags, lfAPI_getFlags, lfAPI_paren, 
     lfAPI_dotParen, dotEss, dot, lfCR, lfSpace, 
-    lfAPI_dotWid, lfAPI_tickx, tickpage, commaLit, bye
+    lfAPI_dotWid, lfAPI_tickx, tickpage, commaLit, flashOpen, flashClose
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm

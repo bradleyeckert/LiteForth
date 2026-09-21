@@ -46,8 +46,9 @@ locations for accessibility by Forth or by C.
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
 
-#define SYS_FLAGS_LOCKED      0x0010        /* `>options` ignores changes  */
-#define SYS_FLAG_VERBOSE      0x0008        /* echo input lines            */
+#define SYS_FLAGS_LOCKED      0x8000        /* `>options` ignores changes  */
+#define SYS_FLAG_VERBOSE      0x0010        /* echo input lines            */
+#define SYS_FLAG_IGNORE_CR    0x0008        /* ignore CR                   */
 #define SYS_FLAG_VALIDATION   0x0004        /* quit immediately upon error */
 #define SYS_FLAG_NO_DOTESS    0x0002        /* do not display the stack    */
 #define SYS_FLAG_NO_OK        0x0001        /* do not display "ok>"        */

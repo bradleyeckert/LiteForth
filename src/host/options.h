@@ -2,7 +2,7 @@
 #define OPTIONS_H
 
 // forth.c
-#define TF_VERSION            0 // version 0.00
+#define TF_VERSION            1 // version x.xx
 #define CASE_INSENSITIVE      1 // is FIND case-insensitive?
 #define FAT_FORTH             1 // all options
 #define CONTEXT_MAX          15 // depth of possible search order
@@ -50,13 +50,5 @@
  * The fallback binary file name used by flash.c if no custom argument is provided.
  */
 #define FLASHFILENAME           "lfflash.bin"
-
-/**
- * Flash Sector Size
- * The size of a single simulated hardware sector, measured in 32-bit (uint32_t) cells.
- * Example: 1024 cells * 4 bytes/cell = 4096 bytes (4KB) per sector.
- */
-#define FLASHAPPSECTORSIZE      (128*256)
-
 
 #endif /* OPTIONS_H */

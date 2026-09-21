@@ -98,6 +98,7 @@ static const ErrorMapping error_table[] = {
     { ERR_SET_TERM_FAILED, "Failed to write new configurations" },
     { ERR_IO_CHECK_FAILED, "Driver query or select() polling failed" },
     { ERR_TERM_TX_FAILED, "TTY transmission failed" },
+    { ERR_TERM_RX_FAILED, "TTY reception failed" },
     { ERR_BLK_CREATE_FAIL, "Failed to create the binary simulation file" },
     { ERR_BLK_WRITE_INIT, "Failed to format initial blank file template" },
     { ERR_BLK_OPEN_FAIL, "Failed to open the mass storage file" },
@@ -118,7 +119,8 @@ static const ErrorMapping error_table[] = {
     { ERR_INVALID_OPCODE, "invalid VM opcode" },
     { ERR_WRONG_RESULTS, "assertion - wrong results" },
     { ERR_WRONG_NUM_RESULTS, "assertion - wrong number of results" },
-    { ERR_INVALID_MEMORY_PAGE, "invalid memory page (>= `pages`)" }
+    { ERR_INVALID_MEMORY_PAGE, "invalid memory page (>= `pages`)" },
+    { ERR_TIB_OVERFLOW, "TIB filled up before EOL was seen" }
 };
 
 /**

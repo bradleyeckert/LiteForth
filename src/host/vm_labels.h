@@ -11,7 +11,6 @@
 
 #define VM_DDUP do {                    \
     sp = (sp + 1) & STACK_MASK;         \
-    depth++;                            \
     datastack[sp] = T;                  \
 } while(0)      
 
@@ -23,7 +22,6 @@
 #define VM_DDROP do {                   \
     T = datastack[sp];                  \
     sp = (sp - 1) & STACK_MASK;         \
-    depth--;                            \
 } while(0)      
 
 #define VM_RDROP do {                   \
@@ -40,16 +38,15 @@
 #define LAST_SLOT_MASK  ((1 << LAST_SLOT_WIDTH) - 1)
 #define VM_SEGMASK      ((1 << (22 - VM_LOG2_PAGES)) - 1)
 
-#define VM_REG_depth    0x100
-#define VM_REG_PC       0x101
-#define VM_REG_R        0x102
-#define VM_REG_A        0x103
-#define VM_REG_B        0x104
-#define VM_REG_U        0x105
-#define VM_REG_Y        0x106
-#define VM_REG_cy       0x107
-#define VM_REG_sp       0x108
-#define VM_REG_rp       0x109
+#define VM_REG_PC       0x100
+#define VM_REG_R        0x101
+#define VM_REG_A        0x102
+#define VM_REG_B        0x103
+#define VM_REG_U        0x104
+#define VM_REG_Y        0x105
+#define VM_REG_cy       0x106
+#define VM_REG_sp       0x107
+#define VM_REG_rp       0x108
 
 
 #define UOP_NAMES { \
@@ -99,15 +96,18 @@
 
 #define OP_NAMES  {"jump", "call", "lit"}
 
-#define VM_IMMBITS              13
-#define VMO_JUMP                0
+#define VM_LIMM_BITS            13
+#define VM_IMM_BITS             9
+#define VM_LIMM_MASK            ((1 << VM_LIMM_BITS) - 1)
+#define VM_IMM_MASK             ((1 << VM_IMM_BITS) - 1)
+#define VMO_JUMP                0  
 #define VMO_CALL                1
 #define VMO_LIT                 2
 #define VMO_OTHER               3
-#define VMI_CALL                (VMO_CALL << VM_IMMBITS)
-#define VMI_JUMP                (VMO_JUMP << VM_IMMBITS)
-#define VMI_LIT                 (VMO_LIT << VM_IMMBITS)
-#define VMI_OTHER               (VMO_OTHER << VM_IMMBITS)
+#define VMI_CALL                (VMO_CALL << VM_LIMM_BITS)
+#define VMI_JUMP                (VMO_JUMP << VM_LIMM_BITS)
+#define VMI_LIT                 (VMO_LIT << VM_LIMM_BITS)
+#define VMI_OTHER               (VMO_OTHER << VM_LIMM_BITS)
 
 #define VMS_CHARPLUS            0
 #define VMSTO_TASK              0

@@ -14,16 +14,16 @@ typedef struct {
 
 const char* get_error_message(int err_code);
 
-int lfAPIbeginTest(void);
-int lfAPIdoTest(void);
-int lfAPIendTest(void);
-int lfAPIdecimal(void);
-int lfAPIhex(void);
-int lfAPIdotPage(void);
-int lfAPIdotPages(void);
-int lfAPIdump(void);
-int lfAPIdumpIns(void);
-int lfAPIdasm(void);
+int lfAPI_beginTest(void);
+int lfAPI_doTest(void);
+int lfAPI_endTest(void);
+int lfAPI_decimal(void);
+int lfAPI_hex(void);
+int lfAPI_dotPage(void);
+int lfAPI_dotPages(void);
+int lfAPI_dump(void);
+int lfAPI_dumpIns(void);
+int lfAPI_dasm(void);
 
 #ifdef __cplusplus
 }

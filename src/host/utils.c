@@ -97,7 +97,7 @@ static const ErrorMapping error_table[] = {
     { ERR_GET_TERM_FAILED, "Failed to read port/terminal capabilities" },
     { ERR_SET_TERM_FAILED, "Failed to write new configurations" },
     { ERR_IO_CHECK_FAILED, "Driver query or select() polling failed" },
-    { ERR_TERM_TX_FAILED, "Driver query or select() polling failed" },
+    { ERR_TERM_TX_FAILED, "TTY transmission failed" },
     { ERR_BLK_CREATE_FAIL, "Failed to create the binary simulation file" },
     { ERR_BLK_WRITE_INIT, "Failed to format initial blank file template" },
     { ERR_BLK_OPEN_FAIL, "Failed to open the mass storage file" },
@@ -159,17 +159,17 @@ const char* get_error_message(int err_code) {
  */
 
 static uint8_t sp0;
-static uint8_t actual_sp;
+static uint8_t expected_sp;
 static int32_t expected_results[STACK_CAPACITY];
 
-int lfAPIbeginTest(void) { // t{
+int lfAPI_beginTest(void) { // t{
     sp0 = vmPeek(VM_REG_sp);
     return 0;
 }
 
-int lfAPIdoTest(void) { // ->
-    actual_sp = vmPeek(VM_REG_sp);
-    int i = actual_sp;
+int lfAPI_doTest(void) { // ->
+    expected_sp = vmPeek(VM_REG_sp);
+    int i = expected_sp;
     if (i >= STACK_MASK) return ERR_STACK_OVERFLOW;
     while (i--) {
         expected_results[i] = vmPeek(i);
@@ -178,11 +178,11 @@ int lfAPIdoTest(void) { // ->
     return 0;
 }
 
-int lfAPIendTest(void) { // }t 
-    if (actual_sp != vmPeek(VM_REG_sp)) {
+int lfAPI_endTest(void) { // }t 
+    if (expected_sp != vmPeek(VM_REG_sp)) {
         return ERR_WRONG_NUM_RESULTS;
     }
-    int i = actual_sp;
+    int i = expected_sp;
     if (i >= STACK_MASK) return ERR_STACK_OVERFLOW;
     while (i--) {
         if (expected_results[i] != vmPeek(i)) {
@@ -190,16 +190,16 @@ int lfAPIendTest(void) { // }t
         }
     }
     vmPoke(VM_REG_sp, sp0);
-    vmPoke(VM_REG_depth, sp0);
+    vmPoke(0, VM_EMPTYSTACK);
     return 0;
 }
 
-int lfAPIdecimal(void) {
+int lfAPI_decimal(void) {
     lfBASEstore(10);
     return 0;
 }
 
-int lfAPIhex(void) {
+int lfAPI_hex(void) {
     lfBASEstore(16);
     return 0;
 }
@@ -247,14 +247,14 @@ static int APIdotPageX(int page) { // list specifics for the current page
     return 0;
 }
 
-int lfAPIdotPage(void) {
+int lfAPI_dotPage(void) {
     uint32_t current_page = vmPeek(-1);
     dotPageHeader();
     APIdotPageX(current_page);
     return 0;
 }
 
-int lfAPIdotPages(void) {
+int lfAPI_dotPages(void) {
     dotPageHeader();
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         APIdotPageX(i);
@@ -271,7 +271,7 @@ int lfAPIdotPages(void) {
  * @param cell_count Number of 32-bit cells to dump.
  * @return 0 on success, or non-zero ior error code from vmFetch.
  */
-int lfAPIdump(void) {
+int lfAPI_dump(void) {
     int32_t length = vmPeek(-1);
     int32_t origin = vmPeek(-1);
     int tally = 0;
@@ -367,10 +367,10 @@ static int DisassembleInsn(uint16_t inst) {
             if (simm & (1 << 8)) { // sign-extend
                 simm |= ~((1 << 9) - 1);
             }
+            lfDotHex(simm);
             opcode = (inst >> 9) & 0x0F;
             serial_puts(immName[opcode]);
             if (opcode == VMO_PFX) _lex = imm;
-            lfDotHex(simm);
             if (opcode == VMO_API0) {
                 // traverse dictionary looking for this api call name
             }
@@ -382,13 +382,13 @@ static int DisassembleInsn(uint16_t inst) {
     return 0;
 }
 
-int lfAPIdumpIns(void) {
+int lfAPI_dumpIns(void) {
     uint16_t inst = (uint16_t)vmPeek(-1);
     DisassembleInsn(inst);
     return 0;
 }
 
-int lfAPIdasm(void) {
+int lfAPI_dasm(void) {
     int32_t length = vmPeek(-1);
     int32_t addr = vmPeek(-1);
     addr = (addr & 0x3FFFFF) << 1;

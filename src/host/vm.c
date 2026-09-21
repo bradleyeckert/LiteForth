@@ -21,7 +21,6 @@ static int32_t A = 0;  // Address A
 static int32_t B = 0;  // Address B
 static int32_t U = 0;  // User pointer
 static int32_t lex = 0;  // Literal extension
-static int32_t depth = 0;  // Depth counter
 static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
@@ -346,7 +345,6 @@ int32_t vmPeek(int reg) {
     }
     switch (reg) {
         case 0:         return T;
-        case VM_REG_depth: return depth;
         case VM_REG_PC: return PC;
         case VM_REG_R : return R;
         case VM_REG_A : return A;
@@ -370,7 +368,6 @@ int32_t vmPoke(int reg, int32_t data) {
     }
     switch (reg) {
         case 0:         T = data; break;
-        case VM_REG_depth: depth = data; break;
         case VM_REG_PC: PC = data; break;
         case VM_REG_R : R = data; break;
         case VM_REG_A : A = data; break;
@@ -390,9 +387,11 @@ int32_t vmPoke(int reg, int32_t data) {
 }
 
 int32_t vmReset(void) {
-    for (int i = VM_REG_depth; i <= VM_REG_rp; i++) {
+    for (int i = VM_REG_PC; i <= VM_REG_rp; i++) {
         vmPoke(i, 0);
     }
+    R = 0xDEADC0DE; // empty return stack marker
+    T = VM_EMPTYSTACK; // empty data stack marker
     return 0;
 }
 

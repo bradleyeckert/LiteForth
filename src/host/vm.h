@@ -127,6 +127,8 @@ int VMapi1Call(int fn);
 #error "STACK_CAPACITY must be a non-zero power of 2 for masking to work."
 #endif
 
+#define VM_EMPTYSTACK 0xAAAAAAAA
+
 #ifdef __cplusplus
 }
 #endif

@@ -59,7 +59,7 @@ int serial_getc(void);
  * or streams to the underlying active serial port if a hardware port is open.
  * 
  * @param c The character byte code to transmit.
- * @return  The character byte written on success, or EOF on error.
+ * @return  0 on success, or ERR_TERM_TX_FAILED on error.
  */
 int serial_putc(int c);
 

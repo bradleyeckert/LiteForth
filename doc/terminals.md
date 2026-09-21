@@ -13,6 +13,11 @@ Sometimes you want it in raw mode.
 The Linux and Windows ports of LiteForth natively switch the terminal between raw and cooked modes.
 The embedded (MCU) ports cannot switch, you must do it manually.
 
+LiteForth expects a line to end in either \n or \r.
+Sending \r\n will give you `ok>ok>`.
+Terminals (that supply stdin) only send \n.
+Serial terminals like PuTTY send \r.
+
 -----
 ## LiteForth in Linux 
 
@@ -50,9 +55,34 @@ The following Windows terminals were tried:
 
 ## Windows terminal, Embedded LiteForth
 
-WezTerm supports raw mode only: `wezterm serial COM3 --baud 115200`
+Some terminal emulators give you cooked mode input.
 
-PuTTY supports cooked mode and full VT100 emulation.
+### Tera Term VT
+
+`Setup -> Terminal` pops up the terminal settings. 
+
+- New-line Receive: select LF
+- New-line Transmit: select LF
+- Local Echo: Checked-on
+
+`Setup -> Save setup` lets you save your setup. 
+Tera Term VT displays CJK correctly. 
+
+### PuTTY
+
+Right Click on the Title Bar, select Change Settings.
+
+- Local Echo: Force On
+- Local Line Editing: Force On
+
+When you get PuTTY set up like you want, click on Default Settings and hit the Save button.
+PuTTY displays CJK correctly.
+
+### Raw mode only
+
+Realterm and Wezterm. Wezterm is CLI.
+
+`wezterm serial COM5 --baud 115200`
 
 -----
 ## mouse usage

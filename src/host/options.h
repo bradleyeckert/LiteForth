@@ -3,7 +3,7 @@
 
 // forth.c
 #define TF_VERSION            0 // version 0.00
-#define CASE_SENSITIVE        1 // is FIND case sensitive?
+#define CASE_INSENSITIVE      1 // is FIND case-insensitive?
 #define FAT_FORTH             1 // all options
 #define CONTEXT_MAX          15 // depth of possible search order
 #define WIDS_MAX              8 // number of different wordlists supported
@@ -16,6 +16,8 @@
 #define FLASH_PAGE_CELLS   1024 // Flash memory page size [1]
 #define RAM_PAGE              1 // The memory page used by system variables
 #define RAM_PAGE_CELLS     1024 // RAM page size
+// memalloc.c
+#define POOL_CAPACITY     16384 // cells of the main memory pool
 
 /* NOTES:
 [1] All pages below page RAM_PAGE are Flash pages, which are 1 or more

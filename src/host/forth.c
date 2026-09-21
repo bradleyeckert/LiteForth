@@ -11,8 +11,15 @@
 #include "utils.h"
 #endif
 
+// some globals used in this file
 static uint32_t system_flags = 0;
 static uint32_t linecount = 0;
+static int case_insensitive = CASE_INSENSITIVE;
+static char token[32]; // token buffer for parsing
+static char* source = NULL; // pointer to the current position in the input string
+static int32_t value; // value returned by numeric input parsing
+static int slot = SLOT0_POSITION;
+static uint16_t instruction;
 
 int lfBASEfetch(void) {
     int32_t result;
@@ -50,8 +57,12 @@ static int lfTIBSTATEstore(int state) {
     return vmStore(LF_TIBSTATE, state);
 }
 
-int vmPush(int32_t value) {
-    return vmPoke(-1, value);;
+int vmPush(int32_t x) {
+    return vmPoke(-1, x);
+}
+
+int32_t vmPop(void) {
+    return vmPeek(-1);
 }
 
 /* =========================================================================
@@ -113,9 +124,104 @@ int lfDot(int32_t val) {
     return lfSpace();
 }
 
-/* =========================================================================
+/*=========================================================================
+* Compiling
+=========================================================================*/
+
+static int cpFetch(uint32_t* cp) {
+    int32_t* mem = vm_memory[RAM_PAGE];
+    *cp = mem[F_PTRS + 1];
+    return 0;
+}
+
+static int cpStore(uint32_t cp) {
+    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t cp_max = mem[F_PTRS + 4];
+    if ((cp & 0x3FFFFF) >= cp_max) return ERR_DICTIONARY_OVERFLOW;
+    mem[F_PTRS + 1] = cp;
+    return 0;
+}
+
+/*
+ * Compile to code space. The data size is determined by the upper bits of cp.
+ */
+static int commaCode(uint32_t inst) {
+    uint32_t cp = 0;
+    int ior = cpFetch(&cp);
+    if (ior) return ior;
+    ior = vmStore(cp, inst);
+    if (ior) return ior;
+    printf("mem[%x]=%x ", cp & 0x3FFFFF, inst);
+    cp = vmCharPlus(cp);
+    return cpStore(cp);
+    instruction = 0;
+    slot = SLOT0_POSITION;
+}
+
+static void NewInst(void) {
+    if (slot != SLOT0_POSITION) commaCode(VM_UOPS | instruction);
+    instruction = 0;
+}
+
+static void InstCompile(uint32_t inst) {// compile instruction
+    NewInst();                          // flush any uops
+    commaCode(inst);
+}
+
+static void CompCall(uint32_t addr) {
+    NewInst();
+    if (addr & ~VM_LIMM_MASK) commaCode(VMI_PFX + (addr >> VM_LIMM_BITS));
+    commaCode(VMI_CALL + (addr & VM_LIMM_MASK));
+}
+
+static void CompUop(uint32_t uop) {
+    uop &= 0x1F; // slots = 9, 4, -1
+    if (slot < -4) commaCode(VM_UOPS | instruction);
+    if (slot < 0) { // last slot
+        slot = 0;
+        if (uop >= (1 << LAST_SLOT_WIDTH)) {
+            commaCode(VM_UOPS | instruction);
+        }
+    }
+    instruction |= uop << slot;
+    slot -= 5;
+}
+
+static void CompUlit(uint32_t x) {       // unsigned literal
+    vmPush(-1);
+    vmPush(VMI_LIT | (x & VM_LIMM_MASK));
+    x = x >> VM_LIMM_BITS;
+    while (x) {
+        vmPush(VMI_PFX | (x & VM_IMM_MASK));
+        x = x >> VM_IMM_BITS;
+    }
+    while (1) {
+        int32_t n = vmPop();
+        if (n < 0) break;
+        commaCode(n);
+    }
+}
+
+int lfCompileLit(int32_t x) {
+    if (x < 0) {
+        CompUlit(~x);
+        CompUop(VMU_INV);
+    }
+    else {
+        CompUlit(x);
+    }
+    return 0;
+}
+
+static int compile_word(const struct s_head* word) {
+    printf("Compiling word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
+    return 0;
+}
+
+
+/*=========================================================================
 * Define a Forth
-========================================================================= */
+=========================================================================*/
 
 // Flags in word->w[31:27]
 #define IS_PRIMITIVE 0x80000000 // the xt is a primitive in slot 1
@@ -149,11 +255,6 @@ static int execute_word(const struct s_head* word) {
         // For now, we just print a message
         printf("Executing word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
 	}
-    return 0;
-}
-
-static int compile_word(const struct s_head* word) {
-    printf("Compiling word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
     return 0;
 }
 
@@ -202,107 +303,152 @@ static const struct s_head forth_heads[] = {
     { LINK(27), "@b+",      UOP(VMU_FETCHBPLUS),                   0x0},
     { LINK(28), "a",        UOP(VMU_A),                            0x0},
     { LINK(29), "cy",       UOP(VMU_CY),                           0x0},
-    { LINK(30), "base",     LF_BASE,                 IS_CONSTANT | 0x0},
-    { LINK(31), "state",    LF_STATE,                IS_CONSTANT | 0x0},
-    { LINK(32), "dpl",      LF_DPL,                  IS_CONSTANT | 0x0},
-    { LINK(33), ">in",      LF_TOIN,                 IS_CONSTANT | 0x0},
-    { LINK(34), "blk",      LF_BLK,                  IS_CONSTANT | 0x0},
-    { LINK(35), "tib",      LF_TIB,                  IS_CONSTANT | 0x0},
-    { LINK(36), "current",  LF_CURRENT,              IS_CONSTANT | 0x0},
-    { LINK(37), "|context|",CONTEXT_MAX,             IS_CONSTANT | 0x0},
-    { LINK(38), "context",  LF_CONTEXT,              IS_CONSTANT | 0x0},
-    { LINK(39), "dp[]",     LF_PTRS,                 IS_CONSTANT | 0x0},
-    { LINK(40), "pages",    VM_MEM_PAGES,            IS_CONSTANT | 0x0},
-    { LINK(41), "ram-base", LF_HERE0,                IS_CONSTANT | 0x0},
-    { LINK(42), "//////",   1,                       IS_CONSTANT | 0x0},
-    { LINK(43), "true",     -1,                      IS_CONSTANT | 0x0},
-    { LINK(44), "false",    0,                       IS_CONSTANT | 0x0},
-    { LINK(45), "dp^",      LF_MSPACE,               IS_CONSTANT | 0x0},
-    { LINK(46), "cells",    0,                        IS_NOTHING | 0x0},
-    { LINK(47), "2dup",     MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x0},
-    { LINK(48), "!",        MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),   0x0},
-    { LINK(49), "@",        MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),   0x0},
-    { LINK(50), "s@",       MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0x0},
-    { LINK(51), "nip",      MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),      0x0},
-    { LINK(52), "tuck",     MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),      0x0},
-    { LINK(53), "char+",    SYS(VMS_CHARPLUS),   /* a1 -- a2    */ 0x0},
-    { LINK(54), "]task",    SYSTO(VMS_CHARPLUS), /* tstate --   */ 0x0},
-    { LINK(55), "barf",     SYSTO(VMS_CHARPLUS), /* ior --      */ 0x0},
-    { LINK(56), "task[",    SYSFM(VMS_CHARPLUS), /* -- tstate   */ 0x0},
-    { LINK(57), "um*",      API0( 4), /* u1 u2 -- ud            */ 0x0},
-    { LINK(58), "m*",       API0( 5), /* n1 n2 -- d             */ 0x0},
-    { LINK(59), "mu/mod",   API0( 6), /* ud u -- rem dquot      */ 0x0},
-    { LINK(60), "*/mod",    API0( 7), /* n1 n2 -- rem quot      */ 0x0},
-    { LINK(61), "key?",     API0( 8), /* -- flag                */ 0x0},
-    { LINK(62), "key",      API0( 9), /* -- c                   */ 0x0},
-    { LINK(63), "emit",     API0(10), /* c --                   */ 0x0},
-    { LINK(64), "header",   API0(11), /* w aux <name> --        */ 0x0},
-    { LINK(65), ">options", API0(12), /* n --                   */ 0x0},
-    { LINK(66), "options>", API0(13), /* -- n                   */ 0x0},
-    { LINK(67), "(",        API0(14), /* -- */      IS_IMMEDIATE | 0x0},
-    { LINK(68), ".(",       API0(15), /* --                     */ 0x0},
-    { LINK(69), ".s",       API0(16), /* --                     */ 0x0},
-    { LINK(70), ".",        API0(17), /* n --                   */ 0x0},
-    { LINK(71), "cr",       API0(18), /* --                     */ 0x0},
-    { LINK(72), "space",    API0(19), /* --                     */ 0x0},
-    { LINK(73), ".wid",     API0(20), /* wid --                 */ 0x0},
-    { LINK(74), "p'",       API0(21), /* <name> -- w aux        */ 0x0},
-    { LINK(75), "page",     API0(22), /* page -- a              */ 0x0},
-    { LINK(76), "------",   API0(23), /*                        */ 0x0},
-    { LINK(77), "------",   API0(24), /*                        */ 0x0},
+    { LINK(30), "cells",    0,                        IS_NOTHING | 0x0},
+    { LINK(31), "2dup",     MACRO(VMU_OVER,VMU_OVER,VMU_NOP),       0x0},
+    { LINK(32), "!",        MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),   0x0},
+    { LINK(33), "@",        MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),   0x0},
+    { LINK(34), "s@",       MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0x0},
+    { LINK(35), "nip",      MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),      0x0},
+    { LINK(36), "tuck",     MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),      0x0},
+    { LINK(37), "char+",    SYS(VMS_CHARPLUS),   /* a1 -- a2    */ 0x0},
+    { LINK(38), "]task",    SYSTO(VMS_CHARPLUS), /* tstate --   */ 0x0},
+    { LINK(39), "barf",     SYSTO(VMS_CHARPLUS), /* ior --      */ 0x0},
+    { LINK(40), "task[",    SYSFM(VMS_CHARPLUS), /* -- tstate   */ 0x0},
+    { LINK(41), "um*",      API0( 4), /* u1 u2 -- ud            */ 0x0},
+    { LINK(42), "m*",       API0( 5), /* n1 n2 -- d             */ 0x0},
+    { LINK(43), "mu/mod",   API0( 6), /* ud u -- rem dquot      */ 0x0},
+    { LINK(44), "*/mod",    API0( 7), /* n1 n2 -- rem quot      */ 0x0},
+    { LINK(45), "key?",     API0( 8), /* -- flag                */ 0x0},
+    { LINK(46), "key",      API0( 9), /* -- c                   */ 0x0},
+    { LINK(47), "emit",     API0(10), /* c --                   */ 0x0},
+    { LINK(48), "header",   API0(11), /* w aux <name> --        */ 0x0},
+    { LINK(49), ">options", API0(12), /* n --                   */ 0x0},
+    { LINK(50), "options>", API0(13), /* -- n                   */ 0x0},
+    { LINK(51), "(",        API0(14), /* -- */      IS_IMMEDIATE | 0x0},
+    { LINK(52), ".(",       API0(15), /* --                     */ 0x0},
+    { LINK(53), ".s",       API0(16), /* --                     */ 0x0},
+    { LINK(54), ".",        API0(17), /* n --                   */ 0x0},
+    { LINK(55), "cr",       API0(18), /* --                     */ 0x0},
+    { LINK(56), "space",    API0(19), /* --                     */ 0x0},
+    { LINK(57), ".wid",     API0(20), /* wid --                 */ 0x0},
+    { LINK(58), "p'",       API0(21), /* <name> -- w aux        */ 0x0},
+    { LINK(59), "page",     API0(22), /* page -- a              */ 0x0},
+    { LINK(60), ",lit",     API0(23), /* u --                   */ 0x0},
+    { LINK(61), "------",   API0(24), /*                        */ 0x0},
 #if (FAT_FORTH & 1)                                                  
-    { LINK(78), "}t",       API0(25), /* ? --                   */ 0x0},
-    { LINK(79), "->",       API0(26), /* ? --                   */ 0x0},
-    { LINK(80), "t{",       API0(27), /* --                     */ 0x0},
-    { LINK(81), "hex",      API0(28), /* --                     */ 0x0},
-    { LINK(82), "decimal",  API0(29), /* --                     */ 0x0},
-    { LINK(83), ".page",    API0(30), /* n --                   */ 0x0},
-    { LINK(84), ".pages",   API0(31), /* --                     */ 0x0},
-    { LINK(85), "dump",     API0(32), /* addr length --         */ 0x0},
-    { LINK(86), "dumpi",    API0(33), /* inst --                */ 0x0},
-    { LINK(87), "dasm",     API0(34), /* addr length --         */ 0x0},
+    { LINK(62), "}t",       API0(25), /* ? --                   */ 0x0},
+    { LINK(63), "->",       API0(26), /* ? --                   */ 0x0},
+    { LINK(64), "t{",       API0(27), /* --                     */ 0x0},
+    { LINK(65), "hex",      API0(28), /* --                     */ 0x0},
+    { LINK(66), "decimal",  API0(29), /* --                     */ 0x0},
+    { LINK(67), ".page",    API0(30), /* n --                   */ 0x0},
+    { LINK(68), ".pages",   API0(31), /* --                     */ 0x0},
+    { LINK(69), "dump",     API0(32), /* addr length --         */ 0x0},
+    { LINK(70), "dumpi",    API0(33), /* inst --                */ 0x0},
+    { LINK(71), "dasm",     API0(34), /* addr length --         */ 0x0},
 #endif
 };
+
+static const ConstantMapping constant_table[] = {
+    { -1,           "true"},
+    { 0,            "false"},
+    { LF_STATE,     "state"},
+    { LF_BASE,      "base"},
+    { LF_CURRENT,   "current"},
+    { LF_CONTEXT,   "context"},
+    { CONTEXT_MAX,  "|context|"},
+    { LF_DPL,       "dpl"},
+    { LF_TOIN,      ">in"},
+    { LF_BLK,       "blk"},
+    { LF_TIB,       "tib"},
+    { LF_PTRS,      "dp[]"},
+    { LF_MSPACE,    "dp^" },
+    { VM_MEM_PAGES, "pages"},
+    { LF_HERE0,     "ram-base"},
+    { VMI_CALL    , "_call"},
+    { VMI_JUMP    , "_jump"},
+    { VMI_LIT     , "_lit"},
+    { VMI_ZBRAN   , "_0bran"},
+    { VMI_BRAN    , "_bran"},
+    { VMI_PBRAN   , "_pbran"},
+    { VMI_RCALL   , "_rcall"},
+    { VMI_NEXT    , "_next"},
+    { VMI_PFX     , "_pfx"},
+    { VMI_USER    , "_user"},
+    { VMI_QLIT    , "_qlit"},
+    { VMI_API0    , "_api0"},
+    { VMI_API1    , "_api1"},
+};
+
+static int TheStringsMatch(char* s1, char* s2) {
+    char c1;
+    char c2;
+    while (1) {
+        c1 = *s1++;
+        c2 = *s2++;
+        if (c1 == '\0') break;
+        if (c2 == '\0') break;
+        if (case_insensitive) {
+            if (c2 >= 'A' && c2 <= 'Z') c2 += 32;
+        }
+        if (c1 != c2) break;
+    }
+    return ((c1 | c2) == 0);
+}
+
+static int findConstant(char* name, int32_t* val) {
+    int table_size = sizeof(constant_table) / sizeof(constant_table[0]);
+
+    for (int i = 0; i < table_size; i++) {
+        if (TheStringsMatch(name, (char*)constant_table[i].name)) {
+            *val = constant_table[i].value;
+            return 0;
+        }
+    }
+    return ERR_UNDEFINED_WORD;
+}
 
 /* ========================================================================= */
 /* FORTH SEARCH CONTEXT STRUCTURES                                           */
 /* ========================================================================= */
 
 struct s_wid wids[WIDS_MAX] = { // wordlists
-    [0] = {.head = &only_heads[(sizeof(only_heads) / sizeof(s_head)) - 1],
-           .name = "`only" },
-    [1] = {.head = &forth_heads[(sizeof(forth_heads) / sizeof(s_head)) - 1],
-           .name = "`forth" }
+    [0] = {.head = &forth_heads[(sizeof(forth_heads) / sizeof(s_head)) - 1],
+           .name = "`forth" },
+    [1] = {.head = &only_heads[(sizeof(only_heads) / sizeof(s_head)) - 1],
+           .name = "`only" }
 };
+
+static int wids_pointer = 2;
 
 /* CONTEXT array holds indices into the wids array, ordered by search priority.
    Terminated with -1 to indicate the end of the search order. */
 
 /* ONLY */
-static int APIonly(void) {
+int lfAPI_only(void) {
     int8_t* ctx = CONTEXT;
-    *ctx++ = 0;
+    *ctx++ = 1;
     *ctx++ = -1;
     return 0;
 }
 
 /* FORTH */
-static int APIforth(void) {
-    CONTEXT[0] = 1;
+int lfAPI_forth(void) {
+    CONTEXT[0] = 0;
     return 0;
 }
 
 /* .WID  ( n -- ) */
-static int APIdotWid(void) {
-    uint8_t wid = vmPeek(-1);
-    if (wid >= CONTEXT_MAX) return ERR_SEARCH_ORDER_OVERFLOW;
+int lfAPI_dotWid(void) {
+    uint8_t wid = (uint8_t)vmPop();
+    if (wid >= wids_pointer) return ERR_SEARCH_ORDER_OVERFLOW;
     char* s = wids[wid].name;
     if (s == NULL)  return lfDot(wid);
     serial_puts(s); return lfSpace();
 }
 
 /* WORDS */
-static int APIwords(void) {
+int lfAPI_words(void) {
     const struct s_head* link = wids[CONTEXT[0]].head;
     while (link != NULL) {
         serial_puts(link->name);
@@ -316,40 +462,17 @@ static int APIwords(void) {
 /* LOOKUP FUNCTION                                                           */
 /* ========================================================================= */
 
-/* String comparison does not use strings.h. It terminates when encountering
-   a \0 in either string. target_name may end in a blank. */
-
-const struct s_head* search_wordlist(int wid_index, const char *target_name, int case_insensitive) {
-    if (wid_index < 0 || wid_index >= WIDS_MAX) {
+static const struct s_head* search_wordlist(int wid_index, const char *target_name) {
+    if (wid_index < 0 || wid_index >= wids_pointer) {
         return NULL;
     }
-
     const struct s_head *link = wids[wid_index].head;
-
     while (link != NULL) {
-        const char *s1 = link->name;
-        const char *s2 = target_name;
-        char c1;
-        char c2;
-
-		while (1) {
-            c1 = *s1++;
-            c2 = *s2++;
-            if (c1 == '\0') break;
-            if (c2 == '\0') break;
-            if (case_insensitive) {
-                if (c2 >= 'A' && c2 <= 'Z') c2 += 32;
-            }
-			if (c1 != c2) break;
-        }
-
-        if ((c1 | c2) == 0) {
+        if (TheStringsMatch(link->name, (char *)target_name)) {
             return link;
         }
-
         link = link->link;
     }
-
     return NULL;
 }
 
@@ -361,18 +484,15 @@ const struct s_head* search_wordlist(int wid_index, const char *target_name, int
  * Iterates through the active wordlists defined in the 'context' array.
  * Replicates the behavior of traditional Forth text interpreters.
  */
-const struct s_head* search_context(const char *target_name, int case_insensitive) {
+static const struct s_head* search_context(const char *target_name) {
     for (int i = 0; i < CONTEXT_MAX; i++) {
         int wid_idx = CONTEXT[i];
-
-        // Stop searching if we hit the end of the defined context order (-1)
-        if (wid_idx == -1) {
+        if (wid_idx == -1) { // end of search order marked by -1
             break;
         }
-
-        const struct s_head *found = search_wordlist(wid_idx, target_name, case_insensitive);
+        const struct s_head *found = search_wordlist(wid_idx, target_name);
         if (found != NULL) {
-            return found; // Return immediately upon first match in priority order
+            return found; // Return immediately upon first match in search order
         }
     }
     return NULL; // Word not found in any active wordlist
@@ -384,8 +504,16 @@ static void lfDotLinecount(void) {
     lfDot(linecount);
 }
 
-static int lfDotS(void) {
-    uint8_t depth = (uint8_t)vmPeek(VM_REG_depth);
+/*
+* .S depends on "empty" marker VM_EMPTYSTACK
+*/
+int lfDotS(void) {
+    int depth = 0;
+    while (depth <= DOT_S_MAX) {
+        uint32_t val = vmPeek(depth);
+        if (val == VM_EMPTYSTACK) break;
+        depth++;
+    }
     if (depth) {
         serial_puts("( ");
         if (depth > DOT_S_MAX) {
@@ -429,7 +557,7 @@ static int loadTIB(void) {
     }
 	if (BLK == 0) { // Load the TIB with keyboard input
         while (1) {
-            if (serial_ready() == 0) {
+            if (serial_ready() < 1) {
 #ifdef yield2c
                 yield2c(); // Yield to other tasks (ans step VM) while waiting...
 #endif
@@ -437,8 +565,8 @@ static int loadTIB(void) {
             }
             int c = serial_getc();
             if (c == EOF) break;        // treat EOF as a normal terminator
-			if (c == '\r') continue; 
-            if (c == '\n') break; 
+			if (c == '\r') break;
+            if (c == '\n') break;       // CRLF inserts lines
             if (remaining > 1) {
                 *tib++ = (char)c;
                 remaining--;
@@ -462,10 +590,6 @@ static int loadTIB(void) {
     }
 	return 0; // For now, we only handle keyboard input (BLK == 0)
 }
-
-static char token[32]; // token buffer for parsing
-static char* source = NULL; // pointer to the current position in the input string
-static int32_t value; // value returned by numeric input parsing
 
 /*
 parseStr assumes `str` is always correctly terminated with a null character.
@@ -513,13 +637,13 @@ static int parseWord(void) {
 }
 
 /* HEADER  ( w aux <name> -- ) */
-static int APIheader(void) {
+int lfAPI_header(void) {
     int ior = parseWord();
     if (ior) return ior;
 
     // 1. Pop aux and w off the Forth stack (TOS = aux, NOS = w)
-    uint32_t aux = (uint32_t)vmPeek(-1);
-    uint32_t w = (uint32_t)vmPeek(-1);
+    uint32_t aux = (uint32_t)vmPop();
+    uint32_t w = (uint32_t)vmPop();
 
     // 2. Resolve destination memory location in 32-bit cells
     int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS];
@@ -530,28 +654,30 @@ static int APIheader(void) {
 
     int32_t* cell_dest = &vm_memory[page][start_f_hp];
 
-    // 3. Pack string name into 32-bit cells (4 chars / cell)
+    // 3. Pack string name into 32-bit cells
     char* name_dest = (char*)cell_dest;
-    char* char_ptr = name_dest;
+    int32_t ch_dest = start_f_hp | 0x40000000; // bytes
     char* src = token;
     char c = 0;
     uint8_t length = 0;
 
     do {
-        c = *src++;
-        *char_ptr++ = c; // Write character
+        int ior = vmStore(ch_dest, *src++);
+        if (ior) return ior;
+        ch_dest = vmCharPlus(ch_dest);
         length++;
     } while (c);
-
-    // Zero-pad to complete the last 32-bit cell (4-byte alignment)
+    /*
+    * vmStore did not give an error, assume struct s_head will not step on
+    * anything critical.
+    */
     while (length & 3) {
-        *char_ptr++ = 0;
+        vmStore(ch_dest, *src++);
+        ch_dest = vmCharPlus(ch_dest);
         length++;
     }
 
-    // Advance cell_dest by the number of cells consumed by the packed string
-    int32_t string_cells = length / sizeof(int32_t);
-    cell_dest += string_cells;
+    cell_dest += (length / sizeof(int32_t));
 
     // 4. Construct struct s_head header directly in the next cell boundary
     struct s_head* target_head = (struct s_head*)cell_dest;
@@ -576,7 +702,7 @@ static int APIheader(void) {
 
     // 8. Bounds check before writing back to F_PTRS
     if (new_f_hp >= f_hmax) {
- //       return ERR_DICTIONARY_OVERFLOW;
+        return ERR_DICTIONARY_OVERFLOW;
     }
 
     headptr[2] = new_f_hp;
@@ -597,12 +723,12 @@ static int lfParenthesis(int echo) {
 }
 
 /* ( */
-static int APIparen(void) {
+int lfAPI_paren(void) {
     return lfParenthesis(0);
 }
 
 /* .( */
-static int APIdotParen(void) {
+int lfAPI_dotParen(void) {
     return lfParenthesis(1);
 }
 
@@ -678,7 +804,7 @@ static int parseNumber(int base) {
  * @param len Stream length.
  * @return    0 on normal execution, else Forth error code from errcodes.h
  */
-int interpret(char* str, size_t len) {
+static int interpret(char* str, size_t len) {
     if (str == NULL || len == 0) {
         return 0;
     }
@@ -691,7 +817,7 @@ int interpret(char* str, size_t len) {
         ior = parseWord();              // Parse the next token delimited by space
 		if (ior) return ior;
         // A. Check the current active vocabulary lists
-        const struct s_head* word = search_context(token, CASE_SENSITIVE);
+        const struct s_head* word = search_context(token);
         if (token[0] != '\0') {         // ignore empty strings
             int state = lfSTATEfetch();
             if (word != NULL) {         // word was found in the dictionary
@@ -711,10 +837,13 @@ int interpret(char* str, size_t len) {
                 }
                 continue;
             }
-            ior = parseNumber(lfBASEfetch());    
-            if (ior) return ior;        // Fall back to numeric evaluation
+            ior = findConstant(token, &value);
+            if (ior) {                  // Fall back to numeric evaluation
+                ior = parseNumber(lfBASEfetch());
+            }
+            if (ior) return ior;
             if (state) {
-                printf("Compiling number %d\n", value);
+                lfCompileLit(value);
             }
             else {
                 vmPush(value);
@@ -731,21 +860,16 @@ int interpret(char* str, size_t len) {
  * `options>` ( -- flags ) gets them
  * `bye`      ( ? -- ? )   ends QUIT
  */
-static int APIgetFlags(void) {
+int lfAPI_getFlags(void) {
     return vmPush(system_flags);
 }
 
-static int APIsetFlags(void) {
-    int32_t val = vmPeek(-1);
+int lfAPI_setFlags(void) {
+    int32_t val = vmPop();
     if ((system_flags & SYS_FLAGS_LOCKED) == 0) {
         system_flags = val;
     }
     return 0;
-}
-
-/* BYE */
-static int APIbye(void) {
-    return ERR_QUIT;
 }
 
 // `serial_open` before you call QUIT
@@ -753,8 +877,8 @@ int QUIT(void) {
     serial_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();
-    APIonly();
-    APIforth();
+    lfAPI_only();
+    lfAPI_forth();
     while (1) {
         LF_PACKEDSTATE[0] = 10;
         LF_PACKEDSTATE[1] = 0;
@@ -780,7 +904,12 @@ int QUIT(void) {
                 serial_puts(TIB);
             }
             ior = interpret((char*)TIB, len & 0x7FFF);
-            int depth = vmPeek(VM_REG_depth);
+            /*
+            * The stack depth is checked here for overflow or underflow.
+            * We cheat by using sp as depth. Reading sp is a dependency.
+            * Normally, the bottom of the stack is marked by VM_EMPTYSTACK.
+            */
+            int depth = vmPeek(VM_REG_sp);
             if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
             else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
             if (len & TERMINAL_OVERFLOWED) ior = ERR_TIB_OVERFLOW;
@@ -810,141 +939,15 @@ int QUIT(void) {
     }
 }
 
-/*==========================================================================
-* API 0 (internal)
-*=========================================================================*/
-
-/* EMIT */
-static int APIemit(void) {
-    return serial_putc((char)vmPeek(-1));
-}
-
-/* KEY? */
-static int APIqkey(void) {
-    int flag = serial_ready();
-    return vmPush(flag);
-}
-
-/* KEY */
-static int APIkey(void) {
-    int c = serial_getc();
-    return vmPush(c);
-}
-
-/* `.` */
-static int APIdot(void) {
-    return lfDot(vmPeek(-1));
-}
-
-/* `.S` */
-static int APIdotEss(void) {
-    return lfDotS();
-}
+// API calls that need variables in this file, which we'd rather not export.
 
 /* `D'` */
-static int APItickx(void) {
+int lfAPI_tickx(void) {
     int ior = parseWord();
     if (ior) return ior;
-    const struct s_head* word = search_context(token, CASE_SENSITIVE);
+    const struct s_head* word = search_context(token);
     if (word == NULL) return ERR_UNDEFINED_WORD;
     vmPush(word->w);
     return vmPush(word->aux);
 }
 
-/* `'PAGE` */
-static int APIpage(void) {
-    int32_t val = vmPeek(-1);
-    val = val << (22 - VM_LOG2_PAGES);
-    return vmPush(val);
-}
-
-static int API_umstar_x(int sign) {
-    uint32_t a = (uint32_t)vmPeek(0);
-    uint32_t b = (uint32_t)vmPeek(1);
-    int invert = 0;
-    if (sign) {
-        invert = (a ^ b) & 0x80000000;
-        if (a & 0x80000000) a = 0 - a;
-        if (b & 0x80000000) b = 0 - b;
-    }
-    uint64_t p = (uint64_t)a * (uint64_t)b;
-    if (invert) {
-        p = 0 - p;
-    }
-    vmPoke(1, (int32_t)(p & 0xFFFFFFFF));
-    vmPoke(0, (int32_t)(p >> 32));
-    return 0;
-}
-
-/* UM* */
-static int API_umstar(void) {
-    return API_umstar_x(0);
-}
-
-/* M* */
-static int API_mstar(void) {
-    return API_umstar_x(1);
-}
-
-/* MU/MOD ( dividendL dividendH divisor -- rem ql qh )
-* Used for numeric conversion and as a primitive for UM/MOD
-* : UM/MOD  MU/MOD ROT DROP ;
-*/
-static int API_mudivmod(void) {
-    uint32_t divisorS = (uint32_t)vmPeek(0);
-    if (divisorS == 0) return ERR_DIVISION_BY_ZERO;
-    uint32_t dividendH = (uint32_t)vmPeek(1);
-    uint32_t dividendL = (uint32_t)vmPeek(2);
-    uint64_t dividend = ((uint64_t)dividendH << 32) | dividendL;
-    uint64_t divisor = (uint64_t)divisorS;
-    uint64_t q = dividend / divisor;
-    vmPoke(2, (uint32_t)(dividend % divisor));
-    vmPoke(1, (uint32_t)q);
-    vmPoke(0, (uint32_t)(q >> 32));
-    return 0;
-}
-
-// */MOD ( n multiplier divisor -- rem quot )
-// : */  */MOD NIP ;
-static int API_stardivmod(void) {
-    int32_t divisorS = (uint32_t)vmPeek(-1);
-    if (divisorS == 0) return ERR_DIVISION_BY_ZERO;
-    int32_t multiplier = (uint32_t)vmPeek(-1);
-    int32_t n = (uint32_t)vmPeek(-1);
-    int64_t d = (int64_t)n * (int64_t)multiplier;
-    vmPush((uint32_t)(int32_t)(d % divisorS));
-    vmPush((uint32_t)(int32_t)(d / divisorS));
-    return 0;
-}
-
-typedef int(*APIfn) (void);
-
-static const APIfn API0fns[] = {
-    APIbye, APIwords, APIforth, APIonly, API_umstar,
-    API_mstar, API_mudivmod, API_stardivmod, APIqkey, APIkey, 
-    APIemit, APIheader, APIsetFlags, APIgetFlags, APIparen, 
-    APIdotParen, APIdotEss, APIdot, lfCR, lfSpace, 
-    APIdotWid, APItickx, APIpage, APIbye, APIbye
-#if (FAT_FORTH & 1)
-    , lfAPIendTest, lfAPIdoTest, lfAPIbeginTest, lfAPIhex, lfAPIdecimal
-    , lfAPIdotPage, lfAPIdotPages, lfAPIdump, lfAPIdumpIns, lfAPIdasm
-#endif
-};
-
-#define API0fs ((int)(sizeof(API0fns)/sizeof(API0fns[0])))
-
-int VMapi0Call(int fn) {
-    if (fn < API0fs) {
-        return API0fns[fn]();
-    }
-    return ERR_INVALID_API_CALL;
-}
-
-/*
-* API 1 (external)
-*/
-
-int VMapi1Call(int fn) {
-    (void)fn;
-    return ERR_INVALID_API_CALL;
-}

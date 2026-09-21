@@ -5,7 +5,7 @@ TARGET = lf
 SRC_DIR = src/host
 
 # Explicitly list source files (prefixed with the source directory)
-SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/forth.c $(SRC_DIR)/vm.c $(SRC_DIR)/serial_io.c $(SRC_DIR)/utils.c
+SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/forth.c $(SRC_DIR)/vm.c $(SRC_DIR)/serial_io.c $(SRC_DIR)/utils.c $(SRC_DIR)/api0.c
 
 # Compiler and flags
 CC = gcc

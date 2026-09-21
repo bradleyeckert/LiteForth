@@ -100,7 +100,8 @@
 #define ERR_GET_TERM_FAILED         (-83)   /* Failed to read port/terminal capabilities */
 #define ERR_SET_TERM_FAILED         (-84)   /* Failed to write new configurations */
 #define ERR_IO_CHECK_FAILED         (-85)   /* Driver query or select() polling failed */
-#define ERR_TERM_TX_FAILED          (-86)   /* Driver query or select() polling failed */
+#define ERR_TERM_TX_FAILED          (-86)   /* TTY transmission failed */
+#define ERR_TERM_RX_FAILED          (-187)   /* TTY reception failed */
 // block.c
 #define ERR_BLK_CREATE_FAIL         (-87)   /* Failed to create the binary simulation file */
 #define ERR_BLK_WRITE_INIT          (-88)   /* Failed to format initial blank file template */

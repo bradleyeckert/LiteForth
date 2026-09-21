@@ -4,6 +4,7 @@
 #include "vm.h"
 #include "serial_io.h"
 #include "options.h"
+#include "memalloc.h"
 
 int main(int argc, char* argv[]) {
     char* port_name = NULL;
@@ -52,10 +53,6 @@ int main(int argc, char* argv[]) {
     int32_t ram_page[RAM_PAGE_CELLS] = { 0 };
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
-        vm_memory[i] = NULL;
-        vm_memory_rd_limit[i] = 0;
-        vm_memory_wp_limit[i] = 0;
-        vm_memory_executable[i] = 0;
         if (i < RAM_PAGE) {
             // Assign pointer to row i of flash memory
             vm_memory[i] = flash_pages[i];
@@ -73,15 +70,34 @@ int main(int argc, char* argv[]) {
         }
         else {
             // Reserved/Unmapped segments
+            vm_memory[i] = NULL;
+            vm_memory_rd_limit[i] = 0;
+            vm_memory_wp_limit[i] = 0;
+            vm_memory_executable[i] = 0;
             vm_memory_name[i] = "reserved";
         }
     }
-    vm_memory[RAM_PAGE] = ram_page;
-    vm_memory_rd_limit[RAM_PAGE] = RAM_PAGE_CELLS;
-    vm_memory_executable[RAM_PAGE] = RAM_PAGE_CELLS;
-    vm_memory_name[RAM_PAGE] = "RAM";
-    serial_open(port_name, baudrate);
-    int ior = QUIT();
+
+// Now that memory is set up, to make development easier set up default pointers
+
+    int32_t* mem = vm_memory[RAM_PAGE];
+    if (mem == NULL) return 999;
+
+    // code space origin and limit
+    mem[F_PTRS + 1] = 0x80000001;
+    mem[F_PTRS + 4] = 0x100;
+    // data space origin and limit
+    mem[F_PTRS + 0] = 0x200;
+    mem[F_PTRS + 3] = FLASH_PAGE_CELLS;
+    // header space origin and limit
+    mem[F_PTRS + 2] = 0x100;
+    mem[F_PTRS + 5] = 0x200;
+
+// Launch LiteForth
+
+    int ior = serial_open(port_name, baudrate);
+    if (ior) return ior;
+    ior = QUIT();
     serial_close();
     return ior; // or in an embedded system, do a hard reset
 }

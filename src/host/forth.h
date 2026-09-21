@@ -75,48 +75,15 @@ typedef struct s_wid {   /* Uses WIDS_MAX sizeof(s_wid) of RAM             */
     char* name;          /* Descriptive name of the vocabulary             */
 } s_wid;
 
-
-/* ======================================================================= */
-/* 2. DICTIONARY API FUNCTIONS                                             */
-/* ======================================================================= */
-
 /**
- * Searches a specific vocabulary list for a header matching 'target_name'.
- * Single-pass character evaluation loop optimized for bare-metal systems.
+ * Structure representing a CONSTANT.
  * 
- * @param wid_index        The index inside the 'wids' array (0 to 15).
- * @param target_name      The string identifier to search for.
- * @param case_insensitive If non-zero, performs a case-insensitive match.
- * @return                 A const pointer to the matching header, or 
- *                         NULL if not found.
+ * An array of constants simplifies ad-hoc additions to the constants list.
  */
-const struct s_head* search_wordlist(int wid_index, const char *target_name,
-    int case_insensitive);
-
-/**
- * Iterates through the active wordlists defined in the 'context' array.
- * Replicates the behavior of traditional Forth text interpreters.
- * 
- * @param target_name      The string identifier to search for.
- * @param case_insensitive If non-zero, performs a case-insensitive match.
- * @return                 A const pointer to the matching header, or 
- *                         NULL if not found.
-*/
-const struct s_head* search_context(const char *target_name, int case_insensitive);
-
-/* ========================================================================= */
-/* 4. INTERPRETER INTERFACE                                                  */
-/* ========================================================================= */
-
-/**
- * Core Forth Text Interpreter (EVALUATE).
- * Processes a specific raw text memory buffer slice of a given length.
- * 
- * @param str Pointer to the character stream data to interpret.
- * @param len The exact byte boundary size of the string string.
- * @return    0 on normal execution, error code if error.
- */
-int interpret(char *str, size_t len);
+typedef struct {
+    int32_t value;
+    const char* name;
+} ConstantMapping;
 
 /**
  * The standard Forth Outer Interpreter / Terminal Loop.
@@ -133,6 +100,19 @@ int lfDotB(uint32_t val, int base, int dpl, int digits);
 int lfBASEfetch(void);
 int lfBASEstore(int base);
 int vmPush(int32_t value);
+int32_t vmPop(void);
+int lfDotS(void);
+int lfAPI_dotWid(void);
+int lfAPI_words(void);
+int lfAPI_getFlags(void);
+int lfAPI_setFlags(void);
+int lfAPI_header(void);
+int lfAPI_paren(void);
+int lfAPI_dotParen(void);
+int lfAPI_tickx(void);
+int lfAPI_only(void);
+int lfAPI_forth(void);
+int lfCompileLit(int32_t num);
 
 #ifdef __cplusplus
 }

@@ -170,7 +170,10 @@ int serial_open(char* name, int baudrate) {
     cfsetospeed(&tty, speed);
 
     tty.c_cflag |= (CLOCAL | CREAD | CS8);
-    tty.c_cflag &= ~(PARENB | CSTOPB | CRTSCTS);
+    tty.c_cflag &= ~(PARENB | CSTOPB);
+#ifdef CRTSCTS
+    tty.c_cflag &= ~CRTSCTS;
+#endif
     tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     tty.c_iflag &= ~(IXON | IXOFF | IXANY | ICRNL);
     tty.c_oflag &= ~OPOST;
@@ -302,6 +305,7 @@ int restore_stdin_to_terminal(void) {
 
     return 0;
 }
+
 int serial_getc(void) {
     if (is_terminal_mode) {
         int c = fgetc(stdin);
@@ -313,21 +317,21 @@ int serial_getc(void) {
     }
 
 #if defined(_WIN32) || defined(_WIN64)
-    if (hCommPort == INVALID_HANDLE_VALUE) return EOF;
+    if (hCommPort == INVALID_HANDLE_VALUE) return ERR_TERM_RX_FAILED;
     unsigned char ch = 0;
     DWORD bytes_read = 0;
     if (ReadFile(hCommPort, &ch, 1, &bytes_read, NULL) && bytes_read == 1) {
         return (int)ch;
     }
-    return EOF;
+    return ERR_TERM_RX_FAILED;
 #else
-    if (comm_fd < 0) return EOF;
+    if (comm_fd < 0) return ERR_TERM_RX_FAILED;
     unsigned char ch;
     ssize_t result = read(comm_fd, &ch, 1);
     if (result == 1) {
         return (int)ch;
     }
-    return EOF;
+    return ERR_TERM_RX_FAILED;
 #endif
 }
 
@@ -340,20 +344,20 @@ int serial_putc(int c) {
     }
 
 #if defined(_WIN32) || defined(_WIN64)
-    if (hCommPort == INVALID_HANDLE_VALUE) return EOF;
+    if (hCommPort == INVALID_HANDLE_VALUE) return ERR_TERM_TX_FAILED;
     unsigned char ch = (unsigned char)c;
     DWORD bytes_written = 0;
     if (WriteFile(hCommPort, &ch, 1, &bytes_written, NULL) && bytes_written == 1) {
-        return c;
+        return 0;
     }
-    return EOF;
+    return ERR_TERM_TX_FAILED;
 #else
-    if (comm_fd < 0) return EOF;
+    if (comm_fd < 0) return ERR_TERM_TX_FAILED;
     unsigned char ch = (unsigned char)c;
     ssize_t result = write(comm_fd, &ch, 1);
     if (result == 1) {
-        return c;
+        return 0;
     }
-    return EOF;
+    return ERR_TERM_TX_FAILED;
 #endif
 }

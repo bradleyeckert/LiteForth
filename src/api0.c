@@ -7,11 +7,9 @@
 #include "utils.h"
 #include "memalloc.h"
 #include "flash.h"
+#include "comp.h"
+#include "api0.h"
 #include <string.h>
-
-#include <stdio.h> ///////////////////////////////////////////////
-// globals
-
 
 /*==========================================================================
 * API 0 
@@ -37,16 +35,6 @@ static int qkey(void) {
 static int key(void) {
     int c = serial_getc();
     return vmPush(c);
-}
-
-/* `.` */
-static int dot(void) {
-    return lfDot(vmPop());
-}
-
-/* `.S` */
-static int dotEss(void) {
-    return lfDotS();
 }
 
 /* `'PAGE` */
@@ -89,31 +77,20 @@ static int mstar(void) {
 * : UM/MOD  MU/MOD ROT DROP ;
 */
 static int mudivmod(void) {
-    uint32_t divisorS = (uint32_t)vmPop();
-    if (divisorS == 0) return ERR_DIVISION_BY_ZERO;
+    uint32_t divisor = (uint32_t)vmPop();
+    if (divisor == 0) return ERR_DIVISION_BY_ZERO;
 
     uint32_t dividendH = (uint32_t)vmPop();
     uint32_t dividendL = (uint32_t)vmPop();
     uint64_t dividend = ((uint64_t)dividendH << 32) | (uint64_t)dividendL;
+    uint32_t rem = 0;
 
-    uint64_t q = 0;
-    uint64_t rem = 0;
-
-    // Unsigned 64-bit by 32-bit long division
-    for (int i = 63; i >= 0; i--) {
-        rem <<= 1;
-        rem |= (dividend >> i) & 1ULL;
-
-        if (rem >= (uint64_t)divisorS) {
-            rem -= (uint64_t)divisorS;
-            q |= (1ULL << i);
-        }
-    }
+    uint64_t quotient = divide64by32(dividend, divisor, &rem);
 
     // Push remainder, quotient low, quotient high
     vmPush((uint32_t)rem);
-    vmPush((uint32_t)q);
-    vmPush((uint32_t)(q >> 32));
+    vmPush((uint32_t)quotient);
+    vmPush((uint32_t)(quotient >> 32));
 
     return 0;
 }
@@ -139,19 +116,9 @@ static int stardivmod(void) {
     uint64_t u_dividend = dividend_negative ? (uint64_t)(-d) : (uint64_t)d;
     uint32_t u_divisor = divisor_negative ? (uint32_t)(-divisorS) : (uint32_t)divisorS;
 
-    uint64_t u_quotient = 0;
-    uint64_t u_remainder = 0;
+    uint32_t u_remainder = 0;
 
-    // Bitwise 64-bit / 32-bit long division
-    for (int i = 63; i >= 0; i--) {
-        u_remainder <<= 1;
-        u_remainder |= (u_dividend >> i) & 1ULL;
-
-        if (u_remainder >= u_divisor) {
-            u_remainder -= u_divisor;
-            u_quotient |= (1ULL << i);
-        }
-    }
+    uint64_t u_quotient = divide64by32(u_dividend, u_divisor, &u_remainder);
 
     // Apply signs (Symmetric division: remainder takes sign of dividend)
     int32_t quotient = quot_negative ? -(int32_t)u_quotient : (int32_t)u_quotient;
@@ -224,13 +191,10 @@ static int flashOpen(void) {
 
     flash = vm_memory[page]; // the currently closed flash page
 
-    // 1. Calculate source pointer for target page in backing flash memory
-    int32_t* flash_page_ptr = flash + (page * FLASH_PAGE_CELLS);
+    // Copy backing flash memory contents into RAM cache
+    memcpy(cache, flash, FLASH_PAGE_CELLS * sizeof(int32_t));
 
-    // 2. Copy backing flash memory contents into RAM cache
-    memcpy(cache, vm_memory[page], FLASH_PAGE_CELLS * sizeof(int32_t));
-
-    // 3. Point vm_memory page to RAM cache and remove write protection
+    // Point vm_memory page to RAM cache and remove write protection
     vm_memory[page] = cache;
     vm_memory_wp_limit[page] = 0;
 
@@ -238,17 +202,30 @@ static int flashOpen(void) {
     return 0;
 }
 
+/* [  ( -- ) */
+static int bracket(void) {
+    return lfSTATEstore(1);
+}
+
+/* ]  ( -- ) */
+static int endbracket(void) {
+    return lfSTATEstore(0);
+}
+
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
     bye, lfAPI_words, lfAPI_forth, lfAPI_only, umstar,
     mstar, mudivmod, stardivmod, qkey, key, 
-    emit, lfAPI_header, lfAPI_setFlags, lfAPI_getFlags, lfAPI_paren, 
-    lfAPI_dotParen, dotEss, dot, lfCR, lfSpace, 
-    lfAPI_dotWid, lfAPI_tickx, tickpage, commaLit, flashOpen, flashClose
+    emit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, lfAPI_getFlags,
+    lfAPI_paren, lfAPI_dotParen, lfAPI_dotDoes, lfAPI_dotCreate, lfCR,
+    lfSpace, lfAPI_dotWid, lfAPI_tickx, tickpage, commaLit,
+    flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
+    lfAPI_constant, lfAPI_bits, lfAPI_toBody
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm
+    , vmAPI_dotEss, vmAPI_dot
 #endif
 };
 

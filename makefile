@@ -1,29 +1,25 @@
 # Executable name
 TARGET = lf
 
-# Source directory containing the C files
-SRC_DIR = src/host
+# Source directories
+SRC_DIRS = src src/host
 
-# Explicitly list source files (prefixed with the source directory)
-SRCS = $(SRC_DIR)/main.c \
-       $(SRC_DIR)/forth.c \
-       $(SRC_DIR)/vm.c \
-       $(SRC_DIR)/serial_io.c \
-       $(SRC_DIR)/flash.c \
-       $(SRC_DIR)/memalloc.c \
-       $(SRC_DIR)/utils.c \
-       $(SRC_DIR)/api0.c
-       
-# Compiler and flags
+# Tell Make where to look for source (.c) files
+vpath %.c $(SRC_DIRS)
+
+# Collect all .c files directly under src/ and src/host/ (non-recursive)
+SRCS = $(wildcard $(addsuffix /*.c,$(SRC_DIRS)))
+
+# Map source file paths to flat object file names in build/
+# e.g., src/vm.c -> build/vm.o, src/host/blocks.c -> build/blocks.o
+OBJS = $(addprefix $(BUILD_DIR)/, $(notdir $(SRCS:.c=.o)))
+
+# Compiler and flags (-I adds both directories to header search paths)
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -O2 $(addprefix -I,$(SRC_DIRS))
 
 # Directory for intermediate object files
 BUILD_DIR = build
-
-# Map source files in src/host to object files in build/
-# e.g., src/host/main.c becomes build/main.o
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Default target
 all: $(TARGET) clean_build
@@ -32,16 +28,16 @@ all: $(TARGET) clean_build
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-# Compile source files from the src/host directory into the build directory
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+# Pattern rule: vpath automatically locates the source file in src/ or src/host/
+$(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Post-build cleanup: Removes the intermediate build directory after successful compilation
+# Post-build cleanup: Removes intermediate build directory after successful compilation
 clean_build:
 	rm -rf $(BUILD_DIR)
 
-# Standard cleanup: Removes the build directory AND the final executable
+# Standard cleanup: Removes build directory AND final executable
 clean: clean_build
 	rm -f $(TARGET)
 

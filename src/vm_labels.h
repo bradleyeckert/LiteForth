@@ -36,7 +36,7 @@
 #define SLOT0_POSITION  9      // [13:9] is the first 5-bit slot
 #define LAST_SLOT_WIDTH (14 % 5)
 #define LAST_SLOT_MASK  ((1 << LAST_SLOT_WIDTH) - 1)
-#define VM_SEGMASK      ((1 << (22 - VM_LOG2_PAGES)) - 1)
+#define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
 
 #define VM_REG_PC       0x100
 #define VM_REG_R        0x101
@@ -109,17 +109,22 @@
 #define VMI_LIT                 (VMO_LIT << VM_LIMM_BITS)
 #define VMI_OTHER               (VMO_OTHER << VM_LIMM_BITS)
 
-#define VMS_CHARPLUS            0
-#define VMSTO_TASK              0
-#define VMSTO_BARF              1
+#define VMS_SHR                 0
+#define VMS_SHL                 1
+#define VMS_CHARPLUS            2
+
+#define VMSTO_BARF              0
+#define VMSTO_TASK              1
+#define VMSTO_SHIFT             2
+
 #define VMSFROM_TASK            0
 
 /*
 */
 
 #define IMM_NAMES { \
-    "if", "bran", "-if", "rcall", "next", "?", "sys", "pfx", \
-    ">sys", "user", "sys>", "qlit", "?", "?", "RFcall", "AFcall"}
+    "if", "bran", "-if", "rcall", "next", "?", "sys", "?", \
+    ">sys", "user", "sys>", "qlit", "pfx", "pfx1", "RFcall", "AFcall"}
 
 #define VMO_ZBRAN               0
 #define VMO_BRAN                1
@@ -127,11 +132,12 @@
 #define VMO_RCALL               3
 #define VMO_NEXT                4
 #define VMO_SYS                 6
-#define VMO_PFX                 7
 #define VMO_TOSYS               8
 #define VMO_USER                9
 #define VMO_FROMSYS             10
 #define VMO_QLIT                11
+#define VMO_PFX                 12
+#define VMO_PFX1                13
 #define VMO_API0                14
 #define VMO_API1                15
 
@@ -149,6 +155,8 @@
 #define VMI_API0               (VMI_OTHER + (VMO_API0     << 9))
 #define VMI_API1               (VMI_OTHER + (VMO_API1     << 9))
 
-// VMI_SYS | VMS_CHARPLUS
+#define VMI_MASK               ((3 << VM_LIMM_BITS) | (0x0F << VM_IMM_BITS))
+
+// VMI_SYS | VMS_CHARPLUS       // VMI_PFX
 
 #endif /* _VM_LABELS_H_ */

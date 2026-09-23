@@ -22,9 +22,11 @@ locations for accessibility by Forth or by C.
 #define F_CURRENT    1
 #define F_TIB        2
 #define F_BLK        (F_TIB + TIBCELLS)
-#define F_PTRS       (F_BLK + 1)
+#define F_SCR        (F_BLK + 1)
+#define F_PTRS       (F_SCR + 1)
 #define F_CONTEXT    (F_PTRS + 6)
-#define F_HERE0      (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
+#define F_BLOCKBUFS  (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
+#define F_HERE0      (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
 
 #define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)
@@ -52,6 +54,19 @@ locations for accessibility by Forth or by C.
 #define SYS_FLAG_VALIDATION   0x0004        /* quit immediately upon error */
 #define SYS_FLAG_NO_DOTESS    0x0002        /* do not display the stack    */
 #define SYS_FLAG_NO_OK        0x0001        /* do not display "ok>"        */
+
+// Flags in word->w[31:27]
+#define W_PRIMITIVE     0x80000000 // the xt is a primitive in slot 1
+#define W_MACRO         0x40000000 // the xt is all primitives except nops
+
+// Flags in word->aux[31:24]
+#define A_SMUDGED       0x80000000 // this bit is set by `:`
+#define A_IMMEDIATE     0x40000000 // this word is immediate
+#define A_NO_EXECUTE    0x20000000 // only execute while compiling
+#define A_NO_TAIL_CALL  0x10000000 // don't allow tail recursion
+#define A_CONSTANT      0x00000000 // w is a constant
+#define A_NOTHING       0x08000000 // do nothing
+#define A_IMMED_ONLY    (A_IMMEDIATE | A_NO_EXECUTE)
 
 
 /* ======================================================================= */
@@ -107,7 +122,8 @@ int lfAPI_dotWid(void);
 int lfAPI_words(void);
 int lfAPI_getFlags(void);
 int lfAPI_setFlags(void);
-int lfAPI_header(void);
+int lfHeader(uint32_t w, uint32_t aux);
+int lfToHeader(uint32_t w, uint32_t aux);
 int lfAPI_paren(void);
 int lfAPI_dotParen(void);
 int lfAPI_tickx(void);

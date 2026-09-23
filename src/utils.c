@@ -21,7 +21,7 @@ static const ErrorMapping error_table[] = {
     { ERR_RESULT_OUT_OF_RANGE, "result out of range" },
     { ERR_ARGUMENT_TYPE_MISMATCH, "argument type mismatch" },
     { ERR_UNDEFINED_WORD, "undefined word" },
-    { ERR_INTERPRET_ONLY, "interpreting a compile-only word" },
+    { ERR_COMPILE_ONLY, "interpreting a compile-only word" },
     { ERR_INVALID_FORGET, "invalid FORGET" },
     { ERR_ZERO_LENGTH_NAME, "attempt to use zero-length string as a name" },
     { ERR_PICTURED_NUM_OVERFLOW, "pictured numeric output string overflow" },
@@ -152,6 +152,16 @@ const char* get_error_message(int err_code) {
 /*==========================================================================
 * Extra API words
 ==========================================================================*/
+
+/* `.` */
+int vmAPI_dot(void) {
+    return lfDot(vmPop());
+}
+
+/* `.S` */
+int vmAPI_dotEss(void) {
+    return lfDotS();
+}
 
 /*
  * Assertion tests for Forth words
@@ -311,6 +321,12 @@ int lfAPI_dump(void) {
                 if ((byte < ' ') || (byte > 0x7F)) byte = '.';
                 serial_putc(byte);
             }
+        }
+
+        int page = addr >> (22 - VM_LOG2_PAGES);
+        uint32_t wplimit = vm_memory_wp_limit[page];
+        if ((addr & VM_PAGE_MASK) <= wplimit) {
+            serial_puts("  read-only");
         }
 
         lfCR();

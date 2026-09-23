@@ -24,6 +24,8 @@ int lfAPI_dotPages(void);
 int lfAPI_dump(void);
 int lfAPI_dumpIns(void);
 int lfAPI_dasm(void);
+int vmAPI_dotEss(void);
+int vmAPI_dot(void);
 
 #ifdef __cplusplus
 }

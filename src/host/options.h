@@ -15,40 +15,31 @@
 // main.c
 #define FLASH_PAGE_CELLS   1024 // Flash memory page size [1]
 #define RAM_PAGE              1 // The memory page used by system variables
-#define RAM_PAGE_CELLS     1024 // RAM page size
+#define RAM_PAGE_CELLS     8192 // RAM page size [2]
 // memalloc.c
 #define POOL_CAPACITY     16384 // cells of the main memory pool
+// flash.c
+#define FLASHFILENAME     "lfflash.bin"
+// blocks.c
+#define BLOCKFILENAME     "lfblocks.bin"
+#define BLOCK_SIZE_CELLS   1024 // block size in cells
+#define SYSTEM_BLOCKS         4 // number of block buffers in the system
+#define SIMNUMBLOCKS        256 // number of blocks in simulated block system
 
 /* NOTES:
 [1] All pages below page RAM_PAGE are Flash pages, which are 1 or more
     physical sectors of Flash memory. All Flash pages are the same size.
+
+[2] RAM_PAGE_CELLS must be at least enough for the block buffers, system
+    variables, and application data.
 */
 
-/* ==========================================================================
-   Mass Storage (Block) Simulation Configuration
-   ========================================================================== */
+#if (RAM_PAGE_CELLS < (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS + 0x400))
+#error "RAM_PAGE_CELLS is too small, choose a higher number."
+#endif
 
-/**
- * Default Mass Storage Filename
- * The name of the binary file used to simulate block storage.
- */
-#define BLOCKFILENAME           "lfblocks.bin"
-
-/**
- * Number of Mass Storage Blocks
- * Total count of standard virtual blocks available to the simulated storage system.
- */
-#define SIMNUMBLOCKS            240
-
-
-/* ==========================================================================
-   Flash Memory Simulation Configuration
-   ========================================================================== */
-
-/**
- * Default Flash Simulation Filename
- * The fallback binary file name used by flash.c if no custom argument is provided.
- */
-#define FLASHFILENAME           "lfflash.bin"
+#if (POOL_CAPACITY < RAM_PAGE_CELLS)
+#error "POOL_CAPACITY is too small, choose a higher number."
+#endif
 
 #endif /* OPTIONS_H */

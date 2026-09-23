@@ -3,23 +3,19 @@
 #include "vm_labels.h"
 #include "errcodes.h"
 #include "serial_io.h"
+#include "comp.h"
 #include "options.h"
-#include <stdio.h> // remove for production code
-// cd /mnt/c/Users/User/Documents/GitHub/LiteForth
+
+// wsl: // cd /mnt/c/Users/User/Documents/GitHub/LiteForth
 
 #if (FAT_FORTH & 1)
 #include "utils.h"
 #endif
 
-// some globals used in this file
-static uint32_t system_flags = 0;
-static uint32_t linecount = 0;
 static int case_insensitive = CASE_INSENSITIVE;
 static char token[32]; // token buffer for parsing
 static char* source = NULL; // pointer to the current position in the input string
 static int32_t value; // value returned by numeric input parsing
-static int slot = SLOT0_POSITION;
-static uint16_t instruction;
 
 int lfBASEfetch(void) {
     int32_t result;
@@ -29,12 +25,6 @@ int lfBASEfetch(void) {
 
 int lfBASEstore(int base) {
     return vmStore(LF_BASE, base);
-}
-
-static int lfSTATEfetch(void) {
-    int32_t result;
-    vmFetch(LF_STATE, &result);
-    return result;
 }
 
 static int lfTOINfetch(void) {
@@ -57,208 +47,19 @@ static int lfTIBSTATEstore(int state) {
     return vmStore(LF_TIBSTATE, state);
 }
 
-int vmPush(int32_t x) {
-    return vmPoke(-1, x);
-}
-
-int32_t vmPop(void) {
-    return vmPeek(-1);
-}
-
-/* =========================================================================
-* String output functions
-========================================================================= */
-
-int serial_puts(const char* s) {
-    int ior = 0;
-    while (*s) {
-        ior = serial_putc(*s++);
-        if (ior) return ior;
-    }
-    return 0;
-}
-
-int lfDotB(uint32_t val, int base, int dpl, int digits) {
-    char buf[36] = { 0 }; // Enough for 32-bit integer
-    char* p = &buf[sizeof(buf)];
-    *--p = 0; // Null terminator
-    if ((val & 0x80000000) && (base == 10)) {
-        val = 0 - val;
-        serial_putc('-');
-    }
-    do {
-        if (p == buf) break; // no more room
-        int digit = val % base;
-        val /= base;
-        if (digit < 10) {
-            *--p = '0' + digit;
-        }
-        else {
-            *--p = 'A' + (digit - 10);
-        }
-        digits--;
-        if (dpl) {          // optional decimal
-            if (--dpl == 0) {
-                *--p = '.';
-            }
-        }
-    } while (val | dpl | (digits > 0));
-    int result = serial_puts(p);
-    return result;
-}
-
-int lfCR(void) {
-    return serial_puts("\r\n");
-}
-
-int lfSpace(void) {
-    return serial_putc(' ');
-}
-
-int lfDot(int32_t val) {
-    int base = lfBASEfetch();
-    lfDotB(val, base, 0, 0);
-    if (base == 16) {
-        serial_putc('H');
-    }
-    return lfSpace();
-}
-
-/*=========================================================================
-* Compiling
-=========================================================================*/
-
-static int cpFetch(uint32_t* cp) {
-    int32_t* mem = vm_memory[RAM_PAGE];
-    *cp = mem[F_PTRS + 1];
-    return 0;
-}
-
-static int cpStore(uint32_t cp) {
-    int32_t* mem = vm_memory[RAM_PAGE];
-    uint32_t cp_max = mem[F_PTRS + 4];
-    if ((cp & 0x3FFFFF) >= cp_max) return ERR_DICTIONARY_OVERFLOW;
-    mem[F_PTRS + 1] = cp;
-    return 0;
-}
-
-/*
- * Compile to code space. The data size is determined by the upper bits of cp.
- */
-static int commaCode(uint32_t inst) {
-    uint32_t cp = 0;
-    int ior = cpFetch(&cp);
-    if (ior) return ior;
-    ior = vmStore(cp, inst);
-    if (ior) return ior;
-    printf("mem[%x]=%x ", cp & 0x3FFFFF, inst);
-    cp = vmCharPlus(cp);
-    return cpStore(cp);
-    instruction = 0;
-    slot = SLOT0_POSITION;
-}
-
-static void NewInst(void) {
-    if (slot != SLOT0_POSITION) commaCode(VM_UOPS | instruction);
-    instruction = 0;
-}
-
-static void InstCompile(uint32_t inst) {// compile instruction
-    NewInst();                          // flush any uops
-    commaCode(inst);
-}
-
-static void CompCall(uint32_t addr) {
-    NewInst();
-    if (addr & ~VM_LIMM_MASK) commaCode(VMI_PFX + (addr >> VM_LIMM_BITS));
-    commaCode(VMI_CALL + (addr & VM_LIMM_MASK));
-}
-
-static int CompUop(uint32_t uop) {
-    uop &= 0x1F; // slots = 9, 4, -1
-    int ior = 0;
-    if (slot < -4) commaCode(VM_UOPS | instruction);
-    if (slot < 0) { // last slot
-        slot = 0;
-        if (uop >= (1 << LAST_SLOT_WIDTH)) {
-            ior = commaCode(VM_UOPS | instruction);
-        }
-    }
-    instruction |= uop << slot;
-    slot -= 5;
-    return ior;
-}
-
-static int CompUlit(uint32_t x) {       // unsigned literal
-    int ior = 0;
-    vmPush(-1);
-    vmPush(VMI_LIT | (x & VM_LIMM_MASK));
-    x = x >> VM_LIMM_BITS;
-    while (x) {
-        vmPush(VMI_PFX | (x & VM_IMM_MASK));
-        x = x >> VM_IMM_BITS;
-    }
-    while (1) {
-        int32_t n = vmPop();
-        if (n < 0) break;
-        ior = commaCode(n);
-        if (ior) return ior;
-    }
-    return 0;
-}
-
-int lfCompileLit(int32_t x) {
-    if (x < 0) {
-        CompUlit(~x);
-        return CompUop(VMU_INV);
-    }
-    return CompUlit(x);
-}
-
-static int compile_word(const struct s_head* word) {
-    printf("Compiling word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
-    return 0;
-}
-
-
 /*=========================================================================
 * Define a Forth
 =========================================================================*/
 
-// Flags in word->w[31:27]
-#define IS_PRIMITIVE 0x80000000 // the xt is a primitive in slot 1
-#define IS_MACRO     0xC0000000 // the xt is all primitives except nops
-
-// Flags in word->aux[31:24]
-#define IS_SMUDGED   0x80000000 // this bit is set by `:`
-#define IS_IMMEDIATE 0x40000000 // this word is immediate
-#define IS_CONSTANT  0x20000000 // w is a constant
-#define IS_NOTHING   0x10000000 // do nothing
-//#define IS_IMM_ONLY  0x08000000
-
-#define UOP(val) (IS_PRIMITIVE | VM_UOPS | ((val) << 9) )
-#define MACRO(s0, s1, s2) (IS_MACRO | VM_UOPS | ((s0) << 9)| ((s1) << 4)| (s2) )
+#define UOP(val) (W_PRIMITIVE | VM_UOPS | ((val) << SLOT0_POSITION) )
+#define MACRO(s0, s1, s2) \
+    (W_PRIMITIVE | W_MACRO | VM_UOPS | \
+    ((s0) << SLOT0_POSITION) | ((s1) << LAST_SLOT_WIDTH)| (s2) )
 #define DATA(idx) ((RAM_PAGE << (22 - VM_LOG2_PAGES)) + (idx))
-#define API0(idx) (IS_PRIMITIVE | VMI_API0 | (idx))
-#define SYS(idx) (IS_PRIMITIVE | VMI_SYS | (idx))
-#define SYSTO(idx) (IS_PRIMITIVE | VMI_TOSYS | (idx))
-#define SYSFM(idx) (IS_PRIMITIVE | VMI_FROMSYS | (idx))
-
-static int execute_word(const struct s_head* word) {
-    if (word->aux & IS_NOTHING)  return 0;
-    if (word->aux & IS_CONSTANT) return vmPush(word->w);
-
-    if (word->w & IS_PRIMITIVE) {
-        // Handle primitive word execution
-        int32_t ior = vmRun(1, word->w & 0xFFFF, 0);
-        if (ior) return ior;
-    } else {
-        // Handle non-primitive word execution (e.g., user-defined)
-        // For now, we just print a message
-        printf("Executing word: %s (w=%x, aux=%x)\n", word->name, word->w, word->aux);
-	}
-    return 0;
-}
+#define API0(idx) (W_PRIMITIVE | VMI_API0 | (idx))
+#define SYS(idx) (W_PRIMITIVE | VMI_SYS | (idx))
+#define SYSTO(idx) (W_PRIMITIVE | VMI_TOSYS | (idx))
+#define SYSFM(idx) (W_PRIMITIVE | VMI_FROMSYS | (idx))
 
 #define LINKO(val) (struct s_head*)&only_heads[(val)]
 
@@ -274,81 +75,93 @@ static const struct s_head only_heads[] = {
 // Flash cost per entry: 16 bytes plus name string (length+1 bytes).
 // 64 entries is about 1.4 KB
 static const struct s_head forth_heads[] = {  
-    { LINKO(3), "invert",       UOP(VMU_INV),                          0x0},
-    { LINK( 0), "inv",          UOP(VMU_INV),                          0x0},
-    { LINK( 1), "over",         UOP(VMU_OVER),                         0x0},
-    { LINK( 2), "a!",           UOP(VMU_ASTORE),                       0x0},
-    { LINK( 3), "xor",          UOP(VMU_XOR),                          0x0},
-    { LINK( 4), "+",            UOP(VMU_PLUS),                         0x0},
-    { LINK( 5), "and",          UOP(VMU_AND),                          0x0},
-    { LINK( 6), ">r",           UOP(VMU_PUSH),                         0x0},
-    { LINK( 7), "unext",        UOP(VMU_UNEXT),                        0x0},
-    { LINK( 8), "2*",           UOP(VMU_TWOSTAR),                      0x0},
-    { LINK( 9), "dup",          UOP(VMU_DUP),                          0x0},
-    { LINK(10), "drop",         UOP(VMU_DROP),                         0x0},
-    { LINK(11), "@a",           UOP(VMU_FETCHA),                       0x0},
-    { LINK(12), "@a+",          UOP(VMU_FETCHAPLUS),                   0x0},
-    { LINK(13), "@as",          UOP(VMU_FETCHASIGN),                   0x0},
-    { LINK(14), "r@",           UOP(VMU_R),                            0x0},
-    { LINK(15), "r>",           UOP(VMU_POP),                          0x0},
-    { LINK(16), "2/c",          UOP(VMU_TWODIVC),                      0x0},
-    { LINK(17), "2/",           UOP(VMU_TWODIV),                       0x0},
-    { LINK(18), "!a",           UOP(VMU_STOREA),                       0x0},
-    { LINK(19), "!a+",          UOP(VMU_STOREAPLUS),                   0x0},
-    { LINK(20), "!b",           UOP(VMU_STOREB),                       0x0},
-    { LINK(21), "!b+",          UOP(VMU_STOREBPLUS),                   0x0},
-    { LINK(22), "swap",         UOP(VMU_SWAP),                         0x0},
-    { LINK(23), "+*",           UOP(VMU_PLUSSTAR),                     0x0},
-    { LINK(24), "b",            UOP(VMU_B),                            0x0},
-    { LINK(25), "b!",           UOP(VMU_BSTORE),                       0x0},
-    { LINK(26), "@b",           UOP(VMU_FETCHB),                       0x0},
-    { LINK(27), "@b+",          UOP(VMU_FETCHBPLUS),                   0x0},
-    { LINK(28), "a",            UOP(VMU_A),                            0x0},
-    { LINK(29), "cy",           UOP(VMU_CY),                           0x0},
-    { LINK(30), "cells",        0,                        IS_NOTHING | 0x0},
-    { LINK(31), "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),      0x0},
-    { LINK(32), "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),  0x0},
-    { LINK(33), "@",            MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),  0x0},
-    { LINK(34), "s@",         MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP),0x0},
-    { LINK(35), "nip",          MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),      0x0},
-    { LINK(36), "tuck",         MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),      0x0},
-    { LINK(37), "char+",        SYS(VMS_CHARPLUS),   /* a1 -- a2    */ 0x0},
-    { LINK(38), "]task",        SYSTO(VMS_CHARPLUS), /* tstate --   */ 0x0},
-    { LINK(39), "barf",         SYSTO(VMS_CHARPLUS), /* ior --      */ 0x0},
-    { LINK(40), "task[",        SYSFM(VMS_CHARPLUS), /* -- tstate   */ 0x0},
-    { LINK(41), "um*",          API0( 4), /* u1 u2 -- ud            */ 0x0},
-    { LINK(42), "m*",           API0( 5), /* n1 n2 -- d             */ 0x0},
-    { LINK(43), "mu/mod",       API0( 6), /* ud u -- rem dquot      */ 0x0},
-    { LINK(44), "*/mod",        API0( 7), /* n1 n2 -- rem quot      */ 0x0},
-    { LINK(45), "key?",         API0( 8), /* -- flag                */ 0x0},
-    { LINK(46), "key",          API0( 9), /* -- c                   */ 0x0},
-    { LINK(47), "emit",         API0(10), /* c --                   */ 0x0},
-    { LINK(48), "header",       API0(11), /* w aux <name> --        */ 0x0},
-    { LINK(49), ">options",     API0(12), /* n --                   */ 0x0},
-    { LINK(50), "options>",     API0(13), /* -- n                   */ 0x0},
-    { LINK(51), "(",            API0(14), /* -- */      IS_IMMEDIATE | 0x0},
-    { LINK(52), ".(",           API0(15), /* --                     */ 0x0},
-    { LINK(53), ".s",           API0(16), /* --                     */ 0x0},
-    { LINK(54), ".",            API0(17), /* n --                   */ 0x0},
-    { LINK(55), "cr",           API0(18), /* --                     */ 0x0},
-    { LINK(56), "space",        API0(19), /* --                     */ 0x0},
-    { LINK(57), ".wid",         API0(20), /* wid --                 */ 0x0},
-    { LINK(58), "p'",           API0(21), /* <name> -- w aux        */ 0x0},
-    { LINK(59), "page",         API0(22), /* page -- a              */ 0x0},
-    { LINK(60), ",lit",         API0(23), /* u --                   */ 0x0},
-    { LINK(61), "flash-open",   API0(24), /*                        */ 0x0},
-    { LINK(62), "flash-close",  API0(25), /*                        */ 0x0},
-#if (FAT_FORTH & 1)                                                  
-    { LINK(63), "}t",           API0(26), /* ? --                   */ 0x0},
-    { LINK(64), "->",           API0(27), /* ? --                   */ 0x0},
-    { LINK(65), "t{",           API0(28), /* --                     */ 0x0},
-    { LINK(66), "hex",          API0(29), /* --                     */ 0x0},
-    { LINK(67), "decimal",      API0(30), /* --                     */ 0x0},
-    { LINK(68), ".page",        API0(31), /* n --                   */ 0x0},
-    { LINK(69), ".pages",       API0(32), /* --                     */ 0x0},
-    { LINK(70), "dump",         API0(33), /* addr length --         */ 0x0},
-    { LINK(71), "dumpi",        API0(34), /* inst --                */ 0x0},
-    { LINK(72), "dasm",         API0(35), /* addr length --         */ 0x0},
+    { LINKO(3), "invert",     UOP(VMU_INV),                             0x0},
+    { LINK( 0), "inv",        UOP(VMU_INV),                             0x0},
+    { LINK( 1), "over",       UOP(VMU_OVER),                            0x0},
+    { LINK( 2), "a!",         UOP(VMU_ASTORE),                          0x0},
+    { LINK( 3), "xor",        UOP(VMU_XOR),                             0x0},
+    { LINK( 4), "+",          UOP(VMU_PLUS),                            0x0},
+    { LINK( 5), "and",        UOP(VMU_AND),                             0x0},
+    { LINK( 6), ">r",         UOP(VMU_PUSH),                            0x0},
+    { LINK( 7), "unext",      UOP(VMU_UNEXT),                           0x0},
+    { LINK( 8), "2*",         UOP(VMU_TWOSTAR),                         0x0},
+    { LINK( 9), "dup",        UOP(VMU_DUP),                             0x0},
+    { LINK(10), "drop",       UOP(VMU_DROP),                            0x0},
+    { LINK(11), "@a",         UOP(VMU_FETCHA),                          0x0},
+    { LINK(12), "@a+",        UOP(VMU_FETCHAPLUS),                      0x0},
+    { LINK(13), "@as",        UOP(VMU_FETCHASIGN),                      0x0},
+    { LINK(14), "r@",         UOP(VMU_R),                               0x0},
+    { LINK(15), "r>",         UOP(VMU_POP),                             0x0},
+    { LINK(16), "2/c",        UOP(VMU_TWODIVC),                         0x0},
+    { LINK(17), "2/",         UOP(VMU_TWODIV),                          0x0},
+    { LINK(18), "!a",         UOP(VMU_STOREA),                          0x0},
+    { LINK(19), "!a+",        UOP(VMU_STOREAPLUS),                      0x0},
+    { LINK(20), "!b",         UOP(VMU_STOREB),                          0x0},
+    { LINK(21), "!b+",        UOP(VMU_STOREBPLUS),                      0x0},
+    { LINK(22), "swap",       UOP(VMU_SWAP),                            0x0},
+    { LINK(23), "+*",         UOP(VMU_PLUSSTAR),                        0x0},
+    { LINK(24), "b",          UOP(VMU_B),                               0x0},
+    { LINK(25), "b!",         UOP(VMU_BSTORE),                          0x0},
+    { LINK(26), "@b",         UOP(VMU_FETCHB),                          0x0},
+    { LINK(27), "@b+",        UOP(VMU_FETCHBPLUS),                      0x0},
+    { LINK(28), "a",          UOP(VMU_A),                               0x0},
+    { LINK(29), "cy",         UOP(VMU_CY),                              0x0},
+    { LINK(30), "cells",      0,                         A_NOTHING |    0x0},
+    { LINK(31), "2dup",       MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0x0},
+    { LINK(32), "!",          MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0x0},
+    { LINK(33), "@",          MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),     0x0},
+    { LINK(34), "s@",         MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0x0},
+    { LINK(35), "nip",        MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),         0x0},
+    { LINK(36), "tuck",       MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),         0x0},
+    { LINK(37), "char+",      SYS(VMS_CHARPLUS),   /* a1 -- a2      */  0x0},
+    { LINK(38), "]shr",       SYS(VMS_SHR),        /* u1 -- u2      */  0x0},
+    { LINK(39), "]shl",       SYS(VMS_SHL),        /* u1 -- u2      */  0x0},
+    { LINK(40), "shft[",      SYSTO(VMSTO_SHIFT),  /* position --   */  0x0},
+    { LINK(41), "]task",      SYSTO(VMSTO_TASK),   /* tstate --     */  0x0},
+    { LINK(42), "barf",       SYSTO(VMSTO_BARF),   /* ior --        */  0x0},
+    { LINK(43), "task[",      SYSFM(VMSFROM_TASK), /* -- tstate     */  0x0},
+    { LINK(44), "um*",        API0( 4), /* u1 u2 -- ud              */  0x0},
+    { LINK(45), "m*",         API0( 5), /* n1 n2 -- d               */  0x0},
+    { LINK(46), "mu/mod",     API0( 6), /* ud u -- rem dquot        */  0x0},
+    { LINK(47), "*/mod",      API0( 7), /* n1 n2 -- rem quot        */  0x0},
+    { LINK(48), "key?",       API0( 8), /* -- flag                  */  0x0},
+    { LINK(49), "key",        API0( 9), /* -- c                     */  0x0},
+    { LINK(50), "emit",       API0(10), /* c --                     */  0x0},
+    { LINK(51), ":",          API0(11), /* <name> --                */  0x0},
+    { LINK(52), ";",          API0(12),                  A_IMMED_ONLY | 0x0},
+    { LINK(53), ">options",   API0(13), /* n --                     */  0x0},
+    { LINK(54), "options>",   API0(14), /* -- n                     */  0x0},
+    { LINK(55), "(",          API0(15), /* -- */          A_IMMEDIATE | 0x0},
+    { LINK(56), ".(",         API0(16), /* --                       */  0x0},
+    { LINK(57), "does>",      API0(17), /* --                       */  0x0},
+    { LINK(58), "create",     API0(18), /* -- | -- addr             */  0x0},
+    { LINK(59), "cr",         API0(19), /* --                       */  0x0},
+    { LINK(60), "space",      API0(20), /* --                       */  0x0},
+    { LINK(61), ".wid",       API0(21), /* wid --                   */  0x0},
+    { LINK(62), "p'",         API0(22), /* <name> -- w aux          */  0x0},
+    { LINK(63), "page",       API0(23), /* page -- a                */  0x0},
+    { LINK(64), ",lit",       API0(24), /* u --                     */  0x0}, /// replace this
+    { LINK(65), "flash-open", API0(25), /*                          */  0x0},
+    { LINK(66), "flash-close",API0(26), /*                          */  0x0},
+    { LINK(67), "]",          API0(27), /*                          */  0x0},
+    { LINK(68), "[",          API0(28), /* -- */          A_IMMEDIATE | 0x0},
+    { LINK(69), "exit",       API0(29), /* -- */         A_IMMED_ONLY | 0x0},
+    { LINK(70), "constant",   API0(30), /*                          */  0x0},
+    { LINK(71), "bits",       API0(31), /*                          */  0x0},
+    { LINK(72), ">body",      API0(32), /*                          */  0x0},
+#if (FAT_FORTH & 1)                                                     
+    { LINK(73), "}t",         API0(33), /* ? --                     */  0x0},
+    { LINK(74), "->",         API0(34), /* ? --                     */  0x0},
+    { LINK(75), "t{",         API0(35), /* --                       */  0x0},
+    { LINK(76), "hex",        API0(36), /* --                       */  0x0},
+    { LINK(77), "decimal",    API0(37), /* --                       */  0x0},
+    { LINK(78), ".page",      API0(38), /* n --                     */  0x0},
+    { LINK(79), ".pages",     API0(39), /* --                       */  0x0},
+    { LINK(80), "dump",       API0(40), /* addr length --           */  0x0},
+    { LINK(81), "dumpi",      API0(41), /* inst --                  */  0x0},
+    { LINK(82), "dasm",       API0(42), /* addr length --           */  0x0},
+    { LINK(83), ".s",         API0(43), /* --                       */  0x0},
+    { LINK(84), ".",          API0(44), /* n --                     */  0x0},
 #endif
 };
 
@@ -381,6 +194,11 @@ static const ConstantMapping constant_table[] = {
     { VMI_QLIT    , "_qlit"},
     { VMI_API0    , "_api0"},
     { VMI_API1    , "_api1"},
+    { W_PRIMITIVE , "w_primitive"},
+    { W_MACRO     , "w_macro"},
+    { A_SMUDGED   , "a_smudged"},
+    { A_IMMEDIATE , "a_immediate"},
+    { A_CONSTANT  , "a_constant"}
 };
 
 static int TheStringsMatch(char* s1, char* s2) {
@@ -472,21 +290,13 @@ static const struct s_head* search_wordlist(int wid_index, const char *target_na
     const struct s_head *link = wids[wid_index].head;
     while (link != NULL) {
         if (TheStringsMatch(link->name, (char *)target_name)) {
-            return link;
+            if ((link->aux & A_SMUDGED) == 0) return link;
         }
         link = link->link;
     }
     return NULL;
 }
 
-/* ========================================================================= */
-/* FORTH CONTEXT SEARCH WRAPPER                                              */
-/* ========================================================================= */
-
-/**
- * Iterates through the active wordlists defined in the 'context' array.
- * Replicates the behavior of traditional Forth text interpreters.
- */
 static const struct s_head* search_context(const char *target_name) {
     for (int i = 0; i < CONTEXT_MAX; i++) {
         int wid_idx = CONTEXT[i];
@@ -499,12 +309,6 @@ static const struct s_head* search_context(const char *target_name) {
         }
     }
     return NULL; // Word not found in any active wordlist
-}
-
-static void lfDotLinecount(void) {
-    lfCR();
-    serial_puts("Line ");
-    lfDot(linecount);
 }
 
 /*
@@ -548,6 +352,10 @@ TIB is a fixed buffer in Forth data space for terminal input.
 ========================================================================= */
 
 #define TERMINAL_OVERFLOWED 0x8000
+#define TERMINAL_RX_DIED    0x4000
+
+static uint32_t system_flags = 0;
+static uint32_t linecount = 0;
 
 static int loadTIB(void) {
     char *tib = (char*)TIB; // reset the TIB pointer
@@ -567,18 +375,22 @@ static int loadTIB(void) {
                 continue;
             }
             int c = serial_getc();
-            if (c == EOF) break;        // treat EOF as a normal terminator
+            if (c < 0) {
+                aux_result |= TERMINAL_RX_DIED;
+                break;                  // treat error as a normal terminator
+            }
             if (c == '\r') {
                 if (system_flags & SYS_FLAG_IGNORE_CR) continue;
                 break;
             }
             if (c == '\n') break;       // CRLF inserts lines
+            if (c == 0xFF) c = ' ';     // replace 0xFF with blank
             if (remaining > 1) {
                 *tib++ = (char)c;
                 remaining--;
             }
             else {                      // ignore input remaining until EOL
-                aux_result = TERMINAL_OVERFLOWED;
+                aux_result |= TERMINAL_OVERFLOWED;
             }
         }
         *tib++ = 0;                     // Null-terminate the TIB
@@ -595,6 +407,12 @@ static int loadTIB(void) {
         return length;
     }
 	return 0; // For now, we only handle keyboard input (BLK == 0)
+}
+
+static void lfDotLinecount(void) {
+    lfCR();
+    serial_puts("Line ");
+    lfDot(linecount);
 }
 
 /*
@@ -642,25 +460,28 @@ static int parseWord(void) {
     return ior;
 }
 
-/* HEADER  ( w aux <name> -- ) */
-int lfAPI_header(void) {
+static struct s_head* latest = NULL;
+
+int lfToHeader(uint32_t w, uint32_t aux) {
+    latest->w |= w;
+    latest->aux ^= aux;
+    return 0;
+}
+
+int lfHeader(uint32_t w, uint32_t aux) {
     int ior = parseWord();
     if (ior) return ior;
 
-    // 1. Pop aux and w off the Forth stack (TOS = aux, NOS = w)
-    uint32_t aux = (uint32_t)vmPop();
-    uint32_t w = (uint32_t)vmPop();
-
-    // 2. Resolve destination memory location in 32-bit cells
-    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS];
-    int32_t  f_hp = headptr[2];
-    int32_t  f_hmax = headptr[5];
+    // Resolve destination memory location in 32-bit cells
+    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS + 2];
+    int32_t  f_hp = *headptr;
+    int32_t  f_hmax = headptr[3];
     int page = f_hp >> (22 - VM_LOG2_PAGES);
     int32_t  start_f_hp = f_hp & 0x3FFFFF;
 
     int32_t* cell_dest = &vm_memory[page][start_f_hp];
 
-    // 3. Pack string name into 32-bit cells
+    // Pack string name into 32-bit cells
     char* name_dest = (char*)cell_dest;
     int32_t ch_dest = start_f_hp | 0x40000000; // bytes
     char* src = token;
@@ -685,28 +506,29 @@ int lfAPI_header(void) {
 
     cell_dest += (length / sizeof(int32_t));
 
-    // 4. Construct struct s_head header directly in the next cell boundary
+    // Construct struct s_head header directly in the next cell boundary
     struct s_head* target_head = (struct s_head*)cell_dest;
+    latest = target_head;
     target_head->name = name_dest;
     target_head->w = w;
     target_head->aux = aux;
 
-    // 5. Insert header at top of current wordlist (linked list)
+    // Insert header at top of current wordlist (linked list)
     s_wid* current = &wids[*CURRENT];
     target_head->link = (struct s_head*)current->head; // Point new node to current head
 
-    // 6. Update current wordlist head pointer
+    // Update current wordlist head pointer
     current->head = target_head;
 
     // Advance cell_dest past the struct s_head
     int32_t head_cells = (sizeof(struct s_head) + sizeof(int32_t) - 1) / sizeof(int32_t);
     cell_dest += head_cells;
 
-    // 7. Calculate new f_hp address (start_f_hp + total cell delta)
+    // Calculate new f_hp address (start_f_hp + total cell delta)
     int32_t total_cells_used = (int32_t)(cell_dest - &vm_memory[page][start_f_hp]);
     int32_t new_f_hp = (page << (22 - VM_LOG2_PAGES)) | ((start_f_hp + total_cells_used) & 0x3FFFFF);
 
-    // 8. Bounds check before writing back to F_PTRS
+    // Bounds check before writing back to F_PTRS
     if (new_f_hp >= f_hmax) {
         return ERR_DICTIONARY_OVERFLOW;
     }
@@ -824,36 +646,39 @@ static int interpret(char* str, size_t len) {
 		if (ior) return ior;
         // A. Check the current active vocabulary lists
         const struct s_head* word = search_context(token);
-        if (token[0] != '\0') {         // ignore empty strings
-            int state = lfSTATEfetch();
-            if (word != NULL) {         // word was found in the dictionary
-                if (word->aux & IS_IMMEDIATE) {
-                    state = 0;
+        if (token[0] == '\0') continue; // ignore empty strings
+        int state = lfSTATEfetch();
+        if (word != NULL) {             // word was found in the dictionary
+            if (word->aux & A_IMMEDIATE) {
+                if ((state) && (word->aux & A_NO_EXECUTE)) {
+                    ior = ERR_COMPILE_ONLY;
                 }
-                if (state) {
-                    ior = compile_word(word);
-                }
-                else {
-                    ior = execute_word(word);
-                }
-                int base = lfBASEfetch();
-                if (base < 2) {         // safety-check the base
-                    ior = ERR_INVALID_BASE;
-                    lfBASEstore(10);
-                }
-                continue;
-            }
-            ior = findConstant(token, &value);
-            if (ior) {                  // Fall back to numeric evaluation
-                ior = parseNumber(lfBASEfetch());
+                state = 0;
             }
             if (ior) return ior;
             if (state) {
-                lfCompileLit(value);
+                ior = lfCompileWord(word);
             }
             else {
-                vmPush(value);
+                ior = lfExecuteWord(word);
             }
+            int base = lfBASEfetch();
+            if (base < 2) {             // safety-check the base
+                ior = ERR_INVALID_BASE;
+                lfBASEstore(10);
+            }
+            continue;
+        }
+        ior = findConstant(token, &value);
+        if (ior) {                      // Fall back to numeric evaluation
+            ior = parseNumber(lfBASEfetch());
+        }
+        if (ior) return ior;
+        if (state) {
+            lfCompileLit(value);
+        }
+        else {
+            vmPush(value);
         }
     }
     return ior;
@@ -919,9 +744,10 @@ int QUIT(void) {
             if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
             else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
             if (len & TERMINAL_OVERFLOWED) ior = ERR_TIB_OVERFLOW;
+            if (len & TERMINAL_RX_DIED) ior = ERR_TERM_RX_FAILED;
         }
 		// handle the ior here if needed (e.g., exit on BYE)
-        LF_PACKEDSTATE[0] = 10;
+        LF_PACKEDSTATE[0] = 10; // base = decimal
         switch (ior) {
         case ERR_QUIT: return 0;
         case ERR_UNDEFINED_WORD:
@@ -944,8 +770,6 @@ int QUIT(void) {
         }
     }
 }
-
-// API calls that need variables in this file, which we'd rather not export.
 
 /* `D'` */
 int lfAPI_tickx(void) {

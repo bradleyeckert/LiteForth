@@ -3,6 +3,16 @@
 Cheap MCUs are now as powerful the full-fledged computers of the 1990s.
 The value proposition of Forth cross compilers came and went.
 Applications are now better-developed within the target MCU.
+
+For example, a WCH CH32H417 is equivalent to a 1990 PC in memory capacity.
+Even when simulating a Forth CPU, the CH32H417's performance matches that era. 
+The clock speed of PCs didn't reach 400 MHz until about 1999.
+
+The price of a [CH32H417](https://www.lcsc.com/product-detail/C49363240.html)
+is about $3.88.
+The official [dev board](https://www.aliexpress.us/item/3256812656099340.html)
+is about 10 times that. It has a built-in WCH-Link.
+
 A typical setup includes:
 
 ```mermaid
@@ -47,6 +57,7 @@ flowchart LR
 The architecture of LiteForth is based on C, allowing it to be extended with
 C-based functions where speed is needed. Token threading is used to minimize
 code size, so more functionality can be packed into the small MCU environment.
+Forth code runs in a sandbox, so the MCU does not need any kind of MMU.
 
 ## Code size reduction
 
@@ -152,13 +163,13 @@ The µops (note - they don't take immediate data) are:
 | next   |  4 | PC \= PC \+ s9 if R \> 0 else drop R |
 |        |  5 | |
 | sys    |  6 | Other instruction selected by u9 |
-| pfx    |  7 | Prefix: lex \= (lex\<\<9) + u9 |
+|        |  7 | |
 | *>sys* |  8 | sys instructions that pop from the stack |
 | user   |  9 | A \= U \+ u9 |
 |<u>sys></u>| 10 | sys instructions that push to the stack |
 |<u>qlit</u>| 11 | Push U \+ u9 |
-|        | 12 | |
-|        | 13 | |
+| pfx    | 12 | Prefix: lex \= (lex\<\<9) + u9 |
+| pfx1   | 13 | Prefix: lex \= (lex\<\<9) + u9 + 0x200 |
 | RFcall | 14 | Call root function in VM |
 | AFcall | 15 | Call app function in VM |
 
@@ -172,7 +183,11 @@ A 22-bit literal, jump, or call takes two instructions.
 |:-------|:------|:-------|:-------|
 | *barf* | 8  | 0 | VM quits and returns ior \= T |
 |<u>task\[</u>| 10 | 0 | Get task state |
-|*]task*| 8 | 1 | Save task state |
+|*\]task*| 8 | 1 | Save task state |
+|*shft\[*| 8 | 2 | shift_size = T |
+| ]shr  | 6 | 0 | T = T >> shift_size |
+| ]shl  | 6 | 1 | T = T << shift_size] |
+| char+ | 6 | 2 | Skip to next bit field |
 
 ## pause
 

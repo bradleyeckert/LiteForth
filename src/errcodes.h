@@ -17,7 +17,7 @@
 #define ERR_RESULT_OUT_OF_RANGE     (-11)   /* result out of range */
 #define ERR_ARGUMENT_TYPE_MISMATCH  (-12)   /* argument type mismatch */
 #define ERR_UNDEFINED_WORD          (-13)   /* undefined word */
-#define ERR_INTERPRET_ONLY          (-14)   /* interpreting a compile-only word */
+#define ERR_COMPILE_ONLY            (-14)   /* interpreting a compile-only word */
 #define ERR_INVALID_FORGET          (-15)   /* invalid FORGET */
 #define ERR_ZERO_LENGTH_NAME        (-16)   /* attempt to use zero-length string as a name */
 #define ERR_PICTURED_NUM_OVERFLOW   (-17)   /* pictured numeric output string overflow */
@@ -127,5 +127,6 @@
 #define ERR_WRONG_NUM_RESULTS      (-107)   /* assertion - wrong number of results */
 #define ERR_INVALID_MEMORY_PAGE    (-108)   /* invalid memory page (>= `pages`) */
 #define ERR_TIB_OVERFLOW           (-109)   /* TIB filled up before EOL was seen */
+#define ERR_TOO_MANY_BITS          (-110)   /* only 1 to 32 bits are allowed in a bit field */
 
 #endif // ERRCODES_H

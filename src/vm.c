@@ -41,6 +41,7 @@ int32_t vmCharPlus(int32_t addr) {
 }
 
 static int vmLitIns9(uint16_t inst, int32_t imm) {
+    static int shift_size = 0;
     imm &= 0x1FF;       // u9
     int32_t simm = imm; // s9
     if (simm & 0x100) {
@@ -68,12 +69,13 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         VM_RDROP;  break;
     case VMO_SYS:
         switch (imm) {
+        case VMS_SHR: T = T >> shift_size; break;
+        case VMS_SHL: T = T << shift_size; break;
         case VMS_CHARPLUS: // char+
             T = vmCharPlus(T);
             break;
         default: break;
         } break;
-    case VMO_PFX: lex = (lex << 9) | imm; break;
     case VMO_TOSYS: {
         int32_t tos = T;
         VM_DDROP;
@@ -84,6 +86,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
             rp = (tos >> 16) & 0xFFFF;
             R = B;
             break;
+        case VMSTO_SHIFT:
+            shift_size = tos & 0x1F; break;
         default: break;
         }
     } break;
@@ -101,6 +105,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     case VMO_QLIT:
         VM_DDUP;  T = U + imm;
         break;
+    case VMO_PFX: lex = (lex << 9) | imm; break;
+    case VMO_PFX1: lex = (lex << 9) | imm | 0x200; break;
     case VMO_API0: return VMapi0Call(imm);
     case VMO_API1: return VMapi1Call(imm);
     default: return ERR_INVALID_OPCODE;
@@ -112,7 +118,7 @@ PLACE_IN_ITCM;
 int vmFetch(uint32_t addr, int32_t* data) {
     int bitfield_size = addr >> 27;
     int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
-    uint32_t a = addr & VM_SEGMASK;
+    uint32_t a = addr & VM_PAGE_MASK;
     if (a >= vm_memory_rd_limit[page]) {
         return ERR_INVALID_ADDRESS;
     }
@@ -128,7 +134,7 @@ int vmFetch(uint32_t addr, int32_t* data) {
 int vmStore(uint32_t addr, int32_t data) {
     int bitfield_size = addr >> 27;
     int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
-    uint32_t a = addr & VM_SEGMASK;
+    uint32_t a = addr & VM_PAGE_MASK;
     if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
         return ERR_INVALID_ADDRESS;
     }
@@ -178,7 +184,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
                 if (PC == (int32_t)0xDEADC0DE) return 0;
                 return ERR_EXEC_PROTECTED;
             }
-            uint32_t a = (PC >> 1) & VM_SEGMASK;
+            uint32_t a = (PC >> 1) & VM_PAGE_MASK;
             if (a >= vm_memory_executable[page]) return ERR_EXEC_PROTECTED;
             inst = vm_memory[page][a];
             if (!(PC & 1)) {

@@ -6,6 +6,7 @@
 #include "options.h"
 #include "memalloc.h"
 #include "flash.h"
+#include "blocks.h"
 
 int main(int argc, char* argv[]) {
     char* port_name = NULL;
@@ -53,7 +54,11 @@ int main(int argc, char* argv[]) {
     pool_reset();
     int32_t* ram = pool_alloc(RAM_PAGE_CELLS);
     int32_t* flash = NULL;
+
     int ior = flash_init(FLASHFILENAME, &flash);
+    if (ior) return ior;
+    ior = blk_init(BLOCKFILENAME);
+    if (ior) return ior;
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         if (i < RAM_PAGE) {
@@ -105,5 +110,5 @@ int main(int argc, char* argv[]) {
 
     int err = pool_free(ram);
     if (err) return err;
-    return ior; 
+    return ior;
 }

@@ -126,3 +126,13 @@ variable doesptr
 : create  : here dup ,lit  there doesptr !  postpone ; ;
 : does>   doesptr @ torg ] ;
 ```
+
+# header
+
+`header` ( w aux <name> -- ) creates a new header in the current wordlist.
+`w` and `aux` are data to populate the header, since it lives outside of
+the LiteForth sandbox.
+
+`>header` ( w aux -- ) modifies the last defined header by ORing the w and aux fields.
+
+

@@ -63,3 +63,13 @@ If you compare that to an MCU with 400 MHz core clock and 200 MHz APB clock,
 it looks about the same.
 
 The code compiled by LiteForth will run in a real Forth chip, but it would have to avoid API calls.
+
+## left and right shifts
+
+There are two different 32-bit barrel shifters, both fed by registers.
+They are needed for the read and RMW operations.
+The output gets selected by the instruction decoding.
+Some extra `sys` instructions are added to allow their use by Forth's
+LSHIFT and RSHIFT.
+They do not need to be active constantly. Any memory operation or `shft[` will
+momentarily trigger them. It would be kind of wasteful to leave them on all the time.

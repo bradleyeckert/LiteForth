@@ -87,9 +87,12 @@ int blk_init(char *filename) {
     // Read Block 0 header content to parse slider positions
     fseek(file, 0, SEEK_SET);
     char block0_text[128] = {0};
-    fread(block0_text, 1, sizeof(block0_text) - 1, file);
+    if (fread(block0_text, 1, sizeof(block0_text) - 1, file) == 0) {
+        fclose(file);
+        return ERR_BLK_READ_FAIL;
+    }
     fclose(file);
-
+    
     // Verify block format properties
     char signature[32] = {0};
     int version = 0;

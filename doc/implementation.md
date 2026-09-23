@@ -6,26 +6,25 @@ LiteForth runs on either a PC or MCU. Functionality that differs between them ar
 - `flash.c` is the flash memory implementation or simulation
 - `periph.c` is optional peripheral simulation
 - `main.c` is initialization and startup code
-- `vm.s` is the platform-specific token interpreter, if `vm.c` is not used.
+- `vm.s` is the platform-specific Machineforth interpreter, if `vm.c` is not used.
 
 The common functionality is:
 
-- `forth.c` is the QUIT interpreter
-- `config.h` is the system configuration
-- `vm.c` is the token interpreter
+- `options.h` is the system configuration
+- `forth.c` is the QUIT loop and interpreter
+- `comp.c` is the Forth compiler`
+- `tools.c` is a lexicon of little tools for `forth.c`, etc.
+- `memalloc.c` is a bump allocator to manage RAM
+- `vm.c` is the Machineforth interpreter
+- `api0.c` is the C API for Forth
+- `utils.c` is optional extensions to the C API
 
 The `src` folder contains the common functionality.
 Platform-specific functionality is in a folder for that platform.
 
-For a PC-based console app, the language is C11, which uses safe file io and threads.
-Threads are used to make console I/O non-blocking.
+For a PC-based console app, the language is C99 or C11.
 
 For an MCU-based platform, the chip vendor's IDE is used.
-
-Flash memory supplies *regions*, which are contiguous runs of *sectors*.
-The application region starts with a data structure that is followed by optional
-C functions, Forth code, and Forth dictionary. This data structure is loaded at boot
-to set up addressing used by the VM.
 
 ## serial_io
 

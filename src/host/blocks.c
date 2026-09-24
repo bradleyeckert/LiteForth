@@ -14,10 +14,10 @@ static uint32_t first_write_protected_block = SIMNUMBLOCKS;
 /* Track the actual physical capacity on disk for bounds checking */
 static uint32_t actual_blocks = 0;
 
-int blk_init(char *filename) {
-    FILE *file = NULL;
-    char *target_file = (filename && filename[0] != '\0') ? filename : BLOCKFILENAME;
-    
+int blk_init(char* filename) {
+    FILE* file = NULL;
+    char* target_file = (filename && filename[0] != '\0') ? filename : BLOCKFILENAME;
+
     // Save target file path
     strncpy(active_blk_filename, target_file, sizeof(active_blk_filename) - 1);
 
@@ -25,7 +25,7 @@ int blk_init(char *filename) {
     file = fopen(target_file, "r+b");
     if (!file) {
         // File missing: Create a new blank mass storage file filled with ASCII spaces
-        file = fopen(target_file, "wb");
+        file = fopen(target_file, "w+b");
         if (!file) {
             return ERR_BLK_CREATE_FAIL;
         }
@@ -36,9 +36,9 @@ int blk_init(char *filename) {
 
         // Format and copy the minimal header string into the beginning of Block 0 buffer
         char header_txt[128];
-        snprintf(header_txt, sizeof(header_txt), "LITEFORTHBLK 1 %X %X %X\n", 
-                 BLK_SIZE_BYTES, SIMNUMBLOCKS, SIMNUMBLOCKS);
-        
+        snprintf(header_txt, sizeof(header_txt), "LITEFORTHBLK 1 %X %X %X\n",
+            BLK_SIZE_BYTES, SIMNUMBLOCKS, SIMNUMBLOCKS);
+
         size_t header_len = strlen(header_txt);
         memcpy(space_buf, header_txt, header_len);
 
@@ -56,25 +56,22 @@ int blk_init(char *filename) {
                 return ERR_BLK_WRITE_INIT;
             }
         }
-        fclose(file);
-        
-        total_blocks_allocated = SIMNUMBLOCKS;
-        first_write_protected_block = SIMNUMBLOCKS;
-        actual_blocks = SIMNUMBLOCKS;
-        return 0;
+
+        // Ensure data is flushed to disk before parsing
+        fflush(file);
     }
 
     // Determine the current file length
     fseek(file, 0, SEEK_END);
     long file_len = ftell(file);
-    
+
     // Check if the file length is a clean multiple of 4096 (BLK_SIZE_BYTES)
     long remainder = file_len % BLK_SIZE_BYTES;
     if (remainder != 0) {
         long padding_needed = BLK_SIZE_BYTES - remainder;
         char space_buf[BLK_SIZE_BYTES];
         memset(space_buf, 0x20, sizeof(space_buf));
-        
+
         // Append spaces to expand the file to a multiple of BLK_SIZE_BYTES
         if (fwrite(space_buf, 1, padding_needed, file) == (size_t)padding_needed) {
             file_len += padding_needed; // Update file length tracking
@@ -86,22 +83,22 @@ int blk_init(char *filename) {
 
     // Read Block 0 header content to parse slider positions
     fseek(file, 0, SEEK_SET);
-    char block0_text[128] = {0};
+    char block0_text[128] = { 0 };
     if (fread(block0_text, 1, sizeof(block0_text) - 1, file) == 0) {
         fclose(file);
         return ERR_BLK_READ_FAIL;
     }
     fclose(file);
-    
+
     // Verify block format properties
-    char signature[32] = {0};
+    char signature[32] = { 0 };
     int version = 0;
     uint32_t parsed_blk_size = 0;
     uint32_t parsed_total_blks = 0;
     uint32_t parsed_wp_start = 0;
 
-    int scanned = sscanf(block0_text, "%31s %d %x %x %x", 
-                         signature, &version, &parsed_blk_size, &parsed_total_blks, &parsed_wp_start);
+    int scanned = sscanf(block0_text, "%31s %d %x %x %x",
+        signature, &version, &parsed_blk_size, &parsed_total_blks, &parsed_wp_start);
 
     if (scanned < 5 || strcmp(signature, "LITEFORTHBLK") != 0) {
         return ERR_BLK_PARSE_FAIL;

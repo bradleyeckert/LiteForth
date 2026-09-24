@@ -63,6 +63,15 @@ int lfDot(int32_t val);
  */
 uint64_t divide64by32(uint64_t dividend, uint32_t divisor, uint32_t* remainder);
 
+int LFaddr_to_ptr(uint32_t addr, int32_t** ptr);
+int vmPush(int32_t value);
+int32_t vmPop(void);
+int lfBASEfetch(void);
+int lfBASEstore(int base);
+int lfSTATEstore(int state);
+int lfSTATEfetch(void);
+
+
 #ifdef __cplusplus
 }
 #endif

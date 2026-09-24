@@ -4,6 +4,7 @@
 #include "serial_io.h"
 #include "vm.h"
 #include "vm_labels.h"
+#include "tools.h"
 #include "utils.h"
 
 static const ErrorMapping error_table[] = {
@@ -21,7 +22,7 @@ static const ErrorMapping error_table[] = {
     { ERR_RESULT_OUT_OF_RANGE, "result out of range" },
     { ERR_ARGUMENT_TYPE_MISMATCH, "argument type mismatch" },
     { ERR_UNDEFINED_WORD, "undefined word" },
-    { ERR_COMPILE_ONLY, "interpreting a compile-only word" },
+    { ERR_INTERPRET_COMPILE_ONLY, "interpreting a compile-only word" },
     { ERR_INVALID_FORGET, "invalid FORGET" },
     { ERR_ZERO_LENGTH_NAME, "attempt to use zero-length string as a name" },
     { ERR_PICTURED_NUM_OVERFLOW, "pictured numeric output string overflow" },
@@ -120,7 +121,10 @@ static const ErrorMapping error_table[] = {
     { ERR_WRONG_RESULTS, "assertion - wrong results" },
     { ERR_WRONG_NUM_RESULTS, "assertion - wrong number of results" },
     { ERR_INVALID_MEMORY_PAGE, "invalid memory page (>= `pages`)" },
-    { ERR_TIB_OVERFLOW, "TIB filled up before EOL was seen" }
+    { ERR_TIB_OVERFLOW, "TIB filled up before EOL was seen" },
+    { ERR_WID_OVERFLOW, "Wordlist allocation overflowed" },
+    { ERR_TOO_MANY_BITS, "Only 1 to 32 bits are allowed in a bit field" },
+    { ERR_INTERPRETATION_ONLY, "Word may not be compiled" },
 };
 
 /**

@@ -4,9 +4,7 @@
 #include <stdint.h>
 #include "options.h"
 
-/* Fixed block size as per specification: 0x1000 bytes = 4096 bytes = 1024 uint32_t cells */
-#define BLK_SIZE_BYTES           4096
-#define BLK_SIZE_CELLS           (BLK_SIZE_BYTES / sizeof(uint32_t))
+#define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS / sizeof(uint32_t))
 
 /**
  * Initializes the block mass storage simulation.

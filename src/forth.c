@@ -4,6 +4,7 @@
 #include "errcodes.h"
 #include "serial_io.h"
 #include "comp.h"
+#include "tools.h"
 #include "options.h"
 
 // wsl: // cd /mnt/c/Users/User/Documents/GitHub/LiteForth
@@ -13,19 +14,9 @@
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;
-static char token[32]; // token buffer for parsing
-static char* source = NULL; // pointer to the current position in the input string
-static int32_t value; // value returned by numeric input parsing
-
-int lfBASEfetch(void) {
-    int32_t result;
-    vmFetch(LF_BASE, &result);
-    return result;
-}
-
-int lfBASEstore(int base) {
-    return vmStore(LF_BASE, base);
-}
+static char token[32];      // token buffer for parsing
+static char* source = NULL; // current position in the input string
+static int32_t value;       // value returned by numeric input parsing
 
 static int lfTOINfetch(void) {
     int32_t result;
@@ -140,7 +131,7 @@ static const struct s_head forth_heads[] = {
     { LINK(61), ".wid",       API0(21), /* wid --                   */  0x0},
     { LINK(62), "p'",         API0(22), /* <name> -- w aux          */  0x0},
     { LINK(63), "page",       API0(23), /* page -- a                */  0x0},
-    { LINK(64), ",lit",       API0(24), /* u --                     */  0x0}, /// replace this
+    { LINK(64), "wordlist",   API0(24), /* u --                     */  0x0},
     { LINK(65), "flash-open", API0(25), /*                          */  0x0},
     { LINK(66), "flash-close",API0(26), /*                          */  0x0},
     { LINK(67), "]",          API0(27), /*                          */  0x0},
@@ -149,19 +140,20 @@ static const struct s_head forth_heads[] = {
     { LINK(70), "constant",   API0(30), /*                          */  0x0},
     { LINK(71), "bits",       API0(31), /*                          */  0x0},
     { LINK(72), ">body",      API0(32), /*                          */  0x0},
+    { LINK(73), "vocabulary", API0(33), /*                          */  0x0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(73), "}t",         API0(33), /* ? --                     */  0x0},
-    { LINK(74), "->",         API0(34), /* ? --                     */  0x0},
-    { LINK(75), "t{",         API0(35), /* --                       */  0x0},
-    { LINK(76), "hex",        API0(36), /* --                       */  0x0},
-    { LINK(77), "decimal",    API0(37), /* --                       */  0x0},
-    { LINK(78), ".page",      API0(38), /* n --                     */  0x0},
-    { LINK(79), ".pages",     API0(39), /* --                       */  0x0},
-    { LINK(80), "dump",       API0(40), /* addr length --           */  0x0},
-    { LINK(81), "dumpi",      API0(41), /* inst --                  */  0x0},
-    { LINK(82), "dasm",       API0(42), /* addr length --           */  0x0},
-    { LINK(83), ".s",         API0(43), /* --                       */  0x0},
-    { LINK(84), ".",          API0(44), /* n --                     */  0x0},
+    { LINK(74), "}t",         API0(34), /* ? --                     */  0x0},
+    { LINK(75), "->",         API0(35), /* ? --                     */  0x0},
+    { LINK(76), "t{",         API0(36), /* --                       */  0x0},
+    { LINK(77), "hex",        API0(37), /* --                       */  0x0},
+    { LINK(78), "decimal",    API0(38), /* --                       */  0x0},
+    { LINK(79), ".page",      API0(39), /* n --                     */  0x0},
+    { LINK(80), ".pages",     API0(40), /* --                       */  0x0},
+    { LINK(81), "dump",       API0(41), /* addr length --           */  0x0},
+    { LINK(82), "dumpi",      API0(42), /* inst --                  */  0x0},
+    { LINK(83), "dasm",       API0(43), /* addr length --           */  0x0},
+    { LINK(84), ".s",         API0(44), /* --                       */  0x0},
+    { LINK(85), ".",          API0(45), /* n --                     */  0x0},
 #endif
 };
 
@@ -210,6 +202,7 @@ static int TheStringsMatch(char* s1, char* s2) {
         if (c1 == '\0') break;
         if (c2 == '\0') break;
         if (case_insensitive) {
+            if (c1 >= 'A' && c1 <= 'Z') c1 += 32;
             if (c2 >= 'A' && c2 <= 'Z') c2 += 32;
         }
         if (c1 != c2) break;
@@ -230,7 +223,7 @@ static int findConstant(char* name, int32_t* val) {
 }
 
 /* ========================================================================= */
-/* FORTH SEARCH CONTEXT STRUCTURES                                           */
+/* WORDLIST TABLE                                                            */
 /* ========================================================================= */
 
 struct s_wid wids[WIDS_MAX] = { // wordlists
@@ -241,6 +234,15 @@ struct s_wid wids[WIDS_MAX] = { // wordlists
 };
 
 static int wids_pointer = 2;
+
+// Start a new wordlist
+int lfAddWordlist(char* name) {
+    if (wids_pointer >= WIDS_MAX) return ERR_WID_OVERFLOW;
+    wids[wids_pointer].head = NULL;
+    wids[wids_pointer].name = name;
+    return wids_pointer++;
+}
+
 
 /* CONTEXT array holds indices into the wids array, ordered by search priority.
    Terminated with -1 to indicate the end of the search order. */
@@ -468,6 +470,8 @@ int lfToHeader(uint32_t w, uint32_t aux) {
     return 0;
 }
 
+static char* headname = NULL;
+
 int lfHeader(uint32_t w, uint32_t aux) {
     int ior = parseWord();
     if (ior) return ior;
@@ -483,7 +487,8 @@ int lfHeader(uint32_t w, uint32_t aux) {
 
     // Pack string name into 32-bit cells
     char* name_dest = (char*)cell_dest;
-    int32_t ch_dest = start_f_hp | 0x40000000; // bytes
+    headname = name_dest;
+    int32_t ch_dest = start_f_hp | (8 << 27); // bytes
     char* src = token;
     char c = 0;
     uint8_t length = 0;
@@ -534,6 +539,13 @@ int lfHeader(uint32_t w, uint32_t aux) {
     }
 
     headptr[2] = new_f_hp;
+    return 0;
+}
+
+/* VOCABULARY  ( -- ) */
+int lfAPI_vocabulary(void) {
+    lfHeader(wids_pointer, A_VOCABULARY);
+    lfAddWordlist(headname);
     return 0;
 }
 
@@ -651,7 +663,7 @@ static int interpret(char* str, size_t len) {
         if (word != NULL) {             // word was found in the dictionary
             if (word->aux & A_IMMEDIATE) {
                 if ((state) && (word->aux & A_NO_EXECUTE)) {
-                    ior = ERR_COMPILE_ONLY;
+                    ior = ERR_INTERPRET_COMPILE_ONLY;
                 }
                 state = 0;
             }

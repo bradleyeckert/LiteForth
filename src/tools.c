@@ -93,4 +93,51 @@ int lfDot(int32_t val) {
     return lfSpace();
 }
 
+/*=========================================================================
+* Address translation functions
+=========================================================================*/
+
+// Translate LiteForth address to system address.
+int LFaddr_to_ptr(uint32_t addr, int32_t** ptr) {
+    int bitfield_size = addr >> 27;
+    int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
+    uint32_t a = addr & VM_PAGE_MASK;
+    if (a >= vm_memory_rd_limit[page]) {
+        return ERR_INVALID_ADDRESS;
+    }
+    **ptr = &vm_memory[page][a];
+    return 0;
+}
+
+/*=========================================================================
+* System word fetch and store
+=========================================================================*/
+
+int vmPush(int32_t x) {
+    return vmPoke(-1, x);
+}
+
+int32_t vmPop(void) {
+    return vmPeek(-1);
+}
+
+int lfSTATEfetch(void) {
+    int32_t result;
+    vmFetch(LF_STATE, &result);
+    return result;
+}
+
+int lfSTATEstore(int state) {
+    return vmStore(LF_STATE, state);
+}
+
+int lfBASEfetch(void) {
+    int32_t result;
+    vmFetch(LF_BASE, &result);
+    return result;
+}
+
+int lfBASEstore(int base) {
+    return vmStore(LF_BASE, base);
+}
 

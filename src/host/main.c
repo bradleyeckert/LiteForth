@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
     int ior = flash_init(FLASHFILENAME, &flash);
     if (ior) return ior;
-    ior = blk_init(BLOCKFILENAME);
+    ior = blk_init(NULL);
     if (ior) return ior;
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {

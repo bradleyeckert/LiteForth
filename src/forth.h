@@ -64,8 +64,9 @@ locations for accessibility by Forth or by C.
 #define A_IMMEDIATE     0x40000000 // this word is immediate
 #define A_NO_EXECUTE    0x20000000 // only execute while compiling
 #define A_NO_TAIL_CALL  0x10000000 // don't allow tail recursion
-#define A_CONSTANT      0x00000000 // w is a constant
-#define A_NOTHING       0x08000000 // do nothing
+#define A_CONSTANT      0x08000000 // w is a constant
+#define A_VOCABULARY    0x04000000 // vocabulary
+#define A_NOTHING       0x02000000 // do nothing
 #define A_IMMED_ONLY    (A_IMMEDIATE | A_NO_EXECUTE)
 
 
@@ -108,28 +109,22 @@ typedef struct {
  */
 int QUIT(void);
 
-int serial_puts(const char* s);
-int lfCR(void);
-int lfSpace(void);
-int lfDot(int32_t val);
-int lfDotB(uint32_t val, int base, int dpl, int digits);
-int lfBASEfetch(void);
-int lfBASEstore(int base);
-int vmPush(int32_t value);
-int32_t vmPop(void);
 int lfDotS(void);
+int lfHeader(uint32_t w, uint32_t aux);
+int lfToHeader(uint32_t w, uint32_t aux);
+int lfCompileLit(int32_t num);
+int lfAddWordlist(char* name);
+
 int lfAPI_dotWid(void);
 int lfAPI_words(void);
 int lfAPI_getFlags(void);
 int lfAPI_setFlags(void);
-int lfHeader(uint32_t w, uint32_t aux);
-int lfToHeader(uint32_t w, uint32_t aux);
 int lfAPI_paren(void);
 int lfAPI_dotParen(void);
 int lfAPI_tickx(void);
 int lfAPI_only(void);
 int lfAPI_forth(void);
-int lfCompileLit(int32_t num);
+int lfAPI_vocabulary(void);
 
 #ifdef __cplusplus
 }

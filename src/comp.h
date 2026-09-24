@@ -50,14 +50,7 @@ int lfExecuteWord(const struct s_head* word);
  */
 int lfCompileWord(const struct s_head* word);
 
-/**
- * Stores to STATE
- * @param state Value to store
- * @return 0 on success, or an explicit negative error code on failure.
- */
-int lfSTATEstore(int state);
-int lfSTATEfetch(void);
-
+int lfCompString(char* str);
 
 int lfAPI_colon(void);
 int lfAPI_semicolon(void);

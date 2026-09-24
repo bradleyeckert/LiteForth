@@ -8,6 +8,7 @@
 #include "memalloc.h"
 #include "flash.h"
 #include "comp.h"
+#include "tools.h"
 #include "api0.h"
 #include <string.h>
 
@@ -212,6 +213,20 @@ static int endbracket(void) {
     return lfSTATEstore(0);
 }
 
+/* WORDLIST  ( -- wid ) */
+static int wordlist(void) {
+    int ior = lfAddWordlist(NULL);
+    if (ior < 0) return ior;
+    return vmPush(ior);
+}
+
+/*==========================================================================
+Block I/O
+==========================================================================*/
+
+#define BLOCKBUFS    vm_memory[RAM_PAGE][F_BLOCKBUFS]
+
+
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
@@ -219,9 +234,9 @@ static const APIfn API0fns[] = {
     mstar, mudivmod, stardivmod, qkey, key, 
     emit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, lfAPI_getFlags,
     lfAPI_paren, lfAPI_dotParen, lfAPI_dotDoes, lfAPI_dotCreate, lfCR,
-    lfSpace, lfAPI_dotWid, lfAPI_tickx, tickpage, commaLit,
+    lfSpace, lfAPI_dotWid, lfAPI_tickx, tickpage, wordlist,
     flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
-    lfAPI_constant, lfAPI_bits, lfAPI_toBody
+    lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_vocabulary
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm

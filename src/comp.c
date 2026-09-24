@@ -4,26 +4,9 @@
 #include "errcodes.h"
 #include "serial_io.h"
 #include "options.h"
+#include "tools.h"
 #include "comp.h"
 #include <stdio.h> // remove for production code
-
-int vmPush(int32_t x) {
-    return vmPoke(-1, x);
-}
-
-int32_t vmPop(void) {
-    return vmPeek(-1);
-}
-
-int lfSTATEfetch(void) {
-    int32_t result;
-    vmFetch(LF_STATE, &result);
-    return result;
-}
-
-int lfSTATEstore(int state) {
-    return vmStore(LF_STATE, state);
-}
 
 /*===========================================================================
 * Dictionary pointer functions (F_PTRS in RAM page: dp, cp, hp, dp1, cp1, hp1
@@ -55,7 +38,7 @@ static uint32_t cpPC(void) {
 static int32_t* herePtr(void) {
     int32_t space = 0; // d,c,h,-
     vmFetch(LF_MSPACE, &space);
-    return vm_memory[RAM_PAGE + space];
+    return &vm_memory[RAM_PAGE][F_PTRS + space];
 }
 
 // update the current HERE pointer
@@ -77,6 +60,29 @@ int lfAPI_comma(void) {
     toHere(here);
     return ior;
 }
+
+// Compile a string to header space
+int lfCompString(char* str) {
+    uint32_t* dp = &vm_memory[RAM_PAGE][F_PTRS + 2];
+    uint32_t here = dp[0] | (8 << 27);
+    uint32_t heremax = dp[3];
+    int ior = 0;
+    char c = 1;
+    while (c) {
+        c = *str++;                 // include zero terminator
+        ior = vmStore(here, c);
+        if (ior) return ior;
+        here = vmCharPlus(here);
+        if ((here & 0x3FFFFF) >= heremax) return ERR_DICTIONARY_OVERFLOW;
+    }
+    while (here & (0x1F << 22)) {   // pad to cell
+        ior = vmStore(here, 0x55);
+        here = vmCharPlus(here);
+    }
+    dp[2] = here & 0x3FFFFF;
+    return ior;
+}
+
 
 /*=========================================================================
 * Compiling
@@ -186,6 +192,9 @@ int lfCompileLit(int32_t x) {
 // Execute using the VM
 int lfExecuteWord(const struct s_head* word) {
     if (word->aux & A_NOTHING)  return 0;
+    if (word->aux & A_VOCABULARY) {
+        return vmStore(LF_CURRENT, word->w);
+    }
     if (word->aux & A_CONSTANT) return vmPush(word->w);
     int ior = 0;
 
@@ -201,6 +210,7 @@ int lfExecuteWord(const struct s_head* word) {
 // Compile a word
 int lfCompileWord(const struct s_head* word) {
     if (word->aux & A_NOTHING)  return 0;
+    if (word->aux & A_VOCABULARY) return ERR_INTERPRETATION_ONLY;
     uint32_t w = word->w;
     if (word->aux & A_CONSTANT) return lfCompileLit(w);
     int ior = 0;

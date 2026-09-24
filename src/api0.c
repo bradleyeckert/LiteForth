@@ -131,11 +131,6 @@ static int stardivmod(void) {
     return 0;
 }
 
-/* ,LIT */
-static int commaLit(void) {
-    return lfCompileLit(vmPop());
-}
-
 int openpage = -1;
 int32_t* cache = NULL;
 int32_t* flash = NULL;
@@ -215,8 +210,9 @@ static int endbracket(void) {
 
 /* WORDLIST  ( -- wid ) */
 static int wordlist(void) {
-    int ior = lfAddWordlist(NULL);
+    int ior = lfAddWordlist(lfCreatedName);
     if (ior < 0) return ior;
+    lfCreatedName = NULL;
     return vmPush(ior);
 }
 
@@ -226,6 +222,7 @@ Block I/O
 
 #define BLOCKBUFS    vm_memory[RAM_PAGE][F_BLOCKBUFS]
 
+// block wordlist API goes here
 
 typedef int(*APIfn) (void);
 
@@ -234,13 +231,14 @@ static const APIfn API0fns[] = {
     mstar, mudivmod, stardivmod, qkey, key, 
     emit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, lfAPI_getFlags,
     lfAPI_paren, lfAPI_dotParen, lfAPI_dotDoes, lfAPI_dotCreate, lfCR,
-    lfSpace, lfAPI_dotWid, lfAPI_tickx, tickpage, wordlist,
+    lfAPI_here, lfAPI_dotWid, lfAPI_tickx, tickpage, wordlist,
     flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
-    lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_vocabulary
+    lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_comma, lfAPI_bit,
+    bye, bye
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm
-    , vmAPI_dotEss, vmAPI_dot
+    , lfAPI_dotEss, lfAPI_dot
 #endif
 };
 

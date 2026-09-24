@@ -50,6 +50,9 @@ int lfExecuteWord(const struct s_head* word);
  */
 int lfCompileWord(const struct s_head* word);
 
+// globals
+extern char* lfCreatedName; // CREATE (comp.c) --> WORDLIST (forth.c)
+
 int lfCompString(char* str);
 
 int lfAPI_colon(void);
@@ -57,11 +60,12 @@ int lfAPI_semicolon(void);
 int lfAPI_exit(void);
 int lfAPI_constant(void);
 int lfAPI_bits(void);
-int lfAPI_here(void);
-int lfAPI_comma(void);
 int lfAPI_dotCreate(void);
 int lfAPI_dotDoes(void);
 int lfAPI_toBody(void);
+int lfAPI_bit(void);
+int lfAPI_here(void);
+int lfAPI_comma(void);
 
 
 #ifdef __cplusplus

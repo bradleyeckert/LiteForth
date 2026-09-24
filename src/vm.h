@@ -70,7 +70,7 @@ int vmStore(uint32_t addr, int32_t data);
  * @param addr Cell or bitfield address
  * @return Next cell or bitfield address
  */
-int32_t vmCharPlus(int32_t addr);
+int32_t vmFieldPlus(int32_t addr);
 
 /**
  * @brief Reads the contents of a specific VM register.

@@ -97,7 +97,7 @@ int lfDot(int32_t val) {
 * Address translation functions
 =========================================================================*/
 
-// Translate LiteForth address to system address.
+/* Translate LiteForth address to system address.
 int LFaddr_to_ptr(uint32_t addr, int32_t** ptr) {
     int bitfield_size = addr >> 27;
     int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
@@ -108,7 +108,7 @@ int LFaddr_to_ptr(uint32_t addr, int32_t** ptr) {
     **ptr = &vm_memory[page][a];
     return 0;
 }
-
+*/
 /*=========================================================================
 * System word fetch and store
 =========================================================================*/

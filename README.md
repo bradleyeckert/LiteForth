@@ -8,8 +8,8 @@ For example, a WCH CH32H417 is equivalent to a 1990 PC in memory capacity.
 Even when simulating a Forth CPU, the CH32H417's performance matches that era. 
 The clock speed of PCs didn't reach 400 MHz until about 1999.
 
-The price of a [CH32H417](https://www.lcsc.com/product-detail/C49363240.html)
-is about $3.88.
+A [CH32H417](https://www.lcsc.com/product-detail/C49363240.html)
+costs about $3.88.
 The official [dev board](https://www.aliexpress.us/item/3256812656099340.html)
 is about 10 times that. It has a built-in WCH-Link.
 
@@ -47,8 +47,7 @@ flowchart LR
 ```
 
 For development without MCU hardware, LiteForth can
-run in a terminal window, with `getchar()` replacing the UART input.
-Line Feed (0Ah) means process the line.
+run in a terminal window, with stdio replacing the UART.
 
 ```mermaid
 flowchart LR
@@ -58,6 +57,11 @@ The architecture of LiteForth is based on C, allowing it to be extended with
 C-based functions where speed is needed. Token threading is used to minimize
 code size, so more functionality can be packed into the small MCU environment.
 Forth code runs in a sandbox, so the MCU does not need any kind of MMU.
+
+LiteForth is ANS-ish, but not ANS compilant. It is cell-addressed.
+Strings and bytes are handled as generic bit fields, breaking the character model
+of ANS Forth. LiteForth is a dialect of Machine Forth, designed to run on a real
+or simulated Forth chip.
 
 ## Code size reduction
 
@@ -88,8 +92,10 @@ wanted 64 bits, but that is ignored here. There are no 64-bit MCUs.
 
 32 bits are a lot more than you need to address memory in a simulated CPU.
 22 bits work fine. `@` and `!` test the upper 10 bits of the address to determine
-whether to use the whole cell or just a bit field.
-Bit fields support variables smaller than 32-bit as long as the address fits into
+whether to use the whole cell or just a bit field. LiteForth calls these
+fields *slices*.
+
+Slices support variables smaller than 32-bit as long as the slice address fits into
 a 5:5:22 format, where the fields are size:shift:address.
 This use of bit fields gets rid of the proliferation of data types and their operators.
 Having to remember that an 8-bit variable can only be used with `c@` and `c!` is an
@@ -99,10 +105,17 @@ For example, a variable `x` whose value is between 0 and 10 is declared with
 `4 bits x`. `5 x !` stores 5 to x, where `x @` reads it back out.
 The `variable` keyword is equivalant to `32 bits`.
 
-`char+` and `chars` manipulate the shift and address fields to support chars of any
+`slice+` and `slices` manipulate the shift and address fields to support slice arrays of any
 width, from 1 to 16 bits. `@` and `!` will work with any width.
-For compatibility with ANS Forth, `c@` and `c!` are aliases of `@` and `!`.
 The `@as` instruction is the sign-extending version of `@a`.
+
+Treating bytes as generic bit fields is not new.
+The DEC PDP-6 introduced the concept in 1964.
+The more commercially viable PDP-10 was released in 1967.
+In dog years, the amount of time since the Enlightenment has since elapsed.
+
+Early hackers had a lot of fun with the historically significant PDP-10.
+Maybe you too will have fun with generic bit fields.
 
 ## Unified address space
 

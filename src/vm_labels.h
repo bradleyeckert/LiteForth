@@ -111,7 +111,7 @@
 
 #define VMS_SHR                 0
 #define VMS_SHL                 1
-#define VMS_CHARPLUS            2
+#define VMS_FIELDPLUS           2
 
 #define VMSTO_BARF              0
 #define VMSTO_TASK              1

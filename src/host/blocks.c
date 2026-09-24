@@ -37,7 +37,7 @@ int blk_init(char* filename) {
         // Format and copy the minimal header string into the beginning of Block 0 buffer
         char header_txt[128];
         snprintf(header_txt, sizeof(header_txt), "LITEFORTHBLK 1 %X %X %X\n",
-            BLK_SIZE_BYTES, SIMNUMBLOCKS, SIMNUMBLOCKS);
+            (unsigned int)BLK_SIZE_BYTES, SIMNUMBLOCKS, SIMNUMBLOCKS);
 
         size_t header_len = strlen(header_txt);
         memcpy(space_buf, header_txt, header_len);

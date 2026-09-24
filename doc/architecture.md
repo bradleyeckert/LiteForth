@@ -297,11 +297,7 @@ Interpretation of the input buffer follows the usual Forth REPL.
 The difference is that after number conversion fails, the token is compared to
 a constant list in the constant blocks.
 
-Forth and C coexist by Forth running a macroloop that triggers the TIB interpreter
-once per loop. It does this with the `tsync` instruction.
-The `loadTIB` function, inside the C QUIT loop, spins a `yield2c` call
-which steps the VM while waiting for input and/or the sync signal.
-The sequence for this handoff is:
+Forth and C coexist by sharing a `TIBSTATE` mutex.
 
 - Once `loadTIB` has an input line, it sets `TIBSTATE` to 2 and waits for it to reach 3.
 - The Forth macroloop sees `TIBSTATE` at 2 and bumps it to 3. It spins until `TIBSTATE` is 1.

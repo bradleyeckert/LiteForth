@@ -4,7 +4,7 @@ LiteForth runs on either a PC or MCU. Functionality that differs between them ar
 
 - `termio.c` is the terminal interface, UART for MCU, terminal or TTY/COM for PC
 - `flash.c` is the flash memory implementation or simulation
-- `periph.c` is optional peripheral simulation
+- `blocks.c` is the interface to block memory, such as SPI Flash, SD card, etc.
 - `main.c` is initialization and startup code
 - `vm.s` is the platform-specific Machineforth interpreter, if `vm.c` is not used.
 
@@ -23,70 +23,7 @@ The `src` folder contains the common functionality.
 Platform-specific functionality is in a folder for that platform.
 
 For a PC-based console app, the language is C99 or C11.
-
 For an MCU-based platform, the chip vendor's IDE is used.
-
-## serial_io
-
-Terminal I/O uses these functions: 
-
-- `int set_terminal_mode(int enable)` sets the terminal mode if using `stdio`. 1 for raw, 0 for cooked
-- `int serial_open(char* name, int baudrate)` initialize the COM port or terminal I/O, return 0 if okay
-- `void serial_close(void);` close the open port, if necessary
-- `int serial_ready(void)` return the status of the input port: 1 if has a char, 0 if not
-- `int serial_busy(void)` return the status of the output port: 0 if ready, 1 if busy, else ERR_\*
-- `int serial_getc(void)` return the next byte from the input port, -1 if none
-- `int serial_putc(int c)` send a byte to the output port
-
-The console app can use either a terminal or a COM port as stdio.
-Port "TERM" is the terminal.
-
-## options
-
-An options.h file sets LiteForth options.
-
-- `#define RAMSIZE` sets the VM's data RAM size in 32-bit cells
-- `#define ROMSIZE` sets the VM's data ROM size in 32-bit cells
-- `#define BLOCKFILENAME` is the default mass storage file name
-- `#define SIMNUMBLOCKS` is the number of blocks for mass storage simulation
-- `#define FLASHFILENAME` is the default Flash simulation file name
-- `#define FLASHAPPSECTORSIZE` sets the Flash sector size in uint32s
-- `#define FLASHAPPSECTORS` sets the number of sectors in the app region of Flash
-
-## flash
-
-File flash.c contains functions that typically return 0 if okay, other if error:
-
-- `uint32_t flashmem[FLASHAPPSECTORSIZE*FLASHAPPSECTORS]` is global flash memory, real or simulated.
-- `int flash_init(char *filename)` initializes the flash for reading.
-- `int flash_sector(uint32_t *m, int sector)` copies `m` to a Flash sector of `FLASHAPPSECTORSIZE`.
-- `int flash_rndkey(void)` fills in a random key at the end of the RoT sector.
-
-### Desktop implementation
-
-In a console app, flash is simulated by a binary file.
-The default filename is `FLASHFILENAME`, but may be changed by command line option `-f`.
-`flash.c` get the flash sector size and page programming size from `options.h`.
-`flash_init` check for the file's existence. If it does not exist, create a blank file.
-Initialize `flashmem` with the file contents and close the file.
-`flash_sector` open the file, write a segment of `flashmem` to it, and close the file.
-`flash_rndkey` do nothing.
-
-### MCU implementation
-
-MCU Flash is the physical flash, in a section placed by the linker file.
-It is read-only, except for a "flash and erase" function that flashes an entire sector
-from RAM.
-
-MCU sector flashing takes some time, depending on the sector size. For a 128 KB sector,
-
-| MCU | Typ erase | Max erase | Typ prog rate | Min prog rate |
-|-----|-----------|-----------|---------------|---------------|
-| STM32H743 | 1.1s | 2.2s | 240 KB/s | 120 KB/s |
-| CH32H417 | 0.06s | 0.3s | 300 KB/s | 150 KB/s |
-
-Erase is a blocking operation, so the terminal may hang for a second or two
-while the sector erases and programs.
 
 ## blocks
 
@@ -109,15 +46,6 @@ The fields are:
 - `int blk_read(uint32_t blk, uint32_t *dest)` read a 4KB block, return 0 if okay.
 - `int blk_write(uint32_t blk, uint32_t *src)` write a 4KB block, return error if write-protected.
 
-## periph
-
-Specialized devices on the APB and AHB busses may be simulated in the desktop version.
-Maybe not all of the devices, since most development will be done on the target.
-
-- `periph-init(void)` initializes peripheral space
-- `int periph-wr(uint32_t addr, uint32_t data)` writes to peripheral space
-- `uint32_t periph-rd(uint32_t addr)` reads from peripheral space
-
 ## main
 
 The MCU app contains startup code and calls `quit` in `forth.c`.
@@ -127,50 +55,3 @@ The console app has command line options that allow you to:
 - Select a COM port instead of stdio
 - Change the mass storage filename
 - Change the flash memory filename
-
-## forth
-
-Implements the QUIT interpreter and the C API.
-
-The context is a list of pointers to headers. They may be 64-bit or 32-bit depending
-on the underlying C. Forth cells may not fit them, so a *wid* would need some indirection.
-An array of pointers to headers would satisfy this. The *wid* is an index into the table.
-The C code just has to allocate a big enough array to not run out of space when executing `wordlist`.
-A vocabulary, such as `forth`, needs to associate a name with the *wid*.
-
-The context list contains a list of uint8_s ranging from 0 to 255. These are *wids*,
-indices into the table of structure pointers. Current is also a uint8_s.
-
-- `int quit(void)` is the QUIT loop
-- `void order_only(void)` clears the context list to contain only `root`
-- `void order_also(int wid)` appends `wid` the context list
-- `void order_previous(void)` removes the last list element
-- `void definitions(void)` sets current to context\[0]
-- `*struct tfHeader find_word(char *name)` finds the name in the wordlist, returns a pointer to the header. 
-- `uint32_t header_get();
-
-## vm
-
-The token interpreter is in either C or assembly.
-
-- `int vmExecute(uint32_t xt)` runs code and returns a result: 0 = okay.
-- `int32_t vmRegisterGet(int reg)` reads the state of a register.
-- `void vmRegisterSet(int reg, int32_t data)` writes to a register.
-- `void vmPush(int32_t val)` pushes a number to the stack.
-- `int32_t vmPop(void)` pops from the stack.
-
-The upper two bits \[31:30] of xt is its type.
-
-If the value is an xt, bits 31:30 indicate its type:
-
-0. Forth definition, value is the code address (30-bit)
-0. Reserved
-0. Machine code, value is the instruction (16-bit)
-0. Machine code, macro-copyable
-
-If bit 31 of xt is 1, it is an instruction group to be executed once.
-If bit 31 is 0, it is a word that runs until the return stack underflows.
- 
-
-
-

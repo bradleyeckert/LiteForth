@@ -104,7 +104,7 @@ static const struct s_head forth_heads[] = {
     { LINK(34), "s@",         MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0x0},
     { LINK(35), "nip",        MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),         0x0},
     { LINK(36), "tuck",       MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),         0x0},
-    { LINK(37), "char+",      SYS(VMS_CHARPLUS),   /* a1 -- a2      */  0x0},
+    { LINK(37), "slice+",     SYS(VMS_FIELDPLUS),  /* a1 -- a2      */  0x0},
     { LINK(38), "]shr",       SYS(VMS_SHR),        /* u1 -- u2      */  0x0},
     { LINK(39), "]shl",       SYS(VMS_SHL),        /* u1 -- u2      */  0x0},
     { LINK(40), "shft[",      SYSTO(VMSTO_SHIFT),  /* position --   */  0x0},
@@ -127,35 +127,43 @@ static const struct s_head forth_heads[] = {
     { LINK(57), "does>",      API0(17), /* --                       */  0x0},
     { LINK(58), "create",     API0(18), /* -- | -- addr             */  0x0},
     { LINK(59), "cr",         API0(19), /* --                       */  0x0},
-    { LINK(60), "space",      API0(20), /* --                       */  0x0},
+    { LINK(60), "here",       API0(20), /* -- addr                  */  0x0},
     { LINK(61), ".wid",       API0(21), /* wid --                   */  0x0},
     { LINK(62), "p'",         API0(22), /* <name> -- w aux          */  0x0},
     { LINK(63), "page",       API0(23), /* page -- a                */  0x0},
-    { LINK(64), "wordlist",   API0(24), /* u --                     */  0x0},
-    { LINK(65), "flash-open", API0(25), /*                          */  0x0},
+    { LINK(64), "wordlist",   API0(24), /* -- wid                   */  0x0},
+    { LINK(65), "flash-open", API0(25), /* addr --                  */  0x0},
     { LINK(66), "flash-close",API0(26), /*                          */  0x0},
     { LINK(67), "]",          API0(27), /*                          */  0x0},
     { LINK(68), "[",          API0(28), /* -- */          A_IMMEDIATE | 0x0},
     { LINK(69), "exit",       API0(29), /* -- */         A_IMMED_ONLY | 0x0},
-    { LINK(70), "constant",   API0(30), /*                          */  0x0},
-    { LINK(71), "bits",       API0(31), /*                          */  0x0},
-    { LINK(72), ">body",      API0(32), /*                          */  0x0},
-    { LINK(73), "vocabulary", API0(33), /*                          */  0x0},
+    { LINK(70), "constant",   API0(30), /* n <name> --              */  0x0},
+    { LINK(71), "bits",       API0(31), /* n <name> --              */  0x0},
+    { LINK(72), ">body",      API0(32), /* xt -- addr               */  0x0},
+    { LINK(73), ",",          API0(33), /* n --                     */  0x0},
+    { LINK(74), "bit",        API0(34), /* n --                     */  0x0},
+    { LINK(75), "-----",      API0(35), /*                          */  0x0},
+    { LINK(76), "-----",      API0(36), /*                          */  0x0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(74), "}t",         API0(34), /* ? --                     */  0x0},
-    { LINK(75), "->",         API0(35), /* ? --                     */  0x0},
-    { LINK(76), "t{",         API0(36), /* --                       */  0x0},
-    { LINK(77), "hex",        API0(37), /* --                       */  0x0},
-    { LINK(78), "decimal",    API0(38), /* --                       */  0x0},
-    { LINK(79), ".page",      API0(39), /* n --                     */  0x0},
-    { LINK(80), ".pages",     API0(40), /* --                       */  0x0},
-    { LINK(81), "dump",       API0(41), /* addr length --           */  0x0},
-    { LINK(82), "dumpi",      API0(42), /* inst --                  */  0x0},
-    { LINK(83), "dasm",       API0(43), /* addr length --           */  0x0},
-    { LINK(84), ".s",         API0(44), /* --                       */  0x0},
-    { LINK(85), ".",          API0(45), /* n --                     */  0x0},
+    { LINK(77), "}t",         API0(37), /* ? --                     */  0x0},
+    { LINK(78), "->",         API0(38), /* ? --                     */  0x0},
+    { LINK(79), "t{",         API0(39), /* --                       */  0x0},
+    { LINK(80), "hex",        API0(40), /* --                       */  0x0},
+    { LINK(81), "decimal",    API0(41), /* --                       */  0x0},
+    { LINK(82), ".page",      API0(42), /* n --                     */  0x0},
+    { LINK(83), ".pages",     API0(43), /* --                       */  0x0},
+    { LINK(84), "dump",       API0(44), /* addr length --           */  0x0},
+    { LINK(85), "dumpi",      API0(45), /* inst --                  */  0x0},
+    { LINK(86), "dasm",       API0(46), /* addr length --           */  0x0},
+    { LINK(87), ".s",         API0(47), /* --                       */  0x0},
+    { LINK(88), ".",          API0(48), /* n --                     */  0x0},
 #endif
 };
+/*
+    , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
+    , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm
+    , lfAPI_dotEss, lfAPI_dot
+*/
 
 static const ConstantMapping constant_table[] = {
     { -1,           "true"},
@@ -171,7 +179,7 @@ static const ConstantMapping constant_table[] = {
     { LF_TIB,       "tib"},
     { LF_PTRS,      "dp[]"},
     { LF_MSPACE,    "dp^" },
-    { VM_MEM_PAGES, "pages"},
+    { VM_LOG2_PAGES,"log2pages"},
     { LF_HERE0,     "ram-base"},
     { VMI_CALL    , "_call"},
     { VMI_JUMP    , "_jump"},
@@ -432,7 +440,7 @@ static void TOINbump(void) {
     lfTOINstore(1 + lfTOINfetch());
 }
 
-static int parseWord(void) {
+int lfParseWord(char* dest, int destSize) {
     int ior = 0;
     // Skip leading whitespace
     while(1) {
@@ -448,17 +456,18 @@ static int parseWord(void) {
 		c = TOINchar();
         if (c == '\0') break;
         if (c == ' ') break;
-		token[i++] = c;
-        if (i >= (int)sizeof(token) - 1) {
+		dest[i++] = c;
+        if (i >= (destSize - 1)) {
             ior = ERR_PARSED_STRING_OVERFLOW;
             break; // Prevent buffer overflow
         }
         TOINbump();
     }
 	// Terminate the token string
-    token[i] = 0;
+    dest[i] = '\0';
     // skip the blank delimiter
     if (c != '\0') TOINbump();
+
     return ior;
 }
 
@@ -470,10 +479,11 @@ int lfToHeader(uint32_t w, uint32_t aux) {
     return 0;
 }
 
-static char* headname = NULL;
+char* lfHeaderName = NULL;
 
-int lfHeader(uint32_t w, uint32_t aux) {
-    int ior = parseWord();
+int lfHeader(uint32_t w, uint32_t aux, char **name) {
+    char token[32] = { 0 };
+    int ior = lfParseWord(token, 32);
     if (ior) return ior;
 
     // Resolve destination memory location in 32-bit cells
@@ -487,7 +497,9 @@ int lfHeader(uint32_t w, uint32_t aux) {
 
     // Pack string name into 32-bit cells
     char* name_dest = (char*)cell_dest;
-    headname = name_dest;
+    if (name != NULL) {
+        *name = name_dest;
+    }
     int32_t ch_dest = start_f_hp | (8 << 27); // bytes
     char* src = token;
     char c = 0;
@@ -496,7 +508,7 @@ int lfHeader(uint32_t w, uint32_t aux) {
     do {
         int ior = vmStore(ch_dest, *src++);
         if (ior) return ior;
-        ch_dest = vmCharPlus(ch_dest);
+        ch_dest = vmFieldPlus(ch_dest);
         length++;
     } while (c);
     /*
@@ -505,7 +517,7 @@ int lfHeader(uint32_t w, uint32_t aux) {
     */
     while (length & 3) {
         vmStore(ch_dest, *src++);
-        ch_dest = vmCharPlus(ch_dest);
+        ch_dest = vmFieldPlus(ch_dest);
         length++;
     }
 
@@ -542,13 +554,6 @@ int lfHeader(uint32_t w, uint32_t aux) {
     return 0;
 }
 
-/* VOCABULARY  ( -- ) */
-int lfAPI_vocabulary(void) {
-    lfHeader(wids_pointer, A_VOCABULARY);
-    lfAddWordlist(headname);
-    return 0;
-}
-
 static int lfParenthesis(int echo) {
     while (1) {
         char c = TOINchar();
@@ -578,7 +583,7 @@ int lfAPI_dotParen(void) {
  * It sets DPL to the number of digits after the decimal point if a decimal
  * point is present, leaves it at -1 otherwise. Blame: Gemini
  */
-static int parseNumber(int base) {
+static int parseNumber(char* token, int base) {
     int dpl = -1; // -1 indicates no decimal point was encountered
     value = 0;
     int i = 0;
@@ -654,8 +659,10 @@ static int interpret(char* str, size_t len) {
     int ior = 0;
     while (TOINchar() != 0) {
         if (ior) return ior;
-        ior = parseWord();              // Parse the next token delimited by space
+        char token[32] = { 0 };
+        ior = lfParseWord(token, 32);     // Parse the next token delimited by space
 		if (ior) return ior;
+        if (token == NULL) break;       // nothing parsed, but end found
         // A. Check the current active vocabulary lists
         const struct s_head* word = search_context(token);
         if (token[0] == '\0') continue; // ignore empty strings
@@ -683,7 +690,7 @@ static int interpret(char* str, size_t len) {
         }
         ior = findConstant(token, &value);
         if (ior) {                      // Fall back to numeric evaluation
-            ior = parseNumber(lfBASEfetch());
+            ior = parseNumber(token, lfBASEfetch());
         }
         if (ior) return ior;
         if (state) {
@@ -783,9 +790,10 @@ int QUIT(void) {
     }
 }
 
-/* `D'` */
+/* `D'` ( <name> -- w aux ) */
 int lfAPI_tickx(void) {
-    int ior = parseWord();
+    char token[32] = { 0 };
+    int ior = lfParseWord(token, 32);
     if (ior) return ior;
     const struct s_head* word = search_context(token);
     if (word == NULL) return ERR_UNDEFINED_WORD;

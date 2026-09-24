@@ -65,8 +65,7 @@ locations for accessibility by Forth or by C.
 #define A_NO_EXECUTE    0x20000000 // only execute while compiling
 #define A_NO_TAIL_CALL  0x10000000 // don't allow tail recursion
 #define A_CONSTANT      0x08000000 // w is a constant
-#define A_VOCABULARY    0x04000000 // vocabulary
-#define A_NOTHING       0x02000000 // do nothing
+#define A_NOTHING       0x04000000 // do nothing
 #define A_IMMED_ONLY    (A_IMMEDIATE | A_NO_EXECUTE)
 
 
@@ -110,7 +109,8 @@ typedef struct {
 int QUIT(void);
 
 int lfDotS(void);
-int lfHeader(uint32_t w, uint32_t aux);
+int lfParseWord(char* dest, int destSize);
+int lfHeader(uint32_t w, uint32_t aux, char** name);
 int lfToHeader(uint32_t w, uint32_t aux);
 int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
@@ -124,7 +124,6 @@ int lfAPI_dotParen(void);
 int lfAPI_tickx(void);
 int lfAPI_only(void);
 int lfAPI_forth(void);
-int lfAPI_vocabulary(void);
 
 #ifdef __cplusplus
 }

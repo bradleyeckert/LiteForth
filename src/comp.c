@@ -8,6 +8,9 @@
 #include "comp.h"
 #include <stdio.h> // remove for production code
 
+// globals
+char* lfCreatedName;
+
 /*===========================================================================
 * Dictionary pointer functions (F_PTRS in RAM page: dp, cp, hp, dp1, cp1, hp1
 ===========================================================================*/
@@ -33,56 +36,6 @@ static uint32_t cpPC(void) {
     int lsb = (pc >> 26) & 1;
     return (pc << 1) | lsb;
 }
-
-// point to the current HERE pointer
-static int32_t* herePtr(void) {
-    int32_t space = 0; // d,c,h,-
-    vmFetch(LF_MSPACE, &space);
-    return &vm_memory[RAM_PAGE][F_PTRS + space];
-}
-
-// update the current HERE pointer
-static void toHere(int32_t addr) {
-    int32_t* ptr = herePtr();
-    *ptr = addr;
-}
-
-/* HERE  ( -- n ) */
-int lfAPI_here(void) {
-    return vmPush(*herePtr());
-}
-
-/* ,  ( n -- ) */
-int lfAPI_comma(void) {
-    uint32_t here = *herePtr();
-    int ior = vmStore(here, vmPop());
-    here = vmCharPlus(here);
-    toHere(here);
-    return ior;
-}
-
-// Compile a string to header space
-int lfCompString(char* str) {
-    uint32_t* dp = &vm_memory[RAM_PAGE][F_PTRS + 2];
-    uint32_t here = dp[0] | (8 << 27);
-    uint32_t heremax = dp[3];
-    int ior = 0;
-    char c = 1;
-    while (c) {
-        c = *str++;                 // include zero terminator
-        ior = vmStore(here, c);
-        if (ior) return ior;
-        here = vmCharPlus(here);
-        if ((here & 0x3FFFFF) >= heremax) return ERR_DICTIONARY_OVERFLOW;
-    }
-    while (here & (0x1F << 22)) {   // pad to cell
-        ior = vmStore(here, 0x55);
-        here = vmCharPlus(here);
-    }
-    dp[2] = here & 0x3FFFFF;
-    return ior;
-}
-
 
 /*=========================================================================
 * Compiling
@@ -115,7 +68,7 @@ static int commaCode(uint32_t inst) {
     ior = vmStore(cp, inst);
     if (ior) return ior;
     printf("mem[%x]=%x ", cp & 0x3FFFFF, inst);
-    cp = vmCharPlus(cp);
+    cp = vmFieldPlus(cp);
     return cpStore(cp);
     instruction = 0;
     slot = SLOT0_POSITION;
@@ -192,9 +145,6 @@ int lfCompileLit(int32_t x) {
 // Execute using the VM
 int lfExecuteWord(const struct s_head* word) {
     if (word->aux & A_NOTHING)  return 0;
-    if (word->aux & A_VOCABULARY) {
-        return vmStore(LF_CURRENT, word->w);
-    }
     if (word->aux & A_CONSTANT) return vmPush(word->w);
     int ior = 0;
 
@@ -210,7 +160,6 @@ int lfExecuteWord(const struct s_head* word) {
 // Compile a word
 int lfCompileWord(const struct s_head* word) {
     if (word->aux & A_NOTHING)  return 0;
-    if (word->aux & A_VOCABULARY) return ERR_INTERPRETATION_ONLY;
     uint32_t w = word->w;
     if (word->aux & A_CONSTANT) return lfCompileLit(w);
     int ior = 0;
@@ -254,7 +203,7 @@ static int32_t created = 0;
 /* :  ( <name> -- ) */
 int lfAPI_colon(void) {
     created = 0;
-    lfHeader(cpPC(), A_SMUDGED);
+    lfHeader(cpPC(), A_SMUDGED, NULL);
     return lfSTATEstore(1);
 }
 
@@ -267,18 +216,27 @@ int lfAPI_exit(void) {
 int lfAPI_semicolon(void) {
     lfToHeader(0, A_SMUDGED);
     lfSTATEstore(0);
+    lfCreatedName = NULL; // WORDLIST not used yet
     return CompExit();
 }
 
 /* CONSTANT  ( n <name> -- ) */
 int lfAPI_constant(void) {
     int32_t n = vmPop();
-    return lfHeader(n, A_CONSTANT);
+    return lfHeader(n, A_CONSTANT, NULL);
+}
+
+// point to the current HERE pointer
+static int32_t* herePtr(void) {
+    int32_t space = 0; // d,c,h,-
+    vmFetch(LF_MSPACE, &space);
+    return &vm_memory[RAM_PAGE][F_PTRS + space];
 }
 
 /* BITS  ( n <name> -- ) */
 int lfAPI_bits(void) {
-    int32_t here = *herePtr(); 
+    int32_t* ptr = herePtr(); 
+    int32_t here = *ptr;
     uint32_t bits = vmPop();
     if (bits > 32) return ERR_TOO_MANY_BITS;
     int position = (here >> 22) & 0x1F;
@@ -287,17 +245,18 @@ int lfAPI_bits(void) {
         here = (here & ~(0x1F << 22)) + 1;
     }
     here = (here & ~(0x1F << 27)) | (bits << 27);
-    int ior = lfHeader(here, A_CONSTANT);
-    here = vmCharPlus(here);
-    toHere(here);
+    int ior = lfHeader(here, A_CONSTANT, NULL);
+    here = vmFieldPlus(here);
+    *ptr = here;
     return ior;
 }
 
 /* CREATE  ( <name> -- ) */
 int lfAPI_dotCreate(void) {
-    lfHeader(cpPC(), 0);
+    int ior = lfHeader(cpPC(), 0, &lfCreatedName);
+    if (ior) return ior;
     int32_t here = *herePtr();
-    int ior = CompUlit(here);
+    ior = CompUlit(here);
     if (ior) return ior;
     cpFetch(&created);
     CompExit();
@@ -315,6 +274,7 @@ int lfAPI_dotDoes(void) {
     uint32_t pc = (cp << 1) | (cp >> 26);
     int ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
     created = 0;
+    lfCreatedName = NULL;
     return ior;
 }
 
@@ -332,7 +292,7 @@ int lfAPI_toBody(void) {
     while (i--) {
         ior = vmFetch(cp, &inst);   // either pfx or lit expected
         if (ior) return ior;
-        cp = vmCharPlus(cp);
+        cp = vmFieldPlus(cp);
         if ((inst & VMI_MASK) == VMI_PFX) {
             acc = (acc << VM_IMM_BITS) | (inst & VM_IMM_MASK);
         }
@@ -344,3 +304,36 @@ int lfAPI_toBody(void) {
     }
     return ERR_BODY_ON_NON_CREATE;
 }
+
+/* ,  ( n -- ) */
+int lfAPI_comma(void) {
+    int32_t* ptr = herePtr();
+    uint32_t here = *ptr;
+    int ior = vmStore(here, vmPop());
+    here = vmFieldPlus(here);
+    *ptr = here;
+    return ior;
+}
+
+/* BIT  ( n -- ) 
+ * Change the bit width of the next slices compiled
+ */
+int lfAPI_bit(void) {
+    int32_t bits = vmPop();
+    int32_t* ptr = herePtr();
+    int32_t here = *ptr;
+    int bpos = 0x1F & (here >> 22);
+    here &= ((1 << 27) - 1); // strip the slice width
+    if ((bits + bpos) > 32) {
+        here = (here & 0x3FFFFF) + 1; // start new cell
+    }
+    here |= (bits << 27); // set new slice width
+    *ptr = here;
+    return 0;
+}
+
+/* HERE  ( -- n ) */
+int lfAPI_here(void) {
+    return vmPush(*herePtr());
+}
+

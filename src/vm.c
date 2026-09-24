@@ -25,7 +25,7 @@ static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
 
-int32_t vmCharPlus(int32_t addr) {
+int32_t vmFieldPlus(int32_t addr) {
     int bsize = (addr >> 27) & 0x1F;
     if (bsize == 0) {
         return addr + 1;
@@ -71,8 +71,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         switch (imm) {
         case VMS_SHR: T = T >> shift_size; break;
         case VMS_SHL: T = T << shift_size; break;
-        case VMS_CHARPLUS: // char+
-            T = vmCharPlus(T);
+        case VMS_FIELDPLUS: // field+
+            T = vmFieldPlus(T);
             break;
         default: break;
         } break;
@@ -274,10 +274,10 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
                 memfetch: 
                     ior = vmFetch(maddr, &T);
                     if (bumpa & 1) {
-                        A = vmCharPlus(A);
+                        A = vmFieldPlus(A);
                     }
                     else if (bumpa & 2) {
-                        B = vmCharPlus(B);
+                        B = vmFieldPlus(B);
                     }
                     else if (bumpa & 4) {
                         int bsize = maddr >> 27;
@@ -298,10 +298,10 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
                 memstore:
                     ior = vmStore(maddr, n);
                     if (bumpa & 1) {
-                        A = vmCharPlus(A);
+                        A = vmFieldPlus(A);
                     }
                     else if (bumpa & 2) {
-                        B = vmCharPlus(B);
+                        B = vmFieldPlus(B);
                     }
                     break;
                 

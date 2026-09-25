@@ -88,6 +88,8 @@ int lfAPI_flush(void);
  */
 int lfAPI_emptyBuffers(void);
 
+int lfAPI_load(void);
+
 #ifdef __cplusplus
 }
 #endif

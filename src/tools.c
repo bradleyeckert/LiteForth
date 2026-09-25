@@ -93,6 +93,78 @@ int lfDot(int32_t val) {
     return lfSpace();
 }
 
+/**
+ * Attempts to interpret a raw token text as a numeric literal.
+ * Returns ior and sets the global `value` to the parsed number.
+ * It sets DPL to the number of digits after the decimal point if a decimal
+ * point is present, leaves it at -1 otherwise. Blame: Gemini
+ */
+
+static int char2digit(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'z') return c - 'a' + 10;
+    return -1; // Invalid character for a digit
+}
+
+int parseNumber(char* token, int base, int32_t* val) {
+    int dpl = -1; // -1 indicates no decimal point was encountered
+    int32_t value = 0;
+    int i = 0;
+    int sign = 0;
+    int has_digits = 0;
+    int has_dpl = 0;
+
+    // Fast-fail empty tokens
+    if (token[0] == '\0') return ERR_UNDEFINED_WORD; // -13
+
+    while (1) {
+        char c = token[i++];
+        if (c == '\0') break;
+
+        // Handle leading minus sign
+        if (i == 1 && c == '-') {
+            sign = 1;
+            continue;
+        }
+
+        // Handle decimal point '.'
+        if (c == '.') {
+            has_dpl = 1;
+            dpl = 0;
+            continue;
+        }
+
+        int digit = char2digit(c);
+
+        // Guard against invalid characters or digits >= base
+        if (digit < 0 || digit >= base) {
+            return ERR_UNDEFINED_WORD;
+        }
+
+        has_digits = 1;
+        value = (value * base) + digit;
+
+        // Increment DPL for every valid digit parsed after '.'
+        if (has_dpl) {
+            dpl++;
+        }
+    }
+
+    // Must have contained at least one actual digit
+    if (!has_digits) {
+        return ERR_UNDEFINED_WORD;
+    }
+
+    if (sign) {
+        value = -value;
+    }
+
+    *val = value;
+    return vmStore(LF_DPL, dpl);
+}
+
+
 /*=========================================================================
 * Address translation functions
 =========================================================================*/

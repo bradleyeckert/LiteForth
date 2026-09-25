@@ -235,7 +235,7 @@ static const APIfn API0fns[] = {
     flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
     lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_comma, lfAPI_bit,
     lfAPI_inst, immediate, lfAPI_block, lfAPI_buffer, lfAPI_update,
-    lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers
+    lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers, lfAPI_load
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm

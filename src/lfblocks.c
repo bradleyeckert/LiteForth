@@ -6,7 +6,6 @@
 #include "vm.h"
 #include "forth.h"
 #include "lfblocks.h"
-#include <stdio.h>
 
 static BlockBufferState buf_state[SYSTEM_BLOCKS];
 static uint32_t lru_clock = 0;
@@ -206,4 +205,33 @@ int lfAPI_flush(void) {
 int lfAPI_emptyBuffers(void) {
     init_buffer_system();
     return 0;
+}
+
+#define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
+
+/**
+ * LOAD  ( blk -- )
+ * Saves current input context and redirects interpreter input to block i.
+ */
+int lfAPI_load(void) {
+    // 1. Pop block number off the stack
+    int32_t blk = vmPop();
+    if (blk == 0) return ERR_INVALID_BLOCK_NUMBER;
+
+    // 2. Fetch block memory address by pushing blk back and calling lfAPI_block
+    vmPush(blk);
+    int err = lfAPI_block();
+    if (err != 0) {
+        return err; // Returns block read or allocation error
+    }
+
+    // 3. Obtain the returned Forth address (offset in cells relative to RAM_PAGE)
+    int32_t forth_addr = vmPop();
+
+    // 4. Resolve the Forth address to a host C char pointer
+    //    Address points into vm_memory[RAM_PAGE] offset by cell index
+    char* blk_ptr = (char*)&vm_memory[RAM_PAGE][forth_addr & VM_PAGE_MASK];
+
+    // 5. Nest input into the block buffer stream (4KB / BLK_SIZE_BYTES)
+    return lfNestInput(blk_ptr, BLK_SIZE_BYTES, blk);
 }

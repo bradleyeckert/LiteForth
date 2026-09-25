@@ -101,6 +101,16 @@ typedef struct {
 } ConstantMapping;
 
 /**
+ * Structure for block nesting
+ */
+typedef struct {
+    char* str;
+    size_t len;
+    int toin;
+    int32_t blk;
+} InputFrame;
+
+/**
  * The standard Forth Outer Interpreter / Terminal Loop.
  * Enters an infinite terminal interaction stream, reading lines from console
  * and feeding them to the text interpreter layer.
@@ -113,6 +123,7 @@ int lfHeader(uint32_t w, uint32_t aux, char** name);
 int lfToHeader(uint32_t w, uint32_t aux);
 int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
+int lfNestInput(char* src, int length, int32_t block);
 
 int lfAPI_dotWid(void);
 int lfAPI_words(void);

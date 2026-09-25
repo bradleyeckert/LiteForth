@@ -71,6 +71,8 @@ int lfBASEstore(int base);
 int lfSTATEstore(int state);
 int lfSTATEfetch(void);
 
+int parseNumber(char* token, int base, int32_t* val);
+
 
 #ifdef __cplusplus
 }

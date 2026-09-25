@@ -19,6 +19,7 @@ The minimum hardware requirements for LiteForth are something like:
 - 32 KB of RAM (64 KB is better)
 - 64 KB of Flash (256 KB is better)
 - UART or USB CDC connection to a terminal emulator
+- SPI Flash or microSD card slot
 
 A typical setup includes:
 

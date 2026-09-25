@@ -15,7 +15,6 @@
 
 static int case_insensitive = CASE_INSENSITIVE;
 static char token[32];      // token buffer for parsing
-static char* source = NULL; // current position in the input string
 static int32_t value;       // value returned by numeric input parsing
 
 static int lfTOINfetch(void) {
@@ -150,26 +149,22 @@ static const struct s_head forth_heads[] = {
     { LINK(80), "save-buffers", API0(40), /* --                       */  0},
     { LINK(81), "flush",        API0(41), /* --                       */  0},
     { LINK(82), "empty-buffers",API0(42), /* --                       */  0},
+    { LINK(83), "load",         API0(43), /* u --                     */  0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(83), "}t",           API0(43), /* ? --                     */  0},
-    { LINK(84), "->",           API0(44), /* ? --                     */  0},
-    { LINK(85), "t{",           API0(45), /* --                       */  0},
-    { LINK(86), "hex",          API0(46), /* --                       */  0},
-    { LINK(87), "decimal",      API0(47), /* --                       */  0},
-    { LINK(88), ".page",        API0(48), /* n --                     */  0},
-    { LINK(89), ".pages",       API0(49), /* --                       */  0},
-    { LINK(90), "dump",         API0(50), /* addr length --           */  0},
-    { LINK(91), "dumpi",        API0(51), /* inst --                  */  0},
-    { LINK(92), "dasm",         API0(52), /* addr length --           */  0},
-    { LINK(93), ".s",           API0(53), /* --                       */  0},
-    { LINK(94), ".",            API0(54), /* n --                     */  0},
+    { LINK(84), "}t",           API0(44), /* ? --                     */  0},
+    { LINK(85), "->",           API0(45), /* ? --                     */  0},
+    { LINK(86), "t{",           API0(46), /* --                       */  0},
+    { LINK(87), "hex",          API0(47), /* --                       */  0},
+    { LINK(88), "decimal",      API0(48), /* --                       */  0},
+    { LINK(89), ".page",        API0(49), /* n --                     */  0},
+    { LINK(90), ".pages",       API0(50), /* --                       */  0},
+    { LINK(91), "dump",         API0(51), /* addr length --           */  0},
+    { LINK(92), "dumpi",        API0(52), /* inst --                  */  0},
+    { LINK(93), "dasm",         API0(53), /* addr length --           */  0},
+    { LINK(94), ".s",           API0(54), /* --                       */  0},
+    { LINK(95), ".",            API0(55), /* n --                     */  0},
 #endif
 };
-/*
-    , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
-    , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm
-    , lfAPI_dotEss, lfAPI_dot
-*/
 
 static const ConstantMapping constant_table[] = {
     { -1,               "true"},
@@ -354,13 +349,6 @@ int lfDotS(void) {
     return 0;
 }
 
-static int char2digit(char c) {
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
-    if (c >= 'a' && c <= 'z') return c - 'a' + 10;
-    return -1; // Invalid character for a digit
-}
-
 
 /* =========================================================================
 >IN and BLK are the top values of an 8-deep internal block stack. They are
@@ -439,8 +427,15 @@ to the next character after the token. If no token is found, it returns NULL.
 The extracted token is stored in a static buffer for later use.
 */
 
+static char* source = NULL; // current position in the input string
+static size_t source_len = 0; // explicit length bound for the current input stream
+
 static char TOINchar(void) {
-    return source[lfTOINfetch()];
+    int toin = lfTOINfetch();
+    if ((size_t)toin >= source_len) {
+        return '\0';
+    }
+    return source[toin];
 }
 
 static void TOINbump(void) {
@@ -449,210 +444,48 @@ static void TOINbump(void) {
 
 int lfParseWord(char* dest, int destSize) {
     int ior = 0;
-    // Skip leading whitespace
-    while(1) {
+
+    // 1. Skip leading whitespace
+    while (1) {
         char c = TOINchar();
         if (c == '\0') break;
-        if (c != ' ') break;
+        if (c != ' ' && c != '\t' && c != '\r' && c != '\n') break;
         TOINbump();
     }
-	// Copy characters into the token buffer
+
+    // 2. Copy token characters
     int i = 0;
-    char c;
-    while(1) {
-		c = TOINchar();
-        if (c == '\0') break;
-        if (c == ' ') break;
-		dest[i++] = c;
-        if (i >= (destSize - 1)) {
+    while (1) {
+        char c = TOINchar();
+        if (c == '\0' || c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+            break;
+        }
+        if (i < (destSize - 1)) {
+            dest[i++] = c;
+        }
+        else {
             ior = ERR_PARSED_STRING_OVERFLOW;
-            break; // Prevent buffer overflow
         }
         TOINbump();
     }
-	// Terminate the token string
+
     dest[i] = '\0';
-    // skip the blank delimiter
-    if (c != '\0') TOINbump();
+
+    // 3. Skip single trailing delimiter IF we stopped on one (not EOF)
+    char delimiter = TOINchar();
+    if (delimiter == ' ' || delimiter == '\t' || delimiter == '\r' || delimiter == '\n') {
+        TOINbump();
+    }
 
     return ior;
 }
 
-static struct s_head* latest = NULL;
-
-// Modify the last created header (immediate, etc.)
-int lfToHeader(uint32_t w, uint32_t aux) {
-    latest->w |= w;
-    latest->aux ^= aux;
-    return 0;
-}
-
-char* lfHeaderName = NULL;
-
-// Create a header structure in Forth memory space
-int lfHeader(uint32_t w, uint32_t aux, char **name) {
-    char token[32] = { 0 };
-    int ior = lfParseWord(token, 32);
-    if (ior) return ior;
-
-    // Resolve destination memory location in 32-bit cells
-    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS + 2];
-    int32_t  f_hp = *headptr;
-    int32_t  f_hmax = headptr[3];
-    int page = f_hp >> (22 - VM_LOG2_PAGES);
-    int32_t  start_f_hp = f_hp & 0x3FFFFF;
-
-    int32_t* cell_dest = &vm_memory[page][start_f_hp];
-
-    // Pack string name into 32-bit cells
-    char* name_dest = (char*)cell_dest;
-    if (name != NULL) {
-        *name = name_dest;
-    }
-    int32_t ch_dest = start_f_hp | (8 << 27); // bytes
-    char* src = token;
-    char c = 0;
-    uint8_t length = 0;
-
-    do {
-        int ior = vmStore(ch_dest, *src++);
-        if (ior) return ior;
-        ch_dest = vmFieldPlus(ch_dest);
-        length++;
-    } while (c);
-    /*
-    * vmStore did not give an error, assume struct s_head will not step on
-    * anything critical.
-    */
-    while (length & 3) {
-        vmStore(ch_dest, *src++);
-        ch_dest = vmFieldPlus(ch_dest);
-        length++;
-    }
-
-    cell_dest += (length / sizeof(int32_t));
-
-    // Construct struct s_head header directly in the next cell boundary
-    struct s_head* target_head = (struct s_head*)cell_dest;
-    latest = target_head;
-    target_head->name = name_dest;
-    target_head->w = w;
-    target_head->aux = aux;
-
-    // Insert header at top of current wordlist (linked list)
-    s_wid* current = &wids[*CURRENT];
-    target_head->link = (struct s_head*)current->head; // Point new node to current head
-
-    // Update current wordlist head pointer
-    current->head = target_head;
-
-    // Advance cell_dest past the struct s_head
-    int32_t head_cells = (sizeof(struct s_head) + sizeof(int32_t) - 1) / sizeof(int32_t);
-    cell_dest += head_cells;
-
-    // Calculate new f_hp address (start_f_hp + total cell delta)
-    int32_t total_cells_used = (int32_t)(cell_dest - &vm_memory[page][start_f_hp]);
-    int32_t new_f_hp = (page << (22 - VM_LOG2_PAGES)) | ((start_f_hp + total_cells_used) & 0x3FFFFF);
-
-    // Bounds check before writing back to F_PTRS
-    if (new_f_hp >= f_hmax) {
-        return ERR_DICTIONARY_OVERFLOW;
-    }
-
-    headptr[2] = new_f_hp;
-    return 0;
-}
-
-static int lfParenthesis(int echo) {
-    while (1) {
-        char c = TOINchar();
-        if (c == '\0') break;
-        TOINbump();
-        if (c == ')') break;
-        if (echo) {
-            serial_putc(c);
-        }
-    }
-    return 0;
-}
-
-/* ( */
-int lfAPI_paren(void) {
-    return lfParenthesis(0);
-}
-
-/* .( */
-int lfAPI_dotParen(void) {
-    return lfParenthesis(1);
-}
+static InputFrame input_stack[MAX_INPUT_STACK];
+static int input_stack_depth = 0;
 
 /**
- * Attempts to interpret a raw token text as a numeric literal.
- * Returns ior and sets the global `value` to the parsed number.
- * It sets DPL to the number of digits after the decimal point if a decimal
- * point is present, leaves it at -1 otherwise. Blame: Gemini
- */
-static int parseNumber(char* token, int base) {
-    int dpl = -1; // -1 indicates no decimal point was encountered
-    value = 0;
-    int i = 0;
-    int sign = 0;
-    int has_digits = 0;
-    int has_dpl = 0;
-
-    // Fast-fail empty tokens
-    if (token[0] == '\0') return ERR_UNDEFINED_WORD; // -13
-
-    while (1) {
-        char c = token[i++];
-        if (c == '\0') break;
-
-        // Handle leading minus sign
-        if (i == 1 && c == '-') {
-            sign = 1;
-            continue;
-        }
-
-        // Handle decimal point '.'
-        if (c == '.') {
-            has_dpl = 1;
-            dpl = 0;
-            continue;
-        }
-
-        int digit = char2digit(c);
-
-        // Guard against invalid characters or digits >= base
-        if (digit < 0 || digit >= base) {
-            return ERR_UNDEFINED_WORD;
-        }
-
-        has_digits = 1;
-        value = (value * base) + digit;
-
-        // Increment DPL for every valid digit parsed after '.'
-        if (has_dpl) {
-            dpl++;
-        }
-    }
-
-    // Must have contained at least one actual digit
-    if (!has_digits) {
-        return ERR_UNDEFINED_WORD;
-    }
-
-    if (sign) {
-        value = -value;
-    }
-
-    vmStore(LF_DPL, dpl);
-    return 0; // Success
-}
-
-/**
- * Forth Text Interpreter for a buffer anywhere in memory
- * The character just after the end of the buffer is set to \0 as a backstop.
- * Make sure the buffer has room for that.
+ * Forth Text Interpreter
+ * Evaluates tokens based on explicit stream length bounds without mutating or backstopping input buffers.
  *
  * @param str Character stream to interpret.
  * @param len Stream length.
@@ -662,52 +495,88 @@ static int interpret(char* str, size_t len) {
     if (str == NULL || len == 0) {
         return 0;
     }
-    str[len] = '\0';                    // backstop the buffer 
-    source = str;                       // use str for TOINchar
+
+    source = str;
+    source_len = len;
     lfTOINstore(0);
+
     int ior = 0;
-    while (TOINchar() != 0) {
-        if (ior) return ior;
-        char token[32] = { 0 };
-        ior = lfParseWord(token, 32);     // Parse the next token delimited by space
-		if (ior) return ior;
-        if (token == NULL) break;       // nothing parsed, but end found
-        // A. Check the current active vocabulary lists
+
+    while (1) {
+        if (ior) break;
+
+        // Break if >IN reached or exceeded stream length
+        if ((size_t)lfTOINfetch() >= source_len) {
+            if (input_stack_depth > 0) {
+                // Pop nested input frame
+                input_stack_depth--;
+                source = input_stack[input_stack_depth].str;
+                source_len = input_stack[input_stack_depth].len;
+                lfTOINstore(input_stack[input_stack_depth].toin);
+                BLK = input_stack[input_stack_depth].blk;
+                continue;
+            }
+
+            // Exit interpreter loop once root level input is exhausted and BLK == 0
+            if (BLK == 0) {
+                break;
+            }
+        }
+
+        ior = lfParseWord(token, sizeof(token));
+        if (ior) break;
+
+        // If no token was parsed (e.g. trailing whitespace at EOF), break out cleanly
+        if (token[0] == '\0') {
+            break;
+        }
+
+        // A. Check active wordlists
         const struct s_head* word = search_context(token);
-        if (token[0] == '\0') continue; // ignore empty strings
         int state = lfSTATEfetch();
-        if (word != NULL) {             // word was found in the dictionary
+
+        if (word != NULL) {
             if (word->aux & A_IMMEDIATE) {
-                if ((state) && (word->aux & A_NO_EXECUTE)) {
+                if (state && (word->aux & A_NO_EXECUTE)) {
                     ior = ERR_INTERPRET_COMPILE_ONLY;
                 }
                 state = 0;
             }
-            if (ior) return ior;
+            if (ior) break;
+
             if (state) {
                 ior = lfCompileWord(word);
             }
             else {
                 ior = lfExecuteWord(word);
             }
+
             int base = lfBASEfetch();
-            if (base < 2) {             // safety-check the base
+            if (base < 2) {
                 ior = ERR_INVALID_BASE;
                 lfBASEstore(10);
             }
             continue;
         }
+
+        // B. Constant / Numeric fallback
         ior = findConstant(token, &value);
-        if (ior) {                      // Fall back to numeric evaluation
-            ior = parseNumber(token, lfBASEfetch());
+        if (ior) {
+            ior = parseNumber(token, lfBASEfetch(), &value);
         }
-        if (ior) return ior;
+        if (ior) break; // Exit loop on undefined word or parsing error
+
         if (state) {
             lfCompileLit(value);
         }
         else {
             vmPush(value);
         }
+    }
+
+    // On an abnormal exit (ior != 0), unwind and reset the file nesting stack
+    if (ior != 0) {
+        input_stack_depth = 0;
     }
     return ior;
 }
@@ -808,5 +677,139 @@ int lfAPI_tickx(void) {
     if (word == NULL) return ERR_UNDEFINED_WORD;
     vmPush(word->w);
     return vmPush(word->aux);
+}
+
+static struct s_head* latest = NULL;
+
+// Modify the last created header (immediate, etc.)
+int lfToHeader(uint32_t w, uint32_t aux) {
+    latest->w |= w;
+    latest->aux ^= aux;
+    return 0;
+}
+
+char* lfHeaderName = NULL;
+
+// Create a header structure in Forth memory space
+int lfHeader(uint32_t w, uint32_t aux, char** name) {
+    char token[32] = { 0 };
+    int ior = lfParseWord(token, 32);
+    if (ior) return ior;
+
+    // Resolve destination memory location in 32-bit cells
+    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS + 2];
+    int32_t  f_hp = *headptr;
+    int32_t  f_hmax = headptr[3];
+    int page = f_hp >> (22 - VM_LOG2_PAGES);
+    int32_t  start_f_hp = f_hp & 0x3FFFFF;
+
+    int32_t* cell_dest = &vm_memory[page][start_f_hp];
+
+    // Pack string name into 32-bit cells
+    char* name_dest = (char*)cell_dest;
+    if (name != NULL) {
+        *name = name_dest;
+    }
+    int32_t ch_dest = start_f_hp | (8 << 27); // bytes
+    char* src = token;
+    char c = 0;
+    uint8_t length = 0;
+
+    do {
+        int ior = vmStore(ch_dest, *src++);
+        if (ior) return ior;
+        ch_dest = vmFieldPlus(ch_dest);
+        length++;
+    } while (c);
+    /*
+    * vmStore did not give an error, assume struct s_head will not step on
+    * anything critical.
+    */
+    while (length & 3) {
+        vmStore(ch_dest, *src++);
+        ch_dest = vmFieldPlus(ch_dest);
+        length++;
+    }
+
+    cell_dest += (length / sizeof(int32_t));
+
+    // Construct struct s_head header directly in the next cell boundary
+    struct s_head* target_head = (struct s_head*)cell_dest;
+    latest = target_head;
+    target_head->name = name_dest;
+    target_head->w = w;
+    target_head->aux = aux;
+
+    // Insert header at top of current wordlist (linked list)
+    s_wid* current = &wids[*CURRENT];
+    target_head->link = (struct s_head*)current->head; // Point new node to current head
+
+    // Update current wordlist head pointer
+    current->head = target_head;
+
+    // Advance cell_dest past the struct s_head
+    int32_t head_cells = (sizeof(struct s_head) + sizeof(int32_t) - 1) / sizeof(int32_t);
+    cell_dest += head_cells;
+
+    // Calculate new f_hp address (start_f_hp + total cell delta)
+    int32_t total_cells_used = (int32_t)(cell_dest - &vm_memory[page][start_f_hp]);
+    int32_t new_f_hp = (page << (22 - VM_LOG2_PAGES)) | ((start_f_hp + total_cells_used) & 0x3FFFFF);
+
+    // Bounds check before writing back to F_PTRS
+    if (new_f_hp >= f_hmax) {
+        return ERR_DICTIONARY_OVERFLOW;
+    }
+
+    headptr[2] = new_f_hp;
+    return 0;
+}
+
+static int lfParenthesis(int echo) {
+    while (1) {
+        char c = TOINchar();
+        if (c == '\0') break;
+        TOINbump();
+        if (c == ')') break;
+        if (echo) {
+            serial_putc(c);
+        }
+    }
+    return 0;
+}
+
+/* ( */
+int lfAPI_paren(void) {
+    return lfParenthesis(0);
+}
+
+/* .( */
+int lfAPI_dotParen(void) {
+    return lfParenthesis(1);
+}
+
+
+/**
+ * Nests a new input stream (e.g., from an included block or file).
+ * Saves current input context and switches to the provided buffer.
+ */
+int lfNestInput(char* src, int length, int32_t block) {
+    if (input_stack_depth >= MAX_INPUT_STACK) {
+        return ERR_STACK_OVERFLOW;
+    }
+
+    // Save current active stream state onto the nesting stack
+    input_stack[input_stack_depth].str = source;
+    input_stack[input_stack_depth].len = source_len;
+    input_stack[input_stack_depth].toin = lfTOINfetch();
+    input_stack[input_stack_depth].blk = BLK;
+    input_stack_depth++;
+
+    // Load new input stream
+    source = src;
+    source_len = (size_t)length;
+    lfTOINstore(0);
+    BLK = block;
+
+    return 0;
 }
 

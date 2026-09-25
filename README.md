@@ -13,6 +13,13 @@ costs about $3.88.
 The official [dev board](https://www.aliexpress.us/item/3256812656099340.html)
 is about 10 times that. It has a built-in WCH-Link.
 
+The minimum hardware requirements for LiteForth are something like:
+
+- 32-bit CPU core such as RISC V or ARM Cortex
+- 32 KB of RAM (64 KB is better)
+- 64 KB of Flash (256 KB is better)
+- UART or USB CDC connection to a terminal emulator
+
 A typical setup includes:
 
 ```mermaid
@@ -60,8 +67,11 @@ Forth code runs in a sandbox, so the MCU does not need any kind of MMU.
 
 LiteForth is ANS-ish, but not ANS compilant. It is cell-addressed.
 Strings and bytes are handled as generic bit fields, breaking the character model
-of ANS Forth. LiteForth is a dialect of Machine Forth, designed to run on a real
-or simulated Forth chip.
+of ANS Forth. Memory is read-only (after committing it to Flash) or volatile. 
+You have to initialize non-zero volatile data yourself, another non-ANS detail.
+
+LiteForth is a dialect of Machine Forth, designed to run on a real
+or simulated Forth chip. It intended for on-MCU development.
 
 ## Code size reduction
 

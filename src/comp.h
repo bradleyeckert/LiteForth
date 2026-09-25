@@ -55,6 +55,7 @@ extern char* lfCreatedName; // CREATE (comp.c) --> WORDLIST (forth.c)
 
 int lfCompString(char* str);
 
+int lfAPI_inst(void);
 int lfAPI_colon(void);
 int lfAPI_semicolon(void);
 int lfAPI_exit(void);
@@ -66,7 +67,6 @@ int lfAPI_toBody(void);
 int lfAPI_bit(void);
 int lfAPI_here(void);
 int lfAPI_comma(void);
-
 
 #ifdef __cplusplus
 }

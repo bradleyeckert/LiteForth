@@ -1,3 +1,4 @@
+#include <string.h>
 #include "forth.h"
 #include "vm.h"
 #include "vm_labels.h"
@@ -10,7 +11,7 @@
 #include "comp.h"
 #include "tools.h"
 #include "api0.h"
-#include <string.h>
+#include "lfblocks.h"
 
 /*==========================================================================
 * API 0 
@@ -216,13 +217,12 @@ static int wordlist(void) {
     return vmPush(ior);
 }
 
-/*==========================================================================
-Block I/O
-==========================================================================*/
+/* IMMEDIATE  ( -- ) */
+static int immediate(void) {
+    lfToHeader(0, A_IMMEDIATE);
+    return 0;
+}
 
-#define BLOCKBUFS    vm_memory[RAM_PAGE][F_BLOCKBUFS]
-
-// block wordlist API goes here
 
 typedef int(*APIfn) (void);
 
@@ -234,7 +234,8 @@ static const APIfn API0fns[] = {
     lfAPI_here, lfAPI_dotWid, lfAPI_tickx, tickpage, wordlist,
     flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
     lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_comma, lfAPI_bit,
-    bye, bye
+    lfAPI_inst, immediate, lfAPI_block, lfAPI_buffer, lfAPI_update,
+    lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm

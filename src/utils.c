@@ -99,12 +99,12 @@ int lfAPI_hex(void) {
  * `.pages` lists every page's memory allocations
  */
 
-int lfEmitses(int n, char c) {
+static int lfEmitses(int n, char c) {
     while (n--) serial_putc(c);
     return 0;
 }
 
-int lfSpaces(int n) {
+static int lfSpaces(int n) {
     return lfEmitses(n, ' ');
 }
 

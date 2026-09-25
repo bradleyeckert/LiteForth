@@ -82,9 +82,9 @@ static void NewInst(void) {
 }
 
 // Compile a 16-bit instruction
-static int InstCompile(uint16_t inst) { // compile instruction
-    NewInst();                          // flush any uops
-    return commaCode(inst);
+int lfAPI_inst(void) {
+    NewInst(); // flush any uops
+    return commaCode(vmPop());
 }
 
 // Compile a call

@@ -36,10 +36,9 @@ locations for accessibility by Forth or by C.
 #define LF_TOIN      BITFIELD(13, 15, 0)
 #define LF_MSPACE    BITFIELD(2, 28, 0)
 #define LF_CURRENT   BITFIELD(8, 0, F_CURRENT)
-#define LF_TIB       BITFIELD(8, 0, F_TIB)  /* Terminal Input Buffer       */
-#define LF_BLK       VARIABLE(F_BLK)        /* Allow 4G blocks             */
-#define LF_PTRS      VARIABLE(F_PTRS)       /* dictionary pointers 6-cell  */
+#define LF_TIB       BITFIELD(8, 0, F_TIB) /* Terminal Input Buffer       */
 #define LF_CONTEXT   BITFIELD(8, 0, F_CONTEXT)    /* context list          */
+#define LF_BLOCKBUFS VARIABLE(F_BLOCKBUFS)
 #define LF_HERE0     VARIABLE(F_HERE0)      /* first free RAM              */
 
 #define CURRENT     ((int8_t *)&vm_memory[RAM_PAGE][F_CURRENT])

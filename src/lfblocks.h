@@ -1,5 +1,5 @@
-#ifndef LFBLOCKS_API_H
-#define LFBLOCKS_API_H
+#ifndef LFBLOCKS_H
+#define LFBLOCKS_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -94,4 +94,4 @@ int lfAPI_load(void);
 }
 #endif
 
-#endif /* LFBLOCKS_API_H */
+#endif /* LFBLOCKS_H */

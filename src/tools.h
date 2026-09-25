@@ -52,6 +52,7 @@ int lfSpace(void);
  * @return 0 on success, or an explicit negative error code on failure.
  */
 int lfDot(int32_t val);
+int lfDot10(int32_t val); // no trailing space, decimal only
 	
 /**
  * @brief Performs 64-bit dividend by 32-bit divisor unsigned division.

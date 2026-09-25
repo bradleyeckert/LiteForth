@@ -5,6 +5,7 @@
 #include "serial_io.h"
 #include "comp.h"
 #include "tools.h"
+#include "lfblocks.h"
 #include "options.h"
 
 // wsl: // cd /mnt/c/Users/User/Documents/GitHub/LiteForth
@@ -14,8 +15,6 @@
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;
-static char token[32];      // token buffer for parsing
-static int32_t value;       // value returned by numeric input parsing
 
 static int lfTOINfetch(void) {
     int32_t result;
@@ -96,7 +95,7 @@ static const struct s_head forth_heads[] = {
     { LINK(27), "@b+",          UOP(VMU_FETCHBPLUS),                      0},
     { LINK(28), "a",            UOP(VMU_A),                               0},
     { LINK(29), "cy",           UOP(VMU_CY),                              0},
-    { LINK(30), "cells",        0,                         A_NOTHING |    0},
+    { LINK(30), "cells",        0,                            A_NOTHING | 0},
     { LINK(31), "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
     { LINK(32), "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},
     { LINK(33), "@",            MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),     0},
@@ -108,7 +107,7 @@ static const struct s_head forth_heads[] = {
     { LINK(39), "]shl",         SYS(VMS_SHL),        /* u1 -- u2      */  0},
     { LINK(40), "shft[",        SYSTO(VMSTO_SHIFT),  /* position --   */  0},
     { LINK(41), "]task",        SYSTO(VMSTO_TASK),   /* tstate --     */  0},
-    { LINK(42), "barf",         SYSTO(VMSTO_BARF),   /* ior --        */  0},
+    { LINK(42), "yeet",         SYSTO(VMSTO_YEET),   /* ior --        */  0},
     { LINK(43), "task[",        SYSFM(VMSFROM_TASK), /* -- tstate     */  0},
     { LINK(44), "um*",          API0( 4), /* u1 u2 -- ud              */  0},
     { LINK(45), "m*",           API0( 5), /* n1 n2 -- d               */  0},
@@ -118,7 +117,7 @@ static const struct s_head forth_heads[] = {
     { LINK(49), "key",          API0( 9), /* -- c                     */  0},
     { LINK(50), "emit",         API0(10), /* c --                     */  0},
     { LINK(51), ":",            API0(11), /* <name> --                */  0},
-    { LINK(52), ";",            API0(12),                  A_IMMED_ONLY | 0},
+    { LINK(52), ";",            API0(12),                   A_IMMEDIATE | 0},
     { LINK(53), ">options",     API0(13), /* n --                     */  0},
     { LINK(54), "options>",     API0(14), /* -- n                     */  0},
     { LINK(55), "(",            API0(15), /* -- */          A_IMMEDIATE | 0},
@@ -135,7 +134,7 @@ static const struct s_head forth_heads[] = {
     { LINK(66), "flash-close",  API0(26), /* --                       */  0},
     { LINK(67), "]",            API0(27), /* --                       */  0},
     { LINK(68), "[",            API0(28), /* -- */          A_IMMEDIATE | 0},
-    { LINK(69), "exit",         API0(29), /* -- */         A_IMMED_ONLY | 0},
+    { LINK(69), "exit",         API0(29), /* -- */          A_IMMEDIATE | 0},
     { LINK(70), "constant",     API0(30), /* n <name> --              */  0},
     { LINK(71), "bits",         API0(31), /* n <name> --              */  0},
     { LINK(72), ">body",        API0(32), /* xt -- addr               */  0},
@@ -150,19 +149,22 @@ static const struct s_head forth_heads[] = {
     { LINK(81), "flush",        API0(41), /* --                       */  0},
     { LINK(82), "empty-buffers",API0(42), /* --                       */  0},
     { LINK(83), "load",         API0(43), /* u --                     */  0},
+    { LINK(84), "capacity",     API0(44), /* -- u                     */  0},
+    { LINK(85), "-->",          API0(45), /* --                       */  0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(84), "}t",           API0(44), /* ? --                     */  0},
-    { LINK(85), "->",           API0(45), /* ? --                     */  0},
-    { LINK(86), "t{",           API0(46), /* --                       */  0},
-    { LINK(87), "hex",          API0(47), /* --                       */  0},
-    { LINK(88), "decimal",      API0(48), /* --                       */  0},
-    { LINK(89), ".page",        API0(49), /* n --                     */  0},
-    { LINK(90), ".pages",       API0(50), /* --                       */  0},
-    { LINK(91), "dump",         API0(51), /* addr length --           */  0},
-    { LINK(92), "dumpi",        API0(52), /* inst --                  */  0},
-    { LINK(93), "dasm",         API0(53), /* addr length --           */  0},
-    { LINK(94), ".s",           API0(54), /* --                       */  0},
-    { LINK(95), ".",            API0(55), /* n --                     */  0},
+    { LINK(86), "}t",           API0(46), /* ? --                     */  0},
+    { LINK(87), "->",           API0(47), /* ? --                     */  0},
+    { LINK(88), "t{",           API0(48), /* --                       */  0},
+    { LINK(89), "hex",          API0(49), /* --                       */  0},
+    { LINK(90), "decimal",      API0(50), /* --                       */  0},
+    { LINK(91), ".page",        API0(51), /* n --                     */  0},
+    { LINK(92), ".pages",       API0(52), /* --                       */  0},
+    { LINK(93), "dump",         API0(53), /* addr length --           */  0},
+    { LINK(94), "dumpi",        API0(54), /* inst --                  */  0},
+    { LINK(95), "dasm",         API0(55), /* addr length --           */  0},
+    { LINK(96), ".s",           API0(56), /* --                       */  0},
+    { LINK(97), ".",            API0(57), /* n --                     */  0},
+    { LINK(98), "see",          API0(58), /* <name> --                */  0 },
 #endif
 };
 
@@ -177,7 +179,9 @@ static const ConstantMapping constant_table[] = {
     { LF_DPL,           "dpl"},
     { LF_TOIN,          ">in"},
     { VARIABLE(F_BLK),  "blk"},
-    { LF_BLOCKBUFS,     "blkbufs"},
+    { BLOCK_SIZE_CELLS, "|block|"},
+//  { SYSTEM_BLOCKS,    "system-block-buffers"},
+//  { LF_BLOCKBUFS,     "raw-blocks"},
     { LF_TIB,           "tib"},
     { VARIABLE(F_PTRS), "dp[]"},
     { LF_MSPACE,        "dp^" },
@@ -284,8 +288,10 @@ int lfAPI_dotWid(void) {
 int lfAPI_words(void) {
     const struct s_head* link = wids[CONTEXT[0]].head;
     while (link != NULL) {
-        serial_puts(link->name);
-        lfSpace();
+        if ((link->aux & A_SMUDGED) == 0) {
+            serial_puts(link->name);
+            lfSpace();
+        }
         link = link->link;
     }
     return 0;
@@ -295,6 +301,8 @@ int lfAPI_words(void) {
 /* LOOKUP FUNCTION                                                           */
 /* ========================================================================= */
 
+uint32_t g_neighbor_w = 0; // the w of the word defined after the found one
+
 static const struct s_head* search_wordlist(int wid_index, const char *target_name) {
     if (wid_index < 0 || wid_index >= wids_pointer) {
         return NULL;
@@ -302,8 +310,11 @@ static const struct s_head* search_wordlist(int wid_index, const char *target_na
     const struct s_head *link = wids[wid_index].head;
     while (link != NULL) {
         if (TheStringsMatch(link->name, (char *)target_name)) {
-            if ((link->aux & A_SMUDGED) == 0) return link;
+            if ((link->aux & A_SMUDGED) == 0) {
+                return link;
+            }
         }
+        g_neighbor_w = link->w;
         link = link->link;
     }
     return NULL;
@@ -428,11 +439,11 @@ The extracted token is stored in a static buffer for later use.
 */
 
 static char* source = NULL; // current position in the input string
-static size_t source_len = 0; // explicit length bound for the current input stream
+static int source_len = 0;  // explicit length bound for the current input stream
 
 static char TOINchar(void) {
     int toin = lfTOINfetch();
-    if ((size_t)toin >= source_len) {
+    if (toin >= source_len) {
         return '\0';
     }
     return source[toin];
@@ -482,6 +493,8 @@ int lfParseWord(char* dest, int destSize) {
 
 static InputFrame input_stack[MAX_INPUT_STACK];
 static int input_stack_depth = 0;
+static void dumpInputStackTrace(void);
+static char* lastparsed = NULL;
 
 /**
  * Forth Text Interpreter
@@ -491,7 +504,8 @@ static int input_stack_depth = 0;
  * @param len Stream length.
  * @return    0 on normal execution, else Forth error code from errcodes.h
  */
-static int interpret(char* str, size_t len) {
+static int interpret(char* str, int len) {
+    static char token[32];      // token buffer for parsing
     if (str == NULL || len == 0) {
         return 0;
     }
@@ -506,7 +520,7 @@ static int interpret(char* str, size_t len) {
         if (ior) break;
 
         // Break if >IN reached or exceeded stream length
-        if ((size_t)lfTOINfetch() >= source_len) {
+        if (lfTOINfetch() >= source_len) {
             if (input_stack_depth > 0) {
                 // Pop nested input frame
                 input_stack_depth--;
@@ -524,6 +538,7 @@ static int interpret(char* str, size_t len) {
         }
 
         ior = lfParseWord(token, sizeof(token));
+        lastparsed = token;
         if (ior) break;
 
         // If no token was parsed (e.g. trailing whitespace at EOF), break out cleanly
@@ -558,6 +573,7 @@ static int interpret(char* str, size_t len) {
             }
             continue;
         }
+        int32_t value;
 
         // B. Constant / Numeric fallback
         ior = findConstant(token, &value);
@@ -576,7 +592,10 @@ static int interpret(char* str, size_t len) {
 
     // On an abnormal exit (ior != 0), unwind and reset the file nesting stack
     if (ior != 0) {
-        input_stack_depth = 0;
+        if (ior != ERR_QUIT) {
+            dumpInputStackTrace();
+        }
+        input_stack_depth = 0; // ensure input stack is cleared on exit
     }
     return ior;
 }
@@ -648,7 +667,7 @@ int QUIT(void) {
         switch (ior) {
         case ERR_QUIT: return 0;
         case ERR_UNDEFINED_WORD:
-            serial_puts(token);
+            serial_puts(lastparsed);
             serial_puts(" ?\n");
             break;
         default:
@@ -671,7 +690,7 @@ int QUIT(void) {
 /* `D'` ( <name> -- w aux ) */
 int lfAPI_tickx(void) {
     char token[32] = { 0 };
-    int ior = lfParseWord(token, 32);
+    int ior = lfParseWord(token, sizeof(token));
     if (ior) return ior;
     const struct s_head* word = search_context(token);
     if (word == NULL) return ERR_UNDEFINED_WORD;
@@ -683,6 +702,7 @@ static struct s_head* latest = NULL;
 
 // Modify the last created header (immediate, etc.)
 int lfToHeader(uint32_t w, uint32_t aux) {
+    if (latest == NULL) return ERR_UNSUPPORTED_OPERATION;
     latest->w |= w;
     latest->aux ^= aux;
     return 0;
@@ -693,7 +713,7 @@ char* lfHeaderName = NULL;
 // Create a header structure in Forth memory space
 int lfHeader(uint32_t w, uint32_t aux, char** name) {
     char token[32] = { 0 };
-    int ior = lfParseWord(token, 32);
+    int ior = lfParseWord(token, sizeof(token));
     if (ior) return ior;
 
     // Resolve destination memory location in 32-bit cells
@@ -716,7 +736,8 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     uint8_t length = 0;
 
     do {
-        int ior = vmStore(ch_dest, *src++);
+        c = *src++;
+        int ior = vmStore(ch_dest, c);
         if (ior) return ior;
         ch_dest = vmFieldPlus(ch_dest);
         length++;
@@ -726,7 +747,7 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     * anything critical.
     */
     while (length & 3) {
-        vmStore(ch_dest, *src++);
+        vmStore(ch_dest, 0);
         ch_dest = vmFieldPlus(ch_dest);
         length++;
     }
@@ -760,7 +781,7 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
         return ERR_DICTIONARY_OVERFLOW;
     }
 
-    headptr[2] = new_f_hp;
+    headptr[0] = new_f_hp;
     return 0;
 }
 
@@ -806,10 +827,73 @@ int lfNestInput(char* src, int length, int32_t block) {
 
     // Load new input stream
     source = src;
-    source_len = (size_t)length;
+    source_len = length;
     lfTOINstore(0);
     BLK = block;
 
     return 0;
 }
 
+#ifndef SCREEN_COLUMNS
+#define SCREEN_COLUMNS 128
+#endif
+
+static void dumpInputStackTrace(void) {
+    if (BLK == 0 && input_stack_depth == 0) {
+        return;
+    }
+
+    // Save active frame state into working variables
+    char* cur_str = source;
+    int cur_toin = lfTOINfetch();
+    int cur_blk = BLK;
+
+    while (1) {
+        int cur_row = (cur_toin / SCREEN_COLUMNS) + 1;
+        int cur_col = (cur_toin % SCREEN_COLUMNS) + 1;
+
+        int line_start = cur_toin;
+        while (line_start > 0 && cur_str[line_start - 1] != '\n' && cur_str[line_start - 1] != '\r') {
+            line_start--;
+        }
+
+        serial_puts("Screen ");
+        lfDot10(cur_blk);
+        serial_puts(" [");
+        lfDot10(cur_row);
+        serial_putc(':');
+        lfDot10(cur_col);
+        serial_puts("] ");
+
+        for (int p = line_start; p < cur_toin; p++) {
+            serial_putc(cur_str[p]);
+        }
+        lfCR();
+
+        // Stop if we've processed all frames
+        if (input_stack_depth == 0) {
+            break;
+        }
+
+        // Pop next frame from stack into current working variables
+        input_stack_depth--;
+        InputFrame* frame = &input_stack[input_stack_depth];
+        cur_str = frame->str;
+        cur_toin = frame->toin;
+        cur_blk = frame->blk;
+    }
+}
+
+/**
+ * --> ( -- )
+ * Immediate word / Primitive: Terminate parsing the current block
+ * and load block BLK + 1.
+ */
+int lfAPI_nextBlock(void) {
+    if (BLK == 0) {
+        return ERR_INVALID_BLOCK_NUMBER;
+    }
+    lfTOINstore(source_len);
+    vmPush(BLK + 1);
+    return lfAPI_load();
+}

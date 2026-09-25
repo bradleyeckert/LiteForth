@@ -8,6 +8,8 @@
 #include "flash.h"
 #include "blocks.h"
 
+extern uint32_t g_block_capacity;
+
 int main(int argc, char* argv[]) {
     char* port_name = NULL;
     int baudrate = 115200;
@@ -57,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     int ior = flash_init(FLASHFILENAME, &flash);
     if (ior) return ior;
-    ior = blk_init(NULL);
+    ior = blk_init(NULL, &g_block_capacity);
     if (ior) return ior;
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]) {
             vm_memory[i] = &flash[i * FLASH_PAGE_CELLS];
             vm_memory_name[i] = "Flash";
             vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
-            vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected
+  //          vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected
             vm_memory_executable[i] = FLASH_PAGE_CELLS;
         }
         else if (i == RAM_PAGE) {

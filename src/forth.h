@@ -105,7 +105,7 @@ typedef struct {
  */
 typedef struct {
     char* str;
-    size_t len;
+    int len;
     int toin;
     int32_t blk;
 } InputFrame;
@@ -134,6 +134,7 @@ int lfAPI_dotParen(void);
 int lfAPI_tickx(void);
 int lfAPI_only(void);
 int lfAPI_forth(void);
+int lfAPI_nextBlock(void);
 
 #ifdef __cplusplus
 }

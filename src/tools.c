@@ -93,6 +93,11 @@ int lfDot(int32_t val) {
     return lfSpace();
 }
 
+// Output a value, decimal only, no trailing space
+int lfDot10(int32_t val) {
+    return lfDotB(val, 10, 0, 0);
+}
+
 /**
  * Attempts to interpret a raw token text as a numeric literal.
  * Returns ior and sets the global `value` to the parsed number.

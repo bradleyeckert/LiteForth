@@ -12,7 +12,7 @@
  * and writes the default Block 0 header template. Reads and caches write-protect sliders.
  * Returns 0 if okay, or a negative error code.
  */
-int blk_init(char *filename);
+int blk_init(char *filename, uint32_t *capacity);
 
 /**
  * Reads a single 4KB block payload into the destination buffer.

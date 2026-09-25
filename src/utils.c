@@ -136,7 +136,7 @@ static int APIdotPageX(int page) { // list specifics for the current page
 }
 
 int lfAPI_dotPage(void) {
-    uint32_t current_page = vmPeek(-1);
+    uint32_t current_page = vmPop();
     dotPageHeader();
     APIdotPageX(current_page);
     return 0;
@@ -160,8 +160,8 @@ int lfAPI_dotPages(void) {
  * @return 0 on success, or non-zero ior error code from vmFetch.
  */
 int lfAPI_dump(void) {
-    int32_t length = vmPeek(-1);
-    int32_t origin = vmPeek(-1);
+    int32_t length = vmPop();
+    int32_t origin = vmPop();
     int tally = 0;
 
     while (tally < length) {
@@ -277,14 +277,14 @@ static int DisassembleInsn(uint16_t inst) {
 }
 
 int lfAPI_dumpIns(void) {
-    uint16_t inst = (uint16_t)vmPeek(-1);
+    uint16_t inst = (uint16_t)vmPop();
     DisassembleInsn(inst);
     return 0;
 }
 
 int lfAPI_dasm(void) {
-    int32_t length = vmPeek(-1);
-    int32_t addr = vmPeek(-1);
+    int32_t length = vmPop();
+    int32_t addr = vmPop();
     addr = (addr & 0x3FFFFF) << 1;
     while (length--) {
         lfDotB(addr, 16, 0, 6);
@@ -297,6 +297,19 @@ int lfAPI_dasm(void) {
         lfCR();
         addr++;
     }
+    return 0;
+}
+
+extern uint32_t g_neighbor_w;
+
+int lfAPI_see(void) {
+    int ior = lfAPI_tickx();
+    if (ior) return ior;
+    vmPop(); // discard aux
+    int32_t w = vmPop();
+    int length = (g_neighbor_w - w) & 0x7FFFFF;
+    lfDot(length); serial_puts("insts at ");
+    lfDot(w);
     return 0;
 }
 

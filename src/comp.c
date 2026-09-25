@@ -6,10 +6,10 @@
 #include "options.h"
 #include "tools.h"
 #include "comp.h"
-#include <stdio.h> // remove for production code
+//#include <stdio.h> // remove
 
 // globals
-char* lfCreatedName;
+char* lfCreatedName; // used by api0.c
 
 /*===========================================================================
 * Dictionary pointer functions (F_PTRS in RAM page: dp, cp, hp, dp1, cp1, hp1
@@ -31,10 +31,10 @@ static int cpStore(int32_t cp) {
 
 // Code space is a half-cell-addressed, convert to linear address.
 static uint32_t cpPC(void) {
-    int32_t pc = 0;
-    cpFetch(&pc);
-    int lsb = (pc >> 26) & 1;
-    return (pc << 1) | lsb;
+    int32_t cp = 0;
+    cpFetch(&cp);
+    int lsb = (cp >> 26) & 1;
+    return ((cp & 0x3FFFFF) << 1) | lsb;
 }
 
 /*=========================================================================
@@ -60,6 +60,11 @@ static int slot = SLOT0_POSITION;
 static int32_t instruction;
 static int32_t lastcall = 0;
 
+static void freshSlots(void) {
+    instruction = 0;
+    slot = SLOT0_POSITION;
+}
+
 // Compile to code space. The data size is determined by the upper bits of cp.
 static int commaCode(uint32_t inst) {
     int32_t cp = 0;
@@ -67,17 +72,17 @@ static int commaCode(uint32_t inst) {
     if (ior) return ior;
     ior = vmStore(cp, inst);
     if (ior) return ior;
-    printf("mem[%x]=%x ", cp & 0x3FFFFF, inst);
     cp = vmFieldPlus(cp);
     return cpStore(cp);
-    instruction = 0;
-    slot = SLOT0_POSITION;
+    freshSlots();
 }
 
 // Start a new instruction group, flushing the current one if needed.
 static void NewInst(void) {
-    if (slot != SLOT0_POSITION) commaCode(VM_UOPS | instruction);
-    instruction = 0;
+    if (slot != SLOT0_POSITION) {
+        commaCode(VM_UOPS | instruction);
+    }
+    freshSlots();
     lastcall = 0;
 }
 
@@ -85,6 +90,13 @@ static void NewInst(void) {
 int lfAPI_inst(void) {
     NewInst(); // flush any uops
     return commaCode(vmPop());
+}
+
+// Align to even code address
+void lfCalign(void) {
+    freshSlots();
+    uint32_t pc = cpPC();
+    if (pc & 1) commaCode(0);
 }
 
 // Compile a call
@@ -101,14 +113,15 @@ static int CompCall(uint32_t addr, uint32_t aux) {
 static int CompUop(uint8_t uop) {
     uop &= 0x1F; // slots = 9, 4, -1
     int ior = 0;
-    if (slot < -4) commaCode(VM_UOPS | instruction);
+    if (slot < -4) NewInst(); // no room left
     if (slot < 0) { // last slot
         slot = 0;
         if (uop >= (1 << LAST_SLOT_WIDTH)) {
             ior = commaCode(VM_UOPS | instruction);
+            freshSlots();
         }
     }
-    instruction |= uop << slot;
+    instruction |= uop << slot; // 9, 4, or 0
     slot -= 5;
     return ior;
 }
@@ -173,7 +186,7 @@ int lfCompileWord(const struct s_head* word) {
         if (uop != VMU_NOP) CompUop(uop);   // maybe not a slot 2
         return ior;
     }
-    ior = CompCall(cpPC(), word->aux);
+    ior = CompCall(w & 0x7FFFFF, word->aux);// call to 23-bit code address
     return ior;
 }
 
@@ -193,7 +206,7 @@ static int CompExit(void) {
         return ior;
     }
 ex: instruction |= VM_UOPS | VM_RET;
-    slot = 0;
+    slot = -10;
     NewInst();
     return 0;
 }
@@ -202,6 +215,7 @@ static int32_t created = 0;
 
 /* :  ( <name> -- ) */
 int lfAPI_colon(void) {
+    lfCalign();
     created = 0;
     lfHeader(cpPC(), A_SMUDGED, NULL);
     return lfSTATEstore(1);
@@ -214,7 +228,8 @@ int lfAPI_exit(void) {
 
 /* ;  ( -- ) */
 int lfAPI_semicolon(void) {
-    lfToHeader(0, A_SMUDGED);
+    int ior = lfToHeader(0, A_SMUDGED);
+    if (ior) return ior;
     lfSTATEstore(0);
     lfCreatedName = NULL; // WORDLIST not used yet
     return CompExit();
@@ -253,6 +268,7 @@ int lfAPI_bits(void) {
 
 /* CREATE  ( <name> -- ) */
 int lfAPI_dotCreate(void) {
+    lfCalign();
     int ior = lfHeader(cpPC(), 0, &lfCreatedName);
     if (ior) return ior;
     int32_t here = *herePtr();

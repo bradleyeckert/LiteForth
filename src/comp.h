@@ -54,6 +54,7 @@ int lfCompileWord(const struct s_head* word);
 extern char* lfCreatedName; // CREATE (comp.c) --> WORDLIST (forth.c)
 
 int lfCompString(char* str);
+void lfCalign(void);
 
 int lfAPI_inst(void);
 int lfAPI_colon(void);

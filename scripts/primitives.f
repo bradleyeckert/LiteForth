@@ -24,6 +24,13 @@ T{    0 2/       ->    0 }T
 T{ 4000 2/       -> 2000 }T
 T{   -4 2/       ->   -2 }T
 
+( shifts )
+
+T{ 3 SHFT[  5 ]SHL -> 40 }T
+T{ 4 SHFT[ -1 ]SHL -> -16 }T
+T{ 3 SHFT[ 44 ]SHR -> 5 }T
+T{ 30 SHFT[ -1 ]SHR -> 3 }T
+
 ( inv )
 T{    0 invert   ->   -1 }T
 T{   -1 invert   ->    0 }T
@@ -96,6 +103,11 @@ T{ ram-base 34 + b! @b+ @b -> 30 40 }T
 ( ! and @ )
 T{ 88 ram-base 35 + ! ram-base 35 + @ -> 88 }T
 
+HEX
+T{ 84000001 slice+ -> 80000002 }T
+T{ 80000002 slice+ -> 84000002 }T
+DECIMAL
+
 ( --- Register Transfer Operations --- )
 
 ( a and a! )
@@ -109,6 +121,13 @@ T{ 456 b! b      -> 456 }T
 ( base )
 T{ base @  HEX      -> 0A }T
 T{ base @  DECIMAL  -> 16 }T
+
+( options> and >options )
+T{ options> 7 >options options> -> 7 7 }T
+
+( constant )
+1234 constant TEST_CONST
+T{ TEST_CONST -> 1234 }T
 
 HEX
 
@@ -151,9 +170,19 @@ T{ -7 -3 2 */MOD -> 1  0A }T
 
 ( Boundary Checks - 32-bit cells )
 T{ 7FFFFFFF 2 7FFFFFFF */MOD -> 0 2 }T
-T{ 7FFFFFFF 2 3 */MOD -> 2 55555554 }T 
+T{ 7FFFFFFF 2 3 */MOD -> 2 55555554 }T
 
 DECIMAL
+
+( Definitions )
+
+( : / ; definition execution )
+: ADD_TEN 10 + ;
+T{ 5 ADD_TEN -> 15 }T
+
+( exit in colon word )
+: TEST_EXIT 123 exit 456 ;
+T{ TEST_EXIT -> 123 }T
 
 .( Tests completed successfully ) cr
  bye )

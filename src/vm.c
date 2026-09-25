@@ -3,6 +3,7 @@
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
+// #include <stdio.h> // remove...
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -20,10 +21,11 @@ static int32_t R = 0;  // Top of Return Stack
 static int32_t A = 0;  // Address A
 static int32_t B = 0;  // Address B
 static int32_t U = 0;  // User pointer
-static int32_t lex = 0;  // Literal extension
+static int32_t prefix = 0;  // Literal prefix
 static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
+static int dirty = 0;
 
 int32_t vmFieldPlus(int32_t addr) {
     int bsize = (addr >> 27) & 0x1F;
@@ -56,7 +58,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     } break;
     case VMO_BRAN:
     qbranch:
-        PC = PC + simm; break;
+        PC = PC + simm; 
+        dirty = 1;  break;
     case VMO_PBRAN:
         if ((T & 0x80000000) == 0) {
             goto qbranch;
@@ -69,7 +72,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         VM_RDROP;  break;
     case VMO_SYS:
         switch (imm) {
-        case VMS_SHR: T = T >> shift_size; break;
+        case VMS_SHR: T = (unsigned)T >> shift_size; break;
         case VMS_SHL: T = T << shift_size; break;
         case VMS_FIELDPLUS: // field+
             T = vmFieldPlus(T);
@@ -80,7 +83,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         int32_t tos = T;
         VM_DDROP;
         switch (imm) {
-        case VMSTO_BARF:    return tos;
+        case VMSTO_YEET:    return tos;
         case VMSTO_TASK: // ]task
             sp = tos & 0xFFFF;
             rp = (tos >> 16) & 0xFFFF;
@@ -105,8 +108,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     case VMO_QLIT:
         VM_DDUP;  T = U + imm;
         break;
-    case VMO_PFX: lex = (lex << 9) | imm; break;
-    case VMO_PFX1: lex = (lex << 9) | imm | 0x200; break;
+    case VMO_PFX: prefix = (prefix << 9) | imm; break;
+    case VMO_PFX1: prefix = (prefix << 9) | imm | 0x200; break;
     case VMO_API0: return VMapi0Call(imm);
     case VMO_API1: return VMapi1Call(imm);
     default: return ERR_INVALID_OPCODE;
@@ -155,7 +158,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
 
     int32_t ior = 0;                    // 0 = okay
     uint32_t steps = 0;
-    int dirty = 1;
+    dirty = 1;
 
     if (once) {
         goto execute;                   // vmRun(1, inst, 0)
@@ -172,25 +175,24 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
         }
 
     fetch:                              // outer loop starts here...
-        if (dirty) {                    // fetch inst pair regardless
-            dirty = 0;
-        }
-        else if (PC & 1) {              // 2nd instruction in pair
+        if (PC == (int32_t)0xDEADC0DE) return 0; // hit ;
+
+        if ((PC & 1) && (dirty == 0)) { // 2nd instruction in pair
             inst = inst >> 16;
         }
         else {
             page = PC >> (24 - VM_LOG2_PAGES);
-            if (page >= VM_MEM_PAGES) {
-                if (PC == (int32_t)0xDEADC0DE) return 0;
-                return ERR_EXEC_PROTECTED;
-            }
+            if (page >= VM_MEM_PAGES) return ERR_EXEC_PROTECTED;
+
             uint32_t a = (PC >> 1) & VM_PAGE_MASK;
             if (a >= vm_memory_executable[page]) return ERR_EXEC_PROTECTED;
             inst = vm_memory[page][a];
-            if (!(PC & 1)) {
+            if (PC & 1) {
                 inst = inst >> 16;
             }
+            dirty = 0;
         }
+//      printf("Fetched inst %x from code address %x\n", inst, PC & 0xFFFF);
         PC++;
         // Run a 16-bit instruction or instruction group using the lower half
         // of `inst`. The upper half of 'inst' is a cache for the next one.
@@ -311,19 +313,19 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
         }
         else { // inst = 0...
             int32_t imm = inst & 0x1FFF;
-            int32_t immex = (lex << 13) | imm;
+            int32_t immex = (prefix << 13) | imm;
             if (!(inst & 0x4000)) {
                 if (inst & 0x2000) {        // push PC
                     VM_RDUP; R = PC;
                 }
                 PC = immex;                 // jump
                 dirty = 1;
-                lex = 0;
+                prefix = 0;
             }
             else {
                 if (!(inst & 0x2000)) {
                     VM_DDUP; T = immex;     // literal
-                    lex = 0;
+                    prefix = 0;
                 }
                 else {
                     ior = vmLitIns9((uint16_t)inst, imm);

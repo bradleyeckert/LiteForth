@@ -26,6 +26,7 @@
 #define BLOCK_SIZE_CELLS   1024 // block size in cells
 #define SYSTEM_BLOCKS         4 // number of block buffers in the system
 #define SIMNUMBLOCKS        256 // number of blocks in simulated block system
+#define SCREEN_COLUMNS      128 // columns per screen
 
 /* NOTES:
 [1] All pages below page RAM_PAGE are Flash pages, which are 1 or more

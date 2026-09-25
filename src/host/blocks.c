@@ -14,7 +14,7 @@ static uint32_t first_write_protected_block = SIMNUMBLOCKS;
 /* Track the actual physical capacity on disk for bounds checking */
 static uint32_t actual_blocks = 0;
 
-int blk_init(char* filename) {
+int blk_init(char* filename, uint32_t* capacity) {
     FILE* file = NULL;
     char* target_file = (filename && filename[0] != '\0') ? filename : BLOCKFILENAME;
 
@@ -80,6 +80,11 @@ int blk_init(char* filename) {
 
     // Save the file's actual number of blocks 
     actual_blocks = (uint32_t)(file_len / BLK_SIZE_BYTES);
+
+    // Populate out parameter if requested
+    if (capacity != NULL) {
+        *capacity = actual_blocks;
+    }
 
     // Read Block 0 header content to parse slider positions
     fseek(file, 0, SEEK_SET);

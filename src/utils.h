@@ -26,6 +26,7 @@ int lfAPI_dumpIns(void);
 int lfAPI_dasm(void);
 int lfAPI_dotEss(void);
 int lfAPI_dot(void);
+int lfAPI_see(void);
 
 #ifdef __cplusplus
 }

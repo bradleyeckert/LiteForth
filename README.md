@@ -16,8 +16,8 @@ is about 10 times that. It has a built-in WCH-Link.
 The minimum hardware requirements for LiteForth are something like:
 
 - 32-bit CPU core such as RISC V or ARM Cortex
-- 32 KB of RAM (64 KB is better)
-- 64 KB of Flash (256 KB is better)
+- 64 KB of RAM
+- 256 KB of Flash
 - UART or USB CDC connection to a terminal emulator
 - SPI Flash or microSD card slot
 

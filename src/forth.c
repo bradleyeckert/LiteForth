@@ -532,7 +532,7 @@ static int interpret(char* str, int len) {
                 if (BLK != 0) {
                     int32_t f_addr = 0;
                     ior = lfAssignBlock(BLK, &f_addr);
-                    source = (char*)vm_memory[RAM_PAGE][f_addr & VM_PAGE_MASK];
+                    source = (char*)&vm_memory[RAM_PAGE][f_addr & VM_PAGE_MASK];
                 }
                 continue;
             }
@@ -850,7 +850,7 @@ int lfAPI_load(void) {
     source_len = sizeof(int32_t) * BLOCK_SIZE_CELLS;
     lfTOINstore(0);
     BLK = blk;
-    return 0;
+    return ior;
 }
 
 

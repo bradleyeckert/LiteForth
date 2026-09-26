@@ -382,47 +382,44 @@ static int loadTIB(void) {
         // Announce to Forth that the terminal is waiting for TIBSTATE = 2
         lfTIBSTATEstore(1);
     }
-    if (BLK == 0) { // Load the TIB with keyboard input
-        while (1) {
-            if (serial_ready() < 1) {
+    while (1) {
+        if (serial_ready() < 1) {
 #ifdef yield2c
-                yield2c(); // Yield to other tasks (ans step VM) while waiting...
+            yield2c(); // Yield to other tasks (ans step VM) while waiting...
 #endif
-                continue;
-            }
-            int c = serial_getc();
-            if (c < 0) {
-                aux_result |= TERMINAL_RX_DIED;
-                break;                  // treat error as a normal terminator
-            }
-            if (c == '\r') {
-                if (system_flags & SYS_FLAG_IGNORE_CR) continue;
-                break;
-            }
-            if (c == '\n') break;       // CRLF inserts lines
-            if (c == 0xFF) c = ' ';     // replace 0xFF with blank
-            if (remaining > 1) {
-                *tib++ = (char)c;
-                remaining--;
-            }
-            else {                      // ignore input remaining until EOL
-                aux_result |= TERMINAL_OVERFLOWED;
-            }
+            continue;
         }
-        *tib++ = 0;                     // Null-terminate the TIB
-        remaining--;
-        if (lfTIBSTATEfetch()) {
-            lfTIBSTATEstore(2); // Indicate that TIB is ready for processing
-#ifdef yield2c
-            while (lfTIBSTATEfetch() != 3) {
-                yield2c();
-            }
-#endif
+        int c = serial_getc();
+        if (c < 0) {
+            aux_result |= TERMINAL_RX_DIED;
+            break;                  // treat error as a normal terminator
         }
-        int length = (TIBSIZE - remaining) | aux_result;
-        return length;
+        if (c == '\r') {
+            if (system_flags & SYS_FLAG_IGNORE_CR) continue;
+            break;
+        }
+        if (c == '\n') break;       // CRLF inserts lines
+        if (c == 0xFF) c = ' ';     // replace 0xFF with blank
+        if (remaining > 1) {
+            *tib++ = (char)c;
+            remaining--;
+        }
+        else {                      // ignore input remaining until EOL
+            aux_result |= TERMINAL_OVERFLOWED;
+        }
     }
-	return 0; // For now, we only handle keyboard input (BLK == 0)
+    *tib++ = 0;                     // Null-terminate the TIB
+    remaining--;
+    if (lfTIBSTATEfetch()) {
+        lfTIBSTATEstore(2); // Indicate that TIB is ready for processing
+#ifdef yield2c
+        while (lfTIBSTATEfetch() != 3) {
+            yield2c();
+        }
+#endif
+    }
+    int length = (TIBSIZE - remaining) | aux_result;
+    return length;
 }
 
 static void lfDotLinecount(void) {
@@ -498,7 +495,10 @@ static char* lastparsed = NULL;
 
 /**
  * Forth Text Interpreter
- * Evaluates tokens based on explicit stream length bounds without mutating or backstopping input buffers.
+ * Evaluates tokens based on explicit stream length bounds
+ * 
+ * Blocks are not handled recursively. Instead, a separate block stack is
+ * used for nesting. The `interpret` loops until all nests close.
  *
  * @param str Character stream to interpret.
  * @param len Stream length.
@@ -513,6 +513,7 @@ static int interpret(char* str, int len) {
     source = str;
     source_len = len;
     lfTOINstore(0);
+    BLK = 0;
 
     int ior = 0;
 
@@ -629,7 +630,6 @@ int QUIT(void) {
     while (1) {
         LF_PACKEDSTATE[0] = 10;
         LF_PACKEDSTATE[1] = 0;
-        BLK = 0;
         linecount = 0;
         vmReset();
         // REPL until an error (or bye) occurs, starting with a clean stack.

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "options.h"
 
-#define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS / sizeof(uint32_t))
+#define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
 
 /**
  * Initializes the block mass storage simulation.

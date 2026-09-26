@@ -113,7 +113,7 @@
 #define VMS_SHL                 1
 #define VMS_FIELDPLUS           2
 
-#define VMSTO_BARF              0
+#define VMSTO_YEET              0
 #define VMSTO_TASK              1
 #define VMSTO_SHIFT             2
 

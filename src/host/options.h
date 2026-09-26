@@ -14,18 +14,18 @@
 #define VM_LOG2_PAGES         3 // log2 of the number of pages in the memory space
 #define STACK_CAPACITY	    128 // Size of the data and return stacks in cells
 // main.c
-#define FLASH_PAGE_CELLS   1024 // Flash memory page size [1]
+#define FLASH_PAGE_CELLS   4096 // Flash memory page size [1]
 #define RAM_PAGE              1 // The memory page used by system variables
-#define RAM_PAGE_CELLS     8192 // RAM page size [2]
+#define RAM_PAGE_CELLS     4096 // RAM page size [2]
 // memalloc.c
-#define POOL_CAPACITY     16384 // cells of the main memory pool
+#define POOL_CAPACITY      8192 // cells of the main memory pool
 // flash.c
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c
 #define BLOCKFILENAME     "lfblocks.bin"
 #define BLOCK_SIZE_CELLS   1024 // block size in cells
-#define SYSTEM_BLOCKS         4 // number of block buffers in the system
-#define SIMNUMBLOCKS        256 // number of blocks in simulated block system
+#define SYSTEM_BLOCKS         2 // number of block buffers in the system
+#define SIMNUMBLOCKS         64 // number of blocks in simulated block system
 #define SCREEN_COLUMNS      128 // columns per screen
 
 /* NOTES:

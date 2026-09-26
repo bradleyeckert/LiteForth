@@ -24,9 +24,15 @@ locations for accessibility by Forth or by C.
 #define F_BLK        (F_TIB + TIBCELLS)
 #define F_SCR        (F_BLK + 1)
 #define F_PTRS       (F_SCR + 1)
-#define F_CONTEXT    (F_PTRS + 6)
+#define F_CONTEXT    (F_PTRS + 9)
 #define F_BLOCKBUFS  (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
 #define F_HERE0      (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
+
+#define F_PTRS_UDP   (F_PTRS)
+#define F_PTRS_IDP   (F_PTRS + 2)
+#define F_PTRS_CP    (F_PTRS + 4)
+#define F_PTRS_TP    (F_PTRS + 6)
+#define F_PTRS_IDP0  (F_PTRS + 8)
 
 #define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)
@@ -47,13 +53,6 @@ locations for accessibility by Forth or by C.
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
 
-#define SYS_FLAGS_LOCKED      0x8000        /* `>options` ignores changes  */
-#define SYS_FLAG_VERBOSE      0x0010        /* echo input lines            */
-#define SYS_FLAG_IGNORE_CR    0x0008        /* ignore CR                   */
-#define SYS_FLAG_VALIDATION   0x0004        /* quit immediately upon error */
-#define SYS_FLAG_NO_DOTESS    0x0002        /* do not display the stack    */
-#define SYS_FLAG_NO_OK        0x0001        /* do not display "ok>"        */
-
 // Flags in word->w[31:27]
 #define W_PRIMITIVE     0x80000000 // the xt is a primitive in slot 1
 #define W_MACRO         0x40000000 // the xt is all primitives except nops
@@ -69,7 +68,7 @@ locations for accessibility by Forth or by C.
 
 
 /* ======================================================================= */
-/* 1. STRUCTURE DEFINITIONS                                                */
+/* STRUCTURE DEFINITIONS                                                   */
 /* ======================================================================= */
 
 /**
@@ -110,6 +109,21 @@ typedef struct {
     int32_t blk;
 } InputFrame;
 
+/* ======================================================================= */
+/* SYSTEM OPTIONS                                                          */
+/* ======================================================================= */
+
+extern uint32_t g_lf_sys_options; // used in forth.c, main.c
+
+#define SYS_OPTIONS_LOCKED    0x8000        /* `>options` ignores changes  */
+#define SYS_OPTION_VERBOSE    0x0040        /* echo input lines            */
+#define SYS_OPTION_IGNORE_CR  0x0020        /* ignore CR                   */
+#define SYS_OPTION_NO_BLOCK   0x0010        /* do not create blocks file   */
+#define SYS_OPTION_NO_FLASH   0x0008        /* do not create flash file    */
+#define SYS_OPTION_VALIDATION 0x0004        /* quit immediately upon error */
+#define SYS_OPTION_NO_DOTESS  0x0002        /* do not display the stack    */
+#define SYS_OPTION_NO_OK      0x0001        /* do not display "ok>"        */
+
 /**
  * The standard Forth Outer Interpreter / Terminal Loop.
  * Enters an infinite terminal interaction stream, reading lines from console
@@ -123,7 +137,6 @@ int lfHeader(uint32_t w, uint32_t aux, char** name);
 int lfToHeader(uint32_t w, uint32_t aux);
 int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
-int lfNestInput(char* src, int length, int32_t block);
 
 int lfAPI_dotWid(void);
 int lfAPI_words(void);
@@ -135,6 +148,7 @@ int lfAPI_tickx(void);
 int lfAPI_only(void);
 int lfAPI_forth(void);
 int lfAPI_nextBlock(void);
+int lfAPI_load(void);
 
 #ifdef __cplusplus
 }

@@ -88,7 +88,7 @@ int lfAPI_flush(void);
  */
 int lfAPI_emptyBuffers(void);
 
-int lfAPI_load(void);
+int lfAssignBlock(uint32_t blk, int32_t* f_addr);
 
 #ifdef __cplusplus
 }

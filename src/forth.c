@@ -370,7 +370,7 @@ TIB is a fixed buffer in Forth data space for terminal input.
 #define TERMINAL_OVERFLOWED 0x8000
 #define TERMINAL_RX_DIED    0x4000
 
-static uint32_t system_flags = 0;
+uint32_t g_lf_sys_options = 0;
 static uint32_t linecount = 0;
 
 static int loadTIB(void) {
@@ -395,7 +395,7 @@ static int loadTIB(void) {
             break;                  // treat error as a normal terminator
         }
         if (c == '\r') {
-            if (system_flags & SYS_FLAG_IGNORE_CR) continue;
+            if (g_lf_sys_options & SYS_OPTION_IGNORE_CR) continue;
             break;
         }
         if (c == '\n') break;       // CRLF inserts lines
@@ -525,10 +525,15 @@ static int interpret(char* str, int len) {
             if (input_stack_depth > 0) {
                 // Pop nested input frame
                 input_stack_depth--;
+                BLK = input_stack[input_stack_depth].blk;
                 source = input_stack[input_stack_depth].str;
                 source_len = input_stack[input_stack_depth].len;
                 lfTOINstore(input_stack[input_stack_depth].toin);
-                BLK = input_stack[input_stack_depth].blk;
+                if (BLK != 0) {
+                    int32_t f_addr = 0;
+                    ior = lfAssignBlock(BLK, &f_addr);
+                    source = (char*)vm_memory[RAM_PAGE][f_addr & VM_PAGE_MASK];
+                }
                 continue;
             }
 
@@ -609,13 +614,13 @@ static int interpret(char* str, int len) {
  * `bye`      ( ? -- ? )   ends QUIT
  */
 int lfAPI_getFlags(void) {
-    return vmPush(system_flags);
+    return vmPush(g_lf_sys_options);
 }
 
 int lfAPI_setFlags(void) {
     int32_t val = vmPop();
-    if ((system_flags & SYS_FLAGS_LOCKED) == 0) {
-        system_flags = val;
+    if ((g_lf_sys_options & SYS_OPTIONS_LOCKED) == 0) {
+        g_lf_sys_options = val;
     }
     return 0;
 }
@@ -637,16 +642,16 @@ int QUIT(void) {
         // cooked input. The terminal echoes newline locally.
         int32_t ior = 0;
         while (ior == 0) {
-            if ((system_flags & SYS_FLAG_NO_DOTESS) == 0) {
+            if ((g_lf_sys_options & SYS_OPTION_NO_DOTESS) == 0) {
                 lfDotS();
             }
-            if ((system_flags & SYS_FLAG_NO_OK) == 0) {
+            if ((g_lf_sys_options & SYS_OPTION_NO_OK) == 0) {
                 ior = serial_puts("ok>");
                 if (ior) break; // lost the output stream
             }
             linecount++;
             int len = loadTIB();
-            if (system_flags & SYS_FLAG_VERBOSE) {
+            if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
                 lfDotLinecount();
                 serial_puts(TIB);
             }
@@ -680,7 +685,7 @@ int QUIT(void) {
 #endif
             break;
 		}
-        if (system_flags & SYS_FLAG_VALIDATION) {
+        if (g_lf_sys_options & SYS_OPTION_VALIDATION) {
             lfDotLinecount();
             return ior; // quit after the first error
         }
@@ -717,9 +722,9 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     if (ior) return ior;
 
     // Resolve destination memory location in 32-bit cells
-    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS + 2];
+    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
     int32_t  f_hp = *headptr;
-    int32_t  f_hmax = headptr[3];
+    int32_t  f_hmax = headptr[1];
     int page = f_hp >> (22 - VM_LOG2_PAGES);
     int32_t  start_f_hp = f_hp & 0x3FFFFF;
 
@@ -781,7 +786,7 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
         return ERR_DICTIONARY_OVERFLOW;
     }
 
-    headptr[0] = new_f_hp;
+    *headptr = new_f_hp;
     return 0;
 }
 
@@ -808,12 +813,27 @@ int lfAPI_dotParen(void) {
     return lfParenthesis(1);
 }
 
+// BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed.
+int lfAPI_block(void) {
+    int32_t f_addr = 0;
+    int ior = lfAssignBlock((uint32_t)vmPop(), &f_addr);
+    vmPush(f_addr);
+    return ior;
+}
+
+
 
 /**
- * Nests a new input stream (e.g., from an included block or file).
- * Saves current input context and switches to the provided buffer.
+ * LOAD  ( blk -- )
+ * Saves current input context and redirects interpreter input to block i.
+ * lfAssignBlock
  */
-int lfNestInput(char* src, int length, int32_t block) {
+int lfAPI_load(void) {
+    int32_t blk = vmPop();
+    if (blk == 0) return ERR_INVALID_BLOCK_NUMBER;
+    int32_t forth_addr = 0;
+    int ior = lfAssignBlock(blk, &forth_addr);
+
     if (input_stack_depth >= MAX_INPUT_STACK) {
         return ERR_STACK_OVERFLOW;
     }
@@ -826,13 +846,13 @@ int lfNestInput(char* src, int length, int32_t block) {
     input_stack_depth++;
 
     // Load new input stream
-    source = src;
-    source_len = length;
+    source = (char*)&vm_memory[RAM_PAGE][forth_addr & VM_PAGE_MASK];;
+    source_len = sizeof(int32_t) * BLOCK_SIZE_CELLS;
     lfTOINstore(0);
-    BLK = block;
-
+    BLK = blk;
     return 0;
 }
+
 
 #ifndef SCREEN_COLUMNS
 #define SCREEN_COLUMNS 128

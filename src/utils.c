@@ -23,7 +23,7 @@ int lfAPI_dotEss(void) {
 
 // Compile a string to data space
 int lfCompString(char* str) {
-    int32_t* dp = &vm_memory[RAM_PAGE][F_PTRS];
+    int32_t* dp = &vm_memory[RAM_PAGE][F_PTRS_TP];
     int32_t here = (dp[0] & ~(0x1F << 27)) | (8 << 27);
     int32_t heremax = dp[3];
     int ior = 0;

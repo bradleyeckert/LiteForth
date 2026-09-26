@@ -140,6 +140,7 @@ int32_t* flash = NULL;
 static int flashClose(void) {
     if (openpage < 0) return 0; // already closed
     if (openpage >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
+    if (flash == NULL) return ERR_FLASH_INVALID_SECTOR;
 
     // 1. Calculate base pointer for this page in flash memory
     int32_t* flash_page_ptr = flash + (openpage * FLASH_PAGE_CELLS);

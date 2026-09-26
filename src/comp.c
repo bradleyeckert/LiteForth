@@ -17,15 +17,15 @@ char* lfCreatedName; // used by api0.c
 
 static int cpFetch(int32_t* cp) {
     int32_t* mem = vm_memory[RAM_PAGE];
-    *cp = mem[F_PTRS + 1];
+    *cp = mem[F_PTRS_CP];
     return 0;
 }
 
 static int cpStore(int32_t cp) {
     int32_t* mem = vm_memory[RAM_PAGE];
-    uint32_t cp_max = mem[F_PTRS + 4];
+    uint32_t cp_max = mem[F_PTRS_CP + 1];
     if (((unsigned)cp & 0x3FFFFF) >= cp_max) return ERR_DICTIONARY_OVERFLOW;
-    mem[F_PTRS + 1] = cp;
+    mem[F_PTRS_CP] = cp;
     return 0;
 }
 
@@ -243,9 +243,9 @@ int lfAPI_constant(void) {
 
 // point to the current HERE pointer
 static int32_t* herePtr(void) {
-    int32_t space = 0; // d,c,h,-
+    int32_t space = 0; // ud,id,c,h
     vmFetch(LF_MSPACE, &space);
-    return &vm_memory[RAM_PAGE][F_PTRS + space];
+    return &vm_memory[RAM_PAGE][F_PTRS + (space << 1)];
 }
 
 /* BITS  ( n <name> -- ) */

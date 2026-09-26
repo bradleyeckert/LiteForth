@@ -48,8 +48,8 @@ Only compiling to Flash will permanently change it (jailbreak the device).
 
 ## VM memory
 
-The virtual machine's entire 22-bit memory space is divided into segments.
-`VM_SEGMENTS` is the number of memory segments in the virtual machine.
+The virtual machine's entire 22-bit memory space is divided into pages.
+`VM_PAGES` is the number of memory pages in the virtual machine.
 Each segment can have its own read, write-protect, and executable limits.
 
 - Code reads are valid from 0 to `vm_memory_executable`-1.
@@ -58,10 +58,10 @@ Each segment can have its own read, write-protect, and executable limits.
 
 The (2 MB) memory regions in an MCU could be:
 
-- 000000 - 07FFFF, Flash memory 0
-- 080000 - 0FFFFF, Flash memory 1
-- 100000 - 17FFFF, Flash memory 2
-- 180000 - 1FFFFF, Flash memory 3
+- 000000 - 07FFFF, Flash memory page 0
+- 080000 - 0FFFFF, Flash memory page 1
+- 100000 - 17FFFF, Flash memory page 2
+- 180000 - 1FFFFF, Flash memory page 3
 - 200000 - 27FFFF, RAM
 - 280000 - 2FFFFF, APB1 peripherals (not executable)
 - 300000 - 37FFFF, APB2 peripherals (not executable)
@@ -70,6 +70,35 @@ The (2 MB) memory regions in an MCU could be:
 For example, an MCU system with 128 KB sectors uses 512 KB for Forth dictionary.
 The VM changes `vm_memory` pointers to RAM when "writing" to Flash,
 then erases and flashes the sector when switching back to Flash.
+`flash-open` *( addr -- )* renders the flash page at *addr* writable.
+`flash-close` *( -- )* programs the open flash page and makes it read-only.
+
+## Logical Memory
+
+The 9-cell `dp[]` array supports 4 logical memory spaces:
+
+| `dp^` | Section | For |
+|-------|-------|-------|
+| 0 | \_udata | Uninitialized (zeroed) data starting at `ram-base` |
+| 1 | \_idata | Initialized data starting at `ram-base` |
+| 2 | \_code  | Executable code, usually read-only |
+| 3 | \_text  | Read-only data and headers |
+
+The cells in `dp[]` are:
+
+0. `udp` Pointer to uninitialized Data
+0. Upper limit for `udp`
+0. `idp` Pointer to initialized Data
+0. Upper limit for `idp`
+0. `cp` Pointer to code
+0. Upper limit for `cp`
+0. `tp` Pointer to text
+0. Upper limit for `tp`
+0. `idp0`, initial `idp`
+
+At the end of a project, before `close-flash`, `build-idata` will copy the
+memory range `idp0` to `idp` to a structure in the current Flash page.
+Startup code will repopulate it.
 
 ## Design for Flash
 
@@ -95,38 +124,25 @@ The first write to Flash space switches to virtual Flash by reading Flash into a
 Writes outside of the buffer swap in the new sector after saving the old one.
 An erase counter is maintained for each sector to instrument erase-thrashing.
 
-The open sector, if any, should be manually closed at the end of the file with `finalize`
+The open sector, if any, should be manually closed at the end with `flash-close`
 to avoid data loss.
 
-The dictionary flash consists of:
+## Flash page layout
 
-- 32-byte HMAC
-- 4-byte pointer to system structure
-- Code space
-- Unused
-- Header space
-- Unused
-- Data space
-- Unused
-- System structure
+A Flash page contains compiled executable code and initialization data.
+Boot code (in `forth.c`) initializes `wids[]` and `wids_pointer` from the data.
+There are several ways to inhibit this process:
 
-`FLASHAPPSECTORSIZE` should be sized to handle code and header space. If is too small,
-there will be erase-thrashing if code and header writes are to different sectors.
-A nice-sized Forth application may have 1000 words (20 KB of headers) and 20 KB of code.
-In that case, `#define FLASHAPPSECTORSIZE 16384` would make the flash sector size 64 KB.
-The next contiguous sector, starting at cell address 4000h, would be data space.
+- Apply a DC signal to a `boot inhibit` pin on the MCU
+- Break the CRC of the data by erasing the Flash
+- Use the `-o` command line option such as `-o 8`
 
-There are two instances of the code, header, and data pointers. To choose what `here` means:
+There are several variable-length lists in the data structure, which is pointed to
+by the first cell in the Flash Page. If that cell is 0, the data structure may be in the next page.
 
-- `ram` selects the RAM dictionary
-- `rom` selects the Flash dictionary
-- `code` selects the code pointer
-- `heads` selects the header pointer
-- `data` selects the data pointer
-- `here` gets the current pointer (`code here`, `data here`, `heads here`)
-- `org` sets the section origin (`100 code org`, `4000 heads org`, `8000 data org`)
-- `unused` calculates the unused cells based on the standard layout using the origins and `here`
-- `,` appends to the current space
+- Wordlist initialization data
+- idata initialization data
+- 
 
 ## Mass storage
 

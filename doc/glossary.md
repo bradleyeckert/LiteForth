@@ -75,6 +75,7 @@ Below is the complete reference table for the Forth words defined in `forth_head
 | `dumpi` | `( inst -- )` | Disassembles single instruction payload to console. |
 | `dup` | `( x -- x x )` | Duplicates the top stack item. |
 | `emit` | `( c -- )` | Transmits single character to terminal output. |
+| `empty` | `( -- )` | Resets the dictionary and sets up default pointers. |
 | `empty-buffers` | `( -- )` | Unmarks all block buffers without saving modifications. |
 | `exit` | `( -- )` | Compiles return micro-op to exit current word execution. |
 | `flush` | `( -- )` | Saves modified block buffers and invalidates current cache. |

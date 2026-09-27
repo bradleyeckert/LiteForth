@@ -152,20 +152,21 @@ static const struct s_head forth_heads[] = {
     { LINK(83), "load",         API0(43), /* u --                     */  0},
     { LINK(84), "capacity",     API0(44), /* -- u                     */  0},
     { LINK(85), "-->",          API0(45), /* --                       */  0},
+    { LINK(86), "empty",        API0(46), /* --                       */  0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(86), "}t",           API0(46), /* ? --                     */  0},
-    { LINK(87), "->",           API0(47), /* ? --                     */  0},
-    { LINK(88), "t{",           API0(48), /* --                       */  0},
-    { LINK(89), "hex",          API0(49), /* --                       */  0},
-    { LINK(90), "decimal",      API0(50), /* --                       */  0},
-    { LINK(91), ".page",        API0(51), /* n --                     */  0},
-    { LINK(92), ".pages",       API0(52), /* --                       */  0},
-    { LINK(93), "dump",         API0(53), /* addr length --           */  0},
-    { LINK(94), "dumpi",        API0(54), /* inst --                  */  0},
-    { LINK(95), "dasm",         API0(55), /* addr length --           */  0},
-    { LINK(96), ".s",           API0(56), /* --                       */  0},
-    { LINK(97), ".",            API0(57), /* n --                     */  0},
-    { LINK(98), "see",          API0(58), /* <name> --                */  0 },
+    { LINK(87), "}t",           API0(47), /* ? --                     */  0},
+    { LINK(88), "->",           API0(48), /* ? --                     */  0},
+    { LINK(89), "t{",           API0(49), /* --                       */  0},
+    { LINK(90), "hex",          API0(50), /* --                       */  0},
+    { LINK(91), "decimal",      API0(51), /* --                       */  0},
+    { LINK(92), ".page",        API0(52), /* n --                     */  0},
+    { LINK(93), ".pages",       API0(53), /* --                       */  0},
+    { LINK(94), "dump",         API0(54), /* addr length --           */  0},
+    { LINK(95), "dumpi",        API0(55), /* inst --                  */  0},
+    { LINK(96), "dasm",         API0(56), /* addr length --           */  0},
+    { LINK(97), ".s",           API0(57), /* --                       */  0},
+    { LINK(98), ".",            API0(58), /* n --                     */  0},
+    { LINK(99), "see",          API0(59), /* <name> --                */  0 },
 #endif
 };
 
@@ -256,6 +257,11 @@ static void lfResetWids(void) { // initialize the wordlists
     wids_pointer = EMPTY_WIDS;
 }
 
+// EMPTY  ( -- )  Resets the dictionary
+int lfAPI_empty(void) {
+    lfResetWids();
+    return lfInitPointers();
+}
 
 // Start a new wordlist
 int lfAddWordlist(char* name) {
@@ -649,7 +655,7 @@ int QUIT(void) {
     lf_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();
-    lfResetWids();
+    lfAPI_empty();
     lfAPI_only();
     lfAPI_forth();
     while (1) {
@@ -833,8 +839,6 @@ int lfAPI_block(void) {
     vmPush(f_addr);
     return ior;
 }
-
-
 
 /**
  * LOAD  ( blk -- )

@@ -175,6 +175,9 @@ int lfAPI_only(void);
 int lfAPI_forth(void);
 int lfAPI_nextBlock(void);
 int lfAPI_load(void);
+int lfAPI_empty(void);
+
+int lfInitPointers(void); // import from main.c
 
 #ifdef __cplusplus
 }

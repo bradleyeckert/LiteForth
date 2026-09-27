@@ -8,12 +8,33 @@
 #include "flash.h"
 #include "blocks.h"
 #include "tools.h"
+#include "errcodes.h"
 #include <malloc.h>
 #include <string.h>
 
 extern uint32_t g_block_capacity;
 
 #define FLASHBYTES  (RAM_PAGE * FLASH_PAGE_CELLS * sizeof(int32_t))
+
+int lfInitPointers(void) {
+    int32_t* mem = vm_memory[RAM_PAGE];
+    if (mem == NULL) return ERR_ALLOCATE_FAILED;
+    // udata space origin and limit
+    mem[F_PTRS + 0] = LF_HERE0;
+    mem[F_PTRS + 1] = LF_HERE0 + 0x200;
+    // idata space origin and limit
+    mem[F_PTRS + 2] = LF_HERE0 + 0x200;
+    mem[F_PTRS + 3] = LF_HERE0 + 0x400;
+    // code space origin and limit
+    mem[F_PTRS + 4] = 0x80000001;
+    mem[F_PTRS + 5] = 0x100;
+    // text space origin and limit
+    mem[F_PTRS + 6] = 0x100;
+    mem[F_PTRS + 7] = 0x200;
+    // initial idp
+    mem[F_PTRS + 8] = LF_HERE0 + 0x200;
+    return 0;
+}
 
 int main(int argc, char* argv[]) {
     char* port_name = NULL;
@@ -117,26 +138,6 @@ int main(int argc, char* argv[]) {
             vm_memory_name[i] = "reserved";
         }
     }
-
-// Now that memory is set up, to make development easier set up default pointers
-
-    int32_t* mem = vm_memory[RAM_PAGE];
-    if (mem == NULL) return 999;
-
-    // udata space origin and limit
-    mem[F_PTRS + 0] = LF_HERE0;
-    mem[F_PTRS + 1] = LF_HERE0 + 0x200;
-    // idata space origin and limit
-    mem[F_PTRS + 2] = LF_HERE0 + 0x200;
-    mem[F_PTRS + 3] = LF_HERE0 + 0x400;
-    // code space origin and limit
-    mem[F_PTRS + 4] = 0x80000001;
-    mem[F_PTRS + 5] = 0x100;
-    // text space origin and limit
-    mem[F_PTRS + 6] = 0x100;
-    mem[F_PTRS + 7] = 0x200;
-    // initial idp
-    mem[F_PTRS + 8] = LF_HERE0 + 0x200;
 
 // Launch LiteForth
 

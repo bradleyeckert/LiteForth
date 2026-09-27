@@ -394,7 +394,6 @@ TIB is a fixed buffer in Forth data space for terminal input.
 ========================================================================= */
 
 #define TERMINAL_OVERFLOWED 0x8000
-#define TERMINAL_RX_DIED    0x4000
 
 uint32_t g_lf_sys_options = 0;
 static uint32_t linecount = 0;
@@ -417,7 +416,7 @@ static int loadTIB(void) {
         }
         int c = serial_getc();
         if (c < 0) {
-            aux_result |= TERMINAL_RX_DIED;
+            g_lf_sys_options &= ~(SYS_OPTION_NO_OK | SYS_OPTION_NO_DOTESS);
             break;                  // treat error as a normal terminator
         }
         if (c == '\r') {
@@ -695,7 +694,6 @@ int QUIT(void) {
             if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
             else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
             if (len & TERMINAL_OVERFLOWED) ior = ERR_TIB_OVERFLOW;
-            if (len & TERMINAL_RX_DIED) ior = ERR_TERM_RX_FAILED;
         }
 		// handle the ior here if needed (e.g., exit on BYE)
         LF_PACKEDSTATE[0] = 10; // base = decimal
@@ -755,7 +753,7 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     int32_t* textptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
     int32_t  f_hp = *textptr;
     int32_t  f_hmax = textptr[1];
-    int page = f_hp >> (22 - VM_LOG2_PAGES);
+    int page = (f_hp & 0x3FFFFF) >> (22 - VM_LOG2_PAGES);
     int32_t ch_dest = lfSetSliceWidth(f_hp, 8); // LF byte address for name
     uint32_t dest = ch_dest & VM_PAGE_MASK; // cell index within page
 
@@ -784,8 +782,8 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
         vmStore(ch_dest, 0);
         ch_dest = vmFieldPlus(ch_dest);
     }
-
-    cell_dest = &vm_memory[page][ch_dest & VM_PAGE_MASK];
+    ch_dest &= VM_PAGE_MASK;
+    cell_dest = &vm_memory[page][ch_dest];
 
     // Construct struct s_head header directly in the next cell boundary
     struct s_head* target_head = (struct s_head*)cell_dest;
@@ -825,7 +823,8 @@ int lfParseInputString(putcfunc* echo, char terminator) {
         TOINbump();
         if (c == terminator) break;
         if (echo) {
-            echo(c);
+            int ior = echo(c);
+            if (ior) return ior;
         }
     }
     return 0;

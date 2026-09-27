@@ -161,7 +161,7 @@ int lfAPI_dotPages(void) {
  */
 int lfAPI_dump(void) {
     int32_t length = vmPop();
-    int32_t origin = vmPop();
+    int32_t origin = (vmPop() & 0x3FFFFF);
     int tally = 0;
 
     while (tally < length) {

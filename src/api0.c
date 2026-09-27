@@ -59,7 +59,7 @@ static int dotParen(void) {
 // compile a char to text space, assume tp is a byte address
 // add a FSM later to handle '\' sequences
 static int lf_compc(char c) {
-    uint32_t tp = 0;
+    int32_t tp = 0;
     int ior = lfTpFetch(&tp);
     if (ior) return ior;
     ior = vmStore(tp, c);
@@ -70,11 +70,16 @@ static int lf_compc(char c) {
 
 /* _,"  ( string" -- addr ) */
 static int commaQ(void) {
-    uint32_t tp = 0;
+    int32_t tp = 0;
     int ior = lfTpFetch(&tp);
+    if (ior) return ior;
     tp = lfSetSliceWidth(tp, 8);
+    ior = lfTpStore(tp);
+    if (ior) return ior;
     vmPush(tp);
-    return lfParseInputString(lf_compc, '\"');
+    ior = lfParseInputString(lf_compc, '\"');
+    if (ior) return ior;
+    return lf_compc('\0');
 }
 
 

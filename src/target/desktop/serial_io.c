@@ -314,7 +314,6 @@ int serial_getc(void) {
         int c = fgetc(stdin);
         if (c == EOF) {
             restore_stdin_to_terminal();
-            c = '\n';
         }
         return c;
     }

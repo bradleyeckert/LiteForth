@@ -100,7 +100,7 @@ void lfCalign(void) {
 }
 
 // Compile a call
-static int CompCall(uint32_t xt, uint32_t aux) {
+static int CompCall(uint32_t xt) {
     NewInst();
     uint32_t notail = (xt & W_NO_TAIL_CALL);
     xt &= 0x7FFFFF;
@@ -175,7 +175,7 @@ int lfExecuteWord(const struct s_head* word) {
 }
 
 // Compile a word
-static int lfCompileXT(uint32_t w, uint32_t aux) {
+static int lfCompileXT(uint32_t w) {
     int ior = 0;
     if (w & W_PRIMITIVE) {
         ior = CompUop(w >> SLOT0_POSITION); // slot 0 always compiles
@@ -187,13 +187,13 @@ static int lfCompileXT(uint32_t w, uint32_t aux) {
         if (uop != VMU_NOP) CompUop(uop);   // maybe not a slot 2
         return ior;
     }
-    ior = CompCall(w, aux);
+    ior = CompCall(w);
     return ior;
 }
 int lfCompileWord(const struct s_head* word) {
     uint32_t w = word->w;
     if (word->aux & A_CONSTANT) return lfCompileLit(w);
-    return lfCompileXT(word->w, word->aux);
+    return lfCompileXT(word->w);
 }
 
 
@@ -377,5 +377,5 @@ int lfAPI_postpone(void) {
 
 // COMPILE  ( xt -- )
 int lfAPI_compile(void) {
-    return lfCompileXT(vmPop(), 0);
+    return lfCompileXT(vmPop());
 }

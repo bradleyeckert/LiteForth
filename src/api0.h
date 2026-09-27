@@ -21,7 +21,7 @@ extern "C" {
   * @param s String to transmit.
   * @return 0 on success, or an explicit negative error code on failure.
   */
-int serial_puts(const char* s);
+int lf_puts(const char* s);
 
 /**
  * Formats and outputs a numeric value in the specified base over serial.
@@ -78,6 +78,7 @@ int VMapi0Call(int fn);
  * @return ERR_INVALID_API_CALL.
  */
 int VMapi1Call(int fn);
+
 
 #ifdef __cplusplus
 }

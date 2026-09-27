@@ -109,6 +109,9 @@ typedef struct {
     int32_t blk;
 } InputFrame;
 
+typedef int (putcfunc)(char c);
+
+
 /* ======================================================================= */
 /* SYSTEM OPTIONS                                                          */
 /* ======================================================================= */
@@ -116,6 +119,7 @@ typedef struct {
 extern uint32_t g_lf_sys_options; // used in forth.c, main.c
 
 #define SYS_OPTIONS_LOCKED    0x8000        /* `>options` ignores changes  */
+#define SYS_OPTION_MONOCHROME 0x0080        /* no color                    */
 #define SYS_OPTION_VERBOSE    0x0040        /* echo input lines            */
 #define SYS_OPTION_IGNORE_CR  0x0020        /* ignore CR                   */
 #define SYS_OPTION_NO_BLOCK   0x0010        /* do not create blocks file   */
@@ -123,6 +127,29 @@ extern uint32_t g_lf_sys_options; // used in forth.c, main.c
 #define SYS_OPTION_VALIDATION 0x0004        /* quit immediately upon error */
 #define SYS_OPTION_NO_DOTESS  0x0002        /* do not display the stack    */
 #define SYS_OPTION_NO_OK      0x0001        /* do not display "ok>"        */
+
+/* Reset / Normal Formatting */
+#define COLOR_NORMAL         -1
+
+/* Standard ANSI Colors (0–7) */
+#define COLOR_BLACK           0
+#define COLOR_RED             1
+#define COLOR_GREEN           2
+#define COLOR_YELLOW          3
+#define COLOR_BLUE            4
+#define COLOR_MAGENTA         5
+#define COLOR_CYAN            6
+#define COLOR_WHITE           7
+
+/* High-Intensity / Bright Colors (8–15) */
+#define COLOR_BRIGHT_BLACK    8   /* Dark Gray */
+#define COLOR_BRIGHT_RED      9
+#define COLOR_BRIGHT_GREEN    10
+#define COLOR_BRIGHT_YELLOW   11
+#define COLOR_BRIGHT_BLUE     12
+#define COLOR_BRIGHT_MAGENTA  13
+#define COLOR_BRIGHT_CYAN     14
+#define COLOR_BRIGHT_WHITE    15
 
 /**
  * The standard Forth Outer Interpreter / Terminal Loop.
@@ -137,13 +164,12 @@ int lfHeader(uint32_t w, uint32_t aux, char** name);
 int lfToHeader(uint32_t w, uint32_t aux);
 int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
+int lfParseInputString(putcfunc* echo, char terminator);
 
 int lfAPI_dotWid(void);
 int lfAPI_words(void);
 int lfAPI_getFlags(void);
 int lfAPI_setFlags(void);
-int lfAPI_paren(void);
-int lfAPI_dotParen(void);
 int lfAPI_tickx(void);
 int lfAPI_only(void);
 int lfAPI_forth(void);

@@ -62,14 +62,16 @@ flowchart LR
     LiteForth["💻 LiteForth"] <--> Files["📁 Files"]
 ```
 The architecture of LiteForth is based on C, allowing it to be extended with
-C-based functions where speed is needed. Token threading is used to minimize
+C-based functions where speed is needed. A simulated Forth chip ISA minimizes
 code size, so more functionality can be packed into the small MCU environment.
 Forth code runs in a sandbox, so the MCU does not need any kind of MMU.
 
+Refer to the [makefile](makefile) for the project structure. The desktop build uses
+`src/*` and `src/target/desktop/*` files.
+
 LiteForth is ANS-ish, but not ANS compilant. It is cell-addressed.
 Strings and bytes are handled as generic bit fields, breaking the character model
-of ANS Forth. Memory is read-only (after committing it to Flash) or volatile. 
-You have to initialize non-zero volatile data yourself, another non-ANS detail.
+of ANS Forth.
 
 LiteForth is a dialect of Machine Forth, designed to run on a real
 or simulated Forth chip. It intended for on-MCU development.
@@ -161,15 +163,15 @@ The ISA splits into *micro* and *other*.
 | lit  | 010  | 13-bit literal (push onto data stack) |
 | imm  | 011  | 4-bit opcode, 9-bit immediate data |
 
-Instructions may <u>push</u> or *pop* the data stack.
+Instructions may ***push*** or *pop* the data stack.
 The µops (note - they don't take immediate data) are:
 
 | \\  | *0*   | *1*  | *2*      | *3*    | *4*    | *5*     | *6*    | *7*    |
 |-----|-------|------|----------|--------|--------|---------|--------|--------|
-| *0* | nop   | inv  | <u>over</u> | *a!*   | *xor*  | *+*     | *and*  | *>r*   |
-| *1* | unext | 2\*  | <u>dup</u>  | *drop* | <u>@a</u> | <u>@a+</u> | <u>r@</u> | <u>r></u> |
-| *2* | 2/c   | 2/   | <u>@as</u>  | *u!*   | *!a*   | *!a+*   | *!b*   | *!b+*  |
-| *3* | swap  | +\*  | <u>b</u>    | *b!*   | <u>@b</u> | <u>@b+</u> | <u>a</u>  | <u>cy</u> |
+| *0* | nop   | inv  | ***over*** | *a!*   | *xor*  | *+*     | *and*  | *>r*   |
+| *1* | unext | 2\*  | ***dup***  | *drop* | ***@a*** | ***@a+*** | ***r@*** | ***r>*** |
+| *2* | 2/c   | 2/   | ***@as***  | *u!*   | *!a*   | *!a+*   | *!b*   | *!b+*  |
+| *3* | swap  | +\*  | ***b***    | *b!*   | ***@b*** | ***@b+*** | ***a***  | ***cy*** |
 
 - cy = carry caused by addition or shift
 - u = user pointer register
@@ -190,8 +192,8 @@ The µops (note - they don't take immediate data) are:
 |        |  7 | |
 | *>sys* |  8 | sys instructions that pop from the stack |
 | user   |  9 | A \= U \+ u9 |
-|<u>sys></u>| 10 | sys instructions that push to the stack |
-|<u>qlit</u>| 11 | Push U \+ u9 |
+|***sys>***| 10 | sys instructions that push to the stack |
+|***qlit***| 11 | Push U \+ u9 |
 | pfx    | 12 | Prefix: lex \= (lex\<\<9) + u9 |
 | pfx1   | 13 | Prefix: lex \= (lex\<\<9) + u9 + 0x200 |
 | RFcall | 14 | Call root function in VM |
@@ -205,8 +207,8 @@ A 22-bit literal, jump, or call takes two instructions.
 
 | ***Name*** | ***12:9*** | ***8:0*** | ***Action*** |
 |:-------|:------|:-------|:-------|
-| *barf* | 8  | 0 | VM quits and returns ior \= T |
-|<u>task\[</u>| 10 | 0 | Get task state |
+| *yeet* | 8  | 0 | VM quits and returns ior \= T |
+|***task\[***| 10 | 0 | Get task state |
 |*\]task*| 8 | 1 | Save task state |
 |*shft\[*| 8 | 2 | shift_size = T |
 | ]shr  | 6 | 0 | T = T >> shift_size |
@@ -259,3 +261,5 @@ should be 15 to 30 MIPS.
 
 - 0.00 Interpret-only, set up to run a short test script, tested in Windows and WSL.
 The serial port connection was not tested, just stdio. CI/CD is set up and working.
+
+- 0.01 Serial port is fixed, compiling works.

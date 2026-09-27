@@ -36,12 +36,6 @@ socat - /dev/ttyUSB0,raw,b115200,echo=0            # cooked mode
 
 The default terminal is mostly okay. Use Windows Terminal, not `cmd.com`.
 
-There are many alternatives to Windows Terminal. Some that may work are:
-
-- Alacritty: A cross-platform, GPU-accelerated terminal emulator known for pure speed.
-- WezTerm: A GPU-accelerated terminal emulator for Windows.
-- Mintty: The default terminal wrapper installed alongside Git Bash, MSYS2, and Cygwin.
-
 You can provide a serial port name as an argument to connect to a serial port instead of `stdio`.
 In that case, you could use a serial cable emulator like `com0com`.
 A terminal emulator (like PuTTY) would treat it as a serial-connected MCU port.
@@ -50,6 +44,7 @@ To demonstrate CJK character output, LiteForth sends "幸运狐" in UTF-8.
 The following Windows terminals were tried:
 
 - ConEmu, displays correctly.
+- Windows Terminal, displays correctly.
 - Command Prompt, displays square boxes instead of CJK. 
 - Windows Powershell, displays square boxes instead of CJK. 
 
@@ -66,7 +61,7 @@ Some terminal emulators give you cooked mode input.
 - Local Echo: Checked-on
 
 `Setup -> Save setup` lets you save your setup. 
-Tera Term VT displays CJK correctly. 
+[Tera Term](https://github.com/TeraTermProject/teraterm/releases) displays CJK correctly. 
 
 ### PuTTY
 

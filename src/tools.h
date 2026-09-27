@@ -21,7 +21,7 @@ extern "C" {
   * @param s String to transmit.
   * @return 0 on success, or an explicit negative error code on failure.
   */
-int serial_puts(const char* s);
+int lf_puts(const char* s);
 
 /**
  * Formats and outputs a numeric value in the specified base over serial.
@@ -44,6 +44,7 @@ int lfCR(void);
  * @return 0 on success, or an explicit negative error code on failure.
  */
 int lfSpace(void);
+int lf_putc(char c);
 
 /**
  * Formats and outputs a signed 32-bit integer according to BASE, appending
@@ -53,7 +54,8 @@ int lfSpace(void);
  */
 int lfDot(int32_t val);
 int lfDot10(int32_t val); // no trailing space, decimal only
-	
+int lfSetColor(int color);
+
 /**
  * @brief Performs 64-bit dividend by 32-bit divisor unsigned division.
  *
@@ -73,7 +75,7 @@ int lfSTATEstore(int state);
 int lfSTATEfetch(void);
 
 int parseNumber(char* token, int base, int32_t* val);
-
+uint32_t lfSetSliceWidth(uint32_t addr, int bits);
 
 #ifdef __cplusplus
 }

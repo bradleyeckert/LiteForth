@@ -338,7 +338,7 @@ int serial_getc(void) {
 #endif
 }
 
-int serial_putc(int c) {
+int serial_putc(char c) {
     if (is_terminal_mode) {
         int res = fputc(c, stdout);
         fflush(stdout);

@@ -62,7 +62,7 @@ Below is the complete reference table for the Forth words defined in `forth_head
 | `bits` | `( n <name> -- )` | Defines a bit-field structure field word of width `n`. |
 | `block` | `( u -- addr )` | Maps disk block `u` to memory buffer address. |
 | `buffer` | `( u -- addr )` | Allocates block buffer for block `u` without reading content. |
-| `cells` | `( n1 -- n2 )` | Converts cell count to address offset (no-op on cell-addressed systems). |
+| `close-flash` | `( -- )` | Flushes modified RAM buffer to persistent flash storage. |
 | `constant` | `( n <name> -- )` | Defines named constant word returning integer value `n`. |
 | `cr` | `( -- )` | Outputs a line break (CR/LF) to terminal. |
 | `create` | `( <name> -- )` | Creates a dictionary header that returns its data address when executed. |
@@ -77,8 +77,6 @@ Below is the complete reference table for the Forth words defined in `forth_head
 | `emit` | `( c -- )` | Transmits single character to terminal output. |
 | `empty-buffers` | `( -- )` | Unmarks all block buffers without saving modifications. |
 | `exit` | `( -- )` | Compiles return micro-op to exit current word execution. |
-| `flash-close` | `( -- )` | Flushes modified RAM buffer to persistent flash storage. |
-| `flash-open` | `( addr -- )` | Maps flash memory page to RAM cache for editing/writing. |
 | `flush` | `( -- )` | Saves modified block buffers and invalidates current cache. |
 | `here` | `( -- addr )` | Returns current dictionary allocation pointer. |
 | `hex` | `( -- )` | Sets numerical conversion base to Hexadecimal (16). |
@@ -91,6 +89,7 @@ Below is the complete reference table for the Forth words defined in `forth_head
 | `m*` | `( n1 n2 -- d )` | Signed 32-bit $\times$ 32-bit to 64-bit double-cell multiplication. |
 | `mu/mod` | `( ud u -- rem dquot )` | Double-precision unsigned division with remainder. |
 | `nip` | `( x1 x2 -- x2 )` | Drops second item on the stack. |
+| `open-flash` | `( addr -- )` | Maps flash memory page to RAM cache for editing/writing. |
 | `options>` | `( -- n )` | Reads VM system behavior flags. |
 | `over` | `( x1 x2 -- x1 x2 x1 )` | Copies the second item on the stack to the top. |
 | `p'` | `( <name> -- w aux )` | Parses word and returns execution token `w` and auxiliary metadata. |

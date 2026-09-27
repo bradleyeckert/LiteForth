@@ -7,6 +7,7 @@
 #include "tools.h"
 #include "lfblocks.h"
 #include "options.h"
+#include <string.h>
 
 // wsl: // cd /mnt/c/Users/User/Documents/GitHub/LiteForth
 
@@ -130,8 +131,8 @@ static const struct s_head forth_heads[] = {
     { LINK(62), "p'",           API0(22), /* <name> -- w aux          */  0},
     { LINK(63), "page",         API0(23), /* page -- a                */  0},
     { LINK(64), "wordlist",     API0(24), /* -- wid                   */  0},
-    { LINK(65), "flash-open",   API0(25), /* addr --                  */  0},
-    { LINK(66), "flash-close",  API0(26), /* --                       */  0},
+    { LINK(65), "open-flash",   API0(25), /* addr --                  */  0},
+    { LINK(66), "close-flash",  API0(26), /* --                       */  0},
     { LINK(67), "]",            API0(27), /* --                       */  0},
     { LINK(68), "[",            API0(28), /* -- */          A_IMMEDIATE | 0},
     { LINK(69), "exit",         API0(29), /* -- */          A_IMMEDIATE | 0},
@@ -240,14 +241,21 @@ static int findConstant(char* name, int32_t* val) {
 /* WORDLIST TABLE                                                            */
 /* ========================================================================= */
 
-struct s_wid wids[WIDS_MAX] = { // wordlists
-    [0] = {.head = &forth_heads[(sizeof(forth_heads) / sizeof(s_head)) - 1],
-           .name = "`forth" },
-    [1] = {.head = &only_heads[(sizeof(only_heads) / sizeof(s_head)) - 1],
-           .name = "`only" }
+struct s_wid wids[WIDS_MAX];
+
+static struct s_wid wids_empty[] = { // wordlists
+    {.head = &forth_heads[(sizeof(forth_heads) / sizeof(s_head)) - 1], .name = "`forth" },
+    {.head = &only_heads[(sizeof(only_heads) / sizeof(s_head)) - 1],   .name = "`only" }
 };
 
+#define EMPTY_WIDS  2
 static int wids_pointer = 2;
+
+static void lfResetWids(void) { // initialize the wordlists
+    memcpy(wids, wids_empty, sizeof(wids_empty));
+    wids_pointer = EMPTY_WIDS;
+}
+
 
 // Start a new wordlist
 int lfAddWordlist(char* name) {
@@ -281,15 +289,26 @@ int lfAPI_dotWid(void) {
     if (wid >= wids_pointer) return ERR_SEARCH_ORDER_OVERFLOW;
     char* s = wids[wid].name;
     if (s == NULL)  return lfDot(wid);
-    serial_puts(s); return lfSpace();
+    lf_puts(s); return lfSpace();
 }
 
 /* WORDS */
 int lfAPI_words(void) {
     const struct s_head* link = wids[CONTEXT[0]].head;
+
     while (link != NULL) {
         if ((link->aux & A_SMUDGED) == 0) {
-            serial_puts(link->name);
+            if (link->aux & A_IMMEDIATE) {
+                lfSetColor(COLOR_BRIGHT_YELLOW);
+            }
+            else if (link->w & W_PRIMITIVE) {
+                lfSetColor(COLOR_GREEN);
+            }
+            else if (link->aux & A_CONSTANT) {
+                lfSetColor(COLOR_BRIGHT_CYAN);
+            }
+            lf_puts(link->name);
+            lfSetColor(COLOR_NORMAL);
             lfSpace();
         }
         link = link->link;
@@ -345,17 +364,17 @@ int lfDotS(void) {
         depth++;
     }
     if (depth) {
-        serial_puts("( ");
+        lf_puts("( ");
         if (depth > DOT_S_MAX) {
-            serial_putc('[');
+            lf_putc('[');
             lfDotB(depth, lfBASEfetch(), 0, 0);
-            serial_puts("]... ");
+            lf_puts("]... ");
             depth = DOT_S_MAX;
         }
         while (depth--) {
             lfDot(vmPeek(depth));
         }
-        serial_puts(") ");
+        lf_puts(") ");
     }
     return 0;
 }
@@ -423,8 +442,7 @@ static int loadTIB(void) {
 }
 
 static void lfDotLinecount(void) {
-    lfCR();
-    serial_puts("Line ");
+    lf_puts("Line ");
     lfDot(linecount);
 }
 
@@ -536,7 +554,8 @@ static int interpret(char* str, int len) {
                 }
                 continue;
             }
-
+            lfAPI_emptyBuffers(); // so it will load your edits 
+            
             // Exit interpreter loop once root level input is exhausted and BLK == 0
             if (BLK == 0) {
                 break;
@@ -627,12 +646,14 @@ int lfAPI_setFlags(void) {
 
 // `serial_open` before you call QUIT
 int QUIT(void) {
-    serial_puts(u8"幸运狐 v");
+    lf_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();
+    lfResetWids();
     lfAPI_only();
     lfAPI_forth();
     while (1) {
+        lfSetColor(COLOR_NORMAL);
         LF_PACKEDSTATE[0] = 10;
         LF_PACKEDSTATE[1] = 0;
         linecount = 0;
@@ -646,14 +667,15 @@ int QUIT(void) {
                 lfDotS();
             }
             if ((g_lf_sys_options & SYS_OPTION_NO_OK) == 0) {
-                ior = serial_puts("ok>");
+                ior = lf_puts("ok>");
                 if (ior) break; // lost the output stream
             }
             linecount++;
             int len = loadTIB();
             if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
+                lfCR();
                 lfDotLinecount();
-                serial_puts(TIB);
+                lf_puts(TIB);
             }
             ior = interpret((char*)TIB, len & 0x7FFF);
             /*
@@ -669,18 +691,19 @@ int QUIT(void) {
         }
 		// handle the ior here if needed (e.g., exit on BYE)
         LF_PACKEDSTATE[0] = 10; // base = decimal
+        lfSetColor(COLOR_BRIGHT_RED);
         switch (ior) {
         case ERR_QUIT: return 0;
         case ERR_UNDEFINED_WORD:
-            serial_puts(lastparsed);
-            serial_puts(" ?\n");
+            lf_puts(lastparsed);
+            lf_puts(" ?\n");
             break;
         default:
-            serial_puts("Error: ior=");
+            lf_puts("Error: ior=");
             lfDot(ior);
 #if (FAT_FORTH & 1)
             const char* msg = get_error_message(ior);
-            serial_puts(msg);
+            lf_puts(msg);
             lfCR();
 #endif
             break;
@@ -790,27 +813,17 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     return 0;
 }
 
-static int lfParenthesis(int echo) {
+int lfParseInputString(putcfunc* echo, char terminator) {
     while (1) {
         char c = TOINchar();
         if (c == '\0') break;
         TOINbump();
-        if (c == ')') break;
+        if (c == terminator) break;
         if (echo) {
-            serial_putc(c);
+            echo(c);
         }
     }
     return 0;
-}
-
-/* ( */
-int lfAPI_paren(void) {
-    return lfParenthesis(0);
-}
-
-/* .( */
-int lfAPI_dotParen(void) {
-    return lfParenthesis(1);
 }
 
 // BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed.
@@ -877,16 +890,21 @@ static void dumpInputStackTrace(void) {
             line_start--;
         }
 
-        serial_puts("Screen ");
-        lfDot10(cur_blk);
-        serial_puts(" [");
+        if (cur_blk) {
+            lf_puts("Screen ");
+            lfDot10(cur_blk);
+        }
+        else {
+            lf_puts("Terminal");
+        }
+        lf_puts(" [");
         lfDot10(cur_row);
-        serial_putc(':');
+        lf_putc(':');
         lfDot10(cur_col);
-        serial_puts("] ");
+        lf_puts("] ");
 
         for (int p = line_start; p < cur_toin; p++) {
-            serial_putc(cur_str[p]);
+            lf_putc(cur_str[p]);
         }
         lfCR();
 

@@ -10,8 +10,21 @@
 #include "tools.h"
 
 /*=========================================================================
-* String output functions
+* Math
 =========================================================================*/
+
+// Align the address to fit the slice and set its new slice size
+uint32_t lfSetSliceWidth(uint32_t addr, int bits) {
+    int position = (addr >> 22) & 0x1F;
+    // align to next slice
+    position = ((position + bits - 1) / bits) * bits;
+    // align to cell if crossing cell boundaries
+    if ((position + bits) > 32) {
+        addr = (addr & ~(0x1F << 22)) + 1;
+    }
+    // insert the new size field
+    return (addr & ~(0x1F << 27)) | (bits << 27);
+}
 
 // A basic division primitive for numeric conversion
 uint64_t divide64by32(uint64_t dividend, uint32_t divisor,
@@ -33,14 +46,44 @@ uint64_t divide64by32(uint64_t dividend, uint32_t divisor,
     return q;
 }
 
+/*=========================================================================
+* String output functions
+=========================================================================*/
+
+int lf_putc(char c) {
+    return serial_putc(c);
+}
+
 // Generic string output
-int serial_puts(const char* s) {
+int lf_puts(const char* s) {
     int ior = 0;
     while (*s) {
-        ior = serial_putc(*s++);
+        ior = lf_putc(*s++);
         if (ior) return ior;
     }
     return 0;
+}
+
+// Sets text color for the terminal
+int lfSetColor(int color) {
+    int ior = 0;
+    if ((g_lf_sys_options & SYS_OPTION_MONOCHROME) == 0) {
+        lf_puts("\033[");
+        // Standard Colors
+        if (color >= 0 && color <= 7) {
+            lf_putc('3');
+            lf_putc('0' + color);
+        } // Bright / High-Intensity Colors
+        else if (color >= 8 && color <= 15) {
+            lf_putc('9');
+            lf_putc('0' + (color - 8));
+        } // Reset / Normal
+        else {
+            lf_putc('0');
+        }
+        ior = lf_putc('m');
+    }
+    return ior;
 }
 
 // Output a number
@@ -50,7 +93,7 @@ int lfDotB(uint32_t val, int base, int dpl, int digits) {
     *--p = 0; // Null terminator
     if ((val & 0x80000000) && (base == 10)) {
         val = 0 - val;
-        serial_putc('-');
+        lf_putc('-');
     }
     do {
         if (p == buf) break; // no more room
@@ -69,18 +112,18 @@ int lfDotB(uint32_t val, int base, int dpl, int digits) {
             }
         }
     } while (val | dpl | (digits > 0));
-    int result = serial_puts(p);
+    int result = lf_puts(p);
     return result;
 }
 
 // Assume the terminal is okay with CRLF for newline
 int lfCR(void) {
-    return serial_puts("\r\n");
+    return lf_puts("\r\n");
 }
 
 // Output a blank
 int lfSpace(void) {
-    return serial_putc(' ');
+    return lf_putc(' ');
 }
 
 // Output a value
@@ -88,7 +131,7 @@ int lfDot(int32_t val) {
     int base = lfBASEfetch();
     lfDotB(val, base, 0, 0);
     if (base == 16) {
-        serial_putc('H');
+        lf_putc('H');
     }
     return lfSpace();
 }

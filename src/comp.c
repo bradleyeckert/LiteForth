@@ -254,12 +254,7 @@ int lfAPI_bits(void) {
     int32_t here = *ptr;
     uint32_t bits = vmPop();
     if (bits > 32) return ERR_TOO_MANY_BITS;
-    int position = (here >> 22) & 0x1F;
-    // align to cell if crossing cell boundaries
-    if ((position + bits) > 32) {
-        here = (here & ~(0x1F << 22)) + 1;
-    }
-    here = (here & ~(0x1F << 27)) | (bits << 27);
+    here = lfSetSliceWidth(here, bits);
     int ior = lfHeader(here, A_CONSTANT, NULL);
     here = vmFieldPlus(here);
     *ptr = here;

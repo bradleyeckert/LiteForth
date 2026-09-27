@@ -70,8 +70,8 @@ The (2 MB) memory regions in an MCU could be:
 For example, an MCU system with 128 KB sectors uses 512 KB for Forth dictionary.
 The VM changes `vm_memory` pointers to RAM when "writing" to Flash,
 then erases and flashes the sector when switching back to Flash.
-`flash-open` *( addr -- )* renders the flash page at *addr* writable.
-`flash-close` *( -- )* programs the open flash page and makes it read-only.
+`open-flash` *( addr -- )* renders the flash page at *addr* writable.
+`close-flash` *( -- )* programs the open flash page and makes it read-only.
 
 ## Logical Memory
 
@@ -124,7 +124,7 @@ The first write to Flash space switches to virtual Flash by reading Flash into a
 Writes outside of the buffer swap in the new sector after saving the old one.
 An erase counter is maintained for each sector to instrument erase-thrashing.
 
-The open sector, if any, should be manually closed at the end with `flash-close`
+The open sector, if any, should be manually closed at the end with `close-flash`
 to avoid data loss.
 
 ## Flash page layout

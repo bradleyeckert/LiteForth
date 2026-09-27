@@ -100,7 +100,7 @@ int lfAPI_hex(void) {
  */
 
 static int lfEmitses(int n, char c) {
-    while (n--) serial_putc(c);
+    while (n--) lf_putc(c);
     return 0;
 }
 
@@ -114,12 +114,12 @@ static void dotFieldHex(int32_t n, int digits) {
         lfDotB(n, 16, 0, digits);
     }
     else {
-        while (digits--) serial_putc('-');
+        while (digits--) lf_putc('-');
     }
 }
 
 static void dotPageHeader(void) {
-    serial_puts("PAGE _ADDR_ __WP_ _SIZE _EXEC  _TYPE___\r\n");
+    lf_puts("PAGE _ADDR_ __WP_ _SIZE _EXEC  _TYPE___\r\n");
 }
 
 static int APIdotPageX(int page) { // list specifics for the current page
@@ -130,7 +130,7 @@ static int APIdotPageX(int page) { // list specifics for the current page
     dotFieldHex(vm_memory_wp_limit[page], 5);
     dotFieldHex(vm_memory_rd_limit[page], 5);
     dotFieldHex(vm_memory_executable[page], 5);
-    lfSpaces(2); serial_puts(vm_memory_name[page]);
+    lfSpaces(2); lf_puts(vm_memory_name[page]);
     lfSpace();
     return 0;
 }
@@ -169,7 +169,7 @@ int lfAPI_dump(void) {
 
         // Print cell base address (hex formatted)
         lfDotB(addr, 16, 0, 6);
-        serial_puts(": ");
+        lf_puts(": ");
 
         int cells_in_line = (length - tally < 4) ? (length - tally) : 4;
         int32_t line_data[4] = { 0 };
@@ -195,14 +195,14 @@ int lfAPI_dump(void) {
             for (int b = 0; b < 4; b++) {
                 uint8_t byte = (cell_val >> (b * 8)) & 0xFF; // Little-endian byte extraction
                 if ((byte < ' ') || (byte > 0x7F)) byte = '.';
-                serial_putc(byte);
+                lf_putc(byte);
             }
         }
 
         int page = addr >> (22 - VM_LOG2_PAGES);
         uint32_t wplimit = vm_memory_wp_limit[page];
         if ((addr & VM_PAGE_MASK) <= wplimit) {
-            serial_puts("  read-only");
+            lf_puts("  read-only");
         }
 
         lfCR();
@@ -242,18 +242,18 @@ static int DisassembleInsn(uint16_t inst) {
             if (i < 0) slot = inst & LAST_SLOT_MASK;
             else slot = (inst >> i) & 0x1F;
             if (inst & ((1 << (i + 5)) - 1)) {
-                serial_puts(uopName[slot]);
+                lf_puts(uopName[slot]);
                 lfSpace();
             }
         }
-        if (returning) return serial_putc(';');
+        if (returning) return lf_putc(';');
     }
     else {
         int opcode = (inst >> 13) & 3;
         int32_t immex = (lex << 13) | (inst & ((1 << 13) - 1));
         if (opcode < 3) { // call, jump, imm
             lfDotHex(immex);
-            serial_puts(opName[opcode]);
+            lf_puts(opName[opcode]);
         }
         else {
             uint32_t imm = inst & ((1 << 9) - 1);
@@ -263,7 +263,7 @@ static int DisassembleInsn(uint16_t inst) {
             }
             lfDotHex(simm);
             opcode = (inst >> 9) & 0x0F;
-            serial_puts(immName[opcode]);
+            lf_puts(immName[opcode]);
             if (opcode == VMO_PFX) _lex = imm;
             if (opcode == VMO_API0) {
                 // traverse dictionary looking for this api call name
@@ -282,10 +282,10 @@ int lfAPI_dumpIns(void) {
     return 0;
 }
 
+// disassemble starting at an instruction address
 int lfAPI_dasm(void) {
     int32_t length = vmPop();
     int32_t addr = vmPop();
-    addr = (addr & 0x3FFFFF) << 1;
     while (length--) {
         lfDotB(addr, 16, 0, 6);
         lfSpace();
@@ -301,16 +301,20 @@ int lfAPI_dasm(void) {
 }
 
 extern uint32_t g_neighbor_w;
+#include <stdio.h>
 
 int lfAPI_see(void) {
     int ior = lfAPI_tickx();
     if (ior) return ior;
     vmPop(); // discard aux
     int32_t w = vmPop();
-    int length = (g_neighbor_w - w) & 0x7FFFFF;
-    lfDot(length); serial_puts("insts at ");
-    lfDot(w);
-    return 0;
+    int length = (w - g_neighbor_w);
+    if (length & 0xFF800000) length = 8;
+    length &= 0x7FFFFF;
+    if (length >= 64) length = 64;
+    vmPush(w & 0x7FFFFF);
+    vmPush(length);
+    return lfAPI_dasm();;
 }
 
 /*==========================================================================

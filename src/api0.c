@@ -24,7 +24,7 @@ static int bye(void) {
 
 /* EMIT */
 static int emit(void) {
-    return serial_putc((char)vmPop());
+    return lf_putc((char)vmPop());
 }
 
 /* KEY? */
@@ -45,6 +45,17 @@ static int tickpage(void) {
     val = val << (22 - VM_LOG2_PAGES);
     return vmPush(val);
 }
+
+/* ( */
+static int lfAPI_paren(void) {
+    return lfParseInputString(NULL, ')');
+}
+
+/* .( */
+static int lfAPI_dotParen(void) {
+    return lfParseInputString(lf_putc, ')');
+}
+
 
 static int umstar_x(int sign) {
     uint32_t a = (uint32_t)vmPeek(0);

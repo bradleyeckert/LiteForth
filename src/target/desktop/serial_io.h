@@ -61,7 +61,7 @@ int serial_getc(void);
  * @param c The character byte code to transmit.
  * @return  0 on success, or ERR_TERM_TX_FAILED on error.
  */
-int serial_putc(int c);
+int serial_putc(char c);
 
 #ifdef __cplusplus
 }

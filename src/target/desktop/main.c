@@ -7,6 +7,7 @@
 #include "memalloc.h"
 #include "flash.h"
 #include "blocks.h"
+#include "tools.h"
 #include <malloc.h>
 #include <string.h>
 
@@ -142,6 +143,7 @@ int main(int argc, char* argv[]) {
     int ior = serial_open(port_name, baudrate);
     if (ior) return ior;
     ior = QUIT();
+    lfSetColor(COLOR_NORMAL);
     serial_close();
 
     if (needfree) free(flash);

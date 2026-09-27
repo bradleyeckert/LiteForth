@@ -68,6 +68,8 @@ int lfAPI_toBody(void);
 int lfAPI_bit(void);
 int lfAPI_here(void);
 int lfAPI_comma(void);
+int lfAPI_postpone(void);
+int lfAPI_compile(void);
 
 #ifdef __cplusplus
 }

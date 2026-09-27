@@ -1,0 +1,130 @@
+{
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "actions": 
+    [
+        {
+            "command": 
+            { // F9 = boot up LiteForth
+                "action": "sendInput",
+                "input": "Get-Content ..\\scripts\\go.f | .\\lf.exe -o 3\r"
+            },
+            "id": "User.sendInput.myF9key"
+        },
+        {
+            "command": 
+            { // F10 = home directory
+                "action": "sendInput",
+                "input": "cd C:\\Users\\User\\Documents\\GitHub\\LiteForth\\bin\r"
+            },
+            "id": "User.sendInput.myF10key"
+        },
+        {
+            "command": 
+            { // F12 = run regression tests on LiteForth
+                "action": "sendInput",
+                "input": "Get-Content ..\\scripts\\primitives.f | .\\lf.exe -o 31\r"
+            },
+            "id": "User.sendInput.myF12key"
+        }
+    ],
+    "copyFormatting": "none",
+    "copyOnSelect": false,
+    "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+    "keybindings": 
+    [
+        {
+            "id": "Terminal.CopyToClipboard",
+            "keys": "ctrl+c"
+        },
+        {
+            "id": "User.sendInput.myF12key",
+            "keys": "f12"
+        },
+        {
+            "id": "Terminal.PasteFromClipboard",
+            "keys": "ctrl+v"
+        },
+        {
+            "id": "Terminal.DuplicatePaneAuto",
+            "keys": "alt+shift+d"
+        },
+        {
+            "id": "User.sendInput.myF9key",
+            "keys": "f9"
+        },
+        {
+            "id": "User.sendInput.myF10key",
+            "keys": "f10"
+        }
+    ],
+    "newTabMenu": 
+    [
+        {
+            "type": "remainingProfiles"
+        }
+    ],
+    "profiles": 
+    {
+        "defaults": {},
+        "list": 
+        [
+            {
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "hidden": false,
+                "name": "Windows PowerShell"
+            },
+            {
+                "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "hidden": false,
+                "name": "Command Prompt"
+            },
+            {
+                "guid": "{0110db4a-cf7b-5647-9a03-7232d80cd09e}",
+                "hidden": false,
+                "name": "openSUSE-Leap-15-1",
+                "source": "Windows.Terminal.Wsl"
+            },
+            {
+                "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+                "hidden": false,
+                "name": "Ubuntu",
+                "source": "Windows.Terminal.Wsl"
+            },
+            {
+                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+                "hidden": false,
+                "name": "Azure Cloud Shell",
+                "source": "Windows.Terminal.Azure"
+            },
+            {
+                "guid": "{76102578-9841-5156-8dde-b61875b556b4}",
+                "hidden": false,
+                "name": "Developer Command Prompt for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{a0e8476b-55bb-5a90-b92d-1d77eef53263}",
+                "hidden": false,
+                "name": "Developer PowerShell for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{49af6925-91f1-5588-8ba6-fad919533cfc}",
+                "hidden": true,
+                "name": "Developer Command Prompt for VS 2017",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{861f78c7-b375-578f-8489-52d8a51db6c0}",
+                "hidden": false,
+                "name": "ESP-IDF 5.3",
+                "source": "ESP-IDF 5.3"
+            }
+        ]
+    },
+    "schemes": [],
+    "themes": []
+}

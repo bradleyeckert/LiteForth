@@ -56,14 +56,13 @@ locations for accessibility by Forth or by C.
 // Flags in word->w[31:27]
 #define W_PRIMITIVE     0x80000000 // the xt is a primitive in slot 1
 #define W_MACRO         0x40000000 // the xt is all primitives except nops
+#define W_NO_TAIL_CALL  0x20000000 // don't allow tail recursion
 
 // Flags in word->aux[31:24]
 #define A_SMUDGED       0x80000000 // this bit is set by `:`
 #define A_IMMEDIATE     0x40000000 // this word is immediate
 #define A_NO_EXECUTE    0x20000000 // only execute while compiling
-#define A_NO_TAIL_CALL  0x10000000 // don't allow tail recursion
-#define A_CONSTANT      0x08000000 // w is a constant
-#define A_NOTHING       0x04000000 // do nothing
+#define A_CONSTANT      0x10000000 // w is a constant
 #define A_IMMED_ONLY    (A_IMMEDIATE | A_NO_EXECUTE)
 
 
@@ -119,7 +118,7 @@ typedef int (putcfunc)(char c);
 extern uint32_t g_lf_sys_options; // used in forth.c, main.c
 
 #define SYS_OPTIONS_LOCKED    0x8000        /* `>options` ignores changes  */
-#define SYS_OPTION_MONOCHROME 0x0080        /* no color                    */
+#define SYS_OPTION_USE_COLORS 0x0080        /* use color messages          */
 #define SYS_OPTION_VERBOSE    0x0040        /* echo input lines            */
 #define SYS_OPTION_IGNORE_CR  0x0020        /* ignore CR                   */
 #define SYS_OPTION_NO_BLOCK   0x0010        /* do not create blocks file   */
@@ -165,12 +164,11 @@ int lfToHeader(uint32_t w, uint32_t aux);
 int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
 int lfParseInputString(putcfunc* echo, char terminator);
+const struct s_head* lfTickWord(void);
 
 int lfAPI_dotWid(void);
 int lfAPI_words(void);
-int lfAPI_getFlags(void);
 int lfAPI_setFlags(void);
-int lfAPI_tickx(void);
 int lfAPI_only(void);
 int lfAPI_forth(void);
 int lfAPI_nextBlock(void);

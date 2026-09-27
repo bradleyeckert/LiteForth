@@ -14,7 +14,6 @@ The Linux and Windows ports of LiteForth natively switch the terminal between ra
 The embedded (MCU) ports cannot switch, you must do it manually.
 
 LiteForth expects a line to end in either \n or \r.
-Sending \r\n will give you `ok>ok>`.
 Terminals (that supply stdin) only send \n.
 Serial terminals like PuTTY send \r.
 
@@ -47,6 +46,15 @@ The following Windows terminals were tried:
 - Windows Terminal, displays correctly.
 - Command Prompt, displays square boxes instead of CJK. 
 - Windows Powershell, displays square boxes instead of CJK. 
+
+Windows Terminal stores actions in a JSON file, which you can edit in Windows Terminal.
+The `./scripts/settings.json` file contains useful shortcuts that you can paste into your JSON.
+Some of the keys include:
+
+- F9 = Boot up LiteForth from go.f
+- F10 = Jump to the LiteForth directory
+- F11 = Toggle full-screen mode
+- F12 = Run regression tests for LiteForth
 
 ## Windows terminal, Embedded LiteForth
 

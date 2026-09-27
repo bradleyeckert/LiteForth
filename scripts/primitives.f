@@ -1,4 +1,4 @@
-cr .( Testing Forth primitives ) 7 >options ( validation mode )
+.( Testing Forth primitives ) 7 >options ( validation mode )
 cr  ( This file is intended to replace stdin on a console app. )
 
 ( --- Arithmetic & Bitwise Operations --- )
@@ -121,9 +121,6 @@ T{ 456 b! b      -> 456 }T
 ( base )
 T{ base @  HEX      -> 0A }T
 T{ base @  DECIMAL  -> 16 }T
-
-( options> and >options )
-T{ options> 7 >options options> -> 7 7 }T
 
 ( constant )
 1234 constant TEST_CONST

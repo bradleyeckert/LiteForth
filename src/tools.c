@@ -67,7 +67,7 @@ int lf_puts(const char* s) {
 // Sets text color for the terminal
 int lfSetColor(int color) {
     int ior = 0;
-    if ((g_lf_sys_options & SYS_OPTION_MONOCHROME) == 0) {
+    if (g_lf_sys_options & SYS_OPTION_USE_COLORS) {
         lf_puts("\033[");
         // Standard Colors
         if (color >= 0 && color <= 7) {
@@ -261,3 +261,16 @@ int lfBASEstore(int base) {
     return vmStore(LF_BASE, base);
 }
 
+int lfTpFetch(int32_t* tp) {
+    int32_t* mem = vm_memory[RAM_PAGE];
+    *tp = mem[F_PTRS_TP];
+    return 0;
+}
+
+int lfTpStore(int32_t tp) {
+    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t tp_max = mem[F_PTRS_TP + 1];
+    if (((unsigned)tp & 0x3FFFFF) >= tp_max) return ERR_DICTIONARY_OVERFLOW;
+    mem[F_PTRS_TP] = tp;
+    return 0;
+}

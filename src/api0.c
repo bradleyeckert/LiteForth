@@ -47,13 +47,34 @@ static int tickpage(void) {
 }
 
 /* ( */
-static int lfAPI_paren(void) {
+static int parenthesis(void) {
     return lfParseInputString(NULL, ')');
 }
 
 /* .( */
-static int lfAPI_dotParen(void) {
+static int dotParen(void) {
     return lfParseInputString(lf_putc, ')');
+}
+
+// compile a char to text space, assume tp is a byte address
+// add a FSM later to handle '\' sequences
+static int lf_compc(char c) {
+    uint32_t tp = 0;
+    int ior = lfTpFetch(&tp);
+    if (ior) return ior;
+    ior = vmStore(tp, c);
+    if (ior) return ior;
+    tp = vmFieldPlus(tp);
+    return lfTpStore(tp);
+}
+
+/* _,"  ( string" -- addr ) */
+static int commaQ(void) {
+    uint32_t tp = 0;
+    int ior = lfTpFetch(&tp);
+    tp = lfSetSliceWidth(tp, 8);
+    vmPush(tp);
+    return lfParseInputString(lf_compc, '\"');
 }
 
 
@@ -243,19 +264,27 @@ static int capacity(void) {
     return 0;
 }
 
+/* `X'` ( <name> -- w aux ) */
+static int extick(void) {
+    const struct s_head* word = lfTickWord();
+    if (word == NULL) return ERR_UNDEFINED_WORD;
+    vmPush(word->w);
+    return vmPush(word->aux);
+}
+
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
     bye, lfAPI_words, lfAPI_forth, lfAPI_only, umstar,
     mstar, mudivmod, stardivmod, qkey, key, 
-    emit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, lfAPI_getFlags,
-    lfAPI_paren, lfAPI_dotParen, lfAPI_dotDoes, lfAPI_dotCreate, lfCR,
-    lfAPI_here, lfAPI_dotWid, lfAPI_tickx, tickpage, wordlist,
+    emit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, lfAPI_empty,
+    parenthesis, dotParen, lfAPI_dotDoes, lfAPI_dotCreate, lfCR,
+    lfAPI_here, lfAPI_dotWid, extick, tickpage, wordlist,
     flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
-    lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_comma, lfAPI_bit,
-    lfAPI_inst, immediate, lfAPI_block, lfAPI_buffer, lfAPI_update,
-    lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers, lfAPI_load, capacity,
-    lfAPI_nextBlock, lfAPI_empty
+    lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_comma, commaQ,
+    lfAPI_bit, lfAPI_inst, immediate, lfAPI_block, lfAPI_buffer, 
+    lfAPI_update, lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers, lfAPI_load, 
+    capacity, lfAPI_nextBlock, lfAPI_postpone, lfAPI_compile
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm

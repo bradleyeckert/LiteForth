@@ -304,15 +304,13 @@ extern uint32_t g_neighbor_w;
 #include <stdio.h>
 
 int lfAPI_see(void) {
-    int ior = lfAPI_tickx();
-    if (ior) return ior;
-    vmPop(); // discard aux
-    int32_t w = vmPop();
-    int length = (w - g_neighbor_w);
+    const struct s_head* word = lfTickWord();
+    if (word == NULL) return ERR_UNDEFINED_WORD;
+    int length = (word->w - g_neighbor_w);
     if (length & 0xFF800000) length = 8;
     length &= 0x7FFFFF;
     if (length >= 64) length = 64;
-    vmPush(w & 0x7FFFFF);
+    vmPush(word->w & 0x7FFFFF);
     vmPush(length);
     return lfAPI_dasm();;
 }

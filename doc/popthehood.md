@@ -86,15 +86,15 @@ The 9-cell `dp[]` array supports 4 logical memory spaces:
 
 The cells in `dp[]` are:
 
-0. `udp` Pointer to uninitialized Data
-0. Upper limit for `udp`
-0. `idp` Pointer to initialized Data
-0. Upper limit for `idp`
-0. `cp` Pointer to code
-0. Upper limit for `cp`
-0. `tp` Pointer to text
-0. Upper limit for `tp`
-0. `idp0`, initial `idp`
+0. `udp` Pointer to *uninitialized data*, everything that can initialize to 0.
+1. Upper limit for `udp`
+2. `idp` Pointer to *initialized data*
+3. Upper limit for `idp`
+4. `cp` Pointer to *code*, different from `text` to keep code at a low address.
+5. Upper limit for `cp`
+6. `tp` Pointer to *text*, usually compiled strings and headers.
+7. Upper limit for `tp`
+8. `idp0`, initial `idp`
 
 At the end of a project, before `close-flash`, `build-idata` will copy the
 memory range `idp0` to `idp` to a structure in the current Flash page.

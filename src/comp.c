@@ -12,7 +12,7 @@
 char* lfCreatedName; // used by api0.c
 
 /*===========================================================================
-* Dictionary pointer functions (F_PTRS in RAM page: dp, cp, hp, dp1, cp1, hp1
+* Dictionary pointer functions (F_PTRS in RAM page)
 ===========================================================================*/
 
 static int cpFetch(int32_t* cp) {
@@ -100,13 +100,18 @@ void lfCalign(void) {
 }
 
 // Compile a call
-static int CompCall(uint32_t addr, uint32_t aux) {
+static int CompCall(uint32_t xt, uint32_t aux) {
     NewInst();
-    if (addr & ~VM_LIMM_MASK) commaCode(VMI_PFX + (addr >> VM_IMM_BITS));
-    if ((aux & A_NO_TAIL_CALL) == 0) {
+    uint32_t notail = (xt & W_NO_TAIL_CALL);
+    xt &= 0x7FFFFF;
+    if (xt & ~VM_LIMM_MASK) {           // address needs an extension
+        commaCode(VMI_PFX + (xt >> VM_IMM_BITS));
+        xt &= VM_LIMM_MASK;
+    }
+    if (notail == 0) {
         cpFetch(&lastcall);             // used by ; for tail calls
     }
-    return commaCode(VMI_CALL + (addr & VM_LIMM_MASK));
+    return commaCode(VMI_CALL + (xt & VM_LIMM_MASK));
 }
 
 // Compile a 5-bit micro-op
@@ -157,7 +162,6 @@ int lfCompileLit(int32_t x) {
 
 // Execute using the VM
 int lfExecuteWord(const struct s_head* word) {
-    if (word->aux & A_NOTHING)  return 0;
     if (word->aux & A_CONSTANT) return vmPush(word->w);
     int ior = 0;
 
@@ -171,10 +175,7 @@ int lfExecuteWord(const struct s_head* word) {
 }
 
 // Compile a word
-int lfCompileWord(const struct s_head* word) {
-    if (word->aux & A_NOTHING)  return 0;
-    uint32_t w = word->w;
-    if (word->aux & A_CONSTANT) return lfCompileLit(w);
+static int lfCompileXT(uint32_t w, uint32_t aux) {
     int ior = 0;
     if (w & W_PRIMITIVE) {
         ior = CompUop(w >> SLOT0_POSITION); // slot 0 always compiles
@@ -186,9 +187,15 @@ int lfCompileWord(const struct s_head* word) {
         if (uop != VMU_NOP) CompUop(uop);   // maybe not a slot 2
         return ior;
     }
-    ior = CompCall(w & 0x7FFFFF, word->aux);// call to 23-bit code address
+    ior = CompCall(w, aux);
     return ior;
 }
+int lfCompileWord(const struct s_head* word) {
+    uint32_t w = word->w;
+    if (word->aux & A_CONSTANT) return lfCompileLit(w);
+    return lfCompileXT(word->w, word->aux);
+}
+
 
 // Compile an EXIT (or ;)
 static int CompExit(void) {
@@ -210,6 +217,10 @@ ex: instruction |= VM_UOPS | VM_RET;
     NewInst();
     return 0;
 }
+
+/*=========================================================================
+* Words
+=========================================================================*/
 
 static int32_t created = 0;
 
@@ -348,3 +359,23 @@ int lfAPI_here(void) {
     return vmPush(*herePtr());
 }
 
+/* POSTPONE  ( <name> -- )  */
+int lfAPI_postpone(void) {
+    const struct s_head* word = lfTickWord();
+    if (word == NULL) return ERR_UNDEFINED_WORD;
+    if (word->aux & A_CONSTANT) return ERR_POSTPONING_CONSTANT;
+    int ior = 0;
+    if (word->aux & A_IMMEDIATE) {
+        ior = lfCompileWord(word);
+    }
+    else {
+        ior = CompUlit(word->w);
+        commaCode(W_PRIMITIVE | VMI_API0 | 47);
+    }
+    return ior;
+}
+
+// COMPILE  ( xt -- )
+int lfAPI_compile(void) {
+    return lfCompileXT(vmPop(), 0);
+}

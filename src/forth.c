@@ -96,77 +96,78 @@ static const struct s_head forth_heads[] = {
     { LINK(27), "@b+",          UOP(VMU_FETCHBPLUS),                      0},
     { LINK(28), "a",            UOP(VMU_A),                               0},
     { LINK(29), "cy",           UOP(VMU_CY),                              0},
-    { LINK(30), "cells",        0,                            A_NOTHING | 0},
-    { LINK(31), "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
-    { LINK(32), "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},
-    { LINK(33), "@",            MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),     0},
-    { LINK(34), "s@",           MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0},
-    { LINK(35), "nip",          MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),         0},
-    { LINK(36), "tuck",         MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),         0},
-    { LINK(37), "slice+",       SYS(VMS_FIELDPLUS),  /* a1 -- a2      */  0},
-    { LINK(38), "]shr",         SYS(VMS_SHR),        /* u1 -- u2      */  0},
-    { LINK(39), "]shl",         SYS(VMS_SHL),        /* u1 -- u2      */  0},
-    { LINK(40), "shft[",        SYSTO(VMSTO_SHIFT),  /* position --   */  0},
-    { LINK(41), "]task",        SYSTO(VMSTO_TASK),   /* tstate --     */  0},
-    { LINK(42), "yeet",         SYSTO(VMSTO_YEET),   /* ior --        */  0},
-    { LINK(43), "task[",        SYSFM(VMSFROM_TASK), /* -- tstate     */  0},
-    { LINK(44), "um*",          API0( 4), /* u1 u2 -- ud              */  0},
-    { LINK(45), "m*",           API0( 5), /* n1 n2 -- d               */  0},
-    { LINK(46), "mu/mod",       API0( 6), /* ud u -- rem dquot        */  0},
-    { LINK(47), "*/mod",        API0( 7), /* n1 n2 -- rem quot        */  0},
-    { LINK(48), "key?",         API0( 8), /* -- flag                  */  0},
-    { LINK(49), "key",          API0( 9), /* -- c                     */  0},
-    { LINK(50), "emit",         API0(10), /* c --                     */  0},
-    { LINK(51), ":",            API0(11), /* <name> --                */  0},
-    { LINK(52), ";",            API0(12),                   A_IMMEDIATE | 0},
-    { LINK(53), ">options",     API0(13), /* n --                     */  0},
-    { LINK(54), "options>",     API0(14), /* -- n                     */  0},
-    { LINK(55), "(",            API0(15), /* -- */          A_IMMEDIATE | 0},
-    { LINK(56), ".(",           API0(16), /* --                       */  0},
-    { LINK(57), "does>",        API0(17), /* --                       */  0},
-    { LINK(58), "create",       API0(18), /* -- | -- addr             */  0},
-    { LINK(59), "cr",           API0(19), /* --                       */  0},
-    { LINK(60), "here",         API0(20), /* -- addr                  */  0},
-    { LINK(61), ".wid",         API0(21), /* wid --                   */  0},
-    { LINK(62), "p'",           API0(22), /* <name> -- w aux          */  0},
-    { LINK(63), "page",         API0(23), /* page -- a                */  0},
-    { LINK(64), "wordlist",     API0(24), /* -- wid                   */  0},
-    { LINK(65), "open-flash",   API0(25), /* addr --                  */  0},
-    { LINK(66), "close-flash",  API0(26), /* --                       */  0},
-    { LINK(67), "]",            API0(27), /* --                       */  0},
-    { LINK(68), "[",            API0(28), /* -- */          A_IMMEDIATE | 0},
-    { LINK(69), "exit",         API0(29), /* -- */          A_IMMEDIATE | 0},
-    { LINK(70), "constant",     API0(30), /* n <name> --              */  0},
-    { LINK(71), "bits",         API0(31), /* n <name> --              */  0},
-    { LINK(72), ">body",        API0(32), /* xt -- addr               */  0},
-    { LINK(73), ",",            API0(33), /* n --                     */  0},
-    { LINK(74), "bit",          API0(34), /* n --                     */  0},
-    { LINK(75), ",inst",        API0(35), /* inst --                  */  0},
-    { LINK(76), "immediate",    API0(36), /* --                       */  0},
-    { LINK(77), "block",        API0(37), /* u -- addr                */  0},
-    { LINK(78), "buffer",       API0(38), /* u -- addr                */  0},
-    { LINK(79), "update",       API0(39), /* --                       */  0},
-    { LINK(80), "save-buffers", API0(40), /* --                       */  0},
-    { LINK(81), "flush",        API0(41), /* --                       */  0},
-    { LINK(82), "empty-buffers",API0(42), /* --                       */  0},
-    { LINK(83), "load",         API0(43), /* u --                     */  0},
-    { LINK(84), "capacity",     API0(44), /* -- u                     */  0},
-    { LINK(85), "-->",          API0(45), /* --                       */  0},
-    { LINK(86), "empty",        API0(46), /* --                       */  0},
+    { LINK(30), "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
+    { LINK(31), "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},
+    { LINK(32), "@",            MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),     0},
+    { LINK(33), "s@",           MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0},
+    { LINK(34), "nip",          MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),         0},
+    { LINK(35), "tuck",         MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),         0},
+    { LINK(36), "slice+",       SYS(VMS_FIELDPLUS),  /* a1 -- a2      */  0},
+    { LINK(37), "]shr",         SYS(VMS_SHR),        /* u1 -- u2      */  0},
+    { LINK(38), "]shl",         SYS(VMS_SHL),        /* u1 -- u2      */  0},
+    { LINK(39), "shft[",        SYSTO(VMSTO_SHIFT),  /* position --   */  0},
+    { LINK(40), "]task",        SYSTO(VMSTO_TASK),   /* tstate --     */  0},
+    { LINK(41), "yeet",         SYSTO(VMSTO_YEET),   /* ior --        */  0},
+    { LINK(42), "task[",        SYSFM(VMSFROM_TASK), /* -- tstate     */  0},
+    { LINK(43), "um*",          API0( 4), /* u1 u2 -- ud              */  0},
+    { LINK(44), "m*",           API0( 5), /* n1 n2 -- d               */  0},
+    { LINK(45), "mu/mod",       API0( 6), /* ud u -- rem dquot        */  0},
+    { LINK(46), "*/mod",        API0( 7), /* n1 n2 -- rem quot        */  0},
+    { LINK(47), "key?",         API0( 8), /* -- flag                  */  0},
+    { LINK(48), "key",          API0( 9), /* -- c                     */  0},
+    { LINK(49), "emit",         API0(10), /* c --                     */  0},
+    { LINK(50), ":",            API0(11), /* <name> --                */  0},
+    { LINK(51), ";",            API0(12),                   A_IMMEDIATE | 0},
+    { LINK(52), ">options",     API0(13), /* n --                     */  0},
+    { LINK(53), "empty",        API0(14), /* --                       */  0},
+    { LINK(54), "(",            API0(15), /* -- */          A_IMMEDIATE | 0},
+    { LINK(55), ".(",           API0(16), /* --                       */  0},
+    { LINK(56), "does>",        API0(17), /* --                       */  0},
+    { LINK(57), "create",       API0(18), /* -- | -- addr             */  0},
+    { LINK(58), "cr",           API0(19), /* --                       */  0},
+    { LINK(59), "here",         API0(20), /* -- addr                  */  0},
+    { LINK(60), ".wid",         API0(21), /* wid --                   */  0},
+    { LINK(61), "x'",           API0(22), /* <name> -- w aux          */  0},
+    { LINK(62), "page",         API0(23), /* page -- a                */  0},
+    { LINK(63), "wordlist",     API0(24), /* -- wid                   */  0},
+    { LINK(64), "open-flash",   API0(25), /* addr --                  */  0},
+    { LINK(65), "close-flash",  API0(26), /* --                       */  0},
+    { LINK(66), "]",            API0(27), /* --                       */  0},
+    { LINK(67), "[",            API0(28), /* -- */          A_IMMEDIATE | 0},
+    { LINK(68), "exit",         API0(29), /* -- */          A_IMMEDIATE | 0},
+    { LINK(69), "constant",     API0(30), /* n <name> --              */  0},
+    { LINK(70), "bits",         API0(31), /* n <name> --              */  0},
+    { LINK(71), ">body",        API0(32), /* xt -- addr               */  0},
+    { LINK(72), ",",            API0(33), /* n --                     */  0},
+    { LINK(73), "_,\"",         API0(34), /* n -- addr                */  0},
+    { LINK(74), "bit",          API0(35), /* n --                     */  0},
+    { LINK(75), ",inst",        API0(36), /* inst --                  */  0},
+    { LINK(76), "immediate",    API0(37), /* --                       */  0},
+    { LINK(77), "block",        API0(38), /* u -- addr                */  0},
+    { LINK(78), "buffer",       API0(39), /* u -- addr                */  0},
+    { LINK(79), "update",       API0(40), /* --                       */  0},
+    { LINK(80), "save-buffers", API0(41), /* --                       */  0},
+    { LINK(81), "flush",        API0(42), /* --                       */  0},
+    { LINK(82), "empty-buffers",API0(43), /* --                       */  0},
+    { LINK(83), "load",         API0(44), /* u --                     */  0},
+    { LINK(84), "capacity",     API0(45), /* -- u                     */  0},
+    { LINK(85), "-->",          API0(46), /* --                       */  0},
+    { LINK(86), "postpone",     API0(47), /* <name> -- */   A_IMMEDIATE | 0},
+    { LINK(87), "compile",      API0(48), /* xt --                    */  0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(87), "}t",           API0(47), /* ? --                     */  0},
-    { LINK(88), "->",           API0(48), /* ? --                     */  0},
-    { LINK(89), "t{",           API0(49), /* --                       */  0},
-    { LINK(90), "hex",          API0(50), /* --                       */  0},
-    { LINK(91), "decimal",      API0(51), /* --                       */  0},
-    { LINK(92), ".page",        API0(52), /* n --                     */  0},
-    { LINK(93), ".pages",       API0(53), /* --                       */  0},
-    { LINK(94), "dump",         API0(54), /* addr length --           */  0},
-    { LINK(95), "dumpi",        API0(55), /* inst --                  */  0},
-    { LINK(96), "dasm",         API0(56), /* addr length --           */  0},
-    { LINK(97), ".s",           API0(57), /* --                       */  0},
-    { LINK(98), ".",            API0(58), /* n --                     */  0},
-    { LINK(99), "see",          API0(59), /* <name> --                */  0 },
+    { LINK(88), "}t",           API0(49), /* ? --                     */  0},
+    { LINK(89), "->",           API0(50), /* ? --                     */  0},
+    { LINK(90), "t{",           API0(51), /* --                       */  0},
+    { LINK(91), "hex",          API0(52), /* --                       */  0},
+    { LINK(92), "decimal",      API0(53), /* --                       */  0},
+    { LINK(93), ".page",        API0(54), /* n --                     */  0},
+    { LINK(94), ".pages",       API0(55), /* --                       */  0},
+    { LINK(95), "dump",         API0(56), /* addr length --           */  0},
+    { LINK(96), "dumpi",        API0(57), /* inst --                  */  0},
+    { LINK(97), "dasm",         API0(58), /* addr length --           */  0},
+    { LINK(98), ".s",           API0(59), /* --                       */  0},
+    { LINK(99), ".",            API0(60), /* n --                     */  0},
+    { LINK(100), "see",         API0(61), /* <name> --                */  0 },
 #endif
 };
 
@@ -635,17 +636,18 @@ static int interpret(char* str, int len) {
  * QUIT loop 
  *
  * `>options` ( flags -- ) sets the display (etc.) options
- * `options>` ( -- flags ) gets them
  * `bye`      ( ? -- ? )   ends QUIT
  */
-int lfAPI_getFlags(void) {
-    return vmPush(g_lf_sys_options);
-}
 
 int lfAPI_setFlags(void) {
     int32_t val = vmPop();
     if ((g_lf_sys_options & SYS_OPTIONS_LOCKED) == 0) {
-        g_lf_sys_options = val;
+        if (val) { // set more options
+            g_lf_sys_options |= val;
+        }
+        else { // clear options
+            g_lf_sys_options = 0;
+        }
     }
     return 0;
 }
@@ -721,15 +723,14 @@ int QUIT(void) {
     }
 }
 
-/* `D'` ( <name> -- w aux ) */
-int lfAPI_tickx(void) {
+/* Tick primitive */
+const struct s_head* lfTickWord(void) {
     char token[32] = { 0 };
     int ior = lfParseWord(token, sizeof(token));
-    if (ior) return ior;
+    if (ior) return NULL;
     const struct s_head* word = search_context(token);
-    if (word == NULL) return ERR_UNDEFINED_WORD;
-    vmPush(word->w);
-    return vmPush(word->aux);
+    if (word == NULL) return NULL;
+    return word;
 }
 
 static struct s_head* latest = NULL;
@@ -751,42 +752,40 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     if (ior) return ior;
 
     // Resolve destination memory location in 32-bit cells
-    int32_t* headptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
-    int32_t  f_hp = *headptr;
-    int32_t  f_hmax = headptr[1];
+    int32_t* textptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
+    int32_t  f_hp = *textptr;
+    int32_t  f_hmax = textptr[1];
     int page = f_hp >> (22 - VM_LOG2_PAGES);
-    int32_t  start_f_hp = f_hp & 0x3FFFFF;
+    int32_t ch_dest = lfSetSliceWidth(f_hp, 8); // LF byte address for name
+    uint32_t dest = ch_dest & VM_PAGE_MASK; // cell index within page
 
-    int32_t* cell_dest = &vm_memory[page][start_f_hp];
+    int32_t* cell_dest = &vm_memory[page][dest];
 
-    // Pack string name into 32-bit cells
-    char* name_dest = (char*)cell_dest;
+    // Name string starts here
+    char* name_dest = ((char*)cell_dest) + ((ch_dest >> 25) & 3);
     if (name != NULL) {
         *name = name_dest;
     }
-    int32_t ch_dest = start_f_hp | (8 << 27); // bytes
     char* src = token;
     char c = 0;
-    uint8_t length = 0;
 
+    // Use VM functions to respect the sandbox
     do {
         c = *src++;
         int ior = vmStore(ch_dest, c);
         if (ior) return ior;
         ch_dest = vmFieldPlus(ch_dest);
-        length++;
     } while (c);
     /*
     * vmStore did not give an error, assume struct s_head will not step on
-    * anything critical.
+    * anything critical. Pad with 0 bytes to cell-align.
     */
-    while (length & 3) {
+    while ((ch_dest >> 22) & 0x1F) {
         vmStore(ch_dest, 0);
         ch_dest = vmFieldPlus(ch_dest);
-        length++;
     }
 
-    cell_dest += (length / sizeof(int32_t));
+    cell_dest = &vm_memory[page][ch_dest & VM_PAGE_MASK];
 
     // Construct struct s_head header directly in the next cell boundary
     struct s_head* target_head = (struct s_head*)cell_dest;
@@ -807,15 +806,15 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     cell_dest += head_cells;
 
     // Calculate new f_hp address (start_f_hp + total cell delta)
-    int32_t total_cells_used = (int32_t)(cell_dest - &vm_memory[page][start_f_hp]);
-    int32_t new_f_hp = (page << (22 - VM_LOG2_PAGES)) | ((start_f_hp + total_cells_used) & 0x3FFFFF);
+    int32_t total_cells_used = (int32_t)(cell_dest - &vm_memory[page][dest]);
+    int32_t new_f_hp = (page << (22 - VM_LOG2_PAGES)) | ((dest + total_cells_used) & 0x3FFFFF);
 
     // Bounds check before writing back to F_PTRS
     if (new_f_hp >= f_hmax) {
         return ERR_DICTIONARY_OVERFLOW;
     }
 
-    *headptr = new_f_hp;
+    *textptr = new_f_hp;
     return 0;
 }
 

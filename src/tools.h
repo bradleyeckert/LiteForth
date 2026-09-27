@@ -73,6 +73,8 @@ int lfBASEfetch(void);
 int lfBASEstore(int base);
 int lfSTATEstore(int state);
 int lfSTATEfetch(void);
+int lfTpFetch(int32_t* tp);
+int lfTpStore(int32_t tp);
 
 int parseNumber(char* token, int base, int32_t* val);
 uint32_t lfSetSliceWidth(uint32_t addr, int bits);

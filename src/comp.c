@@ -89,6 +89,11 @@ static void NewInst(void) {
     lastcall = 0;
 }
 
+int lfAPI_break(void) {
+    NewInst();
+    return 0;
+}
+
 // Compile a 16-bit instruction
 int lfAPI_inst(void) {
     NewInst(); // flush any uops
@@ -138,12 +143,17 @@ static int CompUop(uint8_t uop) {
 static int CompUlit(uint32_t x) { 
     NewInst();
     int ior = 0;
-    vmPush(-1);
+    vmPush(-1); // terminator
     vmPush(VMI_LIT | (x & VM_LIMM_MASK));
     x = x >> VM_LIMM_BITS;
     while (x) {
-        vmPush(VMI_PFX | (x & VM_IMM_MASK));
-        x = x >> VM_IMM_BITS;
+        if (x & (1 << VM_IMM_BITS)) {
+            vmPush(VMI_PFX1 | (x & VM_IMM_MASK));
+        }
+        else {
+            vmPush(VMI_PFX | (x & VM_IMM_MASK));
+        }
+        x = x >> 10;
     }
     while (1) {
         int32_t n = vmPop();
@@ -162,6 +172,11 @@ int lfCompileLit(int32_t x) {
     }
     return CompUlit(x);
 }
+
+int lfAPI_literal(void) {
+    return lfCompileLit(vmPop());
+}
+
 
 // Execute using the VM
 int lfExecuteWord(const struct s_head* word) {
@@ -336,16 +351,6 @@ int lfAPI_toBody(void) {
     return ERR_BODY_ON_NON_CREATE;
 }
 
-/* ,  ( n -- ) */
-int lfAPI_comma(void) {
-    int32_t* ptr = herePtr();
-    uint32_t here = *ptr;
-    int ior = vmStore(here, vmPop());
-    here = vmFieldPlus(here);
-    *ptr = here;
-    return ior;
-}
-
 /* BIT  ( n -- ) 
  * Change the bit width of the next slices compiled
  */
@@ -363,11 +368,6 @@ int lfAPI_bit(void) {
     return 0;
 }
 
-/* HERE  ( -- n ) */
-int lfAPI_here(void) {
-    return vmPush(*herePtr());
-}
-
 /* POSTPONE  ( <name> -- )  */
 int lfAPI_postpone(void) {
     const struct s_head* word = lfTickWord();
@@ -379,7 +379,7 @@ int lfAPI_postpone(void) {
     }
     else {
         ior = CompUlit(word->w);
-        commaCode(W_PRIMITIVE | VMI_API0 | 47);
+        commaCode(W_PRIMITIVE | VMI_API0 | API_COMPILE);
     }
     return ior;
 }

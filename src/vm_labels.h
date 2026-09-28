@@ -30,14 +30,16 @@
 } while(0)    
 
 #define NOS datastack[sp]
+#define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
 
+// slot assignments for 16-bit instruction
 #define VM_UOPS         0x8000 // uops bit location
 #define VM_RET          0x4000 // return bit location
 #define SLOT0_POSITION  9      // [13:9] is the first 5-bit slot
 #define LAST_SLOT_WIDTH (14 % 5)
 #define LAST_SLOT_MASK  ((1 << LAST_SLOT_WIDTH) - 1)
-#define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
 
+// register assignments for vmPeek and vmPoke
 #define VM_REG_PC       0x100
 #define VM_REG_R        0x101
 #define VM_REG_A        0x102
@@ -48,7 +50,7 @@
 #define VM_REG_sp       0x107
 #define VM_REG_rp       0x108
 
-
+// micro opcodes (5 bit instructions)
 #define UOP_NAMES { \
     "nop",   "inv",   "over",  "a!",    "xor",   "+",     "and",   ">r", \
     "unext", "2*",    "dup",   "drop",  "@a",    "@a+",   "r@",    "r>", \
@@ -94,12 +96,9 @@
 #define VMU_A                   0x1E
 #define VMU_CY                  0x1F
 
-#define OP_NAMES  {"jump", "call", "lit"}
-
+// instructions with 13-bit immediate data
 #define VM_LIMM_BITS            13
-#define VM_IMM_BITS             9
 #define VM_LIMM_MASK            ((1 << VM_LIMM_BITS) - 1)
-#define VM_IMM_MASK             ((1 << VM_IMM_BITS) - 1)
 #define VMO_JUMP                0  
 #define VMO_CALL                1
 #define VMO_LIT                 2
@@ -109,18 +108,9 @@
 #define VMI_LIT                 (VMO_LIT << VM_LIMM_BITS)
 #define VMI_OTHER               (VMO_OTHER << VM_LIMM_BITS)
 
-#define VMS_SHR                 0
-#define VMS_SHL                 1
-#define VMS_FIELDPLUS           2
-
-#define VMSTO_YEET              0
-#define VMSTO_TASK              1
-#define VMSTO_SHIFT             2
-
-#define VMSFROM_TASK            0
-
-/*
-*/
+// instructions with 9-bit immediate data
+#define VM_IMM_BITS             9
+#define VM_IMM_MASK             ((1 << VM_IMM_BITS) - 1)
 
 #define IMM_NAMES { \
     "if", "bran", "-if", "rcall", "next", "?", "sys", "?", \
@@ -148,6 +138,7 @@
 #define VMI_NEXT               (VMI_OTHER + (VMO_NEXT     << 9))
 #define VMI_SYS                (VMI_OTHER + (VMO_SYS      << 9))
 #define VMI_PFX                (VMI_OTHER + (VMO_PFX      << 9))
+#define VMI_PFX1               (VMI_OTHER + (VMO_PFX1     << 9))
 #define VMI_TOSYS              (VMI_OTHER + (VMO_TOSYS    << 9))
 #define VMI_USER               (VMI_OTHER + (VMO_USER     << 9))
 #define VMI_FROMSYS            (VMI_OTHER + (VMO_FROMSYS  << 9))
@@ -157,6 +148,16 @@
 
 #define VMI_MASK               ((3 << VM_LIMM_BITS) | (0x0F << VM_IMM_BITS))
 
-// VMI_SYS | VMS_CHARPLUS       // VMI_PFX
+// system instructions VMI_SYS, VMI_TOSYS, and VMI_FROMSYS
+#define VMS_SHR                 0
+#define VMS_SHL                 1
+#define VMS_FIELDPLUS           2
+
+#define VMSTO_TASK              0
+#define VMSTO_SHIFT             1
+#define VMSTO_YEET              2
+
+#define VMSFROM_TASK            0
+
 
 #endif /* _VM_LABELS_H_ */

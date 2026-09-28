@@ -3,7 +3,6 @@
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
-// #include <stdio.h> // remove...
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -21,11 +20,11 @@ static int32_t R = 0;  // Top of Return Stack
 static int32_t A = 0;  // Address A
 static int32_t B = 0;  // Address B
 static int32_t U = 0;  // User pointer
-static int32_t prefix = 0;  // Literal prefix
 static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
-static int dirty = 0;
+static int8_t  dirty = 0;
+static int32_t prefix = 0;  // Literal prefix
 
 int32_t vmFieldPlus(int32_t addr) {
     int bsize = (addr >> 27) & 0x1F;
@@ -83,7 +82,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         int32_t tos = T;
         VM_DDROP;
         switch (imm) {
-        case VMSTO_YEET:    return tos;
+        case VMSTO_YEET: return tos;
         case VMSTO_TASK: // ]task
             sp = tos & 0xFFFF;
             rp = (tos >> 16) & 0xFFFF;
@@ -108,10 +107,14 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     case VMO_QLIT:
         VM_DDUP;  T = U + imm;
         break;
-    case VMO_PFX: prefix = (prefix << 9) | imm; break;
-    case VMO_PFX1: prefix = (prefix << 9) | imm | 0x200; break;
-    case VMO_API0: return VMapi0Call(imm);
-    case VMO_API1: return VMapi1Call(imm);
+    case VMO_PFX:  prefix = (prefix << 10) | imm; break;
+    case VMO_PFX1: prefix = (prefix << 10) | imm | (1 << 9); break;
+    case VMO_API0: 
+        if (g_lf_sys_options & SYS_OPTION_NO_API) return ERR_NO_API_CALL_ALLOWED;
+        return VMapi0Call(imm);
+    case VMO_API1: 
+        if (g_lf_sys_options & SYS_OPTION_NO_API) return ERR_NO_API_CALL_ALLOWED;
+        return VMapi1Call(imm);
     default: return ERR_INVALID_OPCODE;
     }
     return 0;

@@ -131,5 +131,6 @@
 #define ERR_TOO_MANY_BITS          (-111)   /* only 1 to 32 bits are allowed in a bit field */
 #define ERR_INTERPRETATION_ONLY    (-112)   /* this word may not be compiled */
 #define ERR_POSTPONING_CONSTANT    (-113)   /* a constant cannot be postponed */
+#define ERR_NO_API_CALL_ALLOWED    (-114)   /* API call attempted while all API calls are disabled */
 
 #endif // ERRCODES_H

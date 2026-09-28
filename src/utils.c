@@ -221,7 +221,6 @@ int lfAPI_dump(void) {
  */
 
 static const char* uopName[] = UOP_NAMES;
-static const char* opName[] = OP_NAMES;
 static const char* immName[] = IMM_NAMES; 
 
 static int lfDotHex(int32_t n) {
@@ -229,81 +228,95 @@ static int lfDotHex(int32_t n) {
     return lfSpace();
 }
 
-static int DisassembleInsn(uint16_t inst) {
+// Disassemblea an Insn, returns any destination jump
+static int32_t DisassembleInsn(uint16_t inst, char* tag) {
     static uint32_t lex;
     int32_t _lex = -1;
+    int32_t branch_offset = 0;
     lfDotB(inst, 16, 0, 4);
     lfSpace();
+    if (tag) lf_puts(tag);
     if (inst & VM_UOPS) {
-        int returning = inst & VM_RET;
-        inst &= (VM_RET - 1);
         for (int i = SLOT0_POSITION; i > -5; i -= 5) {
             uint8_t slot;
             if (i < 0) slot = inst & LAST_SLOT_MASK;
             else slot = (inst >> i) & 0x1F;
-            if (inst & ((1 << (i + 5)) - 1)) {
+            int remaining = inst & ((1 << (i + 5)) - 1);
+            if (remaining) {
                 lf_puts(uopName[slot]);
                 lfSpace();
             }
         }
-        if (returning) return lf_putc(';');
+        if (inst & VM_RET) {
+            lf_putc(';');
+        }
+        return 0;
     }
     else {
         int opcode = (inst >> 13) & 3;
         int32_t immex = (lex << 13) | (inst & ((1 << 13) - 1));
         char* label = NULL;
-        if (opcode < 3) { // call, jump, imm
-            if (opcode < 2) {
+        char last = ' ';
+        switch (opcode) {
+            case 0: last = ';'; FALLTHROUGH
+            case 1:
                 label = lfFindLabel(immex, 0x3FFFFF, 0xE0000000, 0);
-            }
-            if (label) {
-                lf_puts(label);
-                lfSpace();
-            }
-            else {
-                lfDotHex(immex);
-            }
-            lf_puts(opName[opcode]);
-        }
-        else {
-            uint32_t imm = inst & ((1 << 9) - 1);
-            int simm = imm;
-            if (simm & (1 << 8)) { // sign-extend
-                simm |= ~((1 << 9) - 1);
-            }
-            opcode = (inst >> 9) & 0x0F;
-            if (opcode == VMO_PFX) _lex = imm;
-            if (opcode == VMO_API0) {
-                // traverse dictionary looking for this api call name
-                label = lfFindLabel(imm, 0x1FF, 0x7E00 | W_PRIMITIVE | W_WIDE_INST,
-                    VMI_API0 | W_PRIMITIVE | W_WIDE_INST);
                 if (label) {
                     lf_puts(label);
                     lfSpace();
+                    lf_putc(last);
+                    break;
+                } lfDotHex(immex); break;
+            case 2: lfDot(immex); break;
+            default: {
+                uint32_t imm = inst & ((1 << 9) - 1);
+                int simm = imm;
+                if (simm & (1 << 8)) { // sign-extend
+                    simm |= ~((1 << 9) - 1);
                 }
-                else {
-                    lfDotHex(simm);
+                opcode = (inst >> 9) & 0x0F;
+                switch (opcode) {
+                case VMO_PFX: _lex = imm; 
+                    lf_puts("_pfx_");
+                    break;
+                case VMO_PFX1: _lex = imm | (1 << 9);
+                    lf_puts("_pfx1_");
+                    break;
+                case VMO_API0:
+                    label = lfFindLabel(imm, 0x1FF, // look up API0 call name
+                        VMI_MASK | W_PRIMITIVE | W_WIDE_INST,
+                        VMI_API0 | W_PRIMITIVE | W_WIDE_INST);
+                    if (label) {
+                        lf_puts(label);
+                    }
+                    else {
+                        lfDotHex(simm);
+                    } break;
+                default:
+                    lfDot(simm);
+                    lf_puts(immName[opcode]);
+                    branch_offset = simm;
                 }
             }
-            lf_puts(immName[opcode]);
         }
     }
     if (_lex < 0) lex = 0;
-    else lex = (lex << 9) | _lex;
+    else lex = (lex << 10) | _lex;
     _lex = -1;
-    return 0;
+    return branch_offset;
 }
 
 int lfAPI_dumpIns(void) {
     uint16_t inst = (uint16_t)vmPop();
-    DisassembleInsn(inst);
+    DisassembleInsn(inst, NULL);
     return 0;
 }
 
 // disassemble starting at an instruction address
 int lfAPI_dasm(void) {
-    int32_t length = vmPop();
-    int32_t addr = vmPop();
+    int32_t length = vmPop() & 0xFFFF;
+    int32_t addr = vmPop(); // instruction address
+    int32_t then_tag = 0;
     while (length--) {
         char* label = NULL;
         label = lfFindLabel(addr, 0x3FFFFF, 0xE0000000, 0);
@@ -318,7 +331,14 @@ int lfAPI_dasm(void) {
         int ior = vmFetch((addr >> 1), &inst);
         if (ior) return ior;
         if (addr & 1) inst >>= 16;
-        DisassembleInsn(inst);
+        char* tag = NULL;
+        if (addr == then_tag) {
+            tag = "then ";
+            then_tag = 0;
+        }
+        int32_t offset = DisassembleInsn(inst, tag);
+        tag = NULL;
+        if (offset) then_tag = addr + offset + 1;
         lfCR();
         addr++;
     }
@@ -326,15 +346,14 @@ int lfAPI_dasm(void) {
 }
 
 extern uint32_t g_neighbor_w;
-#include <stdio.h>
 
 int lfAPI_see(void) {
     const struct s_head* word = lfTickWord();
     if (word == NULL) return ERR_UNDEFINED_WORD;
-    int length = (word->w - g_neighbor_w);
-    if (length & 0xFF800000) length = 8;
+    int length = (g_neighbor_w - word->w);
     length &= 0x7FFFFF;
-    if (length >= 64) length = 64;
+    if (length & 0x4000) length = 8;
+    else if (length >= 64) length = 64;
     vmPush(word->w & 0x7FFFFF);
     vmPush(length);
     return lfAPI_dasm();;

@@ -113,20 +113,8 @@ typedef int (putcfunc)(char c);
 
 
 /* ======================================================================= */
-/* SYSTEM OPTIONS                                                          */
+/* CONSTANTS                                                               */
 /* ======================================================================= */
-
-extern uint32_t g_lf_sys_options; // used in forth.c, main.c
-
-#define SYS_OPTIONS_LOCKED    0x8000        /* `>options` ignores changes  */
-#define SYS_OPTION_USE_COLORS 0x0080        /* use color messages          */
-#define SYS_OPTION_VERBOSE    0x0040        /* echo input lines            */
-#define SYS_OPTION_IGNORE_CR  0x0020        /* ignore CR                   */
-#define SYS_OPTION_NO_BLOCK   0x0010        /* do not create blocks file   */
-#define SYS_OPTION_NO_FLASH   0x0008        /* do not create flash file    */
-#define SYS_OPTION_VALIDATION 0x0004        /* quit immediately upon error */
-#define SYS_OPTION_NO_DOTESS  0x0002        /* do not display the stack    */
-#define SYS_OPTION_NO_OK      0x0001        /* do not display "ok>"        */
 
 /* Reset / Normal Formatting */
 #define COLOR_NORMAL         -1
@@ -150,6 +138,8 @@ extern uint32_t g_lf_sys_options; // used in forth.c, main.c
 #define COLOR_BRIGHT_MAGENTA  13
 #define COLOR_BRIGHT_CYAN     14
 #define COLOR_BRIGHT_WHITE    15
+
+#define API_COMPILE           48
 
 /**
  * The standard Forth Outer Interpreter / Terminal Loop.

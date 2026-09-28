@@ -66,10 +66,10 @@ int lfAPI_dotCreate(void);
 int lfAPI_dotDoes(void);
 int lfAPI_toBody(void);
 int lfAPI_bit(void);
-int lfAPI_here(void);
-int lfAPI_comma(void);
 int lfAPI_postpone(void);
 int lfAPI_compile(void);
+int lfAPI_literal(void);
+int lfAPI_break(void);
 
 #ifdef __cplusplus
 }

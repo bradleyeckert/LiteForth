@@ -129,6 +129,62 @@ int VMapi1Call(int fn);
 
 #define VM_EMPTYSTACK 0xAAAAAAAA
 
+// FALLTHROUGH at the end of a case statement indicates that fallthrough is
+// intentional. It keeps the compiler from issuing a warning.
+#ifndef FALLTHROUGH
+
+// 1. C23 Standard Attribute
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+#define FALLTHROUGH [[fallthrough]]
+
+// 2. C++17 Standard Attribute
+#elif defined(__cplusplus) && __cplusplus >= 201703L
+#define FALLTHROUGH [[fallthrough]]
+
+// 3. Clang (handles both C and C++ via feature check)
+#elif defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(fallthrough)
+#define FALLTHROUGH __attribute__((fallthrough))
+#else
+#define FALLTHROUGH ((void)0)
+#endif
+
+// 4. GCC 7.0+
+#elif defined(__GNUC__) && (__GNUC__ >= 7)
+#define FALLTHROUGH __attribute__((fallthrough))
+
+// 5. MSVC (Visual Studio 2015 update 3+ via Code Analysis)
+#elif defined(_MSC_VER)
+#if _MSC_VER >= 1900
+#define FALLTHROUGH __fallthrough
+#else
+#define FALLTHROUGH ((void)0)
+#endif
+
+// 6. Fallback for legacy or unknown compilers
+#else
+#define FALLTHROUGH ((void)0)
+#endif
+
+#endif // FALLTHROUGH
+
+/* ======================================================================== */
+/* SYSTEM OPTIONS                                                           */
+/* ======================================================================== */
+
+extern uint32_t g_lf_sys_options; // used in forth.c, main.c, vm.c
+
+#define SYS_OPTIONS_LOCKED    0x8000	/* `>options` ignores changes		*/
+#define SYS_OPTION_NO_API     0x4000	/* disallow the use of API calls    */
+#define SYS_OPTION_USE_COLORS 0x0080	/* use color messages				*/
+#define SYS_OPTION_VERBOSE    0x0040	/* echo input lines					*/
+#define SYS_OPTION_IGNORE_CR  0x0020	/* ignore CR						*/
+#define SYS_OPTION_NO_BLOCK   0x0010	/* do not create blocks file		*/
+#define SYS_OPTION_NO_FLASH   0x0008	/* do not create flash file			*/
+#define SYS_OPTION_VALIDATION 0x0004	/* quit immediately upon error		*/
+#define SYS_OPTION_NO_DOTESS  0x0002	/* do not display the stack			*/
+#define SYS_OPTION_NO_OK      0x0001	/* do not display "ok>"				*/
+
 #ifdef __cplusplus
 }
 #endif

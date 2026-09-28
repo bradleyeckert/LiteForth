@@ -22,21 +22,24 @@ static int bye(void) {
     return ERR_QUIT;
 }
 
-/* EMIT */
+/* EMIT  ( c -- ) */
 static int emit(void) {
     return lf_putc((char)vmPop());
 }
 
-/* KEY? */
-static int qkey(void) {
-    int flag = serial_ready();
-    return vmPush(flag);
+/* EMIT? ( -- busy? ) */
+static int qemit(void) {
+    return vmPush(serial_busy());
 }
 
-/* KEY */
+/* KEY?  ( -- ready? ) */
+static int qkey(void) {
+    return vmPush(serial_ready());
+}
+
+/* KEY  ( -- c ) */
 static int key(void) {
-    int c = serial_getc();
-    return vmPush(c);
+    return vmPush(serial_getc());
 }
 
 /* `'PAGE` */
@@ -238,12 +241,12 @@ static int flashOpen(void) {
 
 /* [  ( -- ) */
 static int bracket(void) {
-    return lfSTATEstore(1);
+    return lfSTATEstore(0);
 }
 
 /* ]  ( -- ) */
 static int endbracket(void) {
-    return lfSTATEstore(0);
+    return lfSTATEstore(1);
 }
 
 /* WORDLIST  ( -- wid ) */
@@ -281,14 +284,14 @@ typedef int(*APIfn) (void);
 static const APIfn API0fns[] = {
     bye, lfAPI_words, lfAPI_forth, lfAPI_only, umstar,
     mstar, mudivmod, stardivmod, qkey, key, 
-    emit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, lfAPI_empty,
-    parenthesis, dotParen, lfAPI_dotDoes, lfAPI_dotCreate, lfCR,
-    lfAPI_here, lfAPI_dotWid, extick, tickpage, wordlist,
-    flashOpen, flashClose, endbracket, bracket, lfAPI_exit,
-    lfAPI_constant, lfAPI_bits, lfAPI_toBody, lfAPI_comma, commaQ,
+    emit, qemit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, 
+    lfAPI_empty, parenthesis, dotParen, lfAPI_dotDoes, lfAPI_dotCreate, 
+    lfCR, lfAPI_literal, lfAPI_dotWid, extick, tickpage, 
+    wordlist, flashOpen, flashClose, endbracket, bracket, 
+    lfAPI_exit, lfAPI_constant, lfAPI_bits, lfAPI_toBody, commaQ,
     lfAPI_bit, lfAPI_inst, immediate, lfAPI_block, lfAPI_buffer, 
     lfAPI_update, lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers, lfAPI_load, 
-    capacity, lfAPI_nextBlock, lfAPI_postpone, lfAPI_compile
+    capacity, lfAPI_nextBlock, lfAPI_postpone, lfAPI_compile, lfAPI_break
 #if (FAT_FORTH & 1)
     , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
     , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm

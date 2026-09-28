@@ -129,6 +129,15 @@ int lfSpace(void) {
 // Output a value
 int lfDot(int32_t val) {
     int base = lfBASEfetch();
+    int size = (val >> 27) & 0x1F;
+    if ((size > 0) && (size <= 16)) {
+        int pos = (val >> 22) & 0x1F;
+        lfDotB(size, base, 0, 0);
+        lf_putc(':');
+        lfDotB(pos, base, 0, 0);
+        lf_putc(':');
+        val &= 0x3FFFFF;
+    }
     lfDotB(val, base, 0, 0);
     if (base == 16) {
         lf_putc('H');

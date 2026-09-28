@@ -56,7 +56,8 @@ locations for accessibility by Forth or by C.
 // Flags in word->w[31:27]
 #define W_PRIMITIVE     0x80000000 // the xt is a primitive in slot 1
 #define W_MACRO         0x40000000 // the xt is all primitives except nops
-#define W_NO_TAIL_CALL  0x20000000 // don't allow tail recursion
+#define W_WIDE_INST     0x20000000 // treat primitive as 16-bit instruction
+#define W_NO_TAIL_CALL  0x10000000 // don't allow tail recursion
 
 // Flags in word->aux[31:24]
 #define A_SMUDGED       0x80000000 // this bit is set by `:`
@@ -165,6 +166,7 @@ int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
 int lfParseInputString(putcfunc* echo, char terminator);
 const struct s_head* lfTickWord(void);
+char* lfFindLabel(uint32_t value, uint32_t mask, uint32_t must, uint32_t expected);
 
 int lfAPI_dotWid(void);
 int lfAPI_words(void);

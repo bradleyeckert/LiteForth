@@ -46,10 +46,10 @@ static int lfTIBSTATEstore(int state) {
     (W_PRIMITIVE | W_MACRO | VM_UOPS | \
     ((s0) << SLOT0_POSITION) | ((s1) << LAST_SLOT_WIDTH)| (s2) )
 #define DATA(idx) ((RAM_PAGE << (22 - VM_LOG2_PAGES)) + (idx))
-#define API0(idx) (W_PRIMITIVE | VMI_API0 | (idx))
-#define SYS(idx) (W_PRIMITIVE | VMI_SYS | (idx))
-#define SYSTO(idx) (W_PRIMITIVE | VMI_TOSYS | (idx))
-#define SYSFM(idx) (W_PRIMITIVE | VMI_FROMSYS | (idx))
+#define API0(idx) (W_PRIMITIVE | W_WIDE_INST | VMI_API0 | (idx))
+#define SYS(idx) (W_PRIMITIVE | W_WIDE_INST | VMI_SYS | (idx))
+#define SYSTO(idx) (W_PRIMITIVE | W_WIDE_INST | VMI_TOSYS | (idx))
+#define SYSFM(idx) (W_PRIMITIVE | W_WIDE_INST | VMI_FROMSYS | (idx))
 
 #define LINKO(val) (struct s_head*)&only_heads[(val)]
 
@@ -113,9 +113,9 @@ static const struct s_head forth_heads[] = {
     { LINK(44), "m*",           API0( 5), /* n1 n2 -- d               */  0},
     { LINK(45), "mu/mod",       API0( 6), /* ud u -- rem dquot        */  0},
     { LINK(46), "*/mod",        API0( 7), /* n1 n2 -- rem quot        */  0},
-    { LINK(47), "key?",         API0( 8), /* -- flag                  */  0},
-    { LINK(48), "key",          API0( 9), /* -- c                     */  0},
-    { LINK(49), "emit",         API0(10), /* c --                     */  0},
+    { LINK(47), "_key?",        API0( 8), /* -- flag                  */  0},
+    { LINK(48), "_key",         API0( 9), /* -- c                     */  0},
+    { LINK(49), "_emit",        API0(10), /* c --                     */  0},
     { LINK(50), ":",            API0(11), /* <name> --                */  0},
     { LINK(51), ";",            API0(12),                   A_IMMEDIATE | 0},
     { LINK(52), ">options",     API0(13), /* n --                     */  0},
@@ -329,6 +329,7 @@ int lfAPI_words(void) {
 
 uint32_t g_neighbor_w = 0; // the w of the word defined after the found one
 
+// find a word in a given wordlist
 static const struct s_head* search_wordlist(int wid_index, const char *target_name) {
     if (wid_index < 0 || wid_index >= wids_pointer) {
         return NULL;
@@ -346,18 +347,37 @@ static const struct s_head* search_wordlist(int wid_index, const char *target_na
     return NULL;
 }
 
+// Index through the context to find a word
 static const struct s_head* search_context(const char *target_name) {
     for (int i = 0; i < CONTEXT_MAX; i++) {
         int wid_idx = CONTEXT[i];
-        if (wid_idx == -1) { // end of search order marked by -1
-            break;
-        }
+        if (wid_idx == -1) break; // end of context
         const struct s_head *found = search_wordlist(wid_idx, target_name);
-        if (found != NULL) {
-            return found; // Return immediately upon first match in search order
-        }
+        if (found != NULL) return found; // found it
     }
     return NULL; // Word not found in any active wordlist
+}
+
+// Traverse all wordlists in the context for the name of a value
+char* lfFindLabel(uint32_t value, uint32_t mask, uint32_t must, uint32_t expected) {
+    for (int i = 0; i < CONTEXT_MAX; i++) {
+        int wid_idx = CONTEXT[i];
+        if (wid_idx == -1) break; // end of context
+        const struct s_head* link = wids[wid_idx].head;
+        while (link != NULL) { // traverse the wordlist
+            uint32_t xt = link->w;
+            if ((xt & must) == expected) {
+                xt &= mask;
+                if (xt == value) {
+                    if ((link->aux & A_SMUDGED) == 0) {
+                        return link->name;
+                    }
+                }
+            }
+            link = link->link;
+        }
+    }
+    return NULL;
 }
 
 /*
@@ -817,11 +837,34 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
 }
 
 int lfParseInputString(putcfunc* echo, char terminator) {
+    int escaped = 0;
+
     while (1) {
         char c = TOINchar();
         if (c == '\0') break;
         TOINbump();
-        if (c == terminator) break;
+
+        if (escaped) {
+            escaped = 0;
+            switch (c) {
+            case 'a':  c = '\a'; break;
+            case 'b':  c = '\b'; break;
+            case 'f':  c = '\f'; break;
+            case 'n':  c = '\n'; break;
+            case 'r':  c = '\r'; break;
+            case 't':  c = '\t'; break;
+            case 'v':  c = '\v'; break;
+            default: break; // \? = ?
+            }
+        }
+        else if (c == '\\') {
+            escaped = 1;
+            continue;
+        }
+        else if (c == terminator) {
+            break;
+        }
+
         if (echo) {
             int ior = echo(c);
             if (ior) return ior;

@@ -33,6 +33,8 @@ static int cpStore(int32_t cp) {
 static uint32_t cpPC(void) {
     int32_t cp = 0;
     cpFetch(&cp);
+    cp = lfSetSliceWidth(cp, 16);
+    cpStore(cp); // enforce 16-bit addressing
     int lsb = (cp >> 26) & 1;
     return ((cp & 0x3FFFFF) << 1) | lsb;
 }
@@ -66,6 +68,7 @@ static void freshSlots(void) {
 }
 
 // Compile to code space. The data size is determined by the upper bits of cp.
+// cp is assumed to address 16-bit words.
 static int commaCode(uint32_t inst) {
     int32_t cp = 0;
     int ior = cpFetch(&cp);
@@ -178,14 +181,20 @@ int lfExecuteWord(const struct s_head* word) {
 static int lfCompileXT(uint32_t w) {
     int ior = 0;
     if (w & W_PRIMITIVE) {
-        ior = CompUop(w >> SLOT0_POSITION); // slot 0 always compiles
-        if (ior) return ior;
-        if ((w & W_MACRO) == 0) return 0;
-        int uop = w >> (SLOT0_POSITION - 5);
-        ior = CompUop(uop);                 // a macro always has a slot 1
-        uop = w & ((1 << LAST_SLOT_WIDTH) - 1);
-        if (uop != VMU_NOP) CompUop(uop);   // maybe not a slot 2
-        return ior;
+        if (w & W_WIDE_INST) {
+            NewInst();
+            return commaCode(w);
+        }
+        else {
+            ior = CompUop(w >> SLOT0_POSITION); // slot 0 always compiles
+            if (ior) return ior;
+            if ((w & W_MACRO) == 0) return 0;
+            int uop = w >> (SLOT0_POSITION - 5);
+            ior = CompUop(uop);                 // a macro always has a slot 1
+            uop = w & ((1 << LAST_SLOT_WIDTH) - 1);
+            if (uop != VMU_NOP) CompUop(uop);   // maybe not a slot 2
+            return ior;
+        }
     }
     ior = CompCall(w);
     return ior;

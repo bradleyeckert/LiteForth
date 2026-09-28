@@ -161,7 +161,7 @@ int lfAPI_dotPages(void) {
  */
 int lfAPI_dump(void) {
     int32_t length = vmPop();
-    int32_t origin = (vmPop() & 0x3FFFFF);
+    int32_t origin = (vmPop() & 0x3FFFFF); // cell-aligned
     int tally = 0;
 
     while (tally < length) {
@@ -251,8 +251,18 @@ static int DisassembleInsn(uint16_t inst) {
     else {
         int opcode = (inst >> 13) & 3;
         int32_t immex = (lex << 13) | (inst & ((1 << 13) - 1));
+        char* label = NULL;
         if (opcode < 3) { // call, jump, imm
-            lfDotHex(immex);
+            if (opcode < 2) {
+                label = lfFindLabel(immex, 0x3FFFFF, 0xE0000000, 0);
+            }
+            if (label) {
+                lf_puts(label);
+                lfSpace();
+            }
+            else {
+                lfDotHex(immex);
+            }
             lf_puts(opName[opcode]);
         }
         else {
@@ -261,13 +271,21 @@ static int DisassembleInsn(uint16_t inst) {
             if (simm & (1 << 8)) { // sign-extend
                 simm |= ~((1 << 9) - 1);
             }
-            lfDotHex(simm);
             opcode = (inst >> 9) & 0x0F;
-            lf_puts(immName[opcode]);
             if (opcode == VMO_PFX) _lex = imm;
             if (opcode == VMO_API0) {
                 // traverse dictionary looking for this api call name
+                label = lfFindLabel(imm, 0x1FF, 0x7E00 | W_PRIMITIVE | W_WIDE_INST,
+                    VMI_API0 | W_PRIMITIVE | W_WIDE_INST);
+                if (label) {
+                    lf_puts(label);
+                    lfSpace();
+                }
+                else {
+                    lfDotHex(simm);
+                }
             }
+            lf_puts(immName[opcode]);
         }
     }
     if (_lex < 0) lex = 0;
@@ -287,6 +305,13 @@ int lfAPI_dasm(void) {
     int32_t length = vmPop();
     int32_t addr = vmPop();
     while (length--) {
+        char* label = NULL;
+        label = lfFindLabel(addr, 0x3FFFFF, 0xE0000000, 0);
+        if (label) {
+            lf_puts(label);
+            lfCR();
+        }
+        lfSpaces(2);
         lfDotB(addr, 16, 0, 6);
         lfSpace();
         int32_t inst = 0;

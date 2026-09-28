@@ -57,7 +57,6 @@ static int dotParen(void) {
 }
 
 // compile a char to text space, assume tp is a byte address
-// add a FSM later to handle '\' sequences
 static int lf_compc(char c) {
     int32_t tp = 0;
     int ior = lfTpFetch(&tp);

@@ -124,7 +124,7 @@
 
 #define IMM_NAMES { \
     "if", "bran", "-if", "rcall", "next", "?", "sys", "?", \
-    ">sys", "user", "sys>", "qlit", "pfx", "pfx1", "RFcall", "AFcall"}
+    ">sys", "user", "sys>", "qlit", "pfx", "pfx1", "API", "XAPI"}
 
 #define VMO_ZBRAN               0
 #define VMO_BRAN                1

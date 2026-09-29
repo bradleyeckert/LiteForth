@@ -48,7 +48,7 @@ The following Windows terminals were tried:
 - Windows Powershell, displays square boxes instead of CJK. 
 
 Windows Terminal stores actions in a JSON file, which you can edit in Windows Terminal.
-The `./scripts/settings.json` file contains useful shortcuts that you can paste into your JSON.
+The [`scripts/settings.json`](../scripts/settings.json) file contains shortcuts you can merge into your own settings JSON.
 Some of the keys include:
 
 - F9 = Boot up LiteForth from go.f

@@ -231,14 +231,18 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
                 case VMU_DROP:                                      break;
                 case VMU_INV:       T = ~T;                         break;
                 case VMU_TWOSTAR:   T = T * 2;                      break;
-                case VMU_TWODIV:    T = T / 2;                      break;
-                case VMU_TWODIVC:   cy = (T >> 31);
-                    T = (cy << 31) | (T >> 1);                      break;
-                case VMU_PLUS: {
-                    uint64_t sum;
-                    sum = (uint64_t)n + (uint64_t)T;
-                    T = (int32_t)sum;
-                    cy = (uint8_t)(sum >> 32);
+                case VMU_TWODIV:    // arithmetic shift right
+                    T = (int32_t)(((uint32_t)T >> 1) | ((uint32_t)T & 0x80000000u));
+                                                                    break;
+                case VMU_TWODIVC: { // rotate right through carry
+                    uint32_t u = (uint32_t)T;
+                    T = (int32_t)(((uint32_t)cy << 31) | (u >> 1));
+                    cy = (int8_t)(u & 1);
+                }                                                   break;
+                case VMU_PLUS: {    // cy = carry out of bit 31
+                    uint64_t sum = (uint64_t)(uint32_t)n + (uint32_t)T;
+                    T = (int32_t)(uint32_t)sum;
+                    cy = (int8_t)(sum >> 32);
                 }                                                   break;
                 case VMU_XOR:       T = n ^ T;                      break;
                 case VMU_AND:       T = n & T;                      break;
@@ -257,17 +261,14 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
                     if (R == 0) VM_RDROP;
                     else i = SLOT0_POSITION + 5;
                     break;
-                case VMU_PLUSSTAR: {
-                    uint64_t sum;
+                case VMU_PLUSSTAR: { // multiply step: T:A >> 1, adding N if A odd
+                    uint64_t sum = (uint32_t)T;
                     if (A & 1) {
-                        sum = (uint64_t)T + (uint64_t)n;
+                        sum += (uint32_t)datastack[sp]; // N, not popped
                     }
-                    else {
-                        sum = (uint64_t)T;
-                    }
-                    sum = (sum << 31) | (A >> 1);
-                    T = (sum >> 32);
-                    A = (uint32_t)sum;
+                    sum = (sum << 31) | ((uint32_t)A >> 1);
+                    T = (int32_t)(uint32_t)(sum >> 32);
+                    A = (int32_t)(uint32_t)sum;
                 }                                                   break;
                 case VMU_BSTORE:    B = n;                          break;
                 case VMU_A:         T = A;                          break;

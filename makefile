@@ -2,6 +2,9 @@
 BIN_DIR = bin
 TARGET = $(BIN_DIR)/lf
 
+# Directory for intermediate object files
+BUILD_DIR = build
+
 # Source directories
 SRC_DIRS = src src/target/desktop
 
@@ -16,14 +19,16 @@ SRCS = $(wildcard $(addsuffix /*.c,$(SRC_DIRS)))
 OBJS = $(addprefix $(BUILD_DIR)/, $(notdir $(SRCS:.c=.o)))
 
 # Compiler and flags (-I adds both directories to header search paths)
+# -MMD -MP generate header dependency files so edits to .h files trigger rebuilds
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 $(addprefix -I,$(SRC_DIRS))
+DEPFLAGS = -MMD -MP
 
-# Directory for intermediate object files
-BUILD_DIR = build
+# Unit test suites under src/target/desktop/unit_tests
+UNIT_TEST_DIRS = $(sort $(dir $(wildcard src/target/desktop/unit_tests/*/makefile src/target/desktop/unit_tests/*/Makefile)))
 
 # Default target
-all: $(TARGET) clean_build
+all: $(TARGET)
 
 # Link the executable
 $(TARGET): $(OBJS)
@@ -33,14 +38,22 @@ $(TARGET): $(OBJS)
 # Pattern rule: vpath automatically locates the source file in SRC_DIRS
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
-# Post-build cleanup: Removes intermediate build directory after successful compilation
-clean_build:
+# Run the Forth primitives regression script and all C unit tests
+test: $(TARGET)
+	./$(TARGET) -o 31 < scripts/primitives.f
+	@for d in $(UNIT_TEST_DIRS); do \
+		echo "== $$d"; \
+		$(MAKE) -C $$d test || exit 1; \
+	done
+
+# Remove build products. Leaves bin/*.bin (tracked block and flash images) alone.
+clean:
 	rm -rf $(BUILD_DIR)
+	rm -f $(TARGET) $(TARGET).exe
+	@for d in $(UNIT_TEST_DIRS); do $(MAKE) -C $$d clean; done
 
-# Standard cleanup: Removes build directory AND bin directory
-clean: clean_build
-	rm -rf $(BIN_DIR)
+-include $(OBJS:.o=.d)
 
-.PHONY: all clean_build clean
+.PHONY: all test clean

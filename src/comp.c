@@ -77,7 +77,6 @@ static int commaCode(uint32_t inst) {
     if (ior) return ior;
     cp = vmFieldPlus(cp);
     return cpStore(cp);
-    freshSlots();
 }
 
 // Start a new instruction group, flushing the current one if needed.
@@ -287,8 +286,8 @@ static int32_t* herePtr(void) {
 int lfAPI_bits(void) {
     int32_t* ptr = herePtr(); 
     int32_t here = *ptr;
-    uint32_t bits = vmPop();
-    if (bits > 32) return ERR_TOO_MANY_BITS;
+    int32_t bits = vmPop();
+    if ((bits < 1) || (bits > 32)) return ERR_TOO_MANY_BITS;
     here = lfSetSliceWidth(here, bits);
     int ior = lfHeader(here, A_CONSTANT, NULL);
     here = vmFieldPlus(here);
@@ -309,7 +308,7 @@ int lfAPI_dotCreate(void) {
     return commaCode(-1); // leave space for patch
 }
 
-/* DOES>  ( xt -- )  immediate
+/* DOES>  ( -- )  immediate
 * 
 * CREATE compiles a literal followed by a ;.
 * DOES> replaces the ; with a jump.
@@ -363,6 +362,7 @@ int lfAPI_toBody(void) {
  */
 int lfAPI_bit(void) {
     int32_t bits = vmPop();
+    if ((bits < 1) || (bits > 32)) return ERR_TOO_MANY_BITS;
     int32_t* ptr = herePtr();
     int32_t here = *ptr;
     int bpos = 0x1F & (here >> 22);
@@ -370,7 +370,9 @@ int lfAPI_bit(void) {
     if ((bits + bpos) > 32) {
         here = (here & 0x3FFFFF) + 1; // start new cell
     }
-    here |= (bits << 27); // set new slice width
+    if (bits < 32) {
+        here |= (bits << 27); // set new slice width (32 bits = whole cell, size 0)
+    }
     *ptr = here;
     return 0;
 }

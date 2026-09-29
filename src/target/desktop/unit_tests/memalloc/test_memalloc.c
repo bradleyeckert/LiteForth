@@ -1,5 +1,5 @@
-#include "../../memalloc.h"
-#include "../../errcodes.h"
+#include "memalloc.h"
+#include "errcodes.h"
 #include "../../options.h"
 #include <stdio.h>
 #include <assert.h>

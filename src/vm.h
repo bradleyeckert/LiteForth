@@ -38,34 +38,49 @@ extern char* vm_memory_name[VM_MEM_PAGES];
   * - vmRun(0, steps, 0)
   * - vmRun(0, 0, address)
   *
-  * @param once `1` if single instruction, `0` if executing code.
-  * @param inst 16-bit instruction to execute, or number of steps.
-  * If 0 steps, run until last `;` starting at `address`.
-  * @param address Address of word to run.
+  * @param once `1` to execute the single instruction `inst`,
+  * `0` to execute code from memory.
+  * @param inst 16-bit instruction to execute, or number of steps to run
+  * from the current PC. If 0 steps, calls the word at `address` and runs
+  * until it returns.
+  * @param address Instruction address of the word to run (0 steps only).
   * @return Return code IOR, see errcodes.h.
+  *
+  * Calling a word (0 steps) is re-entrant: a word may make an API call that
+  * runs other words through vmRun. When the word returns normally, PC is
+  * restored to its value before the call. On an error, PC is left at the
+  * fault.
   */
 int32_t vmRun(int once, uint32_t inst, int32_t address);
 
 /**
  * @brief Reads from the memory space
  *
- * @param addr Address to fetch
- * @param *data Pointer to destination of the read data
- * @return ior, 0 if okay
+ * A slice address returns just that bit field, zero-extended.
+ *
+ * @param addr Cell or slice address to fetch
+ * @param data Pointer to destination of the read data
+ * @return ior, 0 if okay, or ERR_INVALID_ADDRESS at or past the page's read limit
  */
 int vmFetch(uint32_t addr, int32_t* data);
 
 /**
  * @brief Writes to the memory space
  *
- * @param addr Address to store
- * @param data 32-bit data to store
- * @return ior, 0 if okay
+ * A slice address writes just that bit field, leaving the rest of the cell unchanged.
+ *
+ * @param addr Cell or slice address to store
+ * @param data 32-bit data to store (truncated to the slice width)
+ * @return ior, 0 if okay, ERR_INVALID_ADDRESS at or past the page's read limit,
+ *         or ERR_WRITE_PROTECTED below the page's write-protect limit
  */
 int vmStore(uint32_t addr, int32_t data);
 
 /**
  * @brief Calculates the next RAM address
+ *
+ * A cell address advances by one cell. A slice address advances to the next
+ * slice of the same width, moving to the next cell when the slice would not fit.
  *
  * @param addr Cell or bitfield address
  * @return Next cell or bitfield address
@@ -73,54 +88,37 @@ int vmStore(uint32_t addr, int32_t data);
 int32_t vmFieldPlus(int32_t addr);
 
 /**
- * @brief Reads the contents of a specific VM register.
+ * @brief Reads a VM register or data stack item.
  *
- * @param reg Register to fetch, pop if -1. See vm_labels.h.
- * @return The 32-bit signed value stored in the specified register.
+ * @param reg -1 to pop the data stack; 0 for the top of stack; 1 to
+ *        STACK_MASK-1 for the item that many places below the top; or a
+ *        VM_REG_* register number from vm_labels.h.
+ * @return The value, or -1 if reg is not valid.
  */
 int32_t vmPeek(int reg);
 
 /**
- * @brief Writes a value directly to a VM register.
+ * @brief Writes a VM register or data stack item.
  *
- * @param reg Register to store, push if -1. See vm_labels.h.
- * @param data 32-bit signed value to store in the register.
- * @return Previous register value or status indicator.
+ * @param reg -1 to push data onto the data stack; otherwise the same
+ *        numbering as vmPeek. Writes to cy, sp and rp are masked to their width.
+ * @param data 32-bit signed value to store.
+ * @return 0 on success, or -1 if reg is not valid.
  */
 int32_t vmPoke(int reg, int32_t data);
 
 /**
- * @brief Resets the virtual machine registers, memory limits, and execution state.
+ * @brief Resets the VM registers and empties both stacks.
  *
- * @return Status code indicating successful reset (0 on success).
+ * Clears PC, R, A, B, U, cy, sp and rp, and sets the empty-stack markers.
+ * Memory and memory limits are not changed.
+ *
+ * @return 0.
  */
 int32_t vmReset(void);
 
 /** @} */
 
-
-/**
- * @name VM API Dispatch Handlers
- * @{
- */
-
-/**
- * @brief Invokes the LiteForth API function handler (API 0).
- *
- * @param fn API function identifier or dispatch ID to execute.
- * @return IOR result code (see errcodes.h) from host function call.
- */
-int VMapi0Call(int fn);
-
-/**
- * @brief Invokes a user API function handler (API 1).
- *
- * @param fn API function identifier or dispatch ID to execute.
- * @return IOR result code (see errcodes.h) from host function call.
- */
-int VMapi1Call(int fn);
-
-/** @} */
 
 #define STACK_MASK            (STACK_CAPACITY - 1)
 #if (STACK_CAPACITY <= 0) || ((STACK_CAPACITY & STACK_MASK) != 0)

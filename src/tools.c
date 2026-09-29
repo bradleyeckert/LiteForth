@@ -16,6 +16,12 @@
 // Align the address to fit the slice and set its new slice size
 uint32_t lfSetSliceWidth(uint32_t addr, int bits) {
     int position = (addr >> 22) & 0x1F;
+    // A 32-bit slice is a whole cell, encoded as size 0 and position 0.
+    // Widths outside 1..31 are treated the same way (and avoid dividing by 0).
+    if ((bits < 1) || (bits > 31)) {
+        if (position) addr = (addr & 0x3FFFFF) + 1;  // start a new cell
+        return addr & 0x3FFFFF;
+    }
     // align to next slice
     position = ((position + bits - 1) / bits) * bits;
     // align to cell if crossing cell boundaries
@@ -23,7 +29,7 @@ uint32_t lfSetSliceWidth(uint32_t addr, int bits) {
         addr = (addr & ~(0x1F << 22)) + 1;
     }
     // insert the new size field
-    return (addr & ~(0x1F << 27)) | (bits << 27);
+    return (addr & ~(0x1Fu << 27)) | ((uint32_t)bits << 27);
 }
 
 // A basic division primitive for numeric conversion
@@ -130,8 +136,11 @@ int lfSpace(void) {
 int lfDot(int32_t val) {
     int base = lfBASEfetch();
     int size = (val >> 27) & 0x1F;
-    if ((size > 0) && (size <= 16)) {
-        int pos = (val >> 22) & 0x1F;
+    int pos = (val >> 22) & 0x1F;
+    // In hex, show slice addresses as size:pos:addr. A real slice always fits
+    // in its cell (pos + size <= 32). Other bases always show plain numbers,
+    // since e.g. a 16-bit slice address looks the same as a negative number.
+    if ((base == 16) && (size > 0) && (size <= 16) && ((pos + size) <= 32)) {
         lfDotB(size, base, 0, 0);
         lf_putc(':');
         lfDotB(pos, base, 0, 0);

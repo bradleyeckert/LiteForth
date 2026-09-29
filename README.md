@@ -1,6 +1,6 @@
 # LiteForth
 
-Cheap MCUs are now as powerful the full-fledged computers of the 1990s.
+Cheap MCUs are now as powerful as the full-fledged computers of the 1990s.
 The value proposition of Forth cross compilers came and went.
 Applications are now better-developed within the target MCU.
 
@@ -69,12 +69,36 @@ Forth code runs in a sandbox, so the MCU does not need any kind of MMU.
 Refer to the [makefile](makefile) for the project structure. The desktop build uses
 `src/*` and `src/target/desktop/*` files.
 
-LiteForth is ANS-ish, but not ANS compilant. It is cell-addressed.
+## Building and testing
+
+On Linux, macOS or WSL with `gcc` and `make` installed:
+
+```bash
+make            # builds bin/lf
+make test       # runs the Forth primitives regression test and the C unit tests
+make clean      # removes build products (keeps the block and flash images in bin/)
+```
+
+Run `./bin/lf` to start LiteForth in the terminal.
+`./bin/lf -o 31 < scripts/primitives.f` runs the regression test directly.
+
+## Documentation
+
+- [Tutorial](doc/tutorial.md): a first look at using LiteForth (rough draft)
+- [Glossary](doc/glossary.md): Forth words and VM constants
+- [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
+- [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
+- [Terminals](doc/terminals.md): terminal emulators, raw vs cooked mode, serial setup
+- [Editors](doc/editors.md): notes toward a block editor
+- [HDL](doc/hdl.md): running the ISA on real hardware (FPGA, ASIC)
+- [Minimal Forth](doc/minimal.md): the Knaggs minimal word list
+
+LiteForth is ANS-ish, but not ANS compliant. It is cell-addressed.
 Strings and bytes are handled as generic bit fields, breaking the character model
 of ANS Forth.
 
 LiteForth is a dialect of Machine Forth, designed to run on a real
-or simulated Forth chip. It intended for on-MCU development.
+or simulated Forth chip. It is intended for on-MCU development.
 
 ## Code size reduction
 
@@ -93,7 +117,7 @@ see min
 01B1 D6B0  drop drop ;                                                                  
 01B2 D78B  drop swap drop ;                                                             
 ```
-That is a 75\% reduction in code size.
+That is a 75% reduction in code size.
 
 Half is due to using 16-bit tokens rather than 32-bit instructions
 and another half is because of MISC-like instructions.
@@ -116,7 +140,7 @@ invitation for subtle bugs. Let's just not have that.
 
 For example, a variable `x` whose value is between 0 and 10 is declared with
 `4 bits x`. `5 x !` stores 5 to x, where `x @` reads it back out.
-The `variable` keyword is equivalant to `32 bits`.
+The `variable` keyword is equivalent to `32 bits`.
 
 `slice+` and `slices` manipulate the shift and address fields to support slice arrays of any
 width, from 1 to 16 bits. `@` and `!` will work with any width.

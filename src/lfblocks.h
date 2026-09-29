@@ -14,11 +14,6 @@ extern "C" {
 /* Sentinel value used for unassigned block buffer slots */
 #define UNASSIGNED_BLOCK 0xFFFFFFFFU
 
-/* External VM interface memory and stack handlers */
-extern int32_t* vm_memory[VM_MEM_PAGES];
-extern int32_t vmPop(void);
-extern int vmPush(int32_t val);
-
 /* -------------------------------------------------------------------------
  * Data Types
  * ------------------------------------------------------------------------- */
@@ -37,26 +32,18 @@ typedef struct {
  * ------------------------------------------------------------------------- */
 
 /**
- * @brief Forth stack effect: ( u -- addr )
- * Returns the RAM memory address of the buffer containing block `u`.
- * If the block is not currently in RAM, it reads it from storage.
- *
- * @return 0 on success, or non-zero VM error code.
- */
-int lfAPI_block(void);
-
-/**
- * @brief Forth stack effect: ( u -- addr )
- * Assigns a RAM buffer to block `u` without reading its contents from disk.
- * Used when overwriting an entire block from scratch.
+ * @brief Forth word `buffer`  ( u -- addr )
+ * Assigns a RAM buffer to block `u` without reading its contents from storage.
+ * Used when overwriting an entire block from scratch. If every buffer is in
+ * use, the least recently used one is reused, saving it first if modified.
  *
  * @return 0 on success, or non-zero VM error code.
  */
 int lfAPI_buffer(void);
 
 /**
- * @brief Forth stack effect: ( -- )
- * Marks the currently active block buffer as "dirty" (modified).
+ * @brief Forth word `update`  ( -- )
+ * Marks the most recently accessed block buffer as "dirty" (modified).
  * The system will save dirty buffers back to storage upon reuse or flush.
  *
  * @return 0 on success, or non-zero VM error code.
@@ -64,7 +51,7 @@ int lfAPI_buffer(void);
 int lfAPI_update(void);
 
 /**
- * @brief Forth stack effect: ( -- )
+ * @brief Forth word `save-buffers`  ( -- )
  * Writes all modified (dirty) block buffers out to storage.
  *
  * @return 0 on success, or non-zero VM error code.
@@ -72,15 +59,15 @@ int lfAPI_update(void);
 int lfAPI_saveBuffers(void);
 
 /**
- * @brief Forth stack effect: ( -- )
- * Executes `lfAPI_saveBuffers` and marks all block buffers as unassigned/empty.
+ * @brief Forth word `flush`  ( -- )
+ * Saves all modified buffers (like `save-buffers`), then unassigns all block buffers.
  *
  * @return 0 on success, or non-zero VM error code.
  */
 int lfAPI_flush(void);
 
 /**
- * @brief Forth stack effect: ( -- )
+ * @brief Forth word `empty-buffers`  ( -- )
  * Unassigns all block buffers without saving modified contents to storage.
  * Discards all unsaved changes in memory.
  *
@@ -88,6 +75,16 @@ int lfAPI_flush(void);
  */
 int lfAPI_emptyBuffers(void);
 
+/**
+ * Finds or assigns a RAM buffer for a block, reading the block from storage
+ * if it is not already in a buffer. The buffer becomes the one `update` marks.
+ * Shared by `block` and `load`.
+ *
+ * @param blk Block number.
+ * @param f_addr Receives the Forth address of the buffer in the RAM page.
+ * @return 0 on success, ERR_BLOCK_READ_ERROR if a modified buffer could not be
+ *         saved to make room, or the error from blk_read.
+ */
 int lfAssignBlock(uint32_t blk, int32_t* f_addr);
 
 #ifdef __cplusplus

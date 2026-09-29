@@ -21,22 +21,22 @@ int lfAPI_dotEss(void) {
     return lfDotS();
 }
 
-// Compile a string to data space
+// Compile a string to text space
 int lfCompString(char* str) {
-    int32_t* dp = &vm_memory[RAM_PAGE][F_PTRS_TP];
-    int32_t here = (dp[0] & ~(0x1F << 27)) | (8 << 27);
-    int32_t heremax = dp[3];
-    int ior = 0;
+    int32_t tp = 0;
+    int ior = lfTpFetch(&tp);
+    if (ior) return ior;
+    tp = lfSetSliceWidth(tp, 8);    // byte address
     char c = 1;
     while (c) {
         c = *str++;                 // include zero terminator
-        ior = vmStore(here, c);
+        ior = vmStore(tp, c);
         if (ior) return ior;
-        here = vmFieldPlus(here);
-        if ((here & 0x3FFFFF) >= heremax) return ERR_DICTIONARY_OVERFLOW;
+        tp = vmFieldPlus(tp);
+        ior = lfTpStore(tp);        // checks the text space limit
+        if (ior) return ior;
     }
-    dp[2] = here;
-    return ior;
+    return 0;
 }
 
 /*
@@ -155,8 +155,8 @@ int lfAPI_dotPages(void) {
  * Forth DUMP implementation for 32-bit cell-addressed VM memory.
  * Displays memory in lines of 4 cells (16 bytes total).
  *
- * @param start_cell Base VM cell address to start dumping from.
- * @param cell_count Number of 32-bit cells to dump.
+ * Forth stack effect: ( addr len ), where addr is the cell address to start
+ * from and len is the number of 32-bit cells to dump.
  * @return 0 on success, or non-zero ior error code from vmFetch.
  */
 int lfAPI_dump(void) {
@@ -258,7 +258,7 @@ static int32_t DisassembleInsn(uint16_t inst, char* tag) {
         char* label = NULL;
         char last = ' ';
         switch (opcode) {
-            case 0: last = ';'; FALLTHROUGH
+            case 0: last = ';'; FALLTHROUGH;
             case 1:
                 label = lfFindLabel(immex, 0x3FFFFF, 0xE0000000, 0);
                 if (label) {

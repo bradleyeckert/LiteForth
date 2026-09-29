@@ -13,6 +13,7 @@
 
 #if (FAT_FORTH & 1)
 #include "utils.h"
+#include "main.h"
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;
@@ -537,70 +538,28 @@ int lfParseWord(char* dest, int destSize) {
     return ior;
 }
 
-static InputFrame input_stack[MAX_INPUT_STACK];
-static int input_stack_depth = 0;
-static void dumpInputStackTrace(void);
+static int load_depth = 0;      // number of LOADs being interpreted
+static int traced = 0;          // a LOAD printed input trace lines
 static char* lastparsed = NULL;
+static void printTraceLine(void);
 
-/**
- * Forth Text Interpreter
- * Evaluates tokens based on explicit stream length bounds
- * 
- * Blocks are not handled recursively. Instead, a separate block stack is
- * used for nesting. The `interpret` loops until all nests close.
- *
- * @param str Character stream to interpret.
- * @param len Stream length.
- * @return    0 on normal execution, else Forth error code from errcodes.h
+/*
+ * Interprets the current input source (source, source_len, >IN, BLK) until
+ * >IN reaches its end. LOAD calls this recursively for each block, so it
+ * keeps no input frames of its own and prints no trace.
+ * The token buffer is static to keep each level of recursion small on the C
+ * stack. That is safe because a level never reads it again after executing
+ * a word, and it leaves `lastparsed` naming the innermost failing token.
  */
-static int interpret(char* str, int len) {
+static int interpretSource(void) {
     static char token[32];      // token buffer for parsing
-    if (str == NULL || len == 0) {
-        return 0;
-    }
-
-    source = str;
-    source_len = len;
-    lfTOINstore(0);
-    BLK = 0;
-
-    int ior = 0;
-
-    while (1) {
-        if (ior) break;
-
-        // Break if >IN reached or exceeded stream length
-        if (lfTOINfetch() >= source_len) {
-            if (input_stack_depth > 0) {
-                // Pop nested input frame
-                input_stack_depth--;
-                BLK = input_stack[input_stack_depth].blk;
-                source = input_stack[input_stack_depth].str;
-                source_len = input_stack[input_stack_depth].len;
-                lfTOINstore(input_stack[input_stack_depth].toin);
-                if (BLK != 0) {
-                    int32_t f_addr = 0;
-                    ior = lfAssignBlock(BLK, &f_addr);
-                    source = (char*)&vm_memory[RAM_PAGE][f_addr & VM_PAGE_MASK];
-                }
-                continue;
-            }
-            lfAPI_emptyBuffers(); // so it will load your edits 
-            
-            // Exit interpreter loop once root level input is exhausted and BLK == 0
-            if (BLK == 0) {
-                break;
-            }
-        }
-
-        ior = lfParseWord(token, sizeof(token));
+    while (lfTOINfetch() < source_len) {
+        int ior = lfParseWord(token, sizeof(token));
         lastparsed = token;
-        if (ior) break;
+        if (ior) return ior;
 
-        // If no token was parsed (e.g. trailing whitespace at EOF), break out cleanly
-        if (token[0] == '\0') {
-            break;
-        }
+        // No token: only whitespace remained, or the source hit a NUL.
+        if (token[0] == '\0') break;
 
         // A. Check active wordlists
         const struct s_head* word = search_context(token);
@@ -609,11 +568,10 @@ static int interpret(char* str, int len) {
         if (word != NULL) {
             if (word->aux & A_IMMEDIATE) {
                 if (state && (word->aux & A_NO_EXECUTE)) {
-                    ior = ERR_INTERPRET_COMPILE_ONLY;
+                    return ERR_INTERPRET_COMPILE_ONLY;
                 }
                 state = 0;
             }
-            if (ior) break;
 
             if (state) {
                 ior = lfCompileWord(word);
@@ -627,6 +585,7 @@ static int interpret(char* str, int len) {
                 ior = ERR_INVALID_BASE;
                 lfBASEstore(10);
             }
+            if (ior) return ior;
             continue;
         }
         int32_t value;
@@ -636,7 +595,7 @@ static int interpret(char* str, int len) {
         if (ior) {
             ior = parseNumber(token, lfBASEfetch(), &value);
         }
-        if (ior) break; // Exit loop on undefined word or parsing error
+        if (ior) return ior;    // undefined word or parsing error
 
         if (state) {
             lfCompileLit(value);
@@ -645,13 +604,32 @@ static int interpret(char* str, int len) {
             vmPush(value);
         }
     }
+    return 0;
+}
 
-    // On an abnormal exit (ior != 0), unwind and reset the file nesting stack
-    if (ior != 0) {
-        if (ior != ERR_QUIT) {
-            dumpInputStackTrace();
-        }
-        input_stack_depth = 0; // ensure input stack is cleared on exit
+/*
+ * Forth text interpreter (documented in forth.h).
+ * Blocks are interpreted by LOAD, which calls interpretSource recursively.
+ * On an error inside a block, each LOAD prints its line of the input trace
+ * as the error unwinds, and the terminal line is printed here last.
+ */
+int lfInterpret(char* str, int len) {
+    if (str == NULL || len == 0) {
+        return 0;
+    }
+
+    source = str;
+    source_len = len;
+    lfTOINstore(0);
+    BLK = 0;
+    traced = 0;
+
+    int ior = interpretSource();
+    if (ior == 0) {
+        lfAPI_emptyBuffers(); // so it will load your edits
+    }
+    else if (ior != ERR_QUIT && traced) {
+        printTraceLine();
     }
     return ior;
 }
@@ -709,7 +687,7 @@ int QUIT(void) {
                 lfDotLinecount();
                 lf_puts(TIB);
             }
-            ior = interpret((char*)TIB, len & 0x7FFF);
+            ior = lfInterpret((char*)TIB, len & 0x7FFF);
             /*
             * The stack depth is checked here for overflow or underflow.
             * We cheat by using sp as depth. Reading sp is a dependency.
@@ -886,33 +864,61 @@ int lfAPI_block(void) {
     return ior;
 }
 
+// Make block `blk`, whose buffer is at Forth address `f_addr`, the input
+// source, starting at its beginning.
+static void setBlockSource(int32_t blk, int32_t f_addr) {
+    source = (char*)&vm_memory[RAM_PAGE][f_addr & VM_PAGE_MASK];
+    source_len = sizeof(int32_t) * BLOCK_SIZE_CELLS;
+    lfTOINstore(0);
+    BLK = blk;
+}
+
 /**
  * LOAD  ( blk -- )
- * Saves current input context and redirects interpreter input to block i.
- * lfAssignBlock
+ * Interprets block blk by calling interpretSource recursively. The caller's
+ * input source, BLK and >IN are kept in locals and restored afterwards.
+ * Nested loads may reuse the caller's block buffer, so a block caller's
+ * buffer is assigned again on the way out. Every level therefore finds its
+ * own block resident when interpretSource returns to it.
  */
 int lfAPI_load(void) {
     int32_t blk = vmPop();
     if (blk == 0) return ERR_INVALID_BLOCK_NUMBER;
-    int32_t forth_addr = 0;
-    int ior = lfAssignBlock(blk, &forth_addr);
-
-    if (input_stack_depth >= MAX_INPUT_STACK) {
+    if (load_depth >= MAX_LOAD_NESTING) {
         return ERR_STACK_OVERFLOW;
     }
+    // Read the block before touching the input source, so a failed read
+    // leaves the current input stream intact.
+    int32_t f_addr = 0;
+    int ior = lfAssignBlock(blk, &f_addr);
+    if (ior) return ior;
 
-    // Save current active stream state onto the nesting stack
-    input_stack[input_stack_depth].str = source;
-    input_stack[input_stack_depth].len = source_len;
-    input_stack[input_stack_depth].toin = lfTOINfetch();
-    input_stack[input_stack_depth].blk = BLK;
-    input_stack_depth++;
+    char* caller_source = source;
+    int caller_len = source_len;
+    int caller_toin = lfTOINfetch();
+    int32_t caller_blk = BLK;
 
-    // Load new input stream
-    source = (char*)&vm_memory[RAM_PAGE][forth_addr & VM_PAGE_MASK];;
-    source_len = sizeof(int32_t) * BLOCK_SIZE_CELLS;
-    lfTOINstore(0);
-    BLK = blk;
+    setBlockSource(blk, f_addr);
+    load_depth++;
+    ior = interpretSource();
+    load_depth--;
+
+    // On an error, print the line of this block where it happened (or where
+    // a nested LOAD was called) before the caller's input comes back.
+    if (ior != 0 && ior != ERR_QUIT) {
+        printTraceLine();
+        traced = 1;
+    }
+
+    source = caller_source;
+    source_len = caller_len;
+    lfTOINstore(caller_toin);
+    BLK = caller_blk;
+    if (caller_blk != 0) {
+        int err = lfAssignBlock(caller_blk, &f_addr);
+        source = (char*)&vm_memory[RAM_PAGE][f_addr & VM_PAGE_MASK];
+        if (ior == 0) ior = err;
+    }
     return ior;
 }
 
@@ -921,67 +927,51 @@ int lfAPI_load(void) {
 #define SCREEN_COLUMNS 128
 #endif
 
-static void dumpInputStackTrace(void) {
-    if (BLK == 0 && input_stack_depth == 0) {
-        return;
+// Print one line of the input trace: where the current source stopped.
+static void printTraceLine(void) {
+    int toin = lfTOINfetch();
+    if (toin > source_len) toin = source_len;
+    int row = (toin / SCREEN_COLUMNS) + 1;
+    int col = (toin % SCREEN_COLUMNS) + 1;
+
+    int line_start = toin;
+    while (line_start > 0 && source[line_start - 1] != '\n' && source[line_start - 1] != '\r') {
+        line_start--;
     }
 
-    // Save active frame state into working variables
-    char* cur_str = source;
-    int cur_toin = lfTOINfetch();
-    int cur_blk = BLK;
-
-    while (1) {
-        int cur_row = (cur_toin / SCREEN_COLUMNS) + 1;
-        int cur_col = (cur_toin % SCREEN_COLUMNS) + 1;
-
-        int line_start = cur_toin;
-        while (line_start > 0 && cur_str[line_start - 1] != '\n' && cur_str[line_start - 1] != '\r') {
-            line_start--;
-        }
-
-        if (cur_blk) {
-            lf_puts("Screen ");
-            lfDot10(cur_blk);
-        }
-        else {
-            lf_puts("Terminal");
-        }
-        lf_puts(" [");
-        lfDot10(cur_row);
-        lf_putc(':');
-        lfDot10(cur_col);
-        lf_puts("] ");
-
-        for (int p = line_start; p < cur_toin; p++) {
-            lf_putc(cur_str[p]);
-        }
-        lfCR();
-
-        // Stop if we've processed all frames
-        if (input_stack_depth == 0) {
-            break;
-        }
-
-        // Pop next frame from stack into current working variables
-        input_stack_depth--;
-        InputFrame* frame = &input_stack[input_stack_depth];
-        cur_str = frame->str;
-        cur_toin = frame->toin;
-        cur_blk = frame->blk;
+    if (BLK) {
+        lf_puts("Screen ");
+        lfDot10(BLK);
     }
+    else {
+        lf_puts("Terminal");
+    }
+    lf_puts(" [");
+    lfDot10(row);
+    lf_putc(':');
+    lfDot10(col);
+    lf_puts("] ");
+
+    for (int p = line_start; p < toin; p++) {
+        lf_putc(source[p]);
+    }
+    lfCR();
 }
 
 /**
  * --> ( -- )
- * Immediate word / Primitive: Terminate parsing the current block
- * and load block BLK + 1.
+ * Stop interpreting the current block and continue with block BLK + 1.
+ * The next block replaces the current one in place (a tail call), so a
+ * chain of screens does not use up LOAD nesting. The LOAD that is running
+ * restores its caller when the last block of the chain ends.
  */
 int lfAPI_nextBlock(void) {
     if (BLK == 0) {
         return ERR_INVALID_BLOCK_NUMBER;
     }
-    lfTOINstore(source_len);
-    vmPush(BLK + 1);
-    return lfAPI_load();
+    int32_t f_addr = 0;
+    int ior = lfAssignBlock(BLK + 1, &f_addr);
+    if (ior) return ior;
+    setBlockSource(BLK + 1, f_addr);
+    return 0;
 }

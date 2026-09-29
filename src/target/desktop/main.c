@@ -9,6 +9,7 @@
 #include "blocks.h"
 #include "tools.h"
 #include "errcodes.h"
+#include "main.h"
 #include <malloc.h>
 #include <string.h>
 

@@ -1,0 +1,21 @@
+# Build outputs
+build/
+*.o
+*.d
+bin/lf
+bin/lf.exe
+
+# Unit test executables and scratch files
+src/target/desktop/unit_tests/flash/test_flash
+src/target/desktop/unit_tests/flash/test_flash.bin
+src/target/desktop/unit_tests/flash/lfflash.bin
+src/target/desktop/unit_tests/memalloc/test_memalloc
+src/target/desktop/unit_tests/serial_io/test_serial_io
+src/target/desktop/unit_tests/serial_io/demo_terminal
+*.exe
+
+# Editor and OS clutter
+.vscode/
+.DS_Store
+Thumbs.db
+src/target/desktop/unit_tests/load/got.txt

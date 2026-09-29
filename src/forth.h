@@ -142,34 +142,169 @@ typedef int (putcfunc)(char c);
 #define API_COMPILE           48
 
 /**
- * The standard Forth Outer Interpreter / Terminal Loop.
- * Enters an infinite terminal interaction stream, reading lines from console
- * and feeding them to the text interpreter layer.
+ * The standard Forth outer interpreter (terminal loop).
+ * Prints the version banner, resets the dictionary and search order, then
+ * reads lines from the terminal and interprets them. After an error it
+ * reports the error, resets the stacks and base, and continues.
+ * Open the terminal with `serial_open` before calling.
+ * @return 0 when `bye` is executed, or the error code of the first error if
+ *         SYS_OPTION_VALIDATION is set.
  */
 int QUIT(void);
 
+/**
+ * Prints the data stack, bottom to top, as `( n1 n2 ... ) `.
+ * If the stack is deeper than DOT_S_MAX, prints `[depth]... ` followed by the
+ * top DOT_S_MAX items. Prints nothing when the stack is empty.
+ * @return 0.
+ */
 int lfDotS(void);
+
+/**
+ * Parses the next whitespace-delimited word from the input source at >IN.
+ * Skips leading whitespace, copies the word, and moves >IN past one
+ * trailing delimiter. A word too long for dest is truncated.
+ * @param dest Buffer that receives the null-terminated word (empty at end of input).
+ * @param destSize Size of dest in bytes, including the terminator.
+ * @return 0 on success, or ERR_PARSED_STRING_OVERFLOW if the word was truncated.
+ */
 int lfParseWord(char* dest, int destSize);
+
+/**
+ * Creates a dictionary header for the next word in the input stream.
+ * Stores the name and header in text space, links the header into the
+ * CURRENT wordlist, and makes it the latest header (see lfToHeader).
+ * @param w Execution token or value for the header's w field.
+ * @param aux Initial flags for the header's aux field (e.g., A_SMUDGED, A_CONSTANT).
+ * @param name If not NULL, receives a C pointer to the stored name string.
+ * @return 0 on success, or a negative error code (e.g., ERR_DICTIONARY_OVERFLOW).
+ */
 int lfHeader(uint32_t w, uint32_t aux, char** name);
+
+/**
+ * Modifies the latest header created by lfHeader.
+ * @param w Bits to OR into the header's w field.
+ * @param aux Bits to toggle (XOR) in the header's aux field, e.g. A_SMUDGED
+ *        to reveal a word or A_IMMEDIATE to make it immediate.
+ * @return 0 on success, or ERR_UNSUPPORTED_OPERATION if no header has been created.
+ */
 int lfToHeader(uint32_t w, uint32_t aux);
+
+/**
+ * Allocates a new, empty wordlist.
+ * @param name Descriptive name shown by `.wid`, or NULL.
+ * @return The new wordlist identifier (wid), or ERR_WID_OVERFLOW if all
+ *         WIDS_MAX wordlists are in use.
+ */
 int lfAddWordlist(char* name);
+
+/**
+ * Parses characters from the input source at >IN up to a terminator.
+ * Handles the C escapes \\a \\b \\f \\n \\r \\t \\v. A backslash before any
+ * other character, such as another backslash or the terminator, passes that
+ * character through.
+ * Stops at the terminator, which is consumed, or at the end of input.
+ * @param echo Function called with each resulting character, or NULL to skip it.
+ * @param terminator Character that ends the string, e.g. '"' or ')'.
+ * @return 0, or the result of the last echo call.
+ */
 int lfParseInputString(putcfunc* echo, char terminator);
+
+/**
+ * Parses the next word from the input and looks it up in the search order.
+ * Hidden (smudged) words are skipped.
+ * @return Pointer to the word's header, or NULL if not found or not parsed.
+ */
 const struct s_head* lfTickWord(void);
+
+/**
+ * Finds the name of a word by value, searching the wordlists in the search order.
+ * A word matches when (w & must) == expected and (w & mask) == value.
+ * Used by the disassembler to label addresses.
+ * @param value Value to look for, after masking.
+ * @param mask Bits of the header's w field to compare with value.
+ * @param must Bits of the header's w field to check against expected.
+ * @param expected Required value of (w & must), e.g. 0 to exclude primitives.
+ * @return The name of the first visible matching word, or NULL if none matches.
+ */
 char* lfFindLabel(uint32_t value, uint32_t mask, uint32_t must, uint32_t expected);
 
+/**
+ * @brief Forth word `.wid`  ( wid -- )
+ * Prints the name of a wordlist, or its number if it has no name.
+ *
+ * @return 0 on success, or ERR_SEARCH_ORDER_OVERFLOW if wid is not allocated.
+ */
 int lfAPI_dotWid(void);
+
+/**
+ * @brief Forth word `words`  ( -- )
+ * Lists the visible words in the first wordlist of the search order.
+ * With colors enabled, immediate words, primitives and constants are
+ * shown in different colors.
+ *
+ * @return 0.
+ */
 int lfAPI_words(void);
+
+/**
+ * @brief Forth word `>options`  ( n -- )
+ * Sets system option flags (SYS_OPTION_* in vm.h). A nonzero n ORs its
+ * bits into the options; zero clears all options. Has no effect once
+ * SYS_OPTIONS_LOCKED is set.
+ *
+ * @return 0.
+ */
 int lfAPI_setFlags(void);
+
+/**
+ * @brief Forth word `only`  ( -- )
+ * Sets the search order to the minimal `only` wordlist.
+ *
+ * @return 0.
+ */
 int lfAPI_only(void);
+
+/**
+ * @brief Forth word `forth`  ( -- )
+ * Replaces the first wordlist in the search order with the `forth` wordlist.
+ *
+ * @return 0.
+ */
 int lfAPI_forth(void);
+
+/**
+ * @brief Forth word `-->`  ( -- )
+ * Stops interpreting the current block and continues with block BLK+1.
+ *
+ * @return 0 on success, ERR_INVALID_BLOCK_NUMBER if not interpreting a
+ *         block, or an error from `load`.
+ */
 int lfAPI_nextBlock(void);
+
+/**
+ * @brief Forth word `load`  ( u -- )
+ * Interprets block u. The current input source is saved and resumes when
+ * the block is finished. Loads can nest up to MAX_INPUT_STACK deep.
+ *
+ * @return 0 on success, ERR_INVALID_BLOCK_NUMBER if u is 0,
+ *         ERR_STACK_OVERFLOW if nested too deeply, or a block read error.
+ */
 int lfAPI_load(void);
+
+/**
+ * @brief Forth word `empty`  ( -- )
+ * Resets the dictionary: removes all user-defined words and wordlists and
+ * resets the dictionary pointers (see lfInitPointers).
+ *
+ * @return 0 on success, or the error from lfInitPointers.
+ */
 int lfAPI_empty(void);
 
 /**
- * @brief Forth stack effect: ( u -- addr )
- * Returns the RAM memory address of the buffer containing block `u`.
- * If the block is not currently in RAM, it reads it from storage.
+ * @brief Forth word `block`  ( u -- addr )
+ * Returns the address of a RAM buffer holding block u, reading the block
+ * from storage if it is not already in a buffer.
  *
  * @return 0 on success, or non-zero VM error code.
  */

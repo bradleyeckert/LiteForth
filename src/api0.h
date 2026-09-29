@@ -14,6 +14,8 @@ extern "C" {
 
 /**
  * @brief Dispatches and executes an API 0 handler by index.
+ * Called by the VM for the API 0 instruction; the index is the word's
+ * position in the API0fns table in api0.c.
  *
  * @param fn API 0 function table index.
  * @return 0 on success, or an error code (e.g., ERR_INVALID_API_CALL, ERR_QUIT).

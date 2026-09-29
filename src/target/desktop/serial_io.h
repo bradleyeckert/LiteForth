@@ -10,23 +10,25 @@ extern "C" {
  * Compatible with macOS, Linux, and Windows.
  * 
  * @param enable  Pass 1 to enter RAW mode, pass 0 to restore COOKED mode.
- * @return        SERIAL_SUCCESS on success, or a negative ERR_* code on failure.
+ * @return        0 on success, ERR_TERM_NOT_A_TTY if stdin is not a terminal,
+ *                or another negative ERR_* code on failure.
  */
 int set_terminal_mode(int enable);
 
 /**
- * Opens a hardware serial/COM port based on string inputs.
+ * Opens a hardware serial/COM port, or selects stdio as the terminal.
  * Supports standard speeds up to 3,000,000 bits per second.
  * 
  * @param name      The system device string (e.g. "COM3", "/dev/ttyUSB0").
- * @param baudrate  The desired integer bit speed.
- * @return          SERIAL_SUCCESS on success, or a negative ERR_* code on failure.
+ *                  Ignored when baudrate is 0.
+ * @param baudrate  The desired integer bit speed, or 0 to use stdio instead
+ *                  of a serial port.
+ * @return          0 on success, or a negative ERR_* code on failure.
  */
 int serial_open(char* name, int baudrate);
 
 /**
- * Safely releases open OS device resources and handles recycling pointers 
- * back to safe defaults.
+ * Closes the serial port, if one is open, and switches back to stdio.
  */
 void serial_close(void);
 
@@ -47,16 +49,18 @@ int serial_ready(void);
 int serial_busy(void);
 
 /**
- * Reads a single byte. Maps to standard input if terminal mode is active, 
- * or reads from the underlying active serial port if a hardware port is open.
+ * Reads a single byte from stdin, or from the serial port if one is open.
+ * In stdio mode, reaching the end of redirected input (e.g. `lf < file.f`)
+ * reconnects stdin to the console, so input continues from the keyboard.
  * 
- * @return The unsigned byte character value on success, or EOF on error/no-data.
+ * @return The unsigned byte value on success. On failure: EOF in stdio mode,
+ *         or ERR_TERM_RX_FAILED (including no data) on a serial port.
  */
 int serial_getc(void);
 
 /**
- * Writes a single byte. Maps to standard output if terminal mode is active, 
- * or streams to the underlying active serial port if a hardware port is open.
+ * Writes a single byte to stdout, or to the serial port if one is open.
+ * Output to stdout is flushed immediately.
  * 
  * @param c The character byte code to transmit.
  * @return  0 on success, or ERR_TERM_TX_FAILED on error.

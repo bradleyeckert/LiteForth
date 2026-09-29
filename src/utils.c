@@ -155,8 +155,8 @@ int lfAPI_dotPages(void) {
  * Forth DUMP implementation for 32-bit cell-addressed VM memory.
  * Displays memory in lines of 4 cells (16 bytes total).
  *
- * @param start_cell Base VM cell address to start dumping from.
- * @param cell_count Number of 32-bit cells to dump.
+ * Forth stack effect: ( addr len ), where addr is the cell address to start
+ * from and len is the number of 32-bit cells to dump.
  * @return 0 on success, or non-zero ior error code from vmFetch.
  */
 int lfAPI_dump(void) {

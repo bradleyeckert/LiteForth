@@ -191,24 +191,28 @@ static int flashClose(void) {
     if (openpage >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
     if (flash == NULL) return ERR_FLASH_INVALID_SECTOR;
 
-    // 1. Calculate base pointer for this page in flash memory
-    int32_t* flash_page_ptr = flash + (openpage * FLASH_PAGE_CELLS);
+    // 1. The backing flash page that open-flash saved
+    int32_t* flash_page_ptr = flash;
 
-    // 2. Restore vm_memory page pointer back to backing flash memory
+    // 2. Headers compiled into the cache point into it: move those
+    //    pointers to where the cache contents are going
+    lfRelocateHeaders(cache, flash_page_ptr, FLASH_PAGE_CELLS);
+
+    // 3. Restore vm_memory page pointer back to backing flash memory
     vm_memory[openpage] = flash_page_ptr;
     vm_memory_wp_limit[openpage] = FLASH_PAGE_CELLS; // write-protect
 
-    // 3. Persist RAM cache contents to disk/flashmem
+    // 4. Persist RAM cache contents to disk/flashmem
     int ior = flash_program((uint32_t*)cache, openpage);
 
     openpage = -1;
 
-    // 4. Burn (zero-fill) the cache buffer before freeing
+    // 5. Burn (zero-fill) the cache buffer before freeing
     if (cache != NULL) {
         memset(cache, 0, FLASH_PAGE_CELLS * sizeof(int32_t));
     }
 
-    // 5. Free allocated cache memory and check for errors
+    // 6. Free allocated cache memory and check for errors
     int free_res = pool_free(cache);
     cache = NULL;
 
@@ -236,7 +240,7 @@ static int flashOpen(void) {
     cache = pool_alloc(FLASH_PAGE_CELLS);
     if (!cache) return ERR_ALLOCATE_FAILED; // Guard against allocation failure
 
-    flash = vm_memory[page]; // the currently closed flash page
+    flash = vm_memory[page]; // the backing flash page, restored by close-flash
 
     // Copy backing flash memory contents into RAM cache
     memcpy(cache, flash, FLASH_PAGE_CELLS * sizeof(int32_t));

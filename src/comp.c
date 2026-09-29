@@ -315,15 +315,14 @@ int lfAPI_dotCreate(void) {
 * DOES> replaces the ; with a jump.
 */
 int lfAPI_dotDoes(void) {
-    int32_t cp = 0;
-    cpFetch(&cp);
-    uint32_t pc = (cp << 1) | (cp >> 26);
     if (created == 0) return ERR_UNSUPPORTED_OPERATION;
+    uint32_t pc = cpPC();   // instruction address of the code after does>
     int ior = 0;
     if (pc >= VM_LIMM_MASK) { // 10-bit pfx + 13-bit imm = 32-bit code addr
         int inst = (pc & (1 << 22)) ? VMI_PFX1 : VMI_PFX;
         ior = vmStore(created, (inst + ((pc >> VM_LIMM_BITS) & VM_IMM_MASK)));
-        created++;
+        if (ior) return ior;
+        created = vmFieldPlus(created); // next 16-bit slot
     }
     ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
     created = 0;

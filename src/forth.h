@@ -284,8 +284,9 @@ int lfAPI_nextBlock(void);
 
 /**
  * @brief Forth word `load`  ( u -- )
- * Interprets block u. The current input source is saved and resumes when
- * the block is finished. Loads can nest up to MAX_INPUT_STACK deep.
+ * Interprets block u. The current input source, BLK and >IN are saved, and
+ * interpretation resumes after `load` when the block is finished. Loads can
+ * nest up to MAX_INPUT_STACK deep.
  *
  * @return 0 on success, ERR_INVALID_BLOCK_NUMBER if u is 0,
  *         ERR_STACK_OVERFLOW if nested too deeply, or a block read error.

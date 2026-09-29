@@ -137,11 +137,10 @@ int lfDot(int32_t val) {
     int base = lfBASEfetch();
     int size = (val >> 27) & 0x1F;
     int pos = (val >> 22) & 0x1F;
-    // Show slice addresses as size:pos:addr. A real slice always fits in its
-    // cell (pos + size <= 32), so values that break that rule are numbers.
-    // Other values are ambiguous: e.g. a 16-bit slice address has bit 31 set,
-    // so it is bit-for-bit the same as some negative numbers.
-    if ((size > 0) && (size <= 16) && ((pos + size) <= 32)) {
+    // In hex, show slice addresses as size:pos:addr. A real slice always fits
+    // in its cell (pos + size <= 32). Other bases always show plain numbers,
+    // since e.g. a 16-bit slice address looks the same as a negative number.
+    if ((base == 16) && (size > 0) && (size <= 16) && ((pos + size) <= 32)) {
         lfDotB(size, base, 0, 0);
         lf_putc(':');
         lfDotB(pos, base, 0, 0);

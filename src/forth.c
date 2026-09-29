@@ -587,20 +587,21 @@ static int interpret(char* str, int len) {
                 continue;
             }
             lfAPI_emptyBuffers(); // so it will load your edits 
-            
-            // Exit interpreter loop once root level input is exhausted and BLK == 0
-            if (BLK == 0) {
-                break;
-            }
+
+            // Root level input is exhausted
+            break;
         }
 
         ior = lfParseWord(token, sizeof(token));
         lastparsed = token;
         if (ior) break;
 
-        // If no token was parsed (e.g. trailing whitespace at EOF), break out cleanly
+        // No token means this source is used up: only whitespace remained, or
+        // it hit a NUL. Mark it finished so the check at the top of the loop
+        // resumes the input that called LOAD, or ends at the root level.
         if (token[0] == '\0') {
-            break;
+            lfTOINstore(source_len);
+            continue;
         }
 
         // A. Check active wordlists

@@ -126,7 +126,8 @@ int lfAPI_dotEss(void);
 
 /**
  * @brief Forth word `.`  ( n -- )
- * Prints n in the current base, followed by a space (see lfDot).
+ * Prints n in the current base, followed by a space. In hex, slice
+ * addresses are shown as size:pos:addr (see lfDot).
  *
  * @return 0 on success, or an explicit negative error code on failure.
  */

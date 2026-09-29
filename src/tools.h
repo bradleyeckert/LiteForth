@@ -57,11 +57,10 @@ int lf_putc(char c);
 
 /**
  * Formats and outputs a 32-bit value in the current BASE, appending 'H' in
- * hexadecimal and a trailing space. If bits 31:27 (size) of the value are
- * 1 to 16 and bits 26:22 (position) + size <= 32, it is printed as a slice
- * address in the form size:position:address. Plain numbers that happen to
- * fit that pattern (some values with bit 31 or bits 30:27 set) print the
- * same way.
+ * hexadecimal and a trailing space. In hexadecimal only, a value whose
+ * bits 31:27 (size) are 1 to 16, with bits 26:22 (position) + size <= 32, is
+ * printed as a slice address in the form size:position:address. In other
+ * bases the value is always printed as a plain (in base 10, signed) number.
  * @param val Value to print.
  * @return 0 on success, or an explicit negative error code on failure.
  */

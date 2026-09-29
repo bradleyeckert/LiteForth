@@ -1,0 +1,4 @@
+# GitHub language stats: headers here are C (some mention __cplusplus in
+# compatibility checks), and Unity is a vendored third-party test library.
+*.h linguist-language=C
+src/target/desktop/unit_tests/unity/** linguist-vendored

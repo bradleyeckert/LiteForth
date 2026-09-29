@@ -91,10 +91,49 @@ void test_flash_program_invalid_sector(void) {
     TEST_ASSERT_EQUAL_INT(ERR_FLASH_INVALID_SECTOR, err2);
 }
 
+/* Test 4: a flash file shorter than the flash is read as erased past its
+ * end, and programming a page grows the file to hold it */
+void test_flash_program_grows_short_file(void) {
+    // A 100-byte file: 25 cells of 0x12345678, then nothing
+    FILE* f = fopen(TEST_FLASH_FILE, "wb");
+    TEST_ASSERT_NOT_NULL(f);
+    for (int i = 0; i < 25; i++) {
+        uint32_t cell = 0x12345678;
+        fwrite(&cell, sizeof(cell), 1, f);
+    }
+    fclose(f);
+
+    int32_t* mem_ptr = NULL;
+    TEST_ASSERT_EQUAL_INT(0, flash_init(TEST_FLASH_FILE, &mem_ptr));
+    TEST_ASSERT_EQUAL_HEX32(0x12345678, (uint32_t)mem_ptr[24]);
+    TEST_ASSERT_EQUAL_HEX32(0xFFFFFFFF, (uint32_t)mem_ptr[25]);
+
+    uint32_t page_buf[FLASH_PAGE_CELLS];
+    for (int i = 0; i < FLASH_PAGE_CELLS; i++) {
+        page_buf[i] = 0x5A5A0000 | i;
+    }
+    TEST_ASSERT_EQUAL_INT(0, flash_program(page_buf, 0));
+
+    // The file now holds the whole page
+    f = fopen(TEST_FLASH_FILE, "rb");
+    TEST_ASSERT_NOT_NULL(f);
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    TEST_ASSERT_EQUAL_INT((long)(FLASH_PAGE_CELLS * sizeof(uint32_t)), size);
+
+    uint32_t disk_buf[FLASH_PAGE_CELLS];
+    fseek(f, 0, SEEK_SET);
+    size_t read_cnt = fread(disk_buf, sizeof(uint32_t), FLASH_PAGE_CELLS, f);
+    fclose(f);
+    TEST_ASSERT_EQUAL_INT(FLASH_PAGE_CELLS, read_cnt);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(page_buf, disk_buf, FLASH_PAGE_CELLS);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_flash_init_creates_blank_file);
     RUN_TEST(test_flash_program_syncs_memory_and_disk);
     RUN_TEST(test_flash_program_invalid_sector);
+    RUN_TEST(test_flash_program_grows_short_file);
     return UNITY_END();
 }

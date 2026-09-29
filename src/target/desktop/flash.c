@@ -83,8 +83,26 @@ int flash_program(uint32_t* m, int page) {
         return ERR_FLASH_OPEN_WRITE;
     }
 
+    // If the file ends before this sector, grow it with erased (0xFF) bytes
+    // up to the sector's start. Writing the sector then extends it further.
+    size_t offset = (size_t)page * FLASH_PAGE_CELLS * sizeof(uint32_t);
+    if (fseek(file, 0, SEEK_END) != 0) {
+        fclose(file);
+        return ERR_FLASH_SEEK_FAIL;
+    }
+    long end = ftell(file);
+    if (end < 0) {
+        fclose(file);
+        return ERR_FLASH_SEEK_FAIL;
+    }
+    for (size_t pos = (size_t)end; pos < offset; pos++) {
+        if (fputc(0xFF, file) == EOF) {
+            fclose(file);
+            return ERR_FLASH_WRITE_SECTOR;
+        }
+    }
+
     // Seek to the start byte of the target sector
-    size_t offset = (size_t)(page * FLASH_PAGE_CELLS * sizeof(uint32_t));
     if (fseek(file, (long)offset, SEEK_SET) != 0) {
         fclose(file);
         return ERR_FLASH_SEEK_FAIL;
@@ -92,9 +110,9 @@ int flash_program(uint32_t* m, int page) {
 
     // Write the updated segment to disk
     size_t written = fwrite(m, sizeof(uint32_t), FLASH_PAGE_CELLS, file);
-    fclose(file);
+    int closed = fclose(file);
 
-    if (written != FLASH_PAGE_CELLS) {
+    if (written != FLASH_PAGE_CELLS || closed != 0) {
         return ERR_FLASH_WRITE_SECTOR;
     }
 

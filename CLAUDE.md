@@ -31,6 +31,7 @@ make clean      # leaves the tracked bin/*.bin images alone
   other interpreter-level tests.
 - `unit_tests/api0/` checks the API 0 index order against `expected.txt`.
   After deliberately appending an API 0 function, run `make update` there.
+- `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
 - For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
   first and `cmp` them afterwards; gcc output is reproducible here.
 - CI (`.github/workflows/c-cpp.yml`) runs `make` and `make test`, but only on

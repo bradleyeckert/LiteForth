@@ -13,7 +13,7 @@
 #define SCREEN_COLUMNS      128 // columns per screen
 // vm.c                     
 #define VM_LOG2_PAGES         3 // log2 of the number of pages in the memory space
-#define STACK_CAPACITY	    128 // Size of the data and return stacks in cells
+#define STACK_CAPACITY	    128 // Data and return stack size in cells: a power of 2, at least 32
 // main.c
 #define FLASH_PAGE_CELLS   4096 // Flash memory page size [1]
 #define RAM_PAGE              1 // The memory page used by system variables

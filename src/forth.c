@@ -705,9 +705,6 @@ static int prompt(void) {
  * STACK_CAPACITY * 7 / 8 - 1 items (111 for 128). Reading sp is a
  * dependency on the VM.
  */
-#if (STACK_CAPACITY < 16)
-#error "STACK_CAPACITY must be at least 16 for the QUIT stack check"
-#endif
 #define SP_UPPER4 (STACK_MASK & ~(STACK_MASK >> 4))
 #define SP_UPPER3 (STACK_MASK & ~(STACK_MASK >> 3))
 

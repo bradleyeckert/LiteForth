@@ -77,3 +77,4 @@ decimal
 : dump-all  2 chere 1- 2* dasm ;
 
 close-flash
+0 >options

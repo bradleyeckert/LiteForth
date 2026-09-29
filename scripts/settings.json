@@ -25,7 +25,7 @@
             "command":
             { // F12 = run regression tests on LiteForth
                 "action": "sendInput",
-                "input": "Get-Content ..\\scripts\\primitives.f | .\\lf.exe -o 7\r"
+                "input": "Get-Content ..\\scripts\\regression.f | .\\lf.exe -o 7\r"
             },
             "id": "User.sendInput.myF12key"
         }

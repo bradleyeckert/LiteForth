@@ -41,13 +41,13 @@ $(BUILD_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 # Run the Forth primitives regression script and all C unit tests.
-# primitives.f runs in a temp directory on copies of the flash and block
+# regression.f runs in a temp directory on copies of the flash and block
 # images in bin/, so the tracked images are never modified.
 test: $(TARGET)
 	@tmp=$$(mktemp -d) && cp $(BIN_DIR)/lfflash.bin $(BIN_DIR)/lfblocks.bin $$tmp/ && \
-	echo "cd $$tmp && $(CURDIR)/$(TARGET) -o 7 < scripts/primitives.f" && \
-	(cd $$tmp && $(CURDIR)/$(TARGET) -o 7 < $(CURDIR)/scripts/primitives.f); \
-	status=$$?; rm -rf $$tmp; [ $$status -eq 0 ] || { echo "primitives.f failed (exit $$status)"; exit 1; }
+	echo "cd $$tmp && $(CURDIR)/$(TARGET) -o 7 < scripts/regression.f" && \
+	(cd $$tmp && $(CURDIR)/$(TARGET) -o 7 < $(CURDIR)/scripts/regression.f); \
+	status=$$?; rm -rf $$tmp; [ $$status -eq 0 ] || { echo "regression.f failed (exit $$status)"; exit 1; }
 	@for d in $(UNIT_TEST_DIRS); do \
 		echo "== $$d"; \
 		$(MAKE) -C $$d test || exit 1; \

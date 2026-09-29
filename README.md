@@ -5,7 +5,7 @@ The value proposition of Forth cross compilers came and went.
 Applications are now better-developed within the target MCU.
 
 For example, a WCH CH32H417 is equivalent to a 1990 PC in memory capacity.
-Even when simulating a Forth CPU, the CH32H417's performance matches that era. 
+Even when simulating a Forth CPU, the CH32H417's performance matches that era.
 The clock speed of PCs didn't reach 400 MHz until about 1999.
 
 A [CH32H417](https://www.lcsc.com/product-detail/C49363240.html)
@@ -48,7 +48,7 @@ flowchart LR
     style Term fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#000
     style MCU fill:#efebe9,stroke:#795548,stroke-width:2px,color:#000
     style SD fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000
-    
+
     %% Group Styling
     %% style Host System fill:none,stroke:#ccc,stroke-dasharray: 5 5
     %% style Embedded System fill:none,stroke:#ccc,stroke-dasharray: 5 5
@@ -106,17 +106,17 @@ or simulated Forth chip. It is intended for on-MCU development.
 Mecrisp Stellaris compiles `: min  2dup > if swap else drop then ;` to about 40 bytes
 of native RISC V code. I didn't bother to define `>`, so I gave LiteForth this:
 ```
-: min  
-   2dup - -if drop drop exit 
-   then drop swap drop 
+: min
+   2dup - -if drop drop exit
+   then drop swap drop
 ;
 
-see min                                                                              
-01AE 8420  over over                                                                    
-01AF 001D  1D call      -                                                               
-01B0 6C02  2 -if                                                                        
-01B1 D6B0  drop drop ;                                                                  
-01B2 D78B  drop swap drop ;                                                             
+see min
+01AE 8420  over over
+01AF 001D  1D call      -
+01B0 6C02  2 -if
+01B1 D6B0  drop drop ;
+01B2 D78B  drop swap drop ;
 ```
 That is a 75% reduction in code size.
 
@@ -175,7 +175,7 @@ Stacks are a power-of-2 deep and keep the top of the stack in a register.
 Stack memory would be 2KB-aligned to allow simple bit masking to wrap the stacks
 to protect other memory.
 
-The ISA splits into *micro* and *other*. 
+The ISA splits into *micro* and *other*.
 
 | *Name* | *15* | *14* | *13:9* | *8:4* | *3:0* |
 | :----- | ---- | ---- |------- |------ |------ |
@@ -250,8 +250,8 @@ A minimum user task space contains:
 - FOLLOWER, the link to the next task in the chain
 - TASKNOW, task state data
 
-`: pause  status @a+ >r ;` jumps to the task handler, which is either:  
-`: sleeping  @a >r ;` which skips to the next task, or:  
+`: pause  status @a+ >r ;` jumps to the task handler, which is either:
+`: sleeping  @a >r ;` which skips to the next task, or:
 `: woke  @a+ b!  task[ @a swap !a ]task ;` which swaps out the task:
 
 - `@a+ b!` saves FOLLOWER in B
@@ -284,7 +284,7 @@ should be 15 to 30 MIPS.
 
 ## Revision history
 
-- 0.00 Interpret-only, set up to run a short test script, tested in Windows and WSL.
-The serial port connection was not tested, just stdio. CI/CD is set up and working.
-
+- 0.00 Interpret-only, set up to run a short test. CI/CD is set up and working.
 - 0.01 Serial port is fixed, compiling works.
+- 0.02 Comprehensive cleanup by Claude Code.
+

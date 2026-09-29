@@ -2,7 +2,7 @@
 #define OPTIONS_H
 
 // forth.c
-#define TF_VERSION            1 // version x.xx
+#define TF_VERSION            2 // version x.xx
 #define CASE_INSENSITIVE      1 // is FIND case-insensitive?
 #define FAT_FORTH             1 // all options
 #define CONTEXT_MAX          15 // depth of possible search order

@@ -14,6 +14,7 @@ empty only forth  0 open-flash
 
 ( dictionary )
 hex
+: definitions  ( -- )       context @ current ! ;
 : variable  ( -- )          20 bits ;
 : _section  ( n -- )        dp^ ! ;
 : _data     ( -- )          0 _section ;
@@ -73,4 +74,6 @@ decimal
 : -         ( n -- -n )     1 swap inv + + ;
 : hi  ." 学如不及，犹恐失之 " ;
 
-: all  2 chere 1- 2* dasm ;
+: dump-all  2 chere 1- 2* dasm ;
+
+close-flash

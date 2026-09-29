@@ -414,20 +414,23 @@ int lfDotS(void) {
 
 
 /* =========================================================================
->IN and BLK are the top values of an 8-deep internal block stack. They are
-used to manage the input buffer and block number for file-based input.
-TIB is a fixed buffer in Forth data space for terminal input.
+TIB is a fixed buffer in Forth data space for terminal input. >IN and BLK
+describe the current input source; LOAD saves and restores them around
+each block it interprets.
 ========================================================================= */
-
-#define TERMINAL_OVERFLOWED 0x8000
 
 uint32_t g_lf_sys_options = 0;
 static uint32_t linecount = 0;
 
-static int loadTIB(void) {
+/*
+ * Reads one line from the terminal into TIB, NUL-terminated, and returns its
+ * length. If the line does not fit, the rest of it is discarded and
+ * *overflowed is set.
+ */
+static int loadTIB(int* overflowed) {
     char *tib = (char*)TIB; // reset the TIB pointer
-	int remaining = TIBSIZE; // remaining space in TIB
-    int aux_result = 0;
+    int remaining = TIBSIZE; // remaining space in TIB
+    *overflowed = 0;
 
     if (lfTIBSTATEfetch()) {
         // Announce to Forth that the terminal is waiting for TIBSTATE = 2
@@ -456,7 +459,7 @@ static int loadTIB(void) {
             remaining--;
         }
         else {                      // ignore input remaining until EOL
-            aux_result |= TERMINAL_OVERFLOWED;
+            *overflowed = 1;
         }
     }
     *tib++ = 0;                     // Null-terminate the TIB
@@ -469,8 +472,7 @@ static int loadTIB(void) {
         }
 #endif
     }
-    int length = (TIBSIZE - remaining) | aux_result;
-    return length;
+    return TIBSIZE - remaining;
 }
 
 static void lfDotLinecount(void) {
@@ -654,7 +656,87 @@ int lfAPI_setFlags(void) {
     return 0;
 }
 
-// `serial_open` before you call QUIT
+/*
+ * Resets the interpreter state before QUIT reads the first line, and again
+ * after each error: color, BASE = 10 (and STATE, >IN etc. = 0), definitions
+ * into the forth wordlist, line count, and empty stacks.
+ */
+static void quitReset(void) {
+    lfSetColor(COLOR_NORMAL);
+    LF_PACKEDSTATE[0] = 10;
+    LF_PACKEDSTATE[F_CURRENT] = 0;
+    linecount = 0;
+    vmReset();
+}
+
+/*
+ * Shows the stack and the `ok>` prompt, unless turned off by the system
+ * options. The prompt comes before the input for compatibility with cooked
+ * input; the terminal echoes the newline locally.
+ * Returns an error if the output stream is lost.
+ */
+static int prompt(void) {
+    if ((g_lf_sys_options & SYS_OPTION_NO_DOTESS) == 0) {
+        lfDotS();
+    }
+    if ((g_lf_sys_options & SYS_OPTION_NO_OK) == 0) {
+        return lf_puts("ok>");
+    }
+    return 0;
+}
+
+/*
+ * Checks the data stack depth after a line. sp counts items modulo
+ * STACK_CAPACITY, so taking items from an empty stack wraps it to the top of
+ * the range. The upper quarter of the range is read as underflow and the
+ * quarter below it as overflow, so a line may leave at most
+ * STACK_CAPACITY / 2 - 1 items. Reading sp is a dependency on the VM.
+ */
+static int checkStackDepth(void) {
+    int depth = vmPeek(VM_REG_sp);
+    if (depth >= STACK_CAPACITY / 4 * 3) return ERR_STACK_UNDERFLOW;
+    if (depth >= STACK_CAPACITY / 2) return ERR_STACK_OVERFLOW;
+    return 0;
+}
+
+/*
+ * Reads one line from the terminal and interprets it. A line too long for
+ * TIB is not interpreted at all, since running part of it could leave a
+ * definition half-compiled.
+ */
+static int interpretLine(void) {
+    int overflowed;
+    linecount++;
+    int len = loadTIB(&overflowed);
+    if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
+        lfCR();
+        lfDotLinecount();
+        lf_puts(TIB);
+    }
+    if (overflowed) return ERR_TIB_OVERFLOW;
+    int ior = lfInterpret((char*)TIB, len);
+    if (ior) return ior;
+    return checkStackDepth();
+}
+
+// Reports an error from interpretLine in decimal, in red.
+static void reportError(int ior) {
+    lfBASEstore(10);
+    lfSetColor(COLOR_BRIGHT_RED);
+    if (ior == ERR_UNDEFINED_WORD) {
+        lf_puts(lastparsed);
+        lf_puts(" ?\n");
+        return;
+    }
+    lf_puts("Error: ior=");
+    lfDot(ior);
+#if (FAT_FORTH & 1)
+    lf_puts(get_error_message(ior));
+    lfCR();
+#endif
+}
+
+// QUIT (documented in forth.h). Open the terminal with serial_open first.
 int QUIT(void) {
     lf_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
@@ -663,63 +745,19 @@ int QUIT(void) {
     lfAPI_only();
     lfAPI_forth();
     while (1) {
-        lfSetColor(COLOR_NORMAL);
-        LF_PACKEDSTATE[0] = 10;
-        LF_PACKEDSTATE[1] = 0;
-        linecount = 0;
-        vmReset();
-        // REPL until an error (or bye) occurs, starting with a clean stack.
-        // The `ok>` prompt is at the beginning for compatibility with
-        // cooked input. The terminal echoes newline locally.
-        int32_t ior = 0;
-        while (ior == 0) {
-            if ((g_lf_sys_options & SYS_OPTION_NO_DOTESS) == 0) {
-                lfDotS();
-            }
-            if ((g_lf_sys_options & SYS_OPTION_NO_OK) == 0) {
-                ior = lf_puts("ok>");
-                if (ior) break; // lost the output stream
-            }
-            linecount++;
-            int len = loadTIB();
-            if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
-                lfCR();
-                lfDotLinecount();
-                lf_puts(TIB);
-            }
-            ior = lfInterpret((char*)TIB, len & 0x7FFF);
-            /*
-            * The stack depth is checked here for overflow or underflow.
-            * We cheat by using sp as depth. Reading sp is a dependency.
-            * Normally, the bottom of the stack is marked by VM_EMPTYSTACK.
-            */
-            int depth = vmPeek(VM_REG_sp);
-            if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
-            else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
-            if (len & TERMINAL_OVERFLOWED) ior = ERR_TIB_OVERFLOW;
-        }
-		// handle the ior here if needed (e.g., exit on BYE)
-        LF_PACKEDSTATE[0] = 10; // base = decimal
-        lfSetColor(COLOR_BRIGHT_RED);
-        switch (ior) {
-        case ERR_QUIT: return 0;
-        case ERR_UNDEFINED_WORD:
-            lf_puts(lastparsed);
-            lf_puts(" ?\n");
-            break;
-        default:
-            lf_puts("Error: ior=");
-            lfDot(ior);
-#if (FAT_FORTH & 1)
-            const char* msg = get_error_message(ior);
-            lf_puts(msg);
-            lfCR();
-#endif
-            break;
-		}
+        quitReset();
+        int ior;
+        do {
+            ior = prompt();
+            if (ior) return ior;        // lost the output stream
+            ior = interpretLine();
+        } while (ior == 0);
+
+        if (ior == ERR_QUIT) return 0;  // bye
+        reportError(ior);
         if (g_lf_sys_options & SYS_OPTION_VALIDATION) {
             lfDotLinecount();
-            return ior; // quit after the first error
+            return ior;                 // quit after the first error
         }
     }
 }

@@ -10,12 +10,8 @@
 #include "tools.h"
 #include "errcodes.h"
 #include "main.h"
-#include <malloc.h>
-#include <string.h>
 
 extern uint32_t g_block_capacity;
-
-#define FLASHBYTES  (RAM_PAGE * FLASH_PAGE_CELLS * sizeof(int32_t))
 
 // The total idata and udata spans RAM_PAGE_CELLS cells
 int lfInitPointers(void) {
@@ -94,24 +90,13 @@ int main(int argc, char* argv[]) {
     pool_reset();
     int32_t* ram = pool_alloc(RAM_PAGE_CELLS);
     int32_t* flash = NULL;
-    int needfree = 0;
 
-    if ((g_lf_sys_options & SYS_OPTION_NO_FLASH) == 0) {
-        int ior = flash_init(FLASHFILENAME, &flash);
-        if (ior) return ior;
-    }
-    if (flash == NULL) {
-        flash = (int32_t*)malloc(FLASHBYTES);
-        if (flash == NULL) {
-            fprintf(stderr, "Error: Unable to allocate flash memory.\n");
-            return 1;
-        }
-        memset(flash, -1, FLASHBYTES);
-    }
-    if ((g_lf_sys_options & SYS_OPTION_NO_BLOCK) == 0) {
-        int ior = blk_init(NULL, &g_block_capacity);
-        if (ior) return ior;
-    }
+    // Simulated flash and blocks live in files in the working directory,
+    // which are created if they don't exist.
+    int ior = flash_init(FLASHFILENAME, &flash);
+    if (ior) return ior;
+    ior = blk_init(NULL, &g_block_capacity);
+    if (ior) return ior;
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         if (i < RAM_PAGE) {
@@ -119,9 +104,7 @@ int main(int argc, char* argv[]) {
             vm_memory[i] = &flash[i * FLASH_PAGE_CELLS];
             vm_memory_name[i] = "Flash";
             vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
-            if ((g_lf_sys_options & SYS_OPTION_NO_FLASH) == 0) {
-                vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected
-            }
+            vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected
             vm_memory_executable[i] = FLASH_PAGE_CELLS;
         }
         else if (i == RAM_PAGE) {
@@ -143,13 +126,11 @@ int main(int argc, char* argv[]) {
 
 // Launch LiteForth
 
-    int ior = serial_open(port_name, baudrate);
+    ior = serial_open(port_name, baudrate);
     if (ior) return ior;
     ior = QUIT();
     lfSetColor(COLOR_NORMAL);
     serial_close();
-
-    if (needfree) free(flash);
 
     int err = pool_free(ram);
     if (err) return err;

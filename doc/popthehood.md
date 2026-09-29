@@ -135,7 +135,6 @@ There are several ways to inhibit this process:
 
 - Apply a DC signal to a `boot inhibit` pin on the MCU
 - Break the CRC of the data by erasing the Flash
-- Use the `-o` command line option such as `-o 8`
 
 There are several variable-length lists in the data structure, which is pointed to
 by the first cell in the Flash Page. If that cell is 0, the data structure may be in the next page.

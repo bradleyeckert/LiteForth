@@ -127,22 +127,6 @@ An erase counter is maintained for each sector to instrument erase-thrashing.
 The open sector, if any, should be manually closed at the end with `close-flash`
 to avoid data loss.
 
-## Flash page layout
-
-A Flash page contains compiled executable code and initialization data.
-Boot code (in `forth.c`) initializes `wids[]` and `wids_pointer` from the data.
-There are several ways to inhibit this process:
-
-- Apply a DC signal to a `boot inhibit` pin on the MCU
-- Break the CRC of the data by erasing the Flash
-
-There are several variable-length lists in the data structure, which is pointed to
-by the first cell in the Flash Page. If that cell is 0, the data structure may be in the next page.
-
-- Wordlist initialization data
-- idata initialization data
-- 
-
 ## Mass storage
 
 MicroSD cards are the ubiquitous mass storage for embedded devices.
@@ -294,45 +278,6 @@ After the C code starts up, it enters a macroloop that calls API function 0
 in the RoT to step the token interpreter.
 If there is no C app running, the token interpreter is stopped until the RoT's QUIT
 executes a word. Execution continues until the return stack is empty.
-
-## The QUIT loop
-
-The Forth QUIT loop has to not block the application.
-The application runs a macroloop, which at some point in the loop,
-invokes `quit?` which writes a global variable `error` if an error occurs.
-When an arror is flagged, execution jumps to address 1 in the VM.
-
-`quit?` pseudocode:
-
-- Accept the next character from the UART or other text stream. Exit if none.
-- If the character was a LF, interpret the input buffer.
-- If a problem occurs during interpretation, reset the stack.
-
-Interpretation of the input buffer follows the usual Forth REPL.
-The difference is that after number conversion fails, the token is compared to
-a constant list in the constant blocks.
-
-Forth and C coexist by sharing a `TIBSTATE` mutex.
-
-- Once `loadTIB` has an input line, it sets `TIBSTATE` to 2 and waits for it to reach 3.
-- The Forth macroloop sees `TIBSTATE` at 2 and bumps it to 3. It spins until `TIBSTATE` is 1.
-- `loadTIB` sees `TIBSTATE` at 3 and un-pauses, allowing TIB evaluation.
-- QUIT invokes `loadTIB`, which initially sets `TIBSTATE` to 1.
-- If no Forth code is running, set `TIBSTATE` = 0. `loadTIB` will bypass the handshake.
-
-This allows yield2c to execute multiple steps of the VM. 
-
-## Application region Flash contents
-
-The RoT QUIT loop needs to know where the app's C API functions are.
-Data at the beginning of application flash contains that information:
-
-- 32-byte HMAC: If it's good, the following fields apply:
-- 4-byte offset to the initialization table, used to set the lexicon, idata, etc.
-- 2-byte length of size_t datatype in bytes
-- 2-byte number of function pointers, N, in the API execution table
-- N\*size_t API execution table, up to 512 C functions
-- Initialization table
 
 ## Block usage
 

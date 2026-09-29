@@ -141,7 +141,7 @@ typedef int (putcfunc)(char c);
  *         SYS_OPTION_VALIDATION is set, or an output error if the prompt
  *         can't be written.
  */
-int QUIT(void);
+int lfQuit(void);
 
 /**
  * The Forth text interpreter.

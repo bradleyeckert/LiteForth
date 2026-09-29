@@ -721,7 +721,7 @@ static void reportError(int ior) {
 }
 
 // QUIT (documented in forth.h). Open the terminal with serial_open first.
-int QUIT(void) {
+int lfQuit(void) {
     lf_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();

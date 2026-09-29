@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     ior = serial_open(port_name, baudrate);
     if (ior) return ior;
-    ior = QUIT();
+    ior = lfQuit();
     lfSetColor(COLOR_NORMAL);
     serial_close();
 

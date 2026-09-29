@@ -364,9 +364,13 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     }
     int32_t pc = PC;
     int32_t ior = vmExec(0, 0, address);
+    dirty = 1;
     if (ior == 0) {
         PC = pc;
-        dirty = 1;
+    }
+    else {
+        B = pc;
+        PC = VM_YEET_ADDRESS << 1;
     }
     return ior;
 }

@@ -119,7 +119,10 @@ int32_t vmReset(void);
 
 /** @} */
 
+// When the VM yeets an error, the PC is loaded with this cell address.
+#define VM_YEET_ADDRESS 1
 
+// Check the stack configuration
 #define STACK_MASK            (STACK_CAPACITY - 1)
 #if (STACK_CAPACITY <= 0) || ((STACK_CAPACITY & STACK_MASK) != 0)
 #error "STACK_CAPACITY must be a non-zero power of 2 for masking to work."

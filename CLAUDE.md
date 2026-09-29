@@ -58,9 +58,13 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   `close-flash` relocates header pointers into the buffer (`lfRelocateHeaders`:
   headers hold C pointers), programs the page and frees the buffer. Without
   a matching `close-flash`, lf exits with code 196 (pool_free fails in main).
-- lf reads and creates `lfblocks.bin` / `lfflash.bin` in the current directory.
-  The tracked images are in `bin/` (the root-level copies are stale). Run
-  experiments in the scratchpad, not the repo, so they aren't modified.
+- lf reads (or, if missing, creates) `lfblocks.bin` / `lfflash.bin` in the
+  current directory. The repo tracks both at the root and in `bin/`; keep all
+  of them, never delete or regenerate them. `lfflash.bin` mimics an MCU's
+  flash memory; `lfblocks.bin` will hold source code and other data, and
+  code to write flash to blocks is planned. `make test` uses copies of the
+  `bin/` images. Run experiments in the scratchpad, not the repo, so the
+  tracked images aren't modified.
 - Block files: 4 KB blocks (not 1 KB), block n at byte offset n*4096, block 0
   holds the `LITEFORTHBLK ...` header. Only `SYSTEM_BLOCKS` (2) buffers exist,
   so any 3-deep nesting of loads evicts buffers.

@@ -19,7 +19,7 @@
 #define RAM_PAGE              1 // The memory page used by system variables
 #define RAM_PAGE_CELLS     4096 // RAM page size [2]
 // memalloc.c
-#define POOL_CAPACITY     16384 // cells of the main memory pool
+#define POOL_CAPACITY     16384 // cells of the system memory pool
 // flash.c
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c

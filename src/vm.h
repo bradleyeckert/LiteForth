@@ -151,7 +151,7 @@ int VMapi1Call(int fn);
 
 // 4. GCC 7.0+
 #elif defined(__GNUC__) && (__GNUC__ >= 7)
-#define FALLTHROUGH __attribute__((fallthrough))
+#define FALLTHROUGH __attribute__((fallthrough));
 
 // 5. MSVC (Visual Studio 2015 update 3+ via Code Analysis)
 #elif defined(_MSC_VER)

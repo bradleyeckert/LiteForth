@@ -3,6 +3,7 @@
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
+//#include <stdio.h> //////////////////////////////////
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -46,7 +47,7 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     imm &= 0x1FF;       // u9
     int32_t simm = imm; // s9
     if (simm & 0x100) {
-        simm |= ~0x100;
+        simm |= ~0x1FF;
     }
     int imm9opcode = (inst >> 9) & 0x0F;
     switch (imm9opcode) {

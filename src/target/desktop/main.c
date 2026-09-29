@@ -16,6 +16,7 @@ extern uint32_t g_block_capacity;
 
 #define FLASHBYTES  (RAM_PAGE * FLASH_PAGE_CELLS * sizeof(int32_t))
 
+// The total idata and udata spans RAM_PAGE_CELLS cells
 int lfInitPointers(void) {
     int32_t* mem = vm_memory[RAM_PAGE];
     if (mem == NULL) return ERR_ALLOCATE_FAILED;
@@ -24,13 +25,13 @@ int lfInitPointers(void) {
     mem[F_PTRS + 1] = LF_HERE0 + 0x200;
     // idata space origin and limit
     mem[F_PTRS + 2] = LF_HERE0 + 0x200;
-    mem[F_PTRS + 3] = LF_HERE0 + 0x400;
+    mem[F_PTRS + 3] = VARIABLE(RAM_PAGE_CELLS);
     // code space origin and limit
     mem[F_PTRS + 4] = 0x80000001;
-    mem[F_PTRS + 5] = 0x100;
+    mem[F_PTRS + 5] = FLASH_PAGE_CELLS / 2;
     // text space origin and limit
-    mem[F_PTRS + 6] = 0x100;
-    mem[F_PTRS + 7] = 0x200;
+    mem[F_PTRS + 6] = FLASH_PAGE_CELLS / 2;
+    mem[F_PTRS + 7] = FLASH_PAGE_CELLS;
     // initial idp
     mem[F_PTRS + 8] = LF_HERE0 + 0x200;
     return 0;

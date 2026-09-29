@@ -318,6 +318,7 @@ int lfAPI_dotDoes(void) {
     int32_t cp = 0;
     cpFetch(&cp);
     uint32_t pc = (cp << 1) | (cp >> 26);
+    if (created == 0) return ERR_UNSUPPORTED_OPERATION;
     int ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
     created = 0;
     lfCreatedName = NULL;
@@ -368,16 +369,20 @@ int lfAPI_bit(void) {
     return 0;
 }
 
+////#include <stdio.h>
 /* POSTPONE  ( <name> -- )  */
 int lfAPI_postpone(void) {
     const struct s_head* word = lfTickWord();
     if (word == NULL) return ERR_UNDEFINED_WORD;
     if (word->aux & A_CONSTANT) return ERR_POSTPONING_CONSTANT;
+    ////printf("postponing %s, ", word->name);
     int ior = 0;
     if (word->aux & A_IMMEDIATE) {
+        ////printf("immediate\n");
         ior = lfCompileWord(word);
     }
     else {
+        ////printf("compile\n");
         ior = CompUlit(word->w);
         commaCode(W_PRIMITIVE | VMI_API0 | API_COMPILE);
     }

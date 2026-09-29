@@ -78,12 +78,22 @@ static int commaQ(void) {
     tp = lfSetSliceWidth(tp, 8);
     ior = lfTpStore(tp);
     if (ior) return ior;
+    // The text pointer is set up to compile bytes
     vmPush(tp);
+    ior = lf_compc(-1);
+    if (ior) return ior;
     ior = lfParseInputString(lf_compc, '\"');
     if (ior) return ior;
+    int32_t tp1 = 0;
+    lfTpFetch(&tp1);
+    int32_t first = (tp << 2) | ((tp >> 25) & 3);
+    int32_t last = (tp1 << 2) | ((tp1 >> 25) & 3);
+    int length = ((last - first) & 0xFFFF) - 1;
+    // resolve the string length if it can be resolved
+    if (length < 256) vmStore(tp, length);
+    // append zero terminator for C compatibility
     return lf_compc('\0');
 }
-
 
 static int umstar_x(int sign) {
     uint32_t a = (uint32_t)vmPeek(0);

@@ -41,7 +41,7 @@
  40 API_UPDATE           lfAPI_update
  41 API_SAVE_BUFFERS     lfAPI_saveBuffers
  42 API_FLUSH            lfAPI_flush
- 43 API_EMPTY_BUFFERS    lfAPI_emptyBuffers
+ 43 API_EMPTY_BUFRS      lfAPI_emptyBuffers
  44 API_LOAD             lfAPI_load
  45 API_CAPACITY         capacity
  46 API_NEXTBLOCK        lfAPI_nextBlock

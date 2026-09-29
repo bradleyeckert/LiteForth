@@ -17,6 +17,5 @@ jobs:
     - name: Compile lf executable
       run: make
 
-    - name: Run primitives test
-      run: ./bin/lf -o 31 < ./scripts/primitives.f
-
+    - name: Run primitives test and unit tests
+      run: make test

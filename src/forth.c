@@ -593,7 +593,7 @@ static int interpretSource(void) {
         // B. Constant / Numeric fallback
         ior = findConstant(token, &value);
         if (ior) {
-            ior = parseNumber(token, lfBASEfetch(), &value);
+            ior = lfParseNumber(token, lfBASEfetch(), &value);
         }
         if (ior) return ior;    // undefined word or parsing error
 

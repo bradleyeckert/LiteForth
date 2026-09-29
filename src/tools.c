@@ -161,9 +161,9 @@ int lfDot10(int32_t val) {
 
 /**
  * Attempts to interpret a raw token text as a numeric literal.
- * Returns ior and sets the global `value` to the parsed number.
+ * Returns ior and sets `val` to the parsed number.
  * It sets DPL to the number of digits after the decimal point if a decimal
- * point is present, leaves it at -1 otherwise. Blame: Gemini
+ * point is present, leaves it at -1 otherwise.
  */
 
 static int char2digit(char c) {
@@ -173,7 +173,7 @@ static int char2digit(char c) {
     return -1; // Invalid character for a digit
 }
 
-int parseNumber(char* token, int base, int32_t* val) {
+int lfParseNumber(char* token, int base, int32_t* val) {
     int dpl = -1; // -1 indicates no decimal point was encountered
     int32_t value = 0;
     int i = 0;
@@ -231,22 +231,6 @@ int parseNumber(char* token, int base, int32_t* val) {
 }
 
 
-/*=========================================================================
-* Address translation functions
-=========================================================================*/
-
-/* Translate LiteForth address to system address.
-int LFaddr_to_ptr(uint32_t addr, int32_t** ptr) {
-    int bitfield_size = addr >> 27;
-    int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
-    uint32_t a = addr & VM_PAGE_MASK;
-    if (a >= vm_memory_rd_limit[page]) {
-        return ERR_INVALID_ADDRESS;
-    }
-    **ptr = &vm_memory[page][a];
-    return 0;
-}
-*/
 /*=========================================================================
 * System word fetch and store
 =========================================================================*/

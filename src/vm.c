@@ -369,7 +369,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     return ior;
 }
 
-
+// API access to internal VM state
 
 int32_t vmPeek(int reg) {
     if (reg < 0) {

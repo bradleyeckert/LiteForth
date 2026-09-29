@@ -53,8 +53,7 @@ int serial_busy(void);
  * In stdio mode, reaching the end of redirected input (e.g. `lf < file.f`)
  * reconnects stdin to the console, so input continues from the keyboard.
  * 
- * @return The unsigned byte value on success. On failure: EOF in stdio mode,
- *         or ERR_TERM_RX_FAILED (including no data) on a serial port.
+ * @return The unsigned byte value on success, else ERR_TERM_RX_FAILED.
  */
 int serial_getc(void);
 

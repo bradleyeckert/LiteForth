@@ -169,7 +169,7 @@ int lfTpStore(int32_t tp);
  * @param val Receives the number on success.
  * @return 0 on success, or ERR_UNDEFINED_WORD if the token is not a number.
  */
-int parseNumber(char* token, int base, int32_t* val);
+int lfParseNumber(char* token, int base, int32_t* val);
 
 /**
  * Sets the slice width of an address.

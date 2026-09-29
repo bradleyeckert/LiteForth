@@ -99,7 +99,8 @@ int lfAPI_constant(void);
  * Allocates an n-bit slice at HERE in the current memory space and creates
  * a constant <name> holding its slice address. HERE advances past the slice.
  *
- * @return 0 on success, ERR_TOO_MANY_BITS if n > 32, or another negative error code.
+ * @return 0 on success, ERR_TOO_MANY_BITS if n is not 1 to 32, or another
+ *         negative error code.
  */
 int lfAPI_bits(void);
 
@@ -135,10 +136,10 @@ int lfAPI_toBody(void);
 /**
  * @brief Forth word `bit`  ( n -- )
  * Sets the slice width, in bits, of HERE in the current memory space, so
- * subsequent allocations use n-bit slices. Starts a new cell if an n-bit
- * slice would not fit in the current one.
+ * subsequent allocations use n-bit slices (32 means whole cells). Starts a
+ * new cell if an n-bit slice would not fit in the current one.
  *
- * @return 0.
+ * @return 0 on success, or ERR_TOO_MANY_BITS if n is not 1 to 32.
  */
 int lfAPI_bit(void);
 

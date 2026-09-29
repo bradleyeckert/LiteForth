@@ -895,12 +895,14 @@ int lfAPI_block(void) {
 int lfAPI_load(void) {
     int32_t blk = vmPop();
     if (blk == 0) return ERR_INVALID_BLOCK_NUMBER;
-    int32_t forth_addr = 0;
-    int ior = lfAssignBlock(blk, &forth_addr);
-
     if (input_stack_depth >= MAX_INPUT_STACK) {
         return ERR_STACK_OVERFLOW;
     }
+    // Read the block before touching the input source, so a failed read
+    // leaves the current input stream intact.
+    int32_t forth_addr = 0;
+    int ior = lfAssignBlock(blk, &forth_addr);
+    if (ior) return ior;
 
     // Save current active stream state onto the nesting stack
     input_stack[input_stack_depth].str = source;
@@ -914,7 +916,7 @@ int lfAPI_load(void) {
     source_len = sizeof(int32_t) * BLOCK_SIZE_CELLS;
     lfTOINstore(0);
     BLK = blk;
-    return ior;
+    return 0;
 }
 
 
@@ -975,7 +977,7 @@ static void dumpInputStackTrace(void) {
 
 /**
  * --> ( -- )
- * Immediate word / Primitive: Terminate parsing the current block
+ * Terminate parsing the current block
  * and load block BLK + 1.
  */
 int lfAPI_nextBlock(void) {

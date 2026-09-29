@@ -20,12 +20,9 @@ typedef struct {
 const char* get_error_message(int err_code);
 
 /**
- * Copies a null-terminated string, including the terminator, into Forth
- * memory as 8-bit slices starting at the text pointer (TP).
- * @warning Not currently called. It reads its limit from, and writes the new
- *          pointer to, the wrong entries of the pointer table (see F_PTRS_TP
- *          in forth.h): the limit is the cell after IDP0, and the result is
- *          stored in IDP0 instead of TP.
+ * Copies a null-terminated string, including the terminator, into text space
+ * as 8-bit slices starting at the text pointer (TP), and advances TP past it.
+ * TP is left as a byte address, as `_,"` does.
  * @param str String to copy.
  * @return 0 on success, or a negative error code (e.g., ERR_DICTIONARY_OVERFLOW).
  */

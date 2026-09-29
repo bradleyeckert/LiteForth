@@ -57,8 +57,11 @@ int lf_putc(char c);
 
 /**
  * Formats and outputs a 32-bit value in the current BASE, appending 'H' in
- * hexadecimal and a trailing space. If bits 31:27 of the value are 1 to 16,
- * it is printed as a slice address in the form size:position:address.
+ * hexadecimal and a trailing space. If bits 31:27 (size) of the value are
+ * 1 to 16 and bits 26:22 (position) + size <= 32, it is printed as a slice
+ * address in the form size:position:address. Plain numbers that happen to
+ * fit that pattern (some values with bit 31 or bits 30:27 set) print the
+ * same way.
  * @param val Value to print.
  * @return 0 on success, or an explicit negative error code on failure.
  */
@@ -174,7 +177,9 @@ int parseNumber(char* token, int base, int32_t* val);
  * Moves the bit position up to the next multiple of bits, and to the start
  * of the next cell if a slice of that width would not fit in the current one.
  * @param addr Cell or slice address.
- * @param bits Slice width in bits, 1 to 31.
+ * @param bits Slice width in bits, 1 to 32. A width of 32 (or any value outside
+ *        1 to 31) means a whole cell: the result is a plain cell address,
+ *        moved to the next cell if addr was part-way through one.
  * @return The address with the new width and aligned position.
  */
 uint32_t lfSetSliceWidth(uint32_t addr, int bits);

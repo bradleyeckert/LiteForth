@@ -159,7 +159,7 @@ int vmStore(uint32_t addr, int32_t data) {
     return 0;
 }
 
-int32_t vmRun(int once, uint32_t inst, int32_t address) {
+static int32_t vmExec(int once, uint32_t inst, int32_t address) {
 
     int32_t ior = 0;                    // 0 = okay
     uint32_t steps = 0;
@@ -344,6 +344,27 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
         }
         if (ior) return ior;
         if (once == 0) goto fetch;
+    }
+    return ior;
+}
+
+/*
+ * vmRun (documented in vm.h).
+ * Calling a word can re-enter vmRun: an API call such as LOAD interprets a
+ * block, which executes more words. The nested call leaves PC at the
+ * 0xDEADC0DE terminator, so the caller's PC is saved here and put back.
+ * dirty = 1 makes the caller refetch its instruction pair from memory.
+ * On an error, PC is left where the fault happened.
+ */
+int32_t vmRun(int once, uint32_t inst, int32_t address) {
+    if (once || inst) {
+        return vmExec(once, inst, address);
+    }
+    int32_t pc = PC;
+    int32_t ior = vmExec(0, 0, address);
+    if (ior == 0) {
+        PC = pc;
+        dirty = 1;
     }
     return ior;
 }

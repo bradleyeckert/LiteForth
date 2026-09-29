@@ -45,6 +45,11 @@ extern char* vm_memory_name[VM_MEM_PAGES];
   * until it returns.
   * @param address Instruction address of the word to run (0 steps only).
   * @return Return code IOR, see errcodes.h.
+  *
+  * Calling a word (0 steps) is re-entrant: a word may make an API call that
+  * runs other words through vmRun. When the word returns normally, PC is
+  * restored to its value before the call. On an error, PC is left at the
+  * fault.
   */
 int32_t vmRun(int once, uint32_t inst, int32_t address);
 

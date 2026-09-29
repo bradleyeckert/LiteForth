@@ -1,5 +1,5 @@
-#ifndef _FATSO_H_
-#define _FATSO_H_
+#ifndef UTILS_H
+#define UTILS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,4 +33,4 @@ int lfAPI_see(void);
 }
 #endif
 
-#endif /* _FATSO_H_ */
+#endif /* UTILS_H */

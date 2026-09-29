@@ -24,7 +24,7 @@ int lfInitPointers(void) {
     mem[F_PTRS + 2] = LF_HERE0 + 0x200;
     mem[F_PTRS + 3] = VARIABLE(RAM_PAGE_CELLS);
     // code space origin and limit
-    mem[F_PTRS + 4] = 0x80000001;
+    mem[F_PTRS + 4] = 0x80000002;
     mem[F_PTRS + 5] = FLASH_PAGE_CELLS / 2;
     // text space origin and limit
     mem[F_PTRS + 6] = FLASH_PAGE_CELLS / 2;

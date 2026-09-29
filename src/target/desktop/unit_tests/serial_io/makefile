@@ -1,28 +1,31 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -I../../
+# Unit tests and interactive demo for src/target/desktop/serial_io.c
 
-SRC = ../../serial_io.c
-TEST_SRC = test_serial_io.c
-DEMO_SRC = demo_terminal.c
+SRC_DIR     = ../../../..
+DESKTOP_DIR = ../..
+
+CC     ?= gcc
+CFLAGS  = -Wall -Wextra -std=c99 -I$(DESKTOP_DIR) -I$(SRC_DIR)
+
+SRC = $(DESKTOP_DIR)/serial_io.c
 
 TEST_TARGET = test_serial_io
 DEMO_TARGET = demo_terminal
 
-all: $(TEST_TARGET) $(DEMO_TARGET)
+.PHONY: all test demo clean
 
-$(TEST_TARGET): $(TEST_SRC) $(SRC)
-	$(CC) $(CFLAGS) -o $(TEST_TARGET) $(TEST_SRC) $(SRC)
+all: test
 
-$(DEMO_TARGET): $(DEMO_SRC) $(SRC)
-	$(CC) $(CFLAGS) -o $(DEMO_TARGET) $(DEMO_SRC) $(SRC)
+$(TEST_TARGET): test_serial_io.c $(SRC)
+	$(CC) $(CFLAGS) $^ -o $@
 
-run: $(TEST_TARGET)
+$(DEMO_TARGET): demo_terminal.c $(SRC)
+	$(CC) $(CFLAGS) $^ -o $@
+
+test: $(TEST_TARGET)
 	./$(TEST_TARGET)
 
 demo: $(DEMO_TARGET)
 	./$(DEMO_TARGET)
 
 clean:
-	rm -f $(TEST_TARGET) $(DEMO_TARGET) *.o
-
-.PHONY: all run demo clean
+	rm -f $(TEST_TARGET) $(DEMO_TARGET)

@@ -1,5 +1,5 @@
 #include "../../serial_io.h"
-#include "../../errcodes.h"
+#include "errcodes.h"
 #include <stdio.h>
 #include <assert.h>
 

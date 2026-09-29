@@ -3,7 +3,7 @@
 #include <string.h>
 #include "unity.h"
 #include "../../flash.h"
-#include "../../errcodes.h"
+#include "errcodes.h"
 #include "../../options.h"
 
 #define TEST_FLASH_FILE "test_flash.bin"

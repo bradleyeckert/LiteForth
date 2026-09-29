@@ -1,30 +1,25 @@
-# Target executable
+# Unit tests for src/target/desktop/flash.c (uses the vendored Unity framework)
+
+SRC_DIR     = ../../../..
+DESKTOP_DIR = ../..
+UNITY_DIR   = ../unity
+
 TARGET = test_flash
 
-# Compilers & Flags
-CC ?= gcc
-CFLAGS = -Wall -Wextra -std=c99 -g -I../../ -I.
-LDFLAGS =
+CC     ?= gcc
+CFLAGS  = -Wall -Wextra -std=c99 -g -I$(DESKTOP_DIR) -I$(SRC_DIR) -I$(UNITY_DIR)
 
-# Source files
-SRC = ../../flash.c \
-      test_flash.c \
-      unity.c
+SRC = $(DESKTOP_DIR)/flash.c test_flash.c $(UNITY_DIR)/unity.c
 
-OBJ = $(SRC:.c=.o)
-
-.PHONY: all clean test
+.PHONY: all test clean
 
 all: test
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LDFLAGS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $@
 
 test: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(OBJ) $(TARGET) lfflash.bin test_flash.bin
+	rm -f $(TARGET) lfflash.bin test_flash.bin

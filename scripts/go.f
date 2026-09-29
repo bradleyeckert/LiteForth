@@ -1,4 +1,4 @@
-( LiteForth boot code )
+﻿( LiteForth boot code )
 
 empty only forth  0 open-flash
 : cells ; immediate
@@ -42,7 +42,7 @@ hex
 : until     ( a -- )        _0bran _again ; immediate
 : while     ( a1 -- a1 a2 ) postpone if  swap ; immediate
 : repeat    ( a1 a2 -- )    postpone again  postpone then ; immediate
-: for       ( -- a )        postpone >r chere ; immediate
+: for       ( -- a )        postpone >r  chere ; immediate
 : next      ( a -- )        _next _again ; immediate
 decimal
 
@@ -55,7 +55,6 @@ decimal
 : type      ( ca n -- )     goodAN for @+ emit next drop ;
 : $type     ( ca -- )       @+ type ;
 : ."        ( string" -- )  _," postpone literal  postpone $type ; immediate
-
 
 : _.map     ( -- )
    here . ." to " 'here 1+ @ .
@@ -72,5 +71,6 @@ decimal
 
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;
 : -         ( n -- -n )     1 swap inv + + ;
+: hi  ." 学如不及，犹恐失之 " ;
 
-: hi  ." hello\r\n" ;
+: all  2 chere 1- 2* dasm ;

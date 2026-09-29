@@ -7,6 +7,8 @@
     #include <windows.h>
     #include <conio.h>
     #include <io.h>
+    #include <fcntl.h>
+    #include <locale.h>
 #define TARGET_ISATTY() _isatty(0)
 #else
     #include <unistd.h>
@@ -291,6 +293,9 @@ int serial_busy(void) {
 #endif
 
 static int restore_stdin_to_terminal(void) {
+    fflush(stdout);
+    fflush(stdin);
+
     int tty_fd = sys_open(TTY_DEVICE, READ_FLAGS);
     if (tty_fd < 0) {
         perror("Failed to open terminal device");
@@ -305,7 +310,6 @@ static int restore_stdin_to_terminal(void) {
 
     sys_close(tty_fd);
     clearerr(stdin);
-
     return 0;
 }
 

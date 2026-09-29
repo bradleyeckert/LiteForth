@@ -319,7 +319,13 @@ int lfAPI_dotDoes(void) {
     cpFetch(&cp);
     uint32_t pc = (cp << 1) | (cp >> 26);
     if (created == 0) return ERR_UNSUPPORTED_OPERATION;
-    int ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
+    int ior = 0;
+    if (pc >= VM_LIMM_MASK) { // 10-bit pfx + 13-bit imm = 32-bit code addr
+        int inst = (pc & (1 << 22)) ? VMI_PFX1 : VMI_PFX;
+        ior = vmStore(created, (inst + ((pc >> VM_LIMM_BITS) & VM_IMM_MASK)));
+        created++;
+    }
+    ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
     created = 0;
     lfCreatedName = NULL;
     return ior;

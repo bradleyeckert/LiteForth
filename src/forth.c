@@ -124,53 +124,54 @@ static const struct s_head forth_heads[] = {
     { LINK(55), ">options",     API0(14), /* n --                     */  0},
     { LINK(56), "empty",        API0(15), /* --                       */  0},
     { LINK(57), "(",            API0(16), /* -- */          A_IMMEDIATE | 0},
-    { LINK(58), ".(",           API0(17), /* --                       */  0},
-    { LINK(59), "does>",        API0(18), /* -- */          A_IMMEDIATE | 0},
-    { LINK(60), "create",       API0(19), /* -- | -- addr             */  0},
-    { LINK(61), "cr",           API0(20), /* --                       */  0},
-    { LINK(62), "literal",      API0(21), /* n -- */        A_IMMEDIATE | 0},
-    { LINK(63), ".wid",         API0(22), /* wid --                   */  0},
-    { LINK(64), "x'",           API0(23), /* <name> -- w aux          */  0},
-    { LINK(65), "page",         API0(24), /* page -- a                */  0},
-    { LINK(66), "wordlist",     API0(25), /* -- wid                   */  0},
-    { LINK(67), "open-flash",   API0(26), /* addr --                  */  0},
-    { LINK(68), "close-flash",  API0(27), /* --                       */  0},
-    { LINK(69), "]",            API0(28), /* --                       */  0},
-    { LINK(70), "[",            API0(29), /* -- */          A_IMMEDIATE | 0},
-    { LINK(71), "exit",         API0(30), /* -- */          A_IMMEDIATE | 0},
-    { LINK(72), "constant",     API0(31), /* n <name> --              */  0},
-    { LINK(73), "bits",         API0(32), /* n <name> --              */  0},
-    { LINK(74), ">body",        API0(33), /* xt -- addr               */  0},
-    { LINK(75), "_,\"",         API0(34), /* string" -- addr          */  0},
-    { LINK(76), "bit",          API0(35), /* n --                     */  0},
-    { LINK(77), ",inst",        API0(36), /* inst --                  */  0},
-    { LINK(78), "immediate",    API0(37), /* --                       */  0},
-    { LINK(79), "block",        API0(38), /* u -- addr                */  0},
-    { LINK(80), "buffer",       API0(39), /* u -- addr                */  0},
-    { LINK(81), "update",       API0(40), /* --                       */  0},
-    { LINK(82), "save-buffers", API0(41), /* --                       */  0},
-    { LINK(83), "flush",        API0(42), /* --                       */  0},
-    { LINK(84), "empty-buffers",API0(43), /* --                       */  0},
-    { LINK(85), "load",         API0(44), /* u --                     */  0},
-    { LINK(86), "capacity",     API0(45), /* -- u                     */  0},
-    { LINK(87), "-->",          API0(46), /* --                       */  0},
-    { LINK(88), "postpone",     API0(47), /* <name> -- */   A_IMMEDIATE | 0},
-    { LINK(89), ",compile",     API0(API_COMPILE), /* xt --           */  0},
-    { LINK(90), "break",        API0(49), /* --                       */  0},
+    { LINK(58), "\xEF\xBB\xBF(",API0(16), /* -- */          A_IMMEDIATE | 0},
+    { LINK(59), ".(",           API0(17), /* --                       */  0},
+    { LINK(60), "does>",        API0(18), /* -- */          A_IMMEDIATE | 0},
+    { LINK(61), "create",       API0(19), /* -- | -- addr             */  0},
+    { LINK(62), "cr",           API0(20), /* --                       */  0},
+    { LINK(63), "literal",      API0(21), /* n -- */        A_IMMEDIATE | 0},
+    { LINK(64), ".wid",         API0(22), /* wid --                   */  0},
+    { LINK(65), "x'",           API0(23), /* <name> -- w aux          */  0},
+    { LINK(66), "page",         API0(24), /* page -- a                */  0},
+    { LINK(67), "wordlist",     API0(25), /* -- wid                   */  0},
+    { LINK(68), "open-flash",   API0(26), /* addr --                  */  0},
+    { LINK(69), "close-flash",  API0(27), /* --                       */  0},
+    { LINK(70), "]",            API0(28), /* --                       */  0},
+    { LINK(71), "[",            API0(29), /* -- */          A_IMMEDIATE | 0},
+    { LINK(72), "exit",         API0(30), /* -- */          A_IMMEDIATE | 0},
+    { LINK(73), "constant",     API0(31), /* n <name> --              */  0},
+    { LINK(74), "bits",         API0(32), /* n <name> --              */  0},
+    { LINK(75), ">body",        API0(33), /* xt -- addr               */  0},
+    { LINK(76), "_,\"",         API0(34), /* string" -- addr          */  0},
+    { LINK(77), "bit",          API0(35), /* n --                     */  0},
+    { LINK(78), ",inst",        API0(36), /* inst --                  */  0},
+    { LINK(79), "immediate",    API0(37), /* --                       */  0},
+    { LINK(80), "block",        API0(38), /* u -- addr                */  0},
+    { LINK(81), "buffer",       API0(39), /* u -- addr                */  0},
+    { LINK(82), "update",       API0(40), /* --                       */  0},
+    { LINK(83), "save-buffers", API0(41), /* --                       */  0},
+    { LINK(84), "flush",        API0(42), /* --                       */  0},
+    { LINK(85), "empty-buffers",API0(43), /* --                       */  0},
+    { LINK(86), "load",         API0(44), /* u --                     */  0},
+    { LINK(87), "capacity",     API0(45), /* -- u                     */  0},
+    { LINK(88), "-->",          API0(46), /* --                       */  0},
+    { LINK(89), "postpone",     API0(47), /* <name> -- */   A_IMMEDIATE | 0},
+    { LINK(90), ",compile",     API0(API_COMPILE), /* xt --           */  0},
+    { LINK(91), "break",        API0(49), /* --                       */  0},
 #if (FAT_FORTH & 1)                                                     
-    { LINK(91), "}t",           API0(50), /* ? --                     */  0},
-    { LINK(92), "->",           API0(51), /* ? --                     */  0},
-    { LINK(93), "t{",           API0(52), /* --                       */  0},
-    { LINK(94), "hex",          API0(53), /* --                       */  0},
-    { LINK(95), "decimal",      API0(54), /* --                       */  0},
-    { LINK(96), ".page",        API0(55), /* n --                     */  0},
-    { LINK(97), ".pages",       API0(56), /* --                       */  0},
-    { LINK(98), "dump",         API0(57), /* addr length --           */  0},
-    { LINK(99), "dumpi",        API0(58), /* inst --                  */  0},
-    { LINK(100), "dasm",        API0(59), /* addr length --           */  0},
-    { LINK(101), ".s",          API0(60), /* --                       */  0},
-    { LINK(102), ".",           API0(61), /* n --                     */  0},
-    { LINK(103), "see",         API0(62), /* <name> --                */  0 },
+    { LINK(92), "}t",           API0(50), /* ? --                     */  0},
+    { LINK(93), "->",           API0(51), /* ? --                     */  0},
+    { LINK(94), "t{",           API0(52), /* --                       */  0},
+    { LINK(95), "hex",          API0(53), /* --                       */  0},
+    { LINK(96), "decimal",      API0(54), /* --                       */  0},
+    { LINK(97), ".page",        API0(55), /* n --                     */  0},
+    { LINK(98), ".pages",       API0(56), /* --                       */  0},
+    { LINK(99), "dump",         API0(57), /* addr length --           */  0},
+    { LINK(100), "dumpi",       API0(58), /* inst --                  */  0},
+    { LINK(101), "dasm",        API0(59), /* addr length --           */  0},
+    { LINK(102), ".s",          API0(60), /* --                       */  0},
+    { LINK(103), ".",           API0(61), /* n --                     */  0},
+    { LINK(104), "see",         API0(62), /* <name> --                */  0 },
 #endif
 };
 
@@ -840,9 +841,12 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     return 0;
 }
 
+static const char* esc_chars0 = "abfnrtv";
+static const char* esc_chars1 = "\a\b\f\n\r\t\v";
+
 int lfParseInputString(putcfunc* echo, char terminator) {
     int escaped = 0;
-
+    int ior = 0;
     while (1) {
         char c = TOINchar();
         if (c == '\0') break;
@@ -850,15 +854,13 @@ int lfParseInputString(putcfunc* echo, char terminator) {
 
         if (escaped) {
             escaped = 0;
-            switch (c) {
-            case 'a':  c = '\a'; break;
-            case 'b':  c = '\b'; break;
-            case 'f':  c = '\f'; break;
-            case 'n':  c = '\n'; break;
-            case 'r':  c = '\r'; break;
-            case 't':  c = '\t'; break;
-            case 'v':  c = '\v'; break;
-            default: break; // \? = ?
+            int i = 0;
+            char b;
+            while ((b = esc_chars0[i])) {
+                if (b == c) {
+                    c = esc_chars1[i];
+                    break;
+                } i++;
             }
         }
         else if (c == '\\') {
@@ -870,11 +872,10 @@ int lfParseInputString(putcfunc* echo, char terminator) {
         }
 
         if (echo) {
-            int ior = echo(c);
-            if (ior) return ior;
+            ior = echo(c);
         }
     }
-    return 0;
+    return ior;
 }
 
 // BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed.

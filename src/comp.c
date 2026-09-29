@@ -44,7 +44,7 @@ static uint32_t cpPC(void) {
 * Compiling
 =========================================================================*/
 
-static const uint8_t returnOps[] = { VMU_PUSH, VMU_R, VMU_POP };
+static const uint8_t returnOps[] = { VMU_PUSH, VMU_R, VMU_POP, VMU_UNEXT };
 
 // Check if any of the slots touch the return stack
 static int UsesRetStack(uint16_t inst) {

@@ -129,8 +129,6 @@ typedef int (putcfunc)(char c);
 #define COLOR_BRIGHT_CYAN     14
 #define COLOR_BRIGHT_WHITE    15
 
-#define API_COMPILE           48
-
 /**
  * The standard Forth outer interpreter (terminal loop).
  * Prints the version banner, resets the dictionary and search order, then

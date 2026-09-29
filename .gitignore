@@ -20,3 +20,5 @@ src/target/desktop/unit_tests/serial_io/demo_terminal
 Thumbs.db
 src/target/desktop/unit_tests/load/got.txt
 src/target/desktop/unit_tests/quit/got.txt
+src/target/desktop/unit_tests/api0/test_api0
+src/target/desktop/unit_tests/api0/got.txt

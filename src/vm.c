@@ -3,6 +3,7 @@
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
+#include "api0.h"
 //#include <stdio.h> //////////////////////////////////
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };

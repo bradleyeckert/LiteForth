@@ -6,6 +6,7 @@
 #include "vm.h"
 #include "forth.h"
 #include "lfblocks.h"
+#include "tools.h"
 
 static BlockBufferState buf_state[SYSTEM_BLOCKS];
 static uint32_t lru_clock = 0;

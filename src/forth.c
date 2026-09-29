@@ -13,6 +13,7 @@
 
 #if (FAT_FORTH & 1)
 #include "utils.h"
+#include "main.h"
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;

@@ -14,11 +14,6 @@ extern "C" {
 /* Sentinel value used for unassigned block buffer slots */
 #define UNASSIGNED_BLOCK 0xFFFFFFFFU
 
-/* External VM interface memory and stack handlers */
-extern int32_t* vm_memory[VM_MEM_PAGES];
-extern int32_t vmPop(void);
-extern int vmPush(int32_t val);
-
 /* -------------------------------------------------------------------------
  * Data Types
  * ------------------------------------------------------------------------- */
@@ -35,15 +30,6 @@ typedef struct {
 /* -------------------------------------------------------------------------
  * LiteForth Block Management API (Forth Words Interface)
  * ------------------------------------------------------------------------- */
-
-/**
- * @brief Forth stack effect: ( u -- addr )
- * Returns the RAM memory address of the buffer containing block `u`.
- * If the block is not currently in RAM, it reads it from storage.
- *
- * @return 0 on success, or non-zero VM error code.
- */
-int lfAPI_block(void);
 
 /**
  * @brief Forth stack effect: ( u -- addr )

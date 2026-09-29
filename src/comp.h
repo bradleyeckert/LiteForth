@@ -12,19 +12,6 @@ extern "C" {
  * Stack operations
  * ========================================================================*/
 
-/**
- * Pushes a 32-bit integer onto the data stack.
- * @param x Value to push.
- * @return 0 on success, or an error code on failure.
- */
-int vmPush(int32_t x);
-
-/**
- * Pops a 32-bit integer from the data stack.
- * @return The popped value.
- */
-int32_t vmPop(void);
-
 /* =========================================================================
  * Compiling and Execution
  * ========================================================================*/
@@ -53,7 +40,6 @@ int lfCompileWord(const struct s_head* word);
 // globals
 extern char* lfCreatedName; // CREATE (comp.c) --> WORDLIST (forth.c)
 
-int lfCompString(char* str);
 void lfCalign(void);
 
 int lfAPI_inst(void);

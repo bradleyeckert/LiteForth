@@ -13,6 +13,7 @@ typedef struct {
 } ErrorMapping;
 
 const char* get_error_message(int err_code);
+int lfCompString(char* str);
 
 int lfAPI_beginTest(void);
 int lfAPI_doTest(void);

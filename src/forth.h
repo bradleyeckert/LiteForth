@@ -152,7 +152,6 @@ int lfDotS(void);
 int lfParseWord(char* dest, int destSize);
 int lfHeader(uint32_t w, uint32_t aux, char** name);
 int lfToHeader(uint32_t w, uint32_t aux);
-int lfCompileLit(int32_t num);
 int lfAddWordlist(char* name);
 int lfParseInputString(putcfunc* echo, char terminator);
 const struct s_head* lfTickWord(void);
@@ -167,7 +166,14 @@ int lfAPI_nextBlock(void);
 int lfAPI_load(void);
 int lfAPI_empty(void);
 
-int lfInitPointers(void); // import from main.c
+/**
+ * @brief Forth stack effect: ( u -- addr )
+ * Returns the RAM memory address of the buffer containing block `u`.
+ * If the block is not currently in RAM, it reads it from storage.
+ *
+ * @return 0 on success, or non-zero VM error code.
+ */
+int lfAPI_block(void);
 
 #ifdef __cplusplus
 }

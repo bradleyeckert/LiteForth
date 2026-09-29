@@ -104,22 +104,6 @@ int32_t vmReset(void);
  * @{
  */
 
-/**
- * @brief Invokes the LiteForth API function handler (API 0).
- *
- * @param fn API function identifier or dispatch ID to execute.
- * @return IOR result code (see errcodes.h) from host function call.
- */
-int VMapi0Call(int fn);
-
-/**
- * @brief Invokes a user API function handler (API 1).
- *
- * @param fn API function identifier or dispatch ID to execute.
- * @return IOR result code (see errcodes.h) from host function call.
- */
-int VMapi1Call(int fn);
-
 /** @} */
 
 #define STACK_MASK            (STACK_CAPACITY - 1)

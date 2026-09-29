@@ -20,15 +20,6 @@ typedef struct {
 const char* get_error_message(int err_code);
 
 /**
- * Copies a null-terminated string, including the terminator, into text space
- * as 8-bit slices starting at the text pointer (TP), and advances TP past it.
- * TP is left as a byte address, as `_,"` does.
- * @param str String to copy.
- * @return 0 on success, or a negative error code (e.g., ERR_DICTIONARY_OVERFLOW).
- */
-int lfCompString(char* str);
-
-/**
  * @brief Forth word `t{`  ( -- )
  * Starts a test in the style of the Hayes test suite: T{ inputs -> results }T.
  * Records the stack depth.

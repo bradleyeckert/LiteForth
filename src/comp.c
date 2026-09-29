@@ -6,6 +6,7 @@
 #include "options.h"
 #include "tools.h"
 #include "comp.h"
+#include "api0.h"
 //#include <stdio.h> // remove
 
 // globals

@@ -289,32 +289,48 @@ static int extick(void) {
     return vmPush(word->aux);
 }
 
+/* ONLY  ( -- )  Search only the `only` wordlist. CONTEXT is in forth.h. */
+int lfAPI_only(void) {
+    int8_t* ctx = CONTEXT;
+    *ctx++ = 1;
+    *ctx++ = -1;
+    return 0;
+}
+
+/* FORTH  ( -- )  Search the forth wordlist first */
+int lfAPI_forth(void) {
+    CONTEXT[0] = 0;
+    return 0;
+}
+
+/* >OPTIONS  ( flags -- )  Set (or with 0, clear) the system options */
+int lfAPI_setFlags(void) {
+    int32_t val = vmPop();
+    if ((g_lf_sys_options & SYS_OPTIONS_LOCKED) == 0) {
+        if (val) { // set more options
+            g_lf_sys_options |= val;
+        }
+        else { // clear options
+            g_lf_sys_options = 0;
+        }
+    }
+    return 0;
+}
+
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {
-    bye, lfAPI_words, lfAPI_forth, lfAPI_only, umstar,
-    mstar, mudivmod, stardivmod, qkey, key, 
-    emit, qemit, lfAPI_colon, lfAPI_semicolon, lfAPI_setFlags, 
-    lfAPI_empty, parenthesis, dotParen, lfAPI_dotDoes, lfAPI_dotCreate, 
-    lfCR, lfAPI_literal, lfAPI_dotWid, extick, tickpage, 
-    wordlist, flashOpen, flashClose, endbracket, bracket, 
-    lfAPI_exit, lfAPI_constant, lfAPI_bits, lfAPI_toBody, commaQ,
-    lfAPI_bit, lfAPI_inst, immediate, lfAPI_block, lfAPI_buffer, 
-    lfAPI_update, lfAPI_saveBuffers, lfAPI_flush, lfAPI_emptyBuffers, lfAPI_load, 
-    capacity, lfAPI_nextBlock, lfAPI_postpone, lfAPI_compile, lfAPI_break
-#if (FAT_FORTH & 1)
-    , lfAPI_endTest, lfAPI_doTest, lfAPI_beginTest, lfAPI_hex, lfAPI_decimal
-    , lfAPI_dotPage, lfAPI_dotPages, lfAPI_dump, lfAPI_dumpIns, lfAPI_dasm
-    , lfAPI_dotEss, lfAPI_dot, lfAPI_see
-#endif
+#define API0_FN(id, fn) fn,
+    API0_LIST(API0_FN)
+    API0_TOOLS_LIST(API0_FN)
+#undef API0_FN
 };
 
 // VMapi0Call and VMapi1Call are exported to vm.c
 
-#define API0fs ((int)(sizeof(API0fns)/sizeof(API0fns[0])))
 
 int VMapi0Call(int fn) {
-    if (fn < API0fs) {
+    if (fn < API0_COUNT) {
         return API0fns[fn]();
     }
     return ERR_INVALID_API_CALL;

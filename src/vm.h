@@ -124,6 +124,9 @@ int32_t vmReset(void);
 #if (STACK_CAPACITY <= 0) || ((STACK_CAPACITY & STACK_MASK) != 0)
 #error "STACK_CAPACITY must be a non-zero power of 2 for masking to work."
 #endif
+#if (STACK_CAPACITY < 32)
+#error "STACK_CAPACITY must be at least 32."
+#endif
 
 #define VM_EMPTYSTACK 0xAAAAAAAA
 

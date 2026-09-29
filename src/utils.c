@@ -21,24 +21,6 @@ int lfAPI_dotEss(void) {
     return lfDotS();
 }
 
-// Compile a string to text space
-int lfCompString(char* str) {
-    int32_t tp = 0;
-    int ior = lfTpFetch(&tp);
-    if (ior) return ior;
-    tp = lfSetSliceWidth(tp, 8);    // byte address
-    char c = 1;
-    while (c) {
-        c = *str++;                 // include zero terminator
-        ior = vmStore(tp, c);
-        if (ior) return ior;
-        tp = vmFieldPlus(tp);
-        ior = lfTpStore(tp);        // checks the text space limit
-        if (ior) return ior;
-    }
-    return 0;
-}
-
 /*
  * Assertion tests for Forth words
  *

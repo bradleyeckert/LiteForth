@@ -1,0 +1,6 @@
+[undefined] nosuchword ?
+[after error] 1 10 Error: ior=-4 stack underflow
+[base] 10 ( [111]... 1 1 1 1 1 1 1 1 ) Error: ior=-3 stack overflow
+Error: ior=-4 stack underflow
+Error: ior=-109 TIB filled up before EOL was seen
+3 ( 1 2 3 ) 

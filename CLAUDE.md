@@ -24,10 +24,16 @@ make clean      # leaves the tracked bin/*.bin images alone
 - A new unit test suite is picked up automatically: add a directory under
   `src/target/desktop/unit_tests/` with a `makefile` that has a `test` target.
   Unity is vendored in `unit_tests/unity/` (don't edit it).
-- `unit_tests/load/` is a script-driven test: `run.sh` builds a scratch
-  `lfblocks.bin` in a temp dir with `dd`, runs `bin/lf -o 3`, and diffs the
-  output (minus the banner line) against `expected.txt`. On failure it leaves
-  `got.txt`. Use the same pattern for other interpreter-level tests.
+- `unit_tests/load/` and `unit_tests/quit/` are script-driven tests: `run.sh`
+  runs `bin/lf -o 3` in a temp dir (load also builds a scratch `lfblocks.bin`
+  with `dd`) and diffs the output, minus the banner line, against
+  `expected.txt`. On failure it leaves `got.txt`. Use the same pattern for
+  other interpreter-level tests.
+- `unit_tests/api0/` checks the API 0 index order against `expected.txt`.
+  After deliberately appending an API 0 function, run `make update` there.
+- `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
+- For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
+  first and `cmp` them afterwards; gcc output is reproducible here.
 - CI (`.github/workflows/c-cpp.yml`) runs `make` and `make test`, but only on
   pushes and PRs to `main`, so work on other branches is untested until a PR.
 
@@ -57,7 +63,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/forth.c/.h` | Text interpreter (`lfInterpret`, `interpretSource`), `QUIT`, parsing, the built-in dictionary table, `load`, `-->`, `.` etc. |
 | `src/comp.c/.h` | Compiler: `lfCompileWord`, `lfExecuteWord`, literals, code slots |
 | `src/vm.c/.h`, `vm_labels.h` | The simulated CPU (`vmRun`), registers, memory pages, sys option flags |
-| `src/api0.c/.h` | `API0fns[]`: C functions callable from Forth via the API0 instruction |
+| `src/api0_list.h` | The API 0 function list (X-macro): single source of API 0 indices |
+| `src/api0.c/.h` | API 0 index enum and `API0fns[]`, both generated from `api0_list.h` |
 | `src/tools.c/.h` | Optional tools (`see`, `dump`, disassembler, test words), gated by `FAT_FORTH` |
 | `src/utils.c/.h` | Number output, error message table, misc helpers |
 | `src/lfblocks.c/.h` | Block buffer management (LRU, `lfAssignBlock`) |
@@ -75,10 +82,15 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - Forth words implemented in C are `int lfAPI_name(void)`: they take and return
   values on the VM data stack (`vmPop`/`vmPush`) and return an `ior`
   (0 = ok, else a code from `errcodes.h`).
-- Adding a C word: append the function to `API0fns[]` in `api0.c` and add a
-  dictionary entry in `forth.c` (`{ LINK(n), "name", API0(index), ...}`). The
-  `API0(index)` must equal the function's position in `API0fns[]`; don't
-  reorder that table.
+- Adding a C word: append `X(API_NAME, function)` to the end of `API0_LIST`
+  in `src/api0_list.h` (or `API0_TOOLS_LIST` for `FAT_FORTH` tools), add a
+  row `{ PREV, "name", API0(API_NAME), /* stack */ flags},` to `forth_heads`
+  in `forth.c`, and run `make update` in `unit_tests/api0`. API 0 indices are
+  compiled into code saved in flash, so never reorder, remove or insert
+  entries in the middle of the list.
+- Dictionary rows link to the previous row with `PREV` (counted with
+  `__COUNTER__` from `HEADS_BEGIN(table)`); never write link numbers by hand,
+  and don't use `__COUNTER__` inside a header table.
 - Tunables (`MAX_LOAD_NESTING`, `SYSTEM_BLOCKS`, `SCREEN_COLUMNS`, ...) are in
   `src/target/desktop/options.h`.
 - File encodings are mixed. Preserve them byte-for-byte when editing:
@@ -101,6 +113,12 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - **vmRun is re-entrant when calling a word** (`vmRun(0, 0, addr)`): it saves
   `PC` and restores it after a normal return, so a word can call `load`, which
   runs more words. Single-instruction and step modes don't touch `PC`.
+- **QUIT** is a loop over small helpers (`quitReset`, `prompt`,
+  `interpretLine`, `checkStackDepth`, `reportError`). After each line it
+  checks `sp`, which wraps: upper 4 bits all set means underflow (120-127
+  for a 128-cell stack), upper 3 set means overflow (112-119), so a line may
+  leave at most 111 items.
+  A line too long for TIB is not interpreted at all.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

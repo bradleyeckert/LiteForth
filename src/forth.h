@@ -129,16 +129,17 @@ typedef int (putcfunc)(char c);
 #define COLOR_BRIGHT_CYAN     14
 #define COLOR_BRIGHT_WHITE    15
 
-#define API_COMPILE           48
-
 /**
  * The standard Forth outer interpreter (terminal loop).
  * Prints the version banner, resets the dictionary and search order, then
- * reads lines from the terminal and interprets them. After an error it
+ * reads lines from the terminal and interprets them. After each line it
+ * checks the data stack: a line may leave at most STACK_CAPACITY * 7 / 8 - 1
+ * items, and underflow of up to STACK_CAPACITY / 16 items is caught. A line too long for TIB is not interpreted. After an error it
  * reports the error, resets the stacks and base, and continues.
  * Open the terminal with `serial_open` before calling.
- * @return 0 when `bye` is executed, or the error code of the first error if
- *         SYS_OPTION_VALIDATION is set.
+ * @return 0 when `bye` is executed, the error code of the first error if
+ *         SYS_OPTION_VALIDATION is set, or an output error if the prompt
+ *         can't be written.
  */
 int QUIT(void);
 
@@ -253,32 +254,6 @@ int lfAPI_dotWid(void);
 int lfAPI_words(void);
 
 /**
- * @brief Forth word `>options`  ( n -- )
- * Sets system option flags (SYS_OPTION_* in vm.h). A nonzero n ORs its
- * bits into the options; zero clears all options. Has no effect once
- * SYS_OPTIONS_LOCKED is set.
- *
- * @return 0.
- */
-int lfAPI_setFlags(void);
-
-/**
- * @brief Forth word `only`  ( -- )
- * Sets the search order to the minimal `only` wordlist.
- *
- * @return 0.
- */
-int lfAPI_only(void);
-
-/**
- * @brief Forth word `forth`  ( -- )
- * Replaces the first wordlist in the search order with the `forth` wordlist.
- *
- * @return 0.
- */
-int lfAPI_forth(void);
-
-/**
  * @brief Forth word `-->`  ( -- )
  * Stops interpreting the current block and continues with block BLK+1.
  * The next block replaces the current one, so chains of any length do not
@@ -309,15 +284,6 @@ int lfAPI_load(void);
  * @return 0 on success, or the error from lfInitPointers.
  */
 int lfAPI_empty(void);
-
-/**
- * @brief Forth word `block`  ( u -- addr )
- * Returns the address of a RAM buffer holding block u, reading the block
- * from storage if it is not already in a buffer.
- *
- * @return 0 on success, or non-zero VM error code.
- */
-int lfAPI_block(void);
 
 #ifdef __cplusplus
 }

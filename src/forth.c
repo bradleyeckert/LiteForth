@@ -14,6 +14,7 @@
 #if (FAT_FORTH & 1)
 #include "utils.h"
 #include "main.h"
+#include "api0.h"
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;
@@ -52,129 +53,144 @@ static int lfTIBSTATEstore(int state) {
 #define SYSTO(idx) (W_PRIMITIVE | W_WIDE_INST | VMI_TOSYS | (idx))
 #define SYSFM(idx) (W_PRIMITIVE | W_WIDE_INST | VMI_FROMSYS | (idx))
 
-#define LINKO(val) (struct s_head*)&only_heads[(val)]
+/*
+ * Each header links to the one before it in its table, so a table is a
+ * list whose head is its last row. PREV is the link to the previous row.
+ * It counts rows with __COUNTER__ (supported by GCC, Clang, MSVC, IAR and
+ * Keil), so rows can be added, removed or #if'd out without renumbering.
+ * HEADS_BEGIN(table) must come right before the table, and nothing inside
+ * a table may use __COUNTER__ except PREV.
+ */
+#define HEADS_BEGIN(table) enum { table##_row1 = __COUNTER__ + 1 }
+#define PREV_IN(table) (struct s_head*)&table[__COUNTER__ - table##_row1]
+#define LAST_HEAD(table) (&table[(sizeof(table) / sizeof(table[0])) - 1])
 
+HEADS_BEGIN(only_heads);
+#define PREV PREV_IN(only_heads)
 static const struct s_head only_heads[] = {
-    { NULL,     "bye",      API0(0), 0},
-    { LINKO(0), "words",    API0(1), 0},
-    { LINKO(1), "forth",    API0(2), 0},
-    { LINKO(2), "only",     API0(3), 0},
+    { NULL,     "bye",      API0(API_BYE), 0},
+    { PREV,     "words",    API0(API_WORDS), 0},
+    { PREV,     "forth",    API0(API_FORTH), 0},
+    { PREV,     "only",     API0(API_ONLY), 0},
 };
-
-#define LINK(val) (struct s_head*)&forth_heads[(val)]
+#undef PREV
 
 // Flash cost per entry: 16 bytes plus name string (length+1 bytes).
 // 64 entries is about 1.4 KB
+// The forth wordlist continues into the only wordlist.
+HEADS_BEGIN(forth_heads);
+#define PREV PREV_IN(forth_heads)
 static const struct s_head forth_heads[] = {  
-    { LINKO(3), "invert",       UOP(VMU_INV),                             0},
-    { LINK( 0), "inv",          UOP(VMU_INV),                             0},
-    { LINK( 1), "over",         UOP(VMU_OVER),                            0},
-    { LINK( 2), "a!",           UOP(VMU_ASTORE),                          0},
-    { LINK( 3), "xor",          UOP(VMU_XOR),                             0},
-    { LINK( 4), "+",            UOP(VMU_PLUS),                            0},
-    { LINK( 5), "and",          UOP(VMU_AND),                             0},
-    { LINK( 6), ">r",           UOP(VMU_PUSH),                            0},
-    { LINK( 7), "unext",        UOP(VMU_UNEXT),                           0},
-    { LINK( 8), "2*",           UOP(VMU_TWOSTAR),                         0},
-    { LINK( 9), "dup",          UOP(VMU_DUP),                             0},
-    { LINK(10), "drop",         UOP(VMU_DROP),                            0},
-    { LINK(11), "@a",           UOP(VMU_FETCHA),                          0},
-    { LINK(12), "@a+",          UOP(VMU_FETCHAPLUS),                      0},
-    { LINK(13), "@as",          UOP(VMU_FETCHASIGN),                      0},
-    { LINK(14), "r@",           UOP(VMU_R),                               0},
-    { LINK(15), "r>",           UOP(VMU_POP),                             0},
-    { LINK(16), "2/c",          UOP(VMU_TWODIVC),                         0},
-    { LINK(17), "2/",           UOP(VMU_TWODIV),                          0},
-    { LINK(18), "!a",           UOP(VMU_STOREA),                          0},
-    { LINK(19), "!a+",          UOP(VMU_STOREAPLUS),                      0},
-    { LINK(20), "!b",           UOP(VMU_STOREB),                          0},
-    { LINK(21), "!b+",          UOP(VMU_STOREBPLUS),                      0},
-    { LINK(22), "swap",         UOP(VMU_SWAP),                            0},
-    { LINK(23), "+*",           UOP(VMU_PLUSSTAR),                        0},
-    { LINK(24), "b",            UOP(VMU_B),                               0},
-    { LINK(25), "b!",           UOP(VMU_BSTORE),                          0},
-    { LINK(26), "@b",           UOP(VMU_FETCHB),                          0},
-    { LINK(27), "@b+",          UOP(VMU_FETCHBPLUS),                      0},
-    { LINK(28), "a",            UOP(VMU_A),                               0},
-    { LINK(29), "cy",           UOP(VMU_CY),                              0},
-    { LINK(30), "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
-    { LINK(31), "2drop",        MACRO(VMU_DROP,VMU_DROP,VMU_NOP),         0},
-    { LINK(32), "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},
-    { LINK(33), "@",            MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),     0},
-    { LINK(34), "s@",           MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0},
-    { LINK(35), "nip",          MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),         0},
-    { LINK(36), "tuck",         MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),         0},
-    { LINK(37), "um+",          MACRO(VMU_PLUS,VMU_CY,VMU_NOP),           0},
-    { LINK(38), "slice+",       SYS(VMS_FIELDPLUS),  /* a1 -- a2      */  0},
-    { LINK(39), "]shr",         SYS(VMS_SHR),        /* u1 -- u2      */  0},
-    { LINK(40), "]shl",         SYS(VMS_SHL),        /* u1 -- u2      */  0},
-    { LINK(41), "shft[",        SYSTO(VMSTO_SHIFT),  /* position --   */  0},
-    { LINK(42), "]task",        SYSTO(VMSTO_TASK),   /* tstate --     */  0},
-    { LINK(43), "yeet",         SYSTO(VMSTO_YEET),   /* ior --        */  0},
-    { LINK(44), "task[",        SYSFM(VMSFROM_TASK), /* -- tstate     */  0},
-    { LINK(45), "um*",          API0( 4), /* u1 u2 -- ud              */  0},
-    { LINK(46), "m*",           API0( 5), /* n1 n2 -- d               */  0},
-    { LINK(47), "mu/mod",       API0( 6), /* ud u -- rem dquot        */  0},
-    { LINK(48), "*/mod",        API0( 7), /* n1 n2 -- rem quot        */  0},
-    { LINK(49), "t_rx?",        API0( 8), /* -- flag                  */  0},
-    { LINK(50), "t_rx",         API0( 9), /* -- c                     */  0},
-    { LINK(51), "t_tx!",        API0(10), /* c --                     */  0},
-    { LINK(52), "t_tx?",        API0(11), /* -- c                     */  0},
-    { LINK(53), ":",            API0(12), /* <name> --                */  0},
-    { LINK(54), ";",            API0(13),                   A_IMMEDIATE | 0},
-    { LINK(55), ">options",     API0(14), /* n --                     */  0},
-    { LINK(56), "empty",        API0(15), /* --                       */  0},
-    { LINK(57), "(",            API0(16), /* -- */          A_IMMEDIATE | 0},
-    { LINK(58), "\xEF\xBB\xBF(",API0(16), /* -- */          A_IMMEDIATE | 0},
-    { LINK(59), ".(",           API0(17), /* --                       */  0},
-    { LINK(60), "does>",        API0(18), /* -- */          A_IMMEDIATE | 0},
-    { LINK(61), "create",       API0(19), /* -- | -- addr             */  0},
-    { LINK(62), "cr",           API0(20), /* --                       */  0},
-    { LINK(63), "literal",      API0(21), /* n -- */        A_IMMEDIATE | 0},
-    { LINK(64), ".wid",         API0(22), /* wid --                   */  0},
-    { LINK(65), "x'",           API0(23), /* <name> -- w aux          */  0},
-    { LINK(66), "page",         API0(24), /* page -- a                */  0},
-    { LINK(67), "wordlist",     API0(25), /* -- wid                   */  0},
-    { LINK(68), "open-flash",   API0(26), /* addr --                  */  0},
-    { LINK(69), "close-flash",  API0(27), /* --                       */  0},
-    { LINK(70), "]",            API0(28), /* --                       */  0},
-    { LINK(71), "[",            API0(29), /* -- */          A_IMMEDIATE | 0},
-    { LINK(72), "exit",         API0(30), /* -- */          A_IMMEDIATE | 0},
-    { LINK(73), "constant",     API0(31), /* n <name> --              */  0},
-    { LINK(74), "bits",         API0(32), /* n <name> --              */  0},
-    { LINK(75), ">body",        API0(33), /* xt -- addr               */  0},
-    { LINK(76), "_,\"",         API0(34), /* string" -- addr          */  0},
-    { LINK(77), "bit",          API0(35), /* n --                     */  0},
-    { LINK(78), ",inst",        API0(36), /* inst --                  */  0},
-    { LINK(79), "immediate",    API0(37), /* --                       */  0},
-    { LINK(80), "block",        API0(38), /* u -- addr                */  0},
-    { LINK(81), "buffer",       API0(39), /* u -- addr                */  0},
-    { LINK(82), "update",       API0(40), /* --                       */  0},
-    { LINK(83), "save-buffers", API0(41), /* --                       */  0},
-    { LINK(84), "flush",        API0(42), /* --                       */  0},
-    { LINK(85), "empty-buffers",API0(43), /* --                       */  0},
-    { LINK(86), "load",         API0(44), /* u --                     */  0},
-    { LINK(87), "capacity",     API0(45), /* -- u                     */  0},
-    { LINK(88), "-->",          API0(46), /* --                       */  0},
-    { LINK(89), "postpone",     API0(47), /* <name> -- */   A_IMMEDIATE | 0},
-    { LINK(90), ",compile",     API0(API_COMPILE), /* xt --           */  0},
-    { LINK(91), "break",        API0(49), /* --                       */  0},
-#if (FAT_FORTH & 1)                                                     
-    { LINK(92), "}t",           API0(50), /* ? --                     */  0},
-    { LINK(93), "->",           API0(51), /* ? --                     */  0},
-    { LINK(94), "t{",           API0(52), /* --                       */  0},
-    { LINK(95), "hex",          API0(53), /* --                       */  0},
-    { LINK(96), "decimal",      API0(54), /* --                       */  0},
-    { LINK(97), ".page",        API0(55), /* n --                     */  0},
-    { LINK(98), ".pages",       API0(56), /* --                       */  0},
-    { LINK(99), "dump",         API0(57), /* addr length --           */  0},
-    { LINK(100), "dumpi",       API0(58), /* inst --                  */  0},
-    { LINK(101), "dasm",        API0(59), /* addr length --           */  0},
-    { LINK(102), ".s",          API0(60), /* --                       */  0},
-    { LINK(103), ".",           API0(61), /* n --                     */  0},
-    { LINK(104), "see",         API0(62), /* <name> --                */  0 },
+    { (struct s_head*)LAST_HEAD(only_heads), "invert", UOP(VMU_INV),  0},
+    { PREV, "inv",          UOP(VMU_INV),                             0},
+    { PREV, "over",         UOP(VMU_OVER),                            0},
+    { PREV, "a!",           UOP(VMU_ASTORE),                          0},
+    { PREV, "xor",          UOP(VMU_XOR),                             0},
+    { PREV, "+",            UOP(VMU_PLUS),                            0},
+    { PREV, "and",          UOP(VMU_AND),                             0},
+    { PREV, ">r",           UOP(VMU_PUSH),                            0},
+    { PREV, "unext",        UOP(VMU_UNEXT),                           0},
+    { PREV, "2*",           UOP(VMU_TWOSTAR),                         0},
+    { PREV, "dup",          UOP(VMU_DUP),                             0},
+    { PREV, "drop",         UOP(VMU_DROP),                            0},
+    { PREV, "@a",           UOP(VMU_FETCHA),                          0},
+    { PREV, "@a+",          UOP(VMU_FETCHAPLUS),                      0},
+    { PREV, "@as",          UOP(VMU_FETCHASIGN),                      0},
+    { PREV, "r@",           UOP(VMU_R),                               0},
+    { PREV, "r>",           UOP(VMU_POP),                             0},
+    { PREV, "2/c",          UOP(VMU_TWODIVC),                         0},
+    { PREV, "2/",           UOP(VMU_TWODIV),                          0},
+    { PREV, "!a",           UOP(VMU_STOREA),                          0},
+    { PREV, "!a+",          UOP(VMU_STOREAPLUS),                      0},
+    { PREV, "!b",           UOP(VMU_STOREB),                          0},
+    { PREV, "!b+",          UOP(VMU_STOREBPLUS),                      0},
+    { PREV, "swap",         UOP(VMU_SWAP),                            0},
+    { PREV, "+*",           UOP(VMU_PLUSSTAR),                        0},
+    { PREV, "b",            UOP(VMU_B),                               0},
+    { PREV, "b!",           UOP(VMU_BSTORE),                          0},
+    { PREV, "@b",           UOP(VMU_FETCHB),                          0},
+    { PREV, "@b+",          UOP(VMU_FETCHBPLUS),                      0},
+    { PREV, "a",            UOP(VMU_A),                               0},
+    { PREV, "cy",           UOP(VMU_CY),                              0},
+    { PREV, "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
+    { PREV, "2drop",        MACRO(VMU_DROP,VMU_DROP,VMU_NOP),         0},
+    { PREV, "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},
+    { PREV, "@",            MACRO(VMU_ASTORE,VMU_FETCHA,VMU_NOP),     0},
+    { PREV, "s@",           MACRO(VMU_ASTORE,VMU_FETCHASIGN,VMU_NOP), 0},
+    { PREV, "nip",          MACRO(VMU_SWAP,VMU_DROP,VMU_NOP),         0},
+    { PREV, "tuck",         MACRO(VMU_SWAP,VMU_OVER,VMU_NOP),         0},
+    { PREV, "um+",          MACRO(VMU_PLUS,VMU_CY,VMU_NOP),           0},
+    { PREV, "slice+",       SYS(VMS_FIELDPLUS),                       0},
+    { PREV, "]shr",         SYS(VMS_SHR),                             0},
+    { PREV, "]shl",         SYS(VMS_SHL),                             0},
+    { PREV, "shft[",        SYSTO(VMSTO_SHIFT),                       0},
+    { PREV, "]task",        SYSTO(VMSTO_TASK),                        0},
+    { PREV, "yeet",         SYSTO(VMSTO_YEET),                        0},
+    { PREV, "task[",        SYSFM(VMSFROM_TASK),                      0},
+    { PREV, "um*",          API0(API_UMSTAR),                         0},
+    { PREV, "m*",           API0(API_MSTAR),                          0},
+    { PREV, "mu/mod",       API0(API_MUDIVMOD),                       0},
+    { PREV, "*/mod",        API0(API_STARDIVMOD),                     0},
+    { PREV, "t_rx?",        API0(API_T_RXQ),                          0},
+    { PREV, "t_rx",         API0(API_T_RX),                           0},
+    { PREV, "t_tx!",        API0(API_T_TXSTORE),                      0},
+    { PREV, "t_tx?",        API0(API_T_TXQ),                          0},
+    { PREV, ":",            API0(API_COLON),                          0},
+    { PREV, ";",            API0(API_SEMICOLON),        A_IMMEDIATE | 0},
+    { PREV, ">options",     API0(API_TOOPTIONS),                      0},
+    { PREV, "empty",        API0(API_EMPTY),                          0},
+    { PREV, "(",            API0(API_PAREN),            A_IMMEDIATE | 0},
+    { PREV, "\xEF\xBB\xBF(", API0(API_PAREN),           A_IMMEDIATE | 0},
+    { PREV, ".(",           API0(API_DOTPAREN),                       0},
+    { PREV, "does>",        API0(API_DOES),             A_IMMEDIATE | 0},
+    { PREV, "create",       API0(API_CREATE),                         0},
+    { PREV, "cr",           API0(API_CR),                             0},
+    { PREV, "literal",      API0(API_LITERAL),          A_IMMEDIATE | 0},
+    { PREV, ".wid",         API0(API_DOTWID),                         0},
+    { PREV, "x'",           API0(API_XTICK),                          0},
+    { PREV, "page",         API0(API_PAGE),                           0},
+    { PREV, "wordlist",     API0(API_WORDLIST),                       0},
+    { PREV, "open-flash",   API0(API_OPEN_FLASH),                     0},
+    { PREV, "close-flash",  API0(API_CLOSE_FLASH),                    0},
+    { PREV, "]",            API0(API_RBRACKET),                       0},
+    { PREV, "[",            API0(API_LBRACKET),         A_IMMEDIATE | 0},
+    { PREV, "exit",         API0(API_EXIT),             A_IMMEDIATE | 0},
+    { PREV, "constant",     API0(API_CONSTANT),                       0},
+    { PREV, "bits",         API0(API_BITS),                           0},
+    { PREV, ">body",        API0(API_TOBODY),                         0},
+    { PREV, "_,\"",         API0(API_COMMAQUOTE),                     0},
+    { PREV, "bit",          API0(API_BIT),                            0},
+    { PREV, ",inst",        API0(API_COMMAINST),                      0},
+    { PREV, "immediate",    API0(API_IMMEDIATE),                      0},
+    { PREV, "block",        API0(API_BLOCK),                          0},
+    { PREV, "buffer",       API0(API_BUFFER),                         0},
+    { PREV, "update",       API0(API_UPDATE),                         0},
+    { PREV, "save-buffers", API0(API_SAVE_BUFFERS),                   0},
+    { PREV, "flush",        API0(API_FLUSH),                          0},
+    { PREV, "empty-buffers", API0(API_EMPTY_BUFRS),                   0},
+    { PREV, "load",         API0(API_LOAD),                           0},
+    { PREV, "capacity",     API0(API_CAPACITY),                       0},
+    { PREV, "-->",          API0(API_NEXTBLOCK),                      0},
+    { PREV, "postpone",     API0(API_POSTPONE),         A_IMMEDIATE | 0},
+    { PREV, ",compile",     API0(API_COMPILE),                        0},
+    { PREV, "break",        API0(API_BREAK),                          0},
+#if (FAT_FORTH & 1)                                     
+    { PREV, "}t",           API0(API_ENDTEST),                        0},
+    { PREV, "->",           API0(API_DOTEST),                         0},
+    { PREV, "t{",           API0(API_BEGINTEST),                      0},
+    { PREV, "hex",          API0(API_HEX),                            0},
+    { PREV, "decimal",      API0(API_DECIMAL),                        0},
+    { PREV, ".page",        API0(API_DOTPAGE),                        0},
+    { PREV, ".pages",       API0(API_DOTPAGES),                       0},
+    { PREV, "dump",         API0(API_DUMP),                           0},
+    { PREV, "dumpi",        API0(API_DUMPI),                          0},
+    { PREV, "dasm",         API0(API_DASM),                           0},
+    { PREV, ".s",           API0(API_DOTS),                           0},
+    { PREV, ".",            API0(API_DOT),                            0},
+    { PREV, "see",          API0(API_SEE),                            0},
 #endif
 };
+#undef PREV
 
 static const ConstantMapping constant_table[] = {
     { -1,               "true"},
@@ -245,15 +261,15 @@ static int findConstant(char* name, int32_t* val) {
     return ERR_UNDEFINED_WORD;
 }
 
-/* ========================================================================= */
-/* WORDLIST TABLE                                                            */
-/* ========================================================================= */
+/* ======================================================================= */
+/* WORDLIST TABLE                                                          */
+/* ======================================================================= */
 
 struct s_wid wids[WIDS_MAX];
 
 static struct s_wid wids_empty[] = { // wordlists
-    {.head = &forth_heads[(sizeof(forth_heads) / sizeof(s_head)) - 1], .name = "`forth" },
-    {.head = &only_heads[(sizeof(only_heads) / sizeof(s_head)) - 1],   .name = "`only" }
+    {.head = LAST_HEAD(forth_heads), .name = "`forth" },
+    {.head = LAST_HEAD(only_heads),  .name = "`only" }
 };
 
 #define EMPTY_WIDS  2
@@ -280,21 +296,8 @@ int lfAddWordlist(char* name) {
 
 
 /* CONTEXT array holds indices into the wids array, ordered by search priority.
-   Terminated with -1 to indicate the end of the search order. */
-
-/* ONLY */
-int lfAPI_only(void) {
-    int8_t* ctx = CONTEXT;
-    *ctx++ = 1;
-    *ctx++ = -1;
-    return 0;
-}
-
-/* FORTH */
-int lfAPI_forth(void) {
-    CONTEXT[0] = 0;
-    return 0;
-}
+   Terminated with -1 to indicate the end of the search order. ONLY and
+   FORTH, which set it, are in api0.c. */
 
 /* .WID  ( n -- ) */
 int lfAPI_dotWid(void) {
@@ -390,12 +393,7 @@ char* lfFindLabel(uint32_t value, uint32_t mask, uint32_t must, uint32_t expecte
 * .S depends on "empty" marker VM_EMPTYSTACK
 */
 int lfDotS(void) {
-    int depth = 0;
-    while (depth <= DOT_S_MAX) {
-        uint32_t val = vmPeek(depth);
-        if (val == VM_EMPTYSTACK) break;
-        depth++;
-    }
+    int depth = vmPeek(VM_REG_sp);  // sp counts the items on the stack
     if (depth) {
         lf_puts("( ");
         if (depth > DOT_S_MAX) {
@@ -414,20 +412,23 @@ int lfDotS(void) {
 
 
 /* =========================================================================
->IN and BLK are the top values of an 8-deep internal block stack. They are
-used to manage the input buffer and block number for file-based input.
-TIB is a fixed buffer in Forth data space for terminal input.
+TIB is a fixed buffer in Forth data space for terminal input. >IN and BLK
+describe the current input source; LOAD saves and restores them around
+each block it interprets.
 ========================================================================= */
-
-#define TERMINAL_OVERFLOWED 0x8000
 
 uint32_t g_lf_sys_options = 0;
 static uint32_t linecount = 0;
 
-static int loadTIB(void) {
+/*
+ * Reads one line from the terminal into TIB, NUL-terminated, and returns its
+ * length. If the line does not fit, the rest of it is discarded and
+ * *overflowed is set.
+ */
+static int loadTIB(int* overflowed) {
     char *tib = (char*)TIB; // reset the TIB pointer
-	int remaining = TIBSIZE; // remaining space in TIB
-    int aux_result = 0;
+    int remaining = TIBSIZE; // remaining space in TIB
+    *overflowed = 0;
 
     if (lfTIBSTATEfetch()) {
         // Announce to Forth that the terminal is waiting for TIBSTATE = 2
@@ -456,7 +457,7 @@ static int loadTIB(void) {
             remaining--;
         }
         else {                      // ignore input remaining until EOL
-            aux_result |= TERMINAL_OVERFLOWED;
+            *overflowed = 1;
         }
     }
     *tib++ = 0;                     // Null-terminate the TIB
@@ -469,8 +470,7 @@ static int loadTIB(void) {
         }
 #endif
     }
-    int length = (TIBSIZE - remaining) | aux_result;
-    return length;
+    return TIBSIZE - remaining;
 }
 
 static void lfDotLinecount(void) {
@@ -626,7 +626,7 @@ int lfInterpret(char* str, int len) {
 
     int ior = interpretSource();
     if (ior == 0) {
-        lfAPI_emptyBuffers(); // so it will load your edits
+        lfAPI_emptyBuffers(); // so it will load external edits
     }
     else if (ior != ERR_QUIT && traced) {
         printTraceLine();
@@ -634,27 +634,92 @@ int lfInterpret(char* str, int len) {
     return ior;
 }
 
-/**
- * QUIT loop 
- *
- * `>options` ( flags -- ) sets the display (etc.) options
- * `bye`      ( ? -- ? )   ends QUIT
+/*
+ * Resets the interpreter state before QUIT reads the first line, and again
+ * after each error: color, BASE = 10 (and STATE, >IN etc. = 0), definitions
+ * into the forth wordlist, line count, and empty stacks.
  */
+static void quitReset(void) {
+    lfSetColor(COLOR_NORMAL);
+    LF_PACKEDSTATE[0] = 10;
+    LF_PACKEDSTATE[F_CURRENT] = 0;
+    linecount = 0;
+    vmReset();
+}
 
-int lfAPI_setFlags(void) {
-    int32_t val = vmPop();
-    if ((g_lf_sys_options & SYS_OPTIONS_LOCKED) == 0) {
-        if (val) { // set more options
-            g_lf_sys_options |= val;
-        }
-        else { // clear options
-            g_lf_sys_options = 0;
-        }
+/*
+ * Shows the stack and the `ok>` prompt, unless turned off by the system
+ * options. The prompt comes before the input for compatibility with cooked
+ * input; the terminal echoes the newline locally.
+ * Returns an error if the output stream is lost.
+ */
+static int prompt(void) {
+    if ((g_lf_sys_options & SYS_OPTION_NO_DOTESS) == 0) {
+        lfDotS();
+    }
+    if ((g_lf_sys_options & SYS_OPTION_NO_OK) == 0) {
+        return lf_puts("ok>");
     }
     return 0;
 }
 
-// `serial_open` before you call QUIT
+/*
+ * Checks the data stack depth after a line. sp counts items modulo
+ * STACK_CAPACITY, so taking items from an empty stack wraps it to the top of
+ * the range. If the upper 4 bits of sp are all set, the stack underflowed
+ * (by up to STACK_CAPACITY / 16 items). If only the upper 3 are, it is
+ * about to wrap and is reported as overflow. So a line may leave at most
+ * STACK_CAPACITY * 7 / 8 - 1 items (111 for 128). Reading sp is a
+ * dependency on the VM.
+ */
+#define SP_UPPER4 (STACK_MASK & ~(STACK_MASK >> 4))
+#define SP_UPPER3 (STACK_MASK & ~(STACK_MASK >> 3))
+
+static int checkStackDepth(void) {
+    int depth = vmPeek(VM_REG_sp);
+    if ((depth & SP_UPPER4) == SP_UPPER4) return ERR_STACK_UNDERFLOW;
+    if ((depth & SP_UPPER3) == SP_UPPER3) return ERR_STACK_OVERFLOW;
+    return 0;
+}
+
+/*
+ * Reads one line from the terminal and interprets it. A line too long for
+ * TIB is not interpreted at all, since running part of it could leave a
+ * definition half-compiled.
+ */
+static int interpretLine(void) {
+    int overflowed;
+    linecount++;
+    int len = loadTIB(&overflowed);
+    if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
+        lfCR();
+        lfDotLinecount();
+        lf_puts(TIB);
+    }
+    if (overflowed) return ERR_TIB_OVERFLOW;
+    int ior = lfInterpret((char*)TIB, len);
+    if (ior) return ior;
+    return checkStackDepth();
+}
+
+// Reports an error from interpretLine in decimal, in red.
+static void reportError(int ior) {
+    lfBASEstore(10);
+    lfSetColor(COLOR_BRIGHT_RED);
+    if (ior == ERR_UNDEFINED_WORD) {
+        lf_puts(lastparsed);
+        lf_puts(" ?\n");
+        return;
+    }
+    lf_puts("Error: ior=");
+    lfDot(ior);
+#if (FAT_FORTH & 1)
+    lf_puts(get_error_message(ior));
+    lfCR();
+#endif
+}
+
+// QUIT (documented in forth.h). Open the terminal with serial_open first.
 int QUIT(void) {
     lf_puts(u8"幸运狐 v");
     lfDotB(TF_VERSION, 10, 2, 3);
@@ -663,63 +728,19 @@ int QUIT(void) {
     lfAPI_only();
     lfAPI_forth();
     while (1) {
-        lfSetColor(COLOR_NORMAL);
-        LF_PACKEDSTATE[0] = 10;
-        LF_PACKEDSTATE[1] = 0;
-        linecount = 0;
-        vmReset();
-        // REPL until an error (or bye) occurs, starting with a clean stack.
-        // The `ok>` prompt is at the beginning for compatibility with
-        // cooked input. The terminal echoes newline locally.
-        int32_t ior = 0;
-        while (ior == 0) {
-            if ((g_lf_sys_options & SYS_OPTION_NO_DOTESS) == 0) {
-                lfDotS();
-            }
-            if ((g_lf_sys_options & SYS_OPTION_NO_OK) == 0) {
-                ior = lf_puts("ok>");
-                if (ior) break; // lost the output stream
-            }
-            linecount++;
-            int len = loadTIB();
-            if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
-                lfCR();
-                lfDotLinecount();
-                lf_puts(TIB);
-            }
-            ior = lfInterpret((char*)TIB, len & 0x7FFF);
-            /*
-            * The stack depth is checked here for overflow or underflow.
-            * We cheat by using sp as depth. Reading sp is a dependency.
-            * Normally, the bottom of the stack is marked by VM_EMPTYSTACK.
-            */
-            int depth = vmPeek(VM_REG_sp);
-            if (depth >= STACK_MASK) ior = ERR_STACK_OVERFLOW;
-            else if (depth < 0) ior = ERR_STACK_UNDERFLOW;
-            if (len & TERMINAL_OVERFLOWED) ior = ERR_TIB_OVERFLOW;
-        }
-		// handle the ior here if needed (e.g., exit on BYE)
-        LF_PACKEDSTATE[0] = 10; // base = decimal
-        lfSetColor(COLOR_BRIGHT_RED);
-        switch (ior) {
-        case ERR_QUIT: return 0;
-        case ERR_UNDEFINED_WORD:
-            lf_puts(lastparsed);
-            lf_puts(" ?\n");
-            break;
-        default:
-            lf_puts("Error: ior=");
-            lfDot(ior);
-#if (FAT_FORTH & 1)
-            const char* msg = get_error_message(ior);
-            lf_puts(msg);
-            lfCR();
-#endif
-            break;
-		}
+        quitReset();
+        int ior;
+        do {
+            ior = prompt();
+            if (ior) return ior;        // lost the output stream
+            ior = interpretLine();
+        } while (ior == 0);
+
+        if (ior == ERR_QUIT) return 0;  // bye
+        reportError(ior);
         if (g_lf_sys_options & SYS_OPTION_VALIDATION) {
             lfDotLinecount();
-            return ior; // quit after the first error
+            return ior;                 // quit after the first error
         }
     }
 }
@@ -819,6 +840,12 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
     return 0;
 }
 
+/*
+ * lfParseInputString is a input tool that parses input up to a terminator
+ * or the end of input. Each character, after conversion by an escape FSM,
+ * is output to callback function `echo`.
+ */
+
 static const char* esc_chars0 = "abfnrtv";
 static const char* esc_chars1 = "\a\b\f\n\r\t\v";
 
@@ -853,14 +880,6 @@ int lfParseInputString(putcfunc* echo, char terminator) {
             ior = echo(c);
         }
     }
-    return ior;
-}
-
-// BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed.
-int lfAPI_block(void) {
-    int32_t f_addr = 0;
-    int ior = lfAssignBlock((uint32_t)vmPop(), &f_addr);
-    vmPush(f_addr);
     return ior;
 }
 

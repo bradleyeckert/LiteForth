@@ -80,7 +80,8 @@ make clean      # removes build products (keeps the block and flash images in bi
 ```
 
 Run `./bin/lf` to start LiteForth in the terminal.
-`./bin/lf -o 31 < scripts/primitives.f` runs the regression test directly.
+`cd bin && ./lf -o 7 < ../scripts/primitives.f` runs the regression test directly.
+It compiles into, and saves, `bin/lfflash.bin`; `make test` runs it on copies instead.
 
 ## Documentation
 

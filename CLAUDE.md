@@ -31,6 +31,11 @@ make clean      # leaves the tracked bin/*.bin images alone
   other interpreter-level tests.
 - `unit_tests/api0/` checks the API 0 index order against `expected.txt`.
   After deliberately appending an API 0 function, run `make update` there.
+- `scripts/primitives.f` holds the VM and dictionary tests as `T{ ... -> ... }T`
+  assertions. `make test` runs it with `-o 7` (validation, so the first
+  failure stops lf and prints its line number) in a temp dir on copies of
+  `bin/lfflash.bin` and `bin/lfblocks.bin`. It opens flash at the start,
+  closes it at the end, and copies in the `go.f` definitions it tests.
 - `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
 - For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
   first and `cmp` them afterwards; gcc output is reproducible here.
@@ -44,14 +49,22 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 ```
 
 - `-o N` sets `g_lf_sys_options` (flags in `vm.h`): 1 no `ok>`, 2 no stack
-  display, 4 quit on first error (validation), 8 no flash file, 16 no block
-  file, 32 ignore CR, 64 verbose echo. `make test` uses `-o 31`; use `-o 3`
-  when a test must keep going after errors.
+  display, 4 quit on first error (validation), 32 ignore CR, 64 verbose
+  echo. There are no options to skip the flash or block files: lf always
+  loads or creates them. Use `-o 3` when a test must keep going after errors.
 - Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
-  does); without it `:` fails with ior -20.
-- lf reads and creates `lfblocks.bin` / `lfflash.bin` in the current directory.
-  Run experiments in the scratchpad, not the repo root, so the tracked images
-  aren't modified.
+  does); flash is write-protected otherwise and `:` fails with ior -20.
+- `open-flash` maps the flash page to a RAM buffer from the memory pool.
+  `close-flash` relocates header pointers into the buffer (`lfRelocateHeaders`:
+  headers hold C pointers), programs the page and frees the buffer. Without
+  a matching `close-flash`, lf exits with code 196 (pool_free fails in main).
+- lf reads (or, if missing, creates) `lfblocks.bin` / `lfflash.bin` in the
+  current directory. The repo tracks both at the root and in `bin/`; keep all
+  of them, never delete or regenerate them. `lfflash.bin` mimics an MCU's
+  flash memory; `lfblocks.bin` will hold source code and other data, and
+  code to write flash to blocks is planned. `make test` uses copies of the
+  `bin/` images. Run experiments in the scratchpad, not the repo, so the
+  tracked images aren't modified.
 - Block files: 4 KB blocks (not 1 KB), block n at byte offset n*4096, block 0
   holds the `LITEFORTHBLK ...` header. Only `SYSTEM_BLOCKS` (2) buffers exist,
   so any 3-deep nesting of loads evicts buffers.
@@ -119,6 +132,12 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   for a 128-cell stack), upper 3 set means overflow (112-119), so a line may
   leave at most 111 items.
   A line too long for TIB is not interpreted at all.
+- VM arithmetic: `cy` is the carry out of bit 31 of `+`, or the bit shifted
+  out by `2/c` (which rotates right through carry). `2/` is an arithmetic
+  shift. `+*` is a multiply step: T:A shifts right, adding N when A is odd.
+- `n for ... next` runs n times (R = n..1); `0 for` runs 2^32 times.
+- `does>` works right after `create`, not inside a defining word:
+  `create arr 3 allot does> ] + exit [` (end with `exit [`, not `;`).
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

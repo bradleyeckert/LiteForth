@@ -285,6 +285,20 @@ int lfAPI_load(void);
  */
 int lfAPI_empty(void);
 
+/**
+ * Moves header pointers from a RAM buffer to the flash page it will be
+ * programmed into. Headers compiled while `open-flash` maps a flash page to
+ * a RAM buffer hold C pointers into that buffer; `close-flash` calls this
+ * before programming the page and freeing the buffer.
+ * Rewrites every pointer into [from, from + cells) to the same offset in
+ * `to`: the wordlist heads and names, the latest header, the name kept for
+ * `wordlist`, and the link and name fields of headers inside the buffer.
+ * @param from  The RAM buffer.
+ * @param to    The flash page the buffer's contents are going to.
+ * @param cells Size of the buffer in cells.
+ */
+void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells);
+
 #ifdef __cplusplus
 }
 #endif

@@ -112,6 +112,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "@b+",          UOP(VMU_FETCHBPLUS),                      0},
     { PREV, "a",            UOP(VMU_A),                               0},
     { PREV, "cy",           UOP(VMU_CY),                              0},
+    { PREV, "u!",           UOP(VMU_USTORE),                          0},
     { PREV, "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
     { PREV, "2drop",        MACRO(VMU_DROP,VMU_DROP,VMU_NOP),         0},
     { PREV, "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},
@@ -766,6 +767,37 @@ int lfToHeader(uint32_t w, uint32_t aux) {
 }
 
 char* lfHeaderName = NULL;
+
+// If p points into the buffer [lo, lo + bytes), the same place in `to`.
+static void* rebase(const void* p, uintptr_t lo, uintptr_t bytes, char* to) {
+    uintptr_t u = (uintptr_t)p;
+    if (u - lo < bytes) return to + (u - lo);
+    return (void*)p;
+}
+
+/*
+ * lfRelocateHeaders (documented in forth.h).
+ * Only headers inside the buffer are edited, and the walk down each list
+ * stops at the first header outside it: older headers were made before the
+ * page was opened, so they can't point into the buffer.
+ */
+void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
+    uintptr_t lo = (uintptr_t)from;
+    uintptr_t bytes = (uintptr_t)cells * sizeof(int32_t);
+    for (int i = 0; i < wids_pointer; i++) {
+        struct s_head* h = (struct s_head*)wids[i].head;
+        while (h != NULL && (uintptr_t)h - lo < bytes) {
+            struct s_head* next = h->link;
+            h->link = rebase(h->link, lo, bytes, (char*)to);
+            h->name = rebase(h->name, lo, bytes, (char*)to);
+            h = next;
+        }
+        wids[i].head = rebase(wids[i].head, lo, bytes, (char*)to);
+        wids[i].name = rebase(wids[i].name, lo, bytes, (char*)to);
+    }
+    latest = rebase(latest, lo, bytes, (char*)to);
+    lfCreatedName = rebase(lfCreatedName, lo, bytes, (char*)to);
+}
 
 // Create a header structure in Forth memory space
 int lfHeader(uint32_t w, uint32_t aux, char** name) {

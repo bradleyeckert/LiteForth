@@ -32,6 +32,15 @@ typedef struct {
  * ------------------------------------------------------------------------- */
 
 /**
+ * @brief Forth word `block`  ( u -- addr )
+ * Returns the address of a RAM buffer holding block u, reading the block
+ * from storage if it is not already in a buffer.
+ *
+ * @return 0 on success, or non-zero VM error code.
+ */
+int lfAPI_block(void);
+
+/**
  * @brief Forth word `buffer`  ( u -- addr )
  * Assigns a RAM buffer to block `u` without reading its contents from storage.
  * Used when overwriting an entire block from scratch. If every buffer is in

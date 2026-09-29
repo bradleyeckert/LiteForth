@@ -317,14 +317,6 @@ int lfAPI_setFlags(void) {
     return 0;
 }
 
-/* BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed */
-int lfAPI_block(void) {
-    int32_t f_addr = 0;
-    int ior = lfAssignBlock((uint32_t)vmPop(), &f_addr);
-    vmPush(f_addr);
-    return ior;
-}
-
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {

@@ -55,15 +55,6 @@ int lfAPI_only(void);
 int lfAPI_forth(void);
 
 /**
- * @brief Forth word `block`  ( u -- addr )
- * Returns the address of a RAM buffer holding block u, reading the block
- * from storage if it is not already in a buffer.
- *
- * @return 0 on success, or non-zero VM error code.
- */
-int lfAPI_block(void);
-
-/**
  * @brief Dispatches and executes an API 0 handler by index.
  * Called by the VM for the API 0 instruction; the index is the word's
  * position in API0_LIST (an api0_index value).

@@ -126,6 +126,17 @@ int lfAssignBlock(uint32_t blk, int32_t* f_addr) {
 
 
 /**
+ * BLOCK ( u -- addr )
+ * Gets the address of block u's buffer, reading it from storage if needed.
+ */
+int lfAPI_block(void) {
+    int32_t f_addr = 0;
+    int ior = lfAssignBlock((uint32_t)vmPop(), &f_addr);
+    vmPush(f_addr);
+    return ior;
+}
+
+/**
  * BUFFER ( u -- addr )
  * Assigns a RAM buffer to block u without reading its data from mass storage.
  */

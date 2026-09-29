@@ -1,6 +1,7 @@
 #!/bin/sh
 # Regression test for QUIT: error reporting and recovery, stack depth
-# checks, TIB overflow and bye. Runs bin/lf in a temp dir and compares its
+# checks (111 items allowed, 112 overflow, 8 extra drops underflow), TIB
+# overflow and bye. Runs bin/lf in a temp dir and compares its
 # output with expected.txt. Usage: run.sh path/to/lf
 set -e
 LF=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
@@ -10,14 +11,18 @@ trap 'rm -rf "$WORK"' EXIT
 cd "$WORK"
 
 long=$(printf '%0200d' 0 | tr 0 ' ')    # longer than TIB
-seq32='1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32'
+ones56=$(printf '1 %.0s' $(seq 56))       # 56 items, fits in TIB
+ones55=$(printf '1 %.0s' $(seq 55))
+drops8=$(printf 'drop %.0s' $(seq 8))
 {
     echo '.( [undefined] ) nosuchword .( never )'
     echo '.( [after error] ) 1 . base @ .'
     echo 'hex 1 0 drop drop drop'       # underflow; base goes back to decimal
     echo '.( [base] ) 10 .'
-    echo "$seq32"                       # 32 items: fine
-    echo ".s $seq32"                    # 64 items: overflow
+    echo "$ones56"                      # 56 items: fine
+    echo "$ones55"                      # 111 items: still fine
+    echo '.s 1'                         # 112 items: overflow
+    echo "$drops8"                      # 8 too many drops: underflow
     echo "1 . .( [long] ) $long 2 ."    # too long: nothing runs
     echo '3 .'
     echo '1 2 3 .s drop drop drop .s'

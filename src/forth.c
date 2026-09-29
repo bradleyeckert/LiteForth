@@ -699,14 +699,22 @@ static int prompt(void) {
 /*
  * Checks the data stack depth after a line. sp counts items modulo
  * STACK_CAPACITY, so taking items from an empty stack wraps it to the top of
- * the range. The upper quarter of the range is read as underflow and the
- * quarter below it as overflow, so a line may leave at most
- * STACK_CAPACITY / 2 - 1 items. Reading sp is a dependency on the VM.
+ * the range. If the upper 4 bits of sp are all set, the stack underflowed
+ * (by up to STACK_CAPACITY / 16 items). If only the upper 3 are, it is
+ * about to wrap and is reported as overflow. So a line may leave at most
+ * STACK_CAPACITY * 7 / 8 - 1 items (111 for 128). Reading sp is a
+ * dependency on the VM.
  */
+#if (STACK_CAPACITY < 16)
+#error "STACK_CAPACITY must be at least 16 for the QUIT stack check"
+#endif
+#define SP_UPPER4 (STACK_MASK & ~(STACK_MASK >> 4))
+#define SP_UPPER3 (STACK_MASK & ~(STACK_MASK >> 3))
+
 static int checkStackDepth(void) {
     int depth = vmPeek(VM_REG_sp);
-    if (depth >= STACK_CAPACITY / 4 * 3) return ERR_STACK_UNDERFLOW;
-    if (depth >= STACK_CAPACITY / 2) return ERR_STACK_OVERFLOW;
+    if ((depth & SP_UPPER4) == SP_UPPER4) return ERR_STACK_UNDERFLOW;
+    if ((depth & SP_UPPER3) == SP_UPPER3) return ERR_STACK_OVERFLOW;
     return 0;
 }
 

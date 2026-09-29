@@ -113,9 +113,10 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   `PC` and restores it after a normal return, so a word can call `load`, which
   runs more words. Single-instruction and step modes don't touch `PC`.
 - **QUIT** is a loop over small helpers (`quitReset`, `prompt`,
-  `interpretLine`, `checkStackDepth`, `reportError`). After each line the
-  stack depth must be below `STACK_CAPACITY / 2`: `sp` wraps, so the upper
-  quarter of its range means underflow and the quarter below it overflow.
+  `interpretLine`, `checkStackDepth`, `reportError`). After each line it
+  checks `sp`, which wraps: upper 4 bits all set means underflow (120-127
+  for a 128-cell stack), upper 3 set means overflow (112-119), so a line may
+  leave at most 111 items.
   A line too long for TIB is not interpreted at all.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.

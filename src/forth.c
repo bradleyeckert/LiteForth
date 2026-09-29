@@ -390,12 +390,7 @@ char* lfFindLabel(uint32_t value, uint32_t mask, uint32_t must, uint32_t expecte
 * .S depends on "empty" marker VM_EMPTYSTACK
 */
 int lfDotS(void) {
-    int depth = 0;
-    while (depth <= DOT_S_MAX) {
-        uint32_t val = vmPeek(depth);
-        if (val == VM_EMPTYSTACK) break;
-        depth++;
-    }
+    int depth = vmPeek(VM_REG_sp);  // sp counts the items on the stack
     if (depth) {
         lf_puts("( ");
         if (depth > DOT_S_MAX) {

@@ -296,21 +296,8 @@ int lfAddWordlist(char* name) {
 
 
 /* CONTEXT array holds indices into the wids array, ordered by search priority.
-   Terminated with -1 to indicate the end of the search order. */
-
-/* ONLY */
-int lfAPI_only(void) {
-    int8_t* ctx = CONTEXT;
-    *ctx++ = 1;
-    *ctx++ = -1;
-    return 0;
-}
-
-/* FORTH */
-int lfAPI_forth(void) {
-    CONTEXT[0] = 0;
-    return 0;
-}
+   Terminated with -1 to indicate the end of the search order. ONLY and
+   FORTH, which set it, are in api0.c. */
 
 /* .WID  ( n -- ) */
 int lfAPI_dotWid(void) {
@@ -647,26 +634,6 @@ int lfInterpret(char* str, int len) {
     return ior;
 }
 
-/**
- * QUIT loop 
- *
- * `>options` ( flags -- ) sets the display (etc.) options
- * `bye`      ( ? -- ? )   ends QUIT
- */
-
-int lfAPI_setFlags(void) {
-    int32_t val = vmPop();
-    if ((g_lf_sys_options & SYS_OPTIONS_LOCKED) == 0) {
-        if (val) { // set more options
-            g_lf_sys_options |= val;
-        }
-        else { // clear options
-            g_lf_sys_options = 0;
-        }
-    }
-    return 0;
-}
-
 /*
  * Resets the interpreter state before QUIT reads the first line, and again
  * after each error: color, BASE = 10 (and STATE, >IN etc. = 0), definitions
@@ -907,14 +874,6 @@ int lfParseInputString(putcfunc* echo, char terminator) {
             ior = echo(c);
         }
     }
-    return ior;
-}
-
-// BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed.
-int lfAPI_block(void) {
-    int32_t f_addr = 0;
-    int ior = lfAssignBlock((uint32_t)vmPop(), &f_addr);
-    vmPush(f_addr);
     return ior;
 }
 

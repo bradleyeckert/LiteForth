@@ -29,6 +29,41 @@ enum api0_index {
 typedef char api0_count_fits_9_bits[(API0_COUNT <= 512) ? 1 : -1];
 
 /**
+ * @brief Forth word `>options`  ( n -- )
+ * Sets system option flags (SYS_OPTION_* in vm.h). A nonzero n ORs its
+ * bits into the options; zero clears all options. Has no effect once
+ * SYS_OPTIONS_LOCKED is set.
+ *
+ * @return 0.
+ */
+int lfAPI_setFlags(void);
+
+/**
+ * @brief Forth word `only`  ( -- )
+ * Sets the search order to the minimal `only` wordlist.
+ *
+ * @return 0.
+ */
+int lfAPI_only(void);
+
+/**
+ * @brief Forth word `forth`  ( -- )
+ * Replaces the first wordlist in the search order with the `forth` wordlist.
+ *
+ * @return 0.
+ */
+int lfAPI_forth(void);
+
+/**
+ * @brief Forth word `block`  ( u -- addr )
+ * Returns the address of a RAM buffer holding block u, reading the block
+ * from storage if it is not already in a buffer.
+ *
+ * @return 0 on success, or non-zero VM error code.
+ */
+int lfAPI_block(void);
+
+/**
  * @brief Dispatches and executes an API 0 handler by index.
  * Called by the VM for the API 0 instruction; the index is the word's
  * position in API0_LIST (an api0_index value).

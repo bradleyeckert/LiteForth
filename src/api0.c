@@ -289,6 +289,42 @@ static int extick(void) {
     return vmPush(word->aux);
 }
 
+/* ONLY  ( -- )  Search only the `only` wordlist. CONTEXT is in forth.h. */
+int lfAPI_only(void) {
+    int8_t* ctx = CONTEXT;
+    *ctx++ = 1;
+    *ctx++ = -1;
+    return 0;
+}
+
+/* FORTH  ( -- )  Search the forth wordlist first */
+int lfAPI_forth(void) {
+    CONTEXT[0] = 0;
+    return 0;
+}
+
+/* >OPTIONS  ( flags -- )  Set (or with 0, clear) the system options */
+int lfAPI_setFlags(void) {
+    int32_t val = vmPop();
+    if ((g_lf_sys_options & SYS_OPTIONS_LOCKED) == 0) {
+        if (val) { // set more options
+            g_lf_sys_options |= val;
+        }
+        else { // clear options
+            g_lf_sys_options = 0;
+        }
+    }
+    return 0;
+}
+
+/* BLOCK  ( u -- addr )  Get addr of block u, reading from storage if needed */
+int lfAPI_block(void) {
+    int32_t f_addr = 0;
+    int ior = lfAssignBlock((uint32_t)vmPop(), &f_addr);
+    vmPush(f_addr);
+    return ior;
+}
+
 typedef int(*APIfn) (void);
 
 static const APIfn API0fns[] = {

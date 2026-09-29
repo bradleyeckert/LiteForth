@@ -254,32 +254,6 @@ int lfAPI_dotWid(void);
 int lfAPI_words(void);
 
 /**
- * @brief Forth word `>options`  ( n -- )
- * Sets system option flags (SYS_OPTION_* in vm.h). A nonzero n ORs its
- * bits into the options; zero clears all options. Has no effect once
- * SYS_OPTIONS_LOCKED is set.
- *
- * @return 0.
- */
-int lfAPI_setFlags(void);
-
-/**
- * @brief Forth word `only`  ( -- )
- * Sets the search order to the minimal `only` wordlist.
- *
- * @return 0.
- */
-int lfAPI_only(void);
-
-/**
- * @brief Forth word `forth`  ( -- )
- * Replaces the first wordlist in the search order with the `forth` wordlist.
- *
- * @return 0.
- */
-int lfAPI_forth(void);
-
-/**
  * @brief Forth word `-->`  ( -- )
  * Stops interpreting the current block and continues with block BLK+1.
  * The next block replaces the current one, so chains of any length do not
@@ -310,15 +284,6 @@ int lfAPI_load(void);
  * @return 0 on success, or the error from lfInitPointers.
  */
 int lfAPI_empty(void);
-
-/**
- * @brief Forth word `block`  ( u -- addr )
- * Returns the address of a RAM buffer holding block u, reading the block
- * from storage if it is not already in a buffer.
- *
- * @return 0 on success, or non-zero VM error code.
- */
-int lfAPI_block(void);
 
 #ifdef __cplusplus
 }

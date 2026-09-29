@@ -1,8 +1,10 @@
 .( Testing Forth primitives ) 7 >options ( validation mode )
 cr  ( This file is intended to replace stdin on a console app. )
-( It is run by `make test` as `bin/lf -o 31 < scripts/primitives.f`.  )
-( -o 31 leaves flash writable without a flash file, so no open-flash. )
-( The first failed T{ ... -> ... }T stops lf and prints the line.     )
+( `make test` runs it as `lf -o 7` in a temp directory holding copies  )
+( of bin/lfflash.bin and bin/lfblocks.bin. The first failed            )
+( T{ ... -> ... }T stops lf and prints the line.                       )
+
+0 open-flash  ( map flash page 0 to a RAM buffer so it can be compiled to )
 
 ( ===================================================================== )
 ( Micro-ops: every 5-bit VM instruction                                 )
@@ -445,6 +447,7 @@ see nine
 
 
 empty  ( resets the dictionary, removing everything defined above )
+close-flash  ( programs the page back to flash and frees the buffer )
 .( Tests completed successfully ) cr
  bye )
 0 >options

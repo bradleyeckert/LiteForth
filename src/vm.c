@@ -271,6 +271,7 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
                     A = (int32_t)(uint32_t)sum;
                 }                                                   break;
                 case VMU_BSTORE:    B = n;                          break;
+                case VMU_USTORE:    U = n;                          break;
                 case VMU_A:         T = A;                          break;
                 case VMU_ASTORE:    A = n;                          break;
                 case VMU_FETCHA:     maddr = A; bumpa = 0; goto memfetch;

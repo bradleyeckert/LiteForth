@@ -112,6 +112,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "@b+",          UOP(VMU_FETCHBPLUS),                      0},
     { PREV, "a",            UOP(VMU_A),                               0},
     { PREV, "cy",           UOP(VMU_CY),                              0},
+    { PREV, "u!",           UOP(VMU_USTORE),                          0},
     { PREV, "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         0},
     { PREV, "2drop",        MACRO(VMU_DROP,VMU_DROP,VMU_NOP),         0},
     { PREV, "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     0},

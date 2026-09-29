@@ -543,18 +543,12 @@ static int input_stack_depth = 0;
 static void dumpInputStackTrace(void);
 static char* lastparsed = NULL;
 
-/**
- * Forth Text Interpreter
- * Evaluates tokens based on explicit stream length bounds
- * 
+/*
+ * Forth text interpreter (documented in forth.h).
  * Blocks are not handled recursively. Instead, a separate block stack is
- * used for nesting. The `interpret` loops until all nests close.
- *
- * @param str Character stream to interpret.
- * @param len Stream length.
- * @return    0 on normal execution, else Forth error code from errcodes.h
+ * used for nesting. lfInterpret loops until all nests close.
  */
-static int interpret(char* str, int len) {
+int lfInterpret(char* str, int len) {
     static char token[32];      // token buffer for parsing
     if (str == NULL || len == 0) {
         return 0;
@@ -711,7 +705,7 @@ int QUIT(void) {
                 lfDotLinecount();
                 lf_puts(TIB);
             }
-            ior = interpret((char*)TIB, len & 0x7FFF);
+            ior = lfInterpret((char*)TIB, len & 0x7FFF);
             /*
             * The stack depth is checked here for overflow or underflow.
             * We cheat by using sp as depth. Reading sp is a dependency.

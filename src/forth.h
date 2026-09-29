@@ -153,6 +153,19 @@ typedef int (putcfunc)(char c);
 int QUIT(void);
 
 /**
+ * The Forth text interpreter.
+ * Interprets (or, while STATE is set, compiles) the words and numbers in a
+ * character stream, starting a new input source with >IN at 0 and BLK at 0.
+ * Blocks loaded by `load` are interpreted before it returns.
+ * @param str Character stream to interpret. A NUL ends it early.
+ * @param len Stream length in bytes.
+ * @return 0 on normal execution, else Forth error code from errcodes.h
+ *         (ERR_QUIT for `bye`). On any other error, prints the input stack
+ *         trace. Any nested block input is discarded.
+ */
+int lfInterpret(char* str, int len);
+
+/**
  * Prints the data stack, bottom to top, as `( n1 n2 ... ) `.
  * If the stack is deeper than DOT_S_MAX, prints `[depth]... ` followed by the
  * top DOT_S_MAX items. Prints nothing when the stack is empty.

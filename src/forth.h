@@ -99,16 +99,6 @@ typedef struct {
     const char* name;
 } ConstantMapping;
 
-/**
- * Structure for block nesting
- */
-typedef struct {
-    char* str;
-    int len;
-    int toin;
-    int32_t blk;
-} InputFrame;
-
 typedef int (putcfunc)(char c);
 
 
@@ -156,12 +146,14 @@ int QUIT(void);
  * The Forth text interpreter.
  * Interprets (or, while STATE is set, compiles) the words and numbers in a
  * character stream, starting a new input source with >IN at 0 and BLK at 0.
- * Blocks loaded by `load` are interpreted before it returns.
+ * `load` interprets a block before it returns, so every block loaded
+ * from this stream is finished when lfInterpret returns.
  * @param str Character stream to interpret. A NUL ends it early.
  * @param len Stream length in bytes.
  * @return 0 on normal execution, else Forth error code from errcodes.h
- *         (ERR_QUIT for `bye`). On any other error, prints the input stack
- *         trace. Any nested block input is discarded.
+ *         (ERR_QUIT for `bye`). If any other error happens inside a block,
+ *         prints the input trace: one line per nesting level, innermost
+ *         first, ending with the terminal line.
  */
 int lfInterpret(char* str, int len);
 
@@ -289,6 +281,8 @@ int lfAPI_forth(void);
 /**
  * @brief Forth word `-->`  ( -- )
  * Stops interpreting the current block and continues with block BLK+1.
+ * The next block replaces the current one, so chains of any length do not
+ * use up `load` nesting.
  *
  * @return 0 on success, ERR_INVALID_BLOCK_NUMBER if not interpreting a
  *         block, or an error from `load`.
@@ -297,9 +291,10 @@ int lfAPI_nextBlock(void);
 
 /**
  * @brief Forth word `load`  ( u -- )
- * Interprets block u. The current input source, BLK and >IN are saved, and
- * interpretation resumes after `load` when the block is finished. Loads can
- * nest up to MAX_INPUT_STACK deep.
+ * Interprets block u, then returns. The current input source, BLK and >IN
+ * are saved and restored, so interpretation resumes right after `load`,
+ * whether it was typed or called from a colon definition. Loads can nest up
+ * to MAX_LOAD_NESTING deep; each level recurses on the C stack.
  *
  * @return 0 on success, ERR_INVALID_BLOCK_NUMBER if u is 0,
  *         ERR_STACK_OVERFLOW if nested too deeply, or a block read error.

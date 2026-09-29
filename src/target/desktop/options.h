@@ -9,7 +9,7 @@
 #define WIDS_MAX              8 // number of different wordlists supported
 #define DOT_S_MAX             8 // maximum depth to display in .s
 #define TIBCELLS      (132 / 4) // The size of the TIB in cells
-#define MAX_INPUT_STACK       8 // deepest you can nest blocks
+#define MAX_LOAD_NESTING      8 // deepest you can nest LOADs
 #define SCREEN_COLUMNS      128 // columns per screen
 // vm.c                     
 #define VM_LOG2_PAGES         3 // log2 of the number of pages in the memory space

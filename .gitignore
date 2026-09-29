@@ -18,3 +18,4 @@ src/target/desktop/unit_tests/serial_io/demo_terminal
 .vscode/
 .DS_Store
 Thumbs.db
+src/target/desktop/unit_tests/load/got.txt

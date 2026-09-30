@@ -77,9 +77,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         switch (imm) {
         case VMS_SHR: T = (unsigned)T >> shift_size; break;
         case VMS_SHL: T = T << shift_size; break;
-        case VMS_FIELDPLUS: // field+
-            T = vmFieldPlus(T);
-            break;
+        case VMS_FIELDPLUS: T = vmFieldPlus(T);  break;
+        case VMS_BREAK: return ERR_VM_BREAK;
         default: break;
         } break;
     case VMO_TOSYS: {

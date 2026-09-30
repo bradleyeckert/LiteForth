@@ -124,6 +124,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "slice+",       SYS(VMS_FIELDPLUS),                       0},
     { PREV, "]shr",         SYS(VMS_SHR),                             0},
     { PREV, "]shl",         SYS(VMS_SHL),                             0},
+    { PREV, "break",        SYS(VMS_BREAK),                           0},
     { PREV, "shft[",        SYSTO(VMSTO_SHIFT),                       0},
     { PREV, "]task",        SYSTO(VMSTO_TASK),                        0},
     { PREV, "yeet",         SYSTO(VMSTO_YEET),                        0},
@@ -444,7 +445,9 @@ static int loadTIB(int* overflowed) {
 #ifdef yield2c
             yield2c(); // Yield to other tasks (ans step VM) while waiting...
 #endif
-            vmRun(0, VM_GRANULARITY, 0);
+            if (lfTIBSTATEfetch()) {
+                vmRun(0, VM_GRANULARITY, 0);
+            }
             continue;
         }
         int c = serial_getc();
@@ -473,8 +476,8 @@ static int loadTIB(int* overflowed) {
         while (lfTIBSTATEfetch() != 3) {
 #ifdef yield2c
             yield2c();
-            vmRun(0, VM_GRANULARITY, 0);
 #endif
+            vmRun(0, VM_GRANULARITY, 0);
         }
     }
     return TIBSIZE - remaining;

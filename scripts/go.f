@@ -17,7 +17,7 @@ hex
 : definitions  ( -- )       context @ current ! ;
 : variable  ( -- )          20 bits ;
 : _section  ( n -- )        dp^ ! ;
-: _data     ( -- )          0 _section ;
+: _udata    ( -- )          0 _section ;
 : _idata    ( -- )          1 _section ;
 : _code     ( -- )          2 _section ;
 : _text     ( -- )          3 _section ;
@@ -25,7 +25,8 @@ hex
 : here      ( -- a )        'here @ ;
 : allot     ( n -- )        here 20 bit + 'here ! ;
 : negate    ( n -- -n )     1 swap inv + ;
-: unused    ( -- n )        'here a! @a+ negate @a+ + 3FFFFF and ;
+: amask     ( a -- a' )     3FFFFF and ;
+: unused    ( -- n )        'here a! @a+ negate @a+ + amask ;
 : chere     ( -- addr )     |inst [ dp[] 4 cells + ] literal @ ;
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;
@@ -56,6 +57,8 @@ decimal
 : type      ( ca n -- )     goodAN for @+ emit next drop ;
 : $type     ( ca -- )       @+ type ;
 : ."        ( string" -- )  _," postpone literal  postpone $type ; immediate
+: +!        ( n a -- )      a! @a + !a ;
+: -         ( n -- -n )     negate + ;
 
 : _.map     ( -- )
    here . ." to " 'here 1+ @ .
@@ -63,18 +66,49 @@ decimal
 ;
 : .map      ( -- )
    dp^ >r
-   _data  ." _data  " _.map
+   _udata ." _udata " _.map
    _idata ." _idata " _.map
    _code  ." _code  " _.map
    _text  ." _text  " _.map
+   [ dp[] 2 cells + ] literal a! @a
+   a 6 + @  swap - amask . ." cells of idata" cr
    r> _section
 ;
 
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;
-: -         ( n -- -n )     1 swap inv + + ;
+: =         ( n1 n2 -- flag ) xor 0 swap if exit then invert ;
+
 : hi  ." 学如不及，犹恐失之 " ;
 
-: dump-all  2 chere 1- 2* dasm ;
+variable counter
+
+: mydemo  ( -- )
+    1 counter +!
+;
+
+: ,jump  ( xt addr -- )
+   _code here >r  'here ! ,compile  postpone exit
+   r> 'here ! _udata
+;
+
+:noname ( demo application )
+    hi
+    begin
+        begin  mydemo
+        TIBstate a! @a 2 = until
+        3 !a
+    again
+; hex 80000000 ,jump decimal
+
+cr .( `cold` is supposed to launch the demo app : note the jump: ) cr
+
+0 2 dasm
+
+cr .( and the demo code ) cr
+
+hex 80000000 @ decimal 14 dasm
+
+: dump-all  0 chere 2* dasm ;
 
 close-flash
 0 >options

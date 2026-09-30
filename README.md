@@ -80,7 +80,7 @@ make clean      # removes build products (keeps the block and flash images in bi
 ```
 
 Run `./bin/lf` to start LiteForth in the terminal.
-`cd bin && ./lf -o 7 < ../scripts/primitives.f` runs the regression test directly.
+`cd bin && ./lf -o 7 < ../scripts/regression.f` runs the regression test directly.
 It compiles into, and saves, `bin/lfflash.bin`; `make test` runs it on copies instead.
 
 ## Documentation
@@ -89,6 +89,7 @@ It compiles into, and saves, `bin/lfflash.bin`; `make test` runs it on copies in
 - [Glossary](doc/glossary.md): Forth words and VM constants
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
 - [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
+- [Adding to the API](doc/add2api.md): how to add a C function as a Forth word
 - [Terminals](doc/terminals.md): terminal emulators, raw vs cooked mode, serial setup
 - [Editors](doc/editors.md): notes toward a block editor
 - [HDL](doc/hdl.md): running the ISA on real hardware (FPGA, ASIC)

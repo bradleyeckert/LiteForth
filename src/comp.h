@@ -177,7 +177,7 @@ int lfAPI_literal(void);
  *
  * @return 0.
  */
-int lfAPI_break(void);
+int lfAPI_newinst(void);
 
 #ifdef __cplusplus
 }

@@ -89,7 +89,7 @@ static void NewInst(void) {
     lastcall = 0;
 }
 
-int lfAPI_break(void) {
+int lfAPI_newinst(void) {
     NewInst();
     return 0;
 }

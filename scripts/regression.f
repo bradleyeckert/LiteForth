@@ -98,9 +98,9 @@ T{ 5 0 2 a! +* a -> 5 0 1 }T
 ( A 32-step +* loop multiplies; see um*x after for/next below )
 
 ( unext repeats its instruction group while R counts down )
-: 4*   ( n -- 4n ) 2 >r break 2* unext ;
+: 4*   ( n -- 4n ) 2 >r |inst 2* unext ;
 T{ 3 4* -> 12 }T
-: 16*  ( n -- 16n ) 4 >r break 2* unext ;
+: 16*  ( n -- 16n ) 4 >r |inst 2* unext ;
 T{ 1 16* -> 16 }T
 
 ( u! sets the user pointer; a qlit instruction pushes U + u9 )
@@ -310,7 +310,7 @@ hex
 : allot     ( n -- )        here 20 bit + 'here ! ;
 : negate    ( n -- -n )     1 swap inv + ;
 : unused    ( -- n )        'here a! @a+ negate @a+ + 3FFFFF and ;
-: chere     ( -- addr )     break [ dp[] 4 cells + ] literal @ ;
+: chere     ( -- addr )     |inst [ dp[] 4 cells + ] literal @ ;
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;
 

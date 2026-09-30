@@ -22,6 +22,8 @@ static int32_t R = 0;  // Top of Return Stack
 static int32_t A = 0;  // Address A
 static int32_t B = 0;  // Address B
 static int32_t U = 0;  // User pointer
+static int32_t X = 0;  // GP register
+static int32_t Y = 0;  // GP register
 static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
@@ -104,6 +106,8 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
             T = (rp << 16) | sp;
             A = U;
             break;
+        case VMSFROM_X: T = X; break;
+        case VMSFROM_Y: T = Y; break;
         default: break;
         } break;
     case VMO_QLIT:
@@ -369,7 +373,8 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
         PC = pc;
     }
     else {
-        B = pc;
+        X = pc;
+        Y = ior;
         PC = VM_YEET_ADDRESS << 1;
     }
     return ior;

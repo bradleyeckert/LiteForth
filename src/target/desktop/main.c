@@ -18,11 +18,11 @@ int lfInitPointers(void) {
     int32_t* mem = vm_memory[RAM_PAGE];
     if (mem == NULL) return ERR_ALLOCATE_FAILED;
     // udata space origin and limit
-    mem[F_PTRS + 0] = LF_HERE0;
-    mem[F_PTRS + 1] = LF_HERE0 + 0x200;
+    mem[F_PTRS + 0] = LF_HERE0 + 0x400;
+    mem[F_PTRS + 1] = VARIABLE(RAM_PAGE_CELLS);
     // idata space origin and limit
-    mem[F_PTRS + 2] = LF_HERE0 + 0x200;
-    mem[F_PTRS + 3] = VARIABLE(RAM_PAGE_CELLS);
+    mem[F_PTRS + 2] = LF_HERE0;
+    mem[F_PTRS + 3] = LF_HERE0 + 0x400;
     // code space origin and limit
     mem[F_PTRS + 4] = 0x80000002;
     mem[F_PTRS + 5] = FLASH_PAGE_CELLS / 2;
@@ -30,7 +30,7 @@ int lfInitPointers(void) {
     mem[F_PTRS + 6] = FLASH_PAGE_CELLS / 2;
     mem[F_PTRS + 7] = FLASH_PAGE_CELLS;
     // initial idp
-    mem[F_PTRS + 8] = LF_HERE0 + 0x200;
+    mem[F_PTRS + 8] = LF_HERE0;
     return 0;
 }
 

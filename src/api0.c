@@ -285,6 +285,12 @@ static int capacity(void) {
     return 0;
 }
 
+/* COLD  ( -- ) */
+static int coldboot(void) {
+    vmReset();
+    return vmStore(LF_TIBSTATE, 1);
+}
+
 /* `X'` ( <name> -- w aux ) */
 static int extick(void) {
     const struct s_head* word = lfTickWord();

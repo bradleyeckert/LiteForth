@@ -158,6 +158,8 @@
 #define VMSTO_YEET              2
 
 #define VMSFROM_TASK            0
+#define VMSFROM_X               1
+#define VMSFROM_Y               2
 
 
 #endif /* _VM_LABELS_H_ */

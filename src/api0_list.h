@@ -75,7 +75,8 @@
     X(API_NEXTBLOCK,        lfAPI_nextBlock)    \
     X(API_POSTPONE,         lfAPI_postpone)     \
     X(API_COMPILE,          lfAPI_compile)      \
-    X(API_BREAK,            lfAPI_break)
+    X(API_BREAK,          lfAPI_newinst)      \
+    X(API_COLD,             coldboot)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

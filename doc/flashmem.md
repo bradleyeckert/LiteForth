@@ -54,3 +54,30 @@ Forth and C coexist by sharing a `TIBSTATE` mutex.
 
 This scheme expects the Forth app to run a macroloop that includes this FSM.
 
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "TIBstate = 1" as S1
+    state "TIBstate = 2" as S2
+    state "TIBstate = 3" as S3
+
+    note left of S1
+        <b>Terminal Task Owns</b>
+        Prepares TIB data
+    end note
+
+    note over S2
+        <b>App Task Owns</b>
+        Processes TIB data
+    end note
+
+    note right of S3
+        <b>Terminal Task Owns</b>
+        Post-processes TIB
+    end note
+
+    S1 --> S2 : Terminal sets to 2
+    S2 --> S3 : App sets to 3
+    S3 --> S1 : Terminal sets to 1
+```

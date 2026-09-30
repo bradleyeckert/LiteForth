@@ -41,13 +41,13 @@
  40 API_UPDATE           lfAPI_update
  41 API_SAVE_BUFFERS     lfAPI_saveBuffers
  42 API_FLUSH            lfAPI_flush
- 43 API_EMPTY_BUFRS      lfAPI_emptyBuffers
+ 43 API_EMPTY_BUFFERS    lfAPI_emptyBuffers
  44 API_LOAD             lfAPI_load
  45 API_CAPACITY         capacity
  46 API_NEXTBLOCK        lfAPI_nextBlock
  47 API_POSTPONE         lfAPI_postpone
  48 API_COMPILE          lfAPI_compile
- 49 API_BREAK            lfAPI_newinst
+ 49 API_NEWINST          lfAPI_newinst
  50 API_COLD             coldboot
  51 API_ENDTEST          lfAPI_endTest
  52 API_DOTEST           lfAPI_doTest

@@ -11,6 +11,7 @@
 #define TIBCELLS      (132 / 4) // The size of the TIB in cells
 #define MAX_LOAD_NESTING      8 // deepest you can nest LOADs
 #define SCREEN_COLUMNS      128 // columns per screen
+#define VM_GRANULARITY      100 // VM steps between terminal input checks
 // vm.c                     
 #define VM_LOG2_PAGES         3 // log2 of the number of pages in the memory space
 #define STACK_CAPACITY	    128 // Data and return stack size in cells: a power of 2, at least 32

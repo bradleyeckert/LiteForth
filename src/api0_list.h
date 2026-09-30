@@ -69,13 +69,13 @@
     X(API_UPDATE,           lfAPI_update)       \
     X(API_SAVE_BUFFERS,     lfAPI_saveBuffers)  \
     X(API_FLUSH,            lfAPI_flush)        \
-    X(API_EMPTY_BUFRS,      lfAPI_emptyBuffers) \
+    X(API_EMPTY_BUFFERS,    lfAPI_emptyBuffers) \
     X(API_LOAD,             lfAPI_load)         \
     X(API_CAPACITY,         capacity)           \
     X(API_NEXTBLOCK,        lfAPI_nextBlock)    \
     X(API_POSTPONE,         lfAPI_postpone)     \
     X(API_COMPILE,          lfAPI_compile)      \
-    X(API_BREAK,          lfAPI_newinst)      \
+    X(API_NEWINST,          lfAPI_newinst)      \
     X(API_COLD,             coldboot)
 
 #if (FAT_FORTH & 1)

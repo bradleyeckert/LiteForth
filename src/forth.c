@@ -168,13 +168,13 @@ static const struct s_head forth_heads[] = {
     { PREV, "update",       API0(API_UPDATE),                         0},
     { PREV, "save-buffers", API0(API_SAVE_BUFFERS),                   0},
     { PREV, "flush",        API0(API_FLUSH),                          0},
-    { PREV, "empty-buffers", API0(API_EMPTY_BUFRS),                   0},
+    { PREV, "empty-buffers", API0(API_EMPTY_BUFFERS),                 0},
     { PREV, "load",         API0(API_LOAD),                           0},
     { PREV, "capacity",     API0(API_CAPACITY),                       0},
     { PREV, "-->",          API0(API_NEXTBLOCK),                      0},
     { PREV, "postpone",     API0(API_POSTPONE),         A_IMMEDIATE | 0},
     { PREV, ",compile",     API0(API_COMPILE),                        0},
-    { PREV, "|inst",        API0(API_BREAK),                        0},
+    { PREV, "|inst",        API0(API_NEWINST),                        0},
     { PREV, "cold",         API0(API_COLD),                           0},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        0},
@@ -441,6 +441,7 @@ static int loadTIB(int* overflowed) {
 #ifdef yield2c
             yield2c(); // Yield to other tasks (ans step VM) while waiting...
 #endif
+            vmRun(0, VM_GRANULARITY, 0);
             continue;
         }
         int c = serial_getc();
@@ -466,11 +467,12 @@ static int loadTIB(int* overflowed) {
     remaining--;
     if (lfTIBSTATEfetch()) {
         lfTIBSTATEstore(2); // Indicate that TIB is ready for processing
-#ifdef yield2c
         while (lfTIBSTATEfetch() != 3) {
+#ifdef yield2c
             yield2c();
-        }
+            vmRun(0, VM_GRANULARITY, 0);
 #endif
+        }
     }
     return TIBSIZE - remaining;
 }

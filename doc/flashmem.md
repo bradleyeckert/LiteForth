@@ -67,7 +67,7 @@ stateDiagram-v2
         Prepares TIB data
     end note
 
-    note over S2
+    note right of S2
         <b>App Task Owns</b>
         Processes TIB data
     end note

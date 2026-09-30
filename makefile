@@ -45,8 +45,8 @@ $(BUILD_DIR)/%.o: %.c
 # images in bin/, so the tracked images are never modified.
 test: $(TARGET)
 	@tmp=$$(mktemp -d) && cp $(BIN_DIR)/lfflash.bin $(BIN_DIR)/lfblocks.bin $$tmp/ && \
-	echo "cd $$tmp && $(CURDIR)/$(TARGET) -o 7 < scripts/regression.f" && \
-	(cd $$tmp && $(CURDIR)/$(TARGET) -o 7 < $(CURDIR)/scripts/regression.f); \
+	echo "cd $$tmp && $(CURDIR)/$(TARGET) -o 39 < scripts/regression.f" && \
+	(cd $$tmp && $(CURDIR)/$(TARGET) -o 39 < $(CURDIR)/scripts/regression.f); \
 	status=$$?; rm -rf $$tmp; [ $$status -eq 0 ] || { echo "regression.f failed (exit $$status)"; exit 1; }
 	@for d in $(UNIT_TEST_DIRS); do \
 		echo "== $$d"; \

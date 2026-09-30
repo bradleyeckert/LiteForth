@@ -1,6 +1,6 @@
 .( Testing Forth primitives ) 7 >options ( validation mode )
 cr  ( This file is intended to replace stdin on a console app. )
-( `make test` runs it as `lf -o 7` in a temp directory holding copies  )
+( `make test` runs it as `lf -o 39` in a temp directory holding copies )
 ( of bin/lfflash.bin and bin/lfblocks.bin. The first failed            )
 ( T{ ... -> ... }T stops lf and prints the line.                       )
 
@@ -274,11 +274,9 @@ T{ base @  DECIMAL  -> 16 }T
 T{ 0 page -> 0 }T
 T{ 1 page -> 524288 }T
 
-( terminal input: the next unread byte of stdin is the start of the   )
-( next line of this file                                               )
+( terminal input: more of this file is waiting on stdin; t_rx is      )
+( tested below, after if/then are defined                              )
 T{ t_rx? -> 1 }T
-T{ t_rx -> 88 }T
-X  ( t_rx above consumed the X at the start of this line )
 
 ( wordlist returns the next wordlist number )
 T{ wordlist wordlist swap invert 1 + + -> 1 }T
@@ -420,6 +418,13 @@ T{ 65536 65536 um*x -> 0 1 }T
 ( @+ )
 T{ ram-base 40 + a! 7 !a+ 8 !a ram-base 40 + @+ nip -> 7 }T
 T{ ram-base 40 + @+ drop @+ nip -> 8 }T
+
+( t_rx reads stdin directly, so the next unread byte is the start of  )
+( the next line of this file. With CRLF line endings and without -o 32 )
+( lf ends the line at the CR, leaving the LF unread: nextc skips it.   )
+: nextc  ( -- c ) t_rx dup 10 xor if exit then drop t_rx ;
+T{ nextc -> 88 }T
+X  ( nextc above consumed the X at the start of this line )
 
 ( counted strings )
 T{ _," abc" @ -> 3 }T

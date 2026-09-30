@@ -110,7 +110,8 @@ Where the word's effect can be checked from Forth, add assertions to
 T{ 3 4 + -> 7 }T
 ```
 
-Then run `make test`. It runs `regression.f` with `-o 7`, so the first
+Then run `make test`. It runs `regression.f` with `-o 39` (validation,
+quiet, ignore CR), so the first
 failing assertion stops `lf` and prints its line number.
 
 ## 6. Recompile code saved in flash

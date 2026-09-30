@@ -32,8 +32,9 @@ make clean      # leaves the tracked bin/*.bin images alone
 - `unit_tests/api0/` checks the API 0 index order against `expected.txt`.
   After deliberately appending an API 0 function, run `make update` there.
 - `scripts/regression.f` holds the VM and dictionary tests as `T{ ... -> ... }T`
-  assertions. `make test` runs it with `-o 7` (validation, so the first
-  failure stops lf and prints its line number) in a temp dir on copies of
+  assertions. `make test` runs it with `-o 39` (validation, so the first
+  failure stops lf and prints its line number; 32 = ignore CR, so Windows
+  CRLF checkouts work and line numbers stay right) in a temp dir on copies of
   `bin/lfflash.bin` and `bin/lfblocks.bin`. It opens flash at the start,
   closes it at the end, and copies in the `go.f` definitions it tests.
 - `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
@@ -50,7 +51,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 
 - `-o N` sets `g_lf_sys_options` (flags in `vm.h`): 1 no `ok>`, 2 no stack
   display, 4 quit on first error (validation), 32 ignore CR, 64 verbose
-  echo. There are no options to skip the flash or block files: lf always
+  echo. Without 32, CRLF input counts every line twice (the CR ends a line
+  and the LF makes an empty one), so reported line numbers double. There are no options to skip the flash or block files: lf always
   loads or creates them. Use `-o 3` when a test must keep going after errors.
 - Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
   does); flash is write-protected otherwise and `:` fails with ior -20.

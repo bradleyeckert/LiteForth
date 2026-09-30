@@ -273,6 +273,16 @@ T{ dd -> 3 3 }T
 T{ call17 -> 17 }T
 T{ before-nn -> 7 }T  ( the ; after :noname did not hide before-nn )
 
+( execute runs any xt: colon and :noname code is called, and a       )
+( primitive, macro or API word runs as one instruction               )
+T{ xt17 execute -> 17 }T
+T{ x' before-nn drop execute -> 7 }T
+T{ 4 x' dup drop execute -> 4 4 }T
+T{ 1 2 x' nip drop execute -> 2 }T
+T{ 2 3 x' um* drop execute -> 6 0 }T
+: ex18  xt17 execute 1 + ;
+T{ ex18 -> 18 }T
+
 ( base, hex, decimal )
 T{ base @  HEX      -> 0A }T
 T{ base @  DECIMAL  -> 16 }T

@@ -79,6 +79,7 @@ Name lookup ignores case.
 | `dup` | `( x -- x x )` | Duplicates the top item. |
 | `empty` | `( -- )` | Resets the dictionary: removes user words and wordlists and resets the dictionary pointers. |
 | `empty-buffers` | `( -- )` | Unassigns all block buffers without saving them. |
+| `execute` | `( i*x xt -- j*x )` | Runs execution token `xt`: a primitive, macro or API word as one instruction, anything else (colon, `:noname` or `create` code) as a call. |
 | `exit` | `( -- )` | Immediate. Compiles a return from the current word. |
 | `flush` | `( -- )` | Saves modified block buffers, then unassigns all of them. |
 | `forth` | `( -- )` | Makes the forth wordlist first in the search order. |

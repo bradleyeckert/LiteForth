@@ -54,7 +54,7 @@ The last line of the file should contain `0 >options` so you don't get multiple 
 
 The `./scripts` folder contains input scripts for LiteForth.
 
-- `primitives.f` is the file for CI/CD. It runs a regression test on the Forth primitives.
+- `regression.f` is the file for CI/CD. It runs a regression test on the Forth primitives.
 
 ## Bitfields
 

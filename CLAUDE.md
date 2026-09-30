@@ -15,7 +15,7 @@ and simulates flash and block storage with files in the working directory.
 
 ```
 make            # builds bin/lf (gcc -Wall -Wextra -O2), incremental via build/*.d
-make test       # scripts/primitives.f, then every src/target/desktop/unit_tests/*/ suite
+make test       # scripts/regression.f, then every src/target/desktop/unit_tests/*/ suite
 make clean      # leaves the tracked bin/*.bin images alone
 ```
 
@@ -31,7 +31,7 @@ make clean      # leaves the tracked bin/*.bin images alone
   other interpreter-level tests.
 - `unit_tests/api0/` checks the API 0 index order against `expected.txt`.
   After deliberately appending an API 0 function, run `make update` there.
-- `scripts/primitives.f` holds the VM and dictionary tests as `T{ ... -> ... }T`
+- `scripts/regression.f` holds the VM and dictionary tests as `T{ ... -> ... }T`
   assertions. `make test` runs it with `-o 7` (validation, so the first
   failure stops lf and prints its line number) in a temp dir on copies of
   `bin/lfflash.bin` and `bin/lfblocks.bin`. It opens flash at the start,
@@ -86,7 +86,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
-| `scripts/primitives.f` | Regression script run by `make test` |
+| `scripts/regression.f` | Regression script run by `make test` |
 
 ## Conventions
 
@@ -95,7 +95,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - Forth words implemented in C are `int lfAPI_name(void)`: they take and return
   values on the VM data stack (`vmPop`/`vmPush`) and return an `ior`
   (0 = ok, else a code from `errcodes.h`).
-- Adding a C word: append `X(API_NAME, function)` to the end of `API0_LIST`
+- Adding a C word (full walkthrough in `doc/add2api.md`): append `X(API_NAME, function)` to the end of `API0_LIST`
   in `src/api0_list.h` (or `API0_TOOLS_LIST` for `FAT_FORTH` tools), add a
   row `{ PREV, "name", API0(API_NAME), /* stack */ flags},` to `forth_heads`
   in `forth.c`, and run `make update` in `unit_tests/api0`. API 0 indices are

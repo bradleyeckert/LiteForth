@@ -76,7 +76,8 @@
     X(API_POSTPONE,         lfAPI_postpone)     \
     X(API_COMPILE,          lfAPI_compile)      \
     X(API_NEWINST,          lfAPI_newinst)      \
-    X(API_COLD,             coldboot)
+    X(API_COLD,             coldboot)           \
+    X(API_NONAME,           lfAPI_noname)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

@@ -247,12 +247,24 @@ ex: instruction |= VM_UOPS | VM_RET;
 =========================================================================*/
 
 static int32_t created = 0;
+static int noname = 0;  // the definition being compiled has no header (:noname)
 
 /* :  ( <name> -- ) */
 int lfAPI_colon(void) {
     lfCalign();
     created = 0;
+    noname = 0;
     lfHeader(cpPC(), A_SMUDGED, NULL);
+    return lfSTATEstore(1);
+}
+
+/* :NONAME  ( -- xt ) */
+int lfAPI_noname(void) {
+    lfCalign();
+    created = 0;
+    noname = 1;
+    int ior = vmPush((int32_t)cpPC());
+    if (ior) return ior;
     return lfSTATEstore(1);
 }
 
@@ -263,8 +275,11 @@ int lfAPI_exit(void) {
 
 /* ;  ( -- ) */
 int lfAPI_semicolon(void) {
-    int ior = lfToHeader(0, A_SMUDGED);
-    if (ior) return ior;
+    if (!noname) {          // reveal the word; :noname made no header
+        int ior = lfToHeader(0, A_SMUDGED);
+        if (ior) return ior;
+    }
+    noname = 0;
     lfSTATEstore(0);
     lfCreatedName = NULL; // WORDLIST not used yet
     return CompExit();

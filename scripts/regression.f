@@ -266,6 +266,13 @@ T{ x' ADD_TEN nip -> 0 }T
 : dd 3 comp-dup ;
 T{ dd -> 3 3 }T
 
+( :noname compiles an anonymous definition and leaves its xt )
+: before-nn 7 ;
+:noname before-nn 10 + ; constant xt17
+: call17 [ xt17 ,compile ] ;
+T{ call17 -> 17 }T
+T{ before-nn -> 7 }T  ( the ; after :noname did not hide before-nn )
+
 ( base, hex, decimal )
 T{ base @  HEX      -> 0A }T
 T{ base @  DECIMAL  -> 16 }T

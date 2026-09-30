@@ -36,6 +36,7 @@ Name lookup ignores case.
 | `2drop` | `( x1 x2 -- )` | Drops the top two items. |
 | `2dup` | `( x1 x2 -- x1 x2 x1 x2 )` | Duplicates the top two items. |
 | `:` | `( <name> -- )` | Starts compiling a new colon definition. |
+| `:noname` | `( -- xt )` | Starts compiling an anonymous colon definition and pushes its execution token. `;` ends it. |
 | `;` | `( -- )` | Ends the current colon definition. Immediate. |
 | `>body` | `( xt -- addr )` | Returns the data address of a word made by `create`. |
 | `>options` | `( n -- )` | Sets system option flags: a nonzero `n` ORs its bits in, 0 clears them all. Ignored once the options are locked. |

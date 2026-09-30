@@ -67,8 +67,19 @@ int lfAPI_inst(void);
 int lfAPI_colon(void);
 
 /**
+ * @brief Forth word `:noname`  ( -- xt )
+ * Starts an anonymous colon definition: aligns code space, pushes the
+ * execution token of the code that follows, and switches STATE to
+ * compiling. No header is made; `;` ends the definition.
+ *
+ * @return 0 on success, or a negative error code.
+ */
+int lfAPI_noname(void);
+
+/**
  * @brief Forth word `;`  ( -- )  immediate
- * Reveals the word being defined, returns STATE to interpreting, and
+ * Reveals the word being defined (unless it was started by `:noname`),
+ * returns STATE to interpreting, and
  * compiles its exit (turning a final call into a jump where possible).
  *
  * @return 0 on success, or ERR_UNSUPPORTED_OPERATION if no header exists yet.

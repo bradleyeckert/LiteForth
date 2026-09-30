@@ -49,7 +49,7 @@ Forth and C coexist by sharing a `TIBstate` handshake variable with 4 possible v
 0. The application is stopped.
 1. QUIT is waiting for terminal input, indicating the app is safe to run.
 2. QUIT has received terminal input, waiting for the "go" signal from the app.
-3. The app has sent the "go" signal, handing control the terminal.
+3. The app has sent the "go" signal, handing control to the terminal.
 
 This scheme expects the Forth app to run a macroloop that includes this FSM.
 

@@ -270,6 +270,11 @@ T{ dd -> 3 3 }T
 T{ base @  HEX      -> 0A }T
 T{ base @  DECIMAL  -> 16 }T
 
+( TIBstate is a 2-bit field next to BASE; 0 turns the handshake off )
+T{ TIBstate 27 SHFT[ ]SHR -> 2 }T
+T{ 3 TIBstate ! TIBstate @ base @ 0 TIBstate ! -> 3 10 }T
+T{ TIBstate @ -> 0 }T
+
 ( page gives the base address of a memory page )
 T{ 0 page -> 0 }T
 T{ 1 page -> 524288 }T

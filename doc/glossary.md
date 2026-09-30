@@ -145,8 +145,9 @@ Below is the complete reference table for the Forth words defined in `forth_head
 | `false` | Boolean false flag. |
 | `log2pages` | Memory page count exponent shift value ($\log_2$). |
 | `ram-base` | Base RAM memory boundary pointer. |
-| `state` | Pointer to bitfield holding interpretation (`1`) vs compilation (`0`) state. |
-| `tib` | Base memory address of Terminal Input Buffer. |
+| `state` | Pointer to bitfield holding compilation (`1`) vs interpretation (`0`) state. |
+| `TIB` | Base memory address of Terminal Input Buffer. |
+| `TIBstate` | 2-bit variable: the terminal/application handshake (0 = off, 1 = waiting for input, 2 = input ready, 3 = go). See `doc/flashmem.md`. |
 | `true` | Boolean true flag. |
 | `w_macro` | Executable flag marking multi-slot micro-op macro word. |
 | `w_primitive` | Executable flag marking primitive VM micro-op definition. |

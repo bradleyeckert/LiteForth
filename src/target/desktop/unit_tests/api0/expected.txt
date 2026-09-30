@@ -47,18 +47,19 @@
  46 API_NEXTBLOCK        lfAPI_nextBlock
  47 API_POSTPONE         lfAPI_postpone
  48 API_COMPILE          lfAPI_compile
- 49 API_BREAK            lfAPI_break
- 50 API_ENDTEST          lfAPI_endTest
- 51 API_DOTEST           lfAPI_doTest
- 52 API_BEGINTEST        lfAPI_beginTest
- 53 API_HEX              lfAPI_hex
- 54 API_DECIMAL          lfAPI_decimal
- 55 API_DOTPAGE          lfAPI_dotPage
- 56 API_DOTPAGES         lfAPI_dotPages
- 57 API_DUMP             lfAPI_dump
- 58 API_DUMPI            lfAPI_dumpIns
- 59 API_DASM             lfAPI_dasm
- 60 API_DOTS             lfAPI_dotEss
- 61 API_DOT              lfAPI_dot
- 62 API_SEE              lfAPI_see
-count 63
+ 49 API_BREAK            lfAPI_newinst
+ 50 API_COLD             coldboot
+ 51 API_ENDTEST          lfAPI_endTest
+ 52 API_DOTEST           lfAPI_doTest
+ 53 API_BEGINTEST        lfAPI_beginTest
+ 54 API_HEX              lfAPI_hex
+ 55 API_DECIMAL          lfAPI_decimal
+ 56 API_DOTPAGE          lfAPI_dotPage
+ 57 API_DOTPAGES         lfAPI_dotPages
+ 58 API_DUMP             lfAPI_dump
+ 59 API_DUMPI            lfAPI_dumpIns
+ 60 API_DASM             lfAPI_dasm
+ 61 API_DOTS             lfAPI_dotEss
+ 62 API_DOT              lfAPI_dot
+ 63 API_SEE              lfAPI_see
+count 64

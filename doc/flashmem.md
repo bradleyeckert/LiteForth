@@ -34,7 +34,7 @@ By default, the VM is stopped. It only runs when the terminal interprets input.
 If there is an error, the VM quits with an error code, which makes it out to the terminal.
 
 While the terminal task is waiting for keyboard input, it can either spin or step the VM through the code.
-If `TIBSTATE` = 0, it is stopped. Otherwise, it is running.
+If `TIBstate` = 0, it is stopped. Otherwise, it is running.
 Errors returned by the VM are handled differently in each case:
 
 - Stopped: The QUIT loop calls VM, so the return value propagates back through `lfInterpret`
@@ -44,13 +44,12 @@ to `lfQuit`, which displays an error message.
 When the VM sees an error, is sets the PC to 2 and loads B with the ior.
 Forth code will handle the error.
 
-Forth and C coexist by sharing a `TIBSTATE` mutex.
+Forth and C coexist by sharing a `TIBstate` handshake variable with 4 possible values:
 
-- Once `loadTIB` has an input line, it sets `TIBSTATE` to 2 and waits for it to reach 3.
-- The Forth macroloop sees `TIBSTATE` at 2 and bumps it to 3. It spins until `TIBSTATE` is 1.
-- `loadTIB` sees `TIBSTATE` at 3 and un-pauses, allowing TIB evaluation.
-- QUIT invokes `loadTIB`, which initially sets `TIBSTATE` to 1.
-- If no Forth code is running, set `TIBSTATE` = 0. `loadTIB` will bypass the handshake.
+0. The application is stopped.
+1. QUIT is waiting for terminal input, indicating the app is safe to run.
+2. QUIT has received terminal input, waiting for the "go" signal from the app.
+3. The app has sent the "go" signal, handing control the terminal.
 
 This scheme expects the Forth app to run a macroloop that includes this FSM.
 

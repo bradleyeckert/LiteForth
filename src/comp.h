@@ -29,6 +29,7 @@ int lfCompileLit(int32_t x);
  * @return 0 on success, or an explicit negative error code on failure.
  */
 int lfExecuteWord(const struct s_head* word);
+int lfExecuteXT(uint32_t xt); // same thing but with fewer checks
 
 /**
  * Compiles a dictionary word entry.

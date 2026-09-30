@@ -178,18 +178,18 @@ int lfAPI_literal(void) {
 }
 
 
+// Execute using the VM, assume xt is not a constant
+int lfExecuteXT(uint32_t xt) {
+    if (xt & W_PRIMITIVE) {
+        return vmRun(1, xt & 0xFFFF, 0);
+    }
+    return vmRun(0, 0, xt & 0x7FFFFF);
+}
+
 // Execute using the VM
 int lfExecuteWord(const struct s_head* word) {
     if (word->aux & A_CONSTANT) return vmPush(word->w);
-    int ior = 0;
-
-    if (word->w & W_PRIMITIVE) {
-        ior = vmRun(1, word->w & 0xFFFF, 0);
-    }
-    else {
-        ior = vmRun(0, 0, word->w & 0x7FFFFF);
-    }
-    return ior;
+    return lfExecuteXT(word->w);
 }
 
 // Compile a word

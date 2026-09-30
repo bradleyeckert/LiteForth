@@ -131,11 +131,12 @@ typedef int (putcfunc)(char c);
 
 /**
  * The standard Forth outer interpreter (terminal loop).
- * Prints the version banner, resets the dictionary and search order, then
+ * Prints the version banner, resets the VM, dictionary and search order, then
  * reads lines from the terminal and interprets them. After each line it
  * checks the data stack: a line may leave at most STACK_CAPACITY * 7 / 8 - 1
  * items, and underflow of up to STACK_CAPACITY / 16 items is caught. A line too long for TIB is not interpreted. After an error it
- * reports the error, resets the stacks and base, and continues.
+ * reports the error, empties the stacks (other VM registers keep their
+ * values), resets the base, and continues.
  * Open the terminal with `serial_open` before calling.
  * @return 0 when `bye` is executed, the error code of the first error if
  *         SYS_OPTION_VALIDATION is set, or an output error if the prompt

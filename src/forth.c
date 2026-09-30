@@ -639,14 +639,17 @@ int lfInterpret(char* str, int len) {
 /*
  * Resets the interpreter state before QUIT reads the first line, and again
  * after each error: color, BASE = 10 (and STATE, >IN etc. = 0), definitions
- * into the forth wordlist, line count, and empty stacks.
+ * into the forth wordlist, line count, and empty stacks (SP and RP = 0).
+ * The other VM registers keep their values; lfQuit resets the whole VM once,
+ * at startup.
  */
 static void quitReset(void) {
     lfSetColor(COLOR_NORMAL);
     LF_PACKEDSTATE[0] = 10;
     LF_PACKEDSTATE[F_CURRENT] = 0;
     linecount = 0;
-    vmReset();
+    vmPoke(VM_REG_sp, 0);
+    vmPoke(VM_REG_rp, 0);
 }
 
 /*
@@ -729,6 +732,7 @@ int lfQuit(void) {
     lfAPI_empty();
     lfAPI_only();
     lfAPI_forth();
+    vmReset();
     while (1) {
         quitReset();
         int ior;

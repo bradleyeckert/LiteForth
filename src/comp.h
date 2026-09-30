@@ -29,7 +29,19 @@ int lfCompileLit(int32_t x);
  * @return 0 on success, or an explicit negative error code on failure.
  */
 int lfExecuteWord(const struct s_head* word);
-int lfExecuteXT(uint32_t xt); // same thing but with fewer checks
+
+/**
+ * Executes an execution token, as stored in a header's `w` field.
+ * If W_PRIMITIVE is set, the low 16 bits are one instruction (a micro-op
+ * group, a macro, or a wide instruction such as an API or sys call) and run
+ * once. Otherwise the low 23 bits are a code address, which is called and
+ * runs until it returns. Unlike lfExecuteWord there is no header, so a
+ * constant can't be recognized: its value would be treated as code.
+ * Re-entrant, so it may be called from an API function (see `execute`).
+ * @param xt Execution token.
+ * @return 0 on success, or an explicit negative error code on failure.
+ */
+int lfExecuteXT(uint32_t xt);
 
 /**
  * Compiles a dictionary word entry.

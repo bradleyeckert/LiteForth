@@ -285,6 +285,12 @@ static int capacity(void) {
     return 0;
 }
 
+/* EXECUTE  ( i*x xt -- j*x )  Run any execution token: a primitive, macro
+   or API word as one instruction, anything else as a call */
+static int execute(void) {
+    return lfExecuteXT((uint32_t)vmPop());
+}
+
 /* COLD  ( -- ) */
 static int coldboot(void) {
     vmReset();

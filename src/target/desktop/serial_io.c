@@ -15,6 +15,8 @@
     #include <fcntl.h>
     #include <termios.h>
     #include <sys/select.h>
+    #include <pthread.h>
+    #include <errno.h>
     #define TARGET_ISATTY() isatty(STDIN_FILENO)
 #endif
 
@@ -207,18 +209,183 @@ void serial_close(void) {
     is_terminal_mode = 1;
 }
 
+/*
+ * Cross-platform "restore stdin to terminal"
+ * 
+ * This allows an input file to be redirected (aka ./lf < foo.f)
+ * When this stream runs out, further `getc` will only return EOF.
+ * Returning stdin to the terminal lets you start up LiteForth with
+ * file input. When that file is exhausted, LiteForth switches you
+ * back to terminal input.
+ */
+#if defined(_WIN32) || defined(_WIN64)
+#include <fcntl.h>
+#define TTY_DEVICE "CONIN$"
+#define READ_FLAGS _O_RDONLY
+#define sys_open   _open
+#define sys_dup2   _dup2
+#define sys_close  _close
+#define sys_read   _read
+#else
+#define TTY_DEVICE "/dev/tty"
+#define READ_FLAGS O_RDONLY
+#define sys_open   open
+#define sys_dup2   dup2
+#define sys_close  close
+#define sys_read   read
+#endif
+
+static int restore_stdin_to_terminal(void) {
+    fflush(stdout);
+
+    int tty_fd = sys_open(TTY_DEVICE, READ_FLAGS);
+    if (tty_fd < 0) {
+        return -1;                      /* no console, e.g. under CI */
+    }
+
+    if (sys_dup2(tty_fd, 0) < 0) {
+        sys_close(tty_fd);
+        return -1;
+    }
+
+    sys_close(tty_fd);
+    return 0;
+}
+
+
+/*
+ * Terminal input thread
+ *
+ * fgetc(stdin) blocks, and in cooked mode a console or tty has nothing to
+ * read until Enter is pressed. No portable call says whether it would block,
+ * so a reader thread does the blocking reads and puts the bytes in a ring
+ * buffer. serial_ready only looks at the buffer, so loadTIB can run the app
+ * while the user is typing a line.
+ *
+ * The thread reads file descriptor 0, not the stdin stream: a thread
+ * blocked in fgetc holds the stream's lock, and exit() waits for that lock
+ * when it cleans up stdio, so `bye` would hang.
+ *
+ * The thread starts on the first terminal read and runs until the program
+ * exits. At the end of redirected input it reconnects stdin to the console
+ * and keeps reading; if there is no console, it records end of input and
+ * stops.
+ */
+#define RX_BUFFER_SIZE 4096             /* bytes, a power of 2 */
+
+static unsigned char rx_buffer[RX_BUFFER_SIZE];
+static unsigned rx_head;                /* next byte to write */
+static unsigned rx_tail;                /* next byte to read */
+static int rx_eof;                      /* input ended, no console */
+static int rx_started;                  /* thread is running */
+
+#if defined(_WIN32) || defined(_WIN64)
+static CRITICAL_SECTION rx_lock;
+static CONDITION_VARIABLE rx_changed;
+#define RX_LOCK()   EnterCriticalSection(&rx_lock)
+#define RX_UNLOCK() LeaveCriticalSection(&rx_lock)
+#define RX_WAIT()   SleepConditionVariableCS(&rx_changed, &rx_lock, INFINITE)
+#define RX_SIGNAL() WakeAllConditionVariable(&rx_changed)
+#else
+static pthread_mutex_t rx_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t rx_changed = PTHREAD_COND_INITIALIZER;
+#define RX_LOCK()   pthread_mutex_lock(&rx_lock)
+#define RX_UNLOCK() pthread_mutex_unlock(&rx_lock)
+#define RX_WAIT()   pthread_cond_wait(&rx_changed, &rx_lock)
+#define RX_SIGNAL() pthread_cond_broadcast(&rx_changed)
+#endif
+
+/* Number of bytes waiting in the buffer. Call with the lock held. */
+static unsigned rx_count(void) {
+    return rx_head - rx_tail;
+}
+
+/* Adds bytes to the buffer, waiting while it is full. */
+static void rx_put(const unsigned char* p, int n) {
+    RX_LOCK();
+    while (n--) {
+        while (rx_count() >= RX_BUFFER_SIZE) {
+            RX_WAIT();
+        }
+        rx_buffer[rx_head++ & (RX_BUFFER_SIZE - 1)] = *p++;
+        RX_SIGNAL();
+    }
+    RX_UNLOCK();
+}
+
+/* Reads stdin into the buffer until input ends for good. */
+static void rx_reader(void) {
+    static const unsigned char space = ' ';
+    unsigned char chunk[256];
+    for (;;) {
+        int n = (int)sys_read(0, chunk, (unsigned)sizeof(chunk));
+        if (n > 0) {
+            rx_put(chunk, n);
+            continue;
+        }
+#if !(defined(_WIN32) || defined(_WIN64))
+        if ((n < 0) && (errno == EINTR)) continue;
+#endif
+        if (restore_stdin_to_terminal() == 0) {
+            rx_put(&space, 1);          /* separate the file from typed input */
+            continue;
+        }
+        RX_LOCK();
+        rx_eof = 1;
+        RX_SIGNAL();
+        RX_UNLOCK();
+        return;
+    }
+}
+
+#if defined(_WIN32) || defined(_WIN64)
+static DWORD WINAPI rx_thread(LPVOID arg) {
+    (void)arg;
+    rx_reader();
+    return 0;
+}
+#else
+static void* rx_thread(void* arg) {
+    (void)arg;
+    rx_reader();
+    return NULL;
+}
+#endif
+
+/*
+ * Starts the reader thread if it isn't running. Only the main thread calls
+ * this. Returns 0, or ERR_TERM_RX_FAILED if the thread can't be created.
+ */
+static int rx_start(void) {
+    if (rx_started) return 0;
+#if defined(_WIN32) || defined(_WIN64)
+    InitializeCriticalSection(&rx_lock);
+    InitializeConditionVariable(&rx_changed);
+    HANDLE h = CreateThread(NULL, 0, rx_thread, NULL, 0, NULL);
+    if (h == NULL) {
+        DeleteCriticalSection(&rx_lock);
+        return ERR_TERM_RX_FAILED;
+    }
+    CloseHandle(h);                     /* the thread keeps running */
+#else
+    pthread_t t;
+    if (pthread_create(&t, NULL, rx_thread, NULL) != 0) {
+        return ERR_TERM_RX_FAILED;
+    }
+    pthread_detach(t);
+#endif
+    rx_started = 1;
+    return 0;
+}
+
 int serial_ready(void) {
     if (is_terminal_mode) {
-        if (!TARGET_ISATTY()) {
-            // If we haven't hit EOF yet, a character is available to read
-            return !feof(stdin) ? 1 : 0;
-        }
-        int c = fgetc(stdin);
-        if (c != EOF) {
-            ungetc(c, stdin); // Push character back into stdio buffer
-            return 1;         // Character is available
-        }
-        return 0;             // EOF or buffer empty
+        int ior = rx_start();
+        if (ior) return ior;
+        RX_LOCK();
+        int ready = (rx_count() != 0);
+        RX_UNLOCK();
+        return ready;
     }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -268,58 +435,20 @@ int serial_busy(void) {
 #endif
 }
 
-/*
- * Cross-platform "restore stdin to terminal"
- * 
- * This allows an input file to be redirected (aka ./lf < foo.f)
- * When this stream runs out, further `getc` will only return EOF.
- * Returning stdin to the terminal lets you start up LiteForth with
- * file input. When that file is exhausted, LiteForth switches you
- * back to terminal input.
- */
-#if defined(_WIN32) || defined(_WIN64)
-#include <fcntl.h>
-#define TTY_DEVICE "CONIN$"
-#define READ_FLAGS _O_RDONLY
-#define sys_open   _open
-#define sys_dup2   _dup2
-#define sys_close  _close
-#else
-#define TTY_DEVICE "/dev/tty"
-#define READ_FLAGS O_RDONLY
-#define sys_open   open
-#define sys_dup2   dup2
-#define sys_close  close
-#endif
-
-static int restore_stdin_to_terminal(void) {
-    fflush(stdout);
-    fflush(stdin);
-
-    int tty_fd = sys_open(TTY_DEVICE, READ_FLAGS);
-    if (tty_fd < 0) {
-        perror("Failed to open terminal device");
-        return -1;
-    }
-
-    if (sys_dup2(tty_fd, 0) < 0) {
-        perror("Failed to restore stdin");
-        sys_close(tty_fd);
-        return -1;
-    }
-
-    sys_close(tty_fd);
-    clearerr(stdin);
-    return 0;
-}
-
 int serial_getc(void) {
     if (is_terminal_mode) {
-        int c = fgetc(stdin);
-        if (c == EOF) {
-            restore_stdin_to_terminal();
-            c = ' ';
+        int ior = rx_start();
+        if (ior) return ior;
+        int c = ERR_TERM_RX_FAILED;
+        RX_LOCK();
+        while ((rx_count() == 0) && !rx_eof) {
+            RX_WAIT();
         }
+        if (rx_count() != 0) {
+            c = rx_buffer[rx_tail++ & (RX_BUFFER_SIZE - 1)];
+            RX_SIGNAL();                /* room for the reader */
+        }
+        RX_UNLOCK();
         return c;
     }
 

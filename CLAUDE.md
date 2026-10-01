@@ -86,7 +86,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/memalloc.c/.h` | LIFO memory pool |
 | `src/errcodes.h` | Forth `ior` codes (standard negative throw codes) |
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O, `crc32.c` (`lfCrc32`, software CRC-32 for the `,wids` record; MCU targets may use CRC hardware) |
-| `src/target/STM32H743/` | MCU target code (not built by the makefile) |
+| `src/target/STM32H743/` | MCU target code (not built by the makefile), including `crc32.c` (`lfCrc32` on the CRC unit) |
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `scripts/regression.f` | Regression script run by `make test` |
 

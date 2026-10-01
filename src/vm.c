@@ -348,7 +348,18 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
             if (steps == 0) return ERR_VM_TIMEOUT;
  //           printf("%x ", PC); // print PC while stepping
         }
-        if (ior) return ior;
+        if (ior) {
+            if ((ior != 0) && (ior != ERR_VM_BREAK) && (steps)) {
+                // The app is being stepped: send it to its yeet handler.
+                // (A word run by the terminal has steps == 0, so its errors
+                // only go back to the terminal and the PC is left alone.)
+                X = PC;
+                Y = ior;
+                PC = VM_YEET_ADDRESS << 1;
+                dirty = 1;
+            }
+            return ior;
+        }
         if (once == 0) goto fetch;
     }
     return ior;
@@ -356,30 +367,19 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
 
 /*
  * vmRun (documented in vm.h).
- * Stepping runs the app: an error there (other than `break` or a timeout,
- * which the caller handles) sends the app to its yeet handler with X = PC
- * and Y = ior, so the app handles its own errors.
- * Calling a word runs the terminal's code: its errors are returned to the
- * caller (interpretSource, then lfQuit) and must not disturb the app. A
- * call can re-enter vmRun (an API call such as LOAD interprets a block,
- * which executes more words), so the caller's PC is saved and always put
- * back. dirty = 1 makes the caller refetch its instruction pair.
+ * Calling a word can re-enter vmRun: an API call such as LOAD interprets a
+ * block, which executes more words. The nested call leaves PC at the
+ * 0xDEADC0DE terminator, so the caller's PC is saved here and put back.
+ * dirty = 1 makes the caller refetch its instruction pair from memory.
+ * The caller's PC is put back even after an error: the terminal's errors
+ * must not disturb the app. (vmExec sends a stepped app's errors to its
+ * yeet handler.)
  */
 int32_t vmRun(int once, uint32_t inst, int32_t address) {
-    if (once) {
-        return vmExec(1, inst, 0);
+    if (once || inst) {
+        return vmExec(once, inst, address);
     }
-    if (inst) {                         // step the app
-        int32_t ior = vmExec(0, inst, 0);
-        if ((ior != 0) && (ior != ERR_VM_BREAK) && (ior != ERR_VM_TIMEOUT)) {
-            X = PC;
-            Y = ior;
-            PC = VM_YEET_ADDRESS << 1;
-            dirty = 1;
-        }
-        return ior;
-    }
-    int32_t pc = PC;                    // call a word for the terminal
+    int32_t pc = PC;
     int32_t ior = vmExec(0, 0, address);
     dirty = 1;
     PC = pc;

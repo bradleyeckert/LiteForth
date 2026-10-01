@@ -406,12 +406,12 @@ T{ -5 neg? -> -1 }T
 T{  0 neg? ->  0 }T
 T{  5 neg? ->  0 }T
 
-( ,wids compiles the number of wordlists, then the s_wid table, to text )
-( space. t-wids leaves that number and the cells used, which must be more )
-( than the number: at least one cell for it and one per wordlist         )
-: t-wids  ( -- n cells )
-   _text here 32 bit  ,wids  dup @  swap here swap -  _data ;
-T{ t-wids  over - 1 - neg?  -> 4 0 }T
+( ,wids compiles a record to text space: CRC, skip address, number of   )
+( wordlists, then the s_wid table. t-wids leaves the number and the skip )
+( address xor HERE, which is 0 when the skip address is just past it     )
+: t-wids  ( -- n 0 )
+   _text here 32 bit  ,wids  dup 2 + @  swap 1 + @  here xor  _data ;
+T{ t-wids  -> 4 0 }T
 
 ( begin until: loops while the flag is 0 )
 : t-until ( n -- m ) begin 2* dup 64 and until ;

@@ -84,6 +84,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/utils.c/.h` | Number output, error message table, misc helpers |
 | `src/lfblocks.c/.h` | Block buffer management (LRU, `lfAssignBlock`) |
 | `src/memalloc.c/.h` | LIFO memory pool |
+| `src/crc32.c/.h` | CRC-32 (zlib) of cells, LSB first: seals the `,wids` record; for the loader |
 | `src/errcodes.h` | Forth `ior` codes (standard negative throw codes) |
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |

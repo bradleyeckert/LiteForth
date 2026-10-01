@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "main.h"
 #include "api0.h"
+#include "crc32.h"
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;
@@ -782,15 +783,13 @@ int lfToHeader(uint32_t w, uint32_t aux) {
 char* lfHeaderName = NULL;
 
 /*
- * ,WIDS  ( -- )
- * Compiles the wordlist table to text space, cell aligned: wids_pointer, then
- * the bytes of wids[0] to wids[wids_pointer-1], padded to a whole cell.
- * The copy's head pointers are C pointers. If they point into the open-flash
- * buffer, close-flash rebases them along with the live table, so the copy
- * is remembered until then.
+ * ,WIDS  ( -- )  (documented in forth.h)
+ * The record is remembered until close-flash, which rebases its heads and
+ * fills in its CRC: the CRC covers headers that close-flash rewrites, and
+ * anything compiled to code space after ,wids.
  */
-static char* wids_copy;                 // last ,wids table, or NULL
-static int wids_copy_count;
+static int32_t* wids_record;            // last ,wids record, or NULL
+static int wids_record_count;
 
 int lfAPI_commaWids(void) {
     int32_t tp = 0;
@@ -798,21 +797,23 @@ int lfAPI_commaWids(void) {
     tp = (int32_t)lfSetSliceWidth((uint32_t)tp, 32);
     int n = wids_pointer;
     int bytes = n * (int)sizeof(struct s_wid);
-    int cells = 1 + (bytes + 3) / 4;
+    int cells = WIDS_RECORD_TABLE + (bytes + 3) / 4;
     int ior = lfTpStore(tp + cells);    // fails if text space is too small
     if (ior) return ior;
-    ior = vmStore(tp, n);
-    for (int i = 1; (i < cells) && !ior; i++) {
+    ior = vmStore(tp + WIDS_RECORD_CRC, 0);             // set by close-flash
+    if (!ior) ior = vmStore(tp + WIDS_RECORD_SKIP, tp + cells);
+    if (!ior) ior = vmStore(tp + WIDS_RECORD_COUNT, n);
+    for (int i = WIDS_RECORD_TABLE; (i < cells) && !ior; i++) {
         int32_t x = 0;
-        int offset = (i - 1) * 4;
+        int offset = (i - WIDS_RECORD_TABLE) * 4;
         int len = bytes - offset;
         memcpy(&x, (char*)wids + offset, (len < 4) ? len : 4);
         ior = vmStore(tp + i, x);
     }
     if (ior) return ior;
     int page = (tp >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
-    wids_copy = (char*)&vm_memory[page][(tp + 1) & VM_PAGE_MASK];
-    wids_copy_count = n;
+    wids_record = &vm_memory[page][tp & VM_PAGE_MASK];
+    wids_record_count = n;
     return 0;
 }
 
@@ -844,16 +845,24 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
     }
     latest = rebase(latest, lo, bytes, (char*)to);
     lfCreatedName = rebase(lfCreatedName, lo, bytes, (char*)to);
-    // The ,wids copy may not be aligned for a pointer, so use memcpy.
-    for (int i = 0; (wids_copy != NULL) && (i < wids_copy_count); i++) {
-        char* field = wids_copy + i * sizeof(struct s_wid)
+    if (wids_record == NULL) return;
+    // The ,wids table may not be aligned for a pointer, so use memcpy.
+    char* table = (char*)&wids_record[WIDS_RECORD_TABLE];
+    for (int i = 0; i < wids_record_count; i++) {
+        char* field = table + i * sizeof(struct s_wid)
                     + offsetof(struct s_wid, head);
         const void* head;
         memcpy(&head, field, sizeof(head));
         head = rebase(head, lo, bytes, (char*)to);
         memcpy(field, &head, sizeof(head));
     }
-    wids_copy = NULL;                   // the buffer is about to be freed
+    // Seal the record with the CRC of the page below it, as programmed.
+    uintptr_t offset = (uintptr_t)wids_record - lo;
+    if (offset < bytes) {
+        wids_record[WIDS_RECORD_CRC] =
+            (int32_t)lfCrc32(from, (uint32_t)(offset / sizeof(int32_t)));
+    }
+    wids_record = NULL;                 // the buffer is about to be freed
 }
 
 // Create a header structure in Forth memory space

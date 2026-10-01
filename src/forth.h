@@ -85,7 +85,7 @@ typedef struct s_head {
  */
 typedef struct s_wid {   /* Uses WIDS_MAX sizeof(s_wid) of RAM             */
     const struct s_head* head; /* Pointer to the latest word in this list  */
-    char name[8];        /* Descriptive name of the vocabulary, or ""      */
+    char name[12];       /* Descriptive name of the vocabulary, or ""      */
 } s_wid;
 
 /**
@@ -199,7 +199,7 @@ int lfToHeader(uint32_t w, uint32_t aux);
 /**
  * Allocates a new, empty wordlist.
  * @param name Descriptive name shown by `.wid`, or NULL for none. It is
- *        copied into the wid, truncated to 7 characters.
+ *        copied into the wid, truncated to 11 characters.
  * @return The new wordlist identifier (wid), or ERR_WID_OVERFLOW if all
  *         WIDS_MAX wordlists are in use.
  */

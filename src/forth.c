@@ -443,7 +443,6 @@ static int loadTIB(int* length) {
             yield2c(); // Yield to other tasks while waiting...
 #endif
             if (g_lf_sys_options & SYS_OPTION_RUNNING) {
-                lf_putc('.'); // make sure we are running
                 int err = vmRun(0, VM_STEP_LIMIT, 0);
                 if (err == ERR_VM_TIMEOUT) {    // stuck: stop the app
                     g_lf_sys_options &= ~SYS_OPTION_RUNNING;

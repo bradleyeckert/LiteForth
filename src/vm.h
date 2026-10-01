@@ -57,9 +57,10 @@ int32_t vmRun(int once, uint32_t inst, int32_t address);
 /**
  * @brief Sends the VM to its yeet handler.
  *
- * Saves PC in X and `ior` in Y, then sets PC to the yeet handler at cell
+ * Saves PC in X (in step mode, just after the instruction that failed) and
+ * `ior` in Y, then sets PC to the yeet handler at cell
  * VM_YEET_ADDRESS, so the next vmRun from the PC runs the handler. Forth
- * code reads X and Y with the sys> X and Y instructions.
+ * code reads X and Y with `x@` and `y@`.
  *
  * @param ior The error code.
  */

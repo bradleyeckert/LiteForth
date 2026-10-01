@@ -75,9 +75,13 @@ as it would on a Forth chip, so it could eventually run its own QUIT loop with n
 API calls. A yeet handler is installed like the app's entry point:
 
 ```forth
-:noname  ( yeet handler: Y holds the error code )  ...  ;
-hex 80000002 ,jump decimal
+:noname ( yeet handler: y@ = error code, x@ = PC after the fault )
+    cr ." App error " y@ .  ." at " x@ hex . decimal cr
+    begin  break  again         ( park the app until the next `cold` )
+; hex 80000002 ,jump decimal
 ```
+
+This is the handler in `go.f`: it reports the error and parks the app.
 
 - Timeout: if the app runs `VM_STEP_LIMIT` steps without a `break`, it is stuck,
 so `loadTIB` stops it by clearing `SYS_OPTION_RUNNING` and returns `ERR_VM_TIMEOUT`,

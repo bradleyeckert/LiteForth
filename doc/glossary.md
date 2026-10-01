@@ -121,8 +121,10 @@ Name lookup ignores case.
 | `wordlist` | `( -- wid )` | Creates a new wordlist and returns its number. |
 | `words` | `( -- )` | Lists the words in the first wordlist of the search order. |
 | `x'` | `( <name> -- w aux )` | Returns the header fields of `<name>`: `w` (its execution token or value) and `aux` (its flags). |
+| `x@` | `( -- x )` | Pushes register `X`. After an error in the app, `X` holds the PC just after the instruction that failed. |
 | `xor` | `( x1 x2 -- x3 )` | Bitwise exclusive OR. |
-| `yeet` | `( ior -- )` | Raises error `ior`. When interpreting, QUIT reports it. In the app, the VM jumps to the yeet handler at cell 2 with the PC in X and `ior` in Y. |
+| `y@` | `( -- x )` | Pushes register `Y`. After an error in the app, `Y` holds the error code. |
+| `yeet` | `( ior -- )` | Raises error `ior`. When interpreting, QUIT reports it. In the app, the VM jumps to the yeet handler at cell 2 with the PC in `X` and `ior` in `Y` (read them with `x@` and `y@`). |
 | `\|inst` | `( -- )` | Ends the current micro-op group, so the next primitive starts a new instruction. |
 | `}t` | `( ? -- )` | † Ends a test and checks the results. |
 

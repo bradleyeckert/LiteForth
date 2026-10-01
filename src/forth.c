@@ -119,6 +119,8 @@ static const struct s_head forth_heads[] = {
     { PREV, "]task",        SYSTO(VMSTO_TASK),                        0},
     { PREV, "yeet",         SYSTO(VMSTO_YEET),                        0},
     { PREV, "task[",        SYSFM(VMSFROM_TASK),                      0},
+    { PREV, "x@",           SYSFM(VMSFROM_X),                         0},
+    { PREV, "y@",           SYSFM(VMSFROM_Y),                         0},
     { PREV, "um*",          API0(API_UMSTAR),                         0},
     { PREV, "m*",           API0(API_MSTAR),                          0},
     { PREV, "mu/mod",       API0(API_MUDIVMOD),                       0},

@@ -1,6 +1,10 @@
 ﻿( LiteForth boot code )
 
 empty only forth  0 open-flash
+( forth wid = 0, only wid = 1. Define definitions in only )
+1 current !
+: definitions  ( -- )       context @ current ! ;
+definitions
 : cells ; immediate
 : base!     ( n -- )        base ! ;
 : decimal   ( -- )          10 base! ;
@@ -14,7 +18,6 @@ empty only forth  0 open-flash
 
 ( dictionary )
 hex
-: definitions  ( -- )       context @ current ! ;
 : variable  ( -- )          20 bits ;
 : _section  ( n -- )        dp^ ! ;
 : _udata    ( -- )          0 _section ;
@@ -118,6 +121,7 @@ hex 80000000 @ decimal 14 dasm
 : dump-all  0 chere 2* dasm ;
 
 _text here 32 bit  1 !  ( Bootup data structure here... To be populated later. )
+,wids
 
 close-flash
 0 >options

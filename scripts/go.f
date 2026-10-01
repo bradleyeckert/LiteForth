@@ -82,7 +82,7 @@ decimal
 
 variable counter
 
-: mydemo  ( -- )
+: demo-step  ( -- )
     1 counter +!
 ;
 
@@ -93,12 +93,13 @@ variable counter
 
 :noname ( demo application )
     hi
-    begin
-        begin  mydemo
-        TIBstate a! @a 2 = until
-        3 !a
+    begin  demo-step  break
     again
 ; hex 80000000 ,jump decimal
+
+:noname ( yeet handler )
+
+
 
 cr .( `cold` is supposed to launch the demo app : note the jump: ) cr
 

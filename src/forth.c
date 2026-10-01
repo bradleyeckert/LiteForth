@@ -29,16 +29,6 @@ static int lfTOINstore(int position) {
     return vmStore(LF_TOIN, position);
 }
 
-static int lfTIBSTATEfetch(void) {
-    int32_t result;
-    vmFetch(LF_TIBSTATE, &result);
-    return result;
-}
-
-static int lfTIBSTATEstore(int state) {
-    return vmStore(LF_TIBSTATE, state);
-}
-
 /*=========================================================================
 * Define a Forth
 =========================================================================*/
@@ -210,7 +200,6 @@ static const ConstantMapping constant_table[] = {
     { VARIABLE(F_BLK),  "blk"},
     { BLOCK_SIZE_CELLS, "|block|"},
     { LF_TIB,           "TIB"},
-    { LF_TIBSTATE,      "TIBstate"},
     { VARIABLE(F_PTRS), "dp[]"},
     { LF_MSPACE,        "dp^" },
     { VM_LOG2_PAGES,    "log2pages"},
@@ -436,18 +425,16 @@ static int loadTIB(int* overflowed) {
     int remaining = TIBSIZE; // remaining space in TIB
     *overflowed = 0;
 
-    if (lfTIBSTATEfetch()) {
-        // Announce to Forth that the terminal is waiting for TIBSTATE = 2
-        lfTIBSTATEstore(1);
-    }
     while (1) {
         if (serial_ready() < 1) {
 #ifdef yield2c
-            yield2c(); // Yield to other tasks (ans step VM) while waiting...
+            yield2c(); // Yield to other tasks while waiting...
 #endif
-            if (lfTIBSTATEfetch()) {
-                vmRun(0, VM_GRANULARITY, 0);
+            if (g_lf_sys_options & SYS_OPTION_RUNNING) {
+                int ior = vmRun(0, VM_STEP_LIMIT, 0);
             }
+            // check ior: 0 or ERR_VM_BREAK is okay, else means it timed out (ERR_VM_TIMEOUT), 
+            // nonzero sp or rp is an error, ERR_VM_BREAK = okay
             continue;
         }
         int c = serial_getc();
@@ -471,15 +458,6 @@ static int loadTIB(int* overflowed) {
     }
     *tib++ = 0;                     // Null-terminate the TIB
     remaining--;
-    if (lfTIBSTATEfetch()) {
-        lfTIBSTATEstore(2); // Indicate that TIB is ready for processing
-        while (lfTIBSTATEfetch() != 3) {
-#ifdef yield2c
-            yield2c();
-#endif
-            vmRun(0, VM_GRANULARITY, 0);
-        }
-    }
     return TIBSIZE - remaining;
 }
 

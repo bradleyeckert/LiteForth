@@ -36,11 +36,10 @@ locations for accessibility by Forth or by C.
 
 #define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)
-#define LF_TIBSTATE  BITFIELD(2, 6, 0)
-#define LF_STATE     BITFIELD(1, 8, 0)
-#define LF_DPL       BITFIELD(6, 9, 0)
-#define LF_TOIN      BITFIELD(13, 15, 0)
-#define LF_MSPACE    BITFIELD(2, 28, 0)
+#define LF_STATE     BITFIELD(1, 6, 0)
+#define LF_DPL       BITFIELD(6, 7, 0)
+#define LF_TOIN      BITFIELD(13, 13, 0)
+#define LF_MSPACE    BITFIELD(2, 26, 0)
 #define LF_CURRENT   BITFIELD(8, 0, F_CURRENT)
 #define LF_TIB       BITFIELD(8, 0, F_TIB) /* Terminal Input Buffer       */
 #define LF_CONTEXT   BITFIELD(8, 0, F_CONTEXT)    /* context list          */

@@ -133,5 +133,6 @@
 #define ERR_POSTPONING_CONSTANT    (-113)   /* a constant cannot be postponed */
 #define ERR_NO_API_CALL_ALLOWED    (-114)   /* API call attempted while all API calls are disabled */
 #define ERR_VM_BREAK               (-115)   /* VM break instruction executed */
+#define ERR_VM_TIMEOUT             (-116)   /* VM ran too long before `break` */
 
 #endif // ERRCODES_H

@@ -1,0 +1,13 @@
+1. The stack effect of lfAPI_bit was changed. Change glossary.
+`bit`  ( n addr -- addr' )
+
+2. TIBstate was removed. Remove from the glossary. A better way was found to hand off control, which was with:
+
+3. Added `break` instruction to the VM.
+
+4. The app code is expected to call `break` in a loop. loadTIB intercepts it when (g_lf_sys_options & SYS_OPTION_RUNNING) is true.
+While waiting for terminal input, the spin loop executes VM code between `break` instructions.
+
+5. `loadTIB` should be changed from `int loadTIB(int* overflowed)`, where the retsult is the length, to
+`int loadTIB(int* length)`, returning 0 if okay, ERR_TIB_OVERFLOW if overflowed.
+Refactor the code accordingly.

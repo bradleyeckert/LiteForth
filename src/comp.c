@@ -372,40 +372,25 @@ int lfAPI_toBody(void) {
     return ERR_BODY_ON_NON_CREATE;
 }
 
-/* BIT  ( n -- ) 
- * Change the bit width of the next slices compiled
+/* BIT  ( addr n -- addr' ) 
+ * Change the the slice size and align it to the next slice position
  */
 int lfAPI_bit(void) {
     int32_t bits = vmPop();
-    if ((bits < 1) || (bits > 32)) return ERR_TOO_MANY_BITS;
-    int32_t* ptr = herePtr();
-    int32_t here = *ptr;
-    int bpos = 0x1F & (here >> 22);
-    here &= ((1 << 27) - 1); // strip the slice width
-    if ((bits + bpos) > 32) {
-        here = (here & 0x3FFFFF) + 1; // start new cell
-    }
-    if (bits < 32) {
-        here |= (bits << 27); // set new slice width (32 bits = whole cell, size 0)
-    }
-    *ptr = here;
-    return 0;
+    int32_t addr = vmPop();
+    return vmPush(lfSetSliceWidth(addr, bits));
 }
 
-////#include <stdio.h>
 /* POSTPONE  ( <name> -- )  */
 int lfAPI_postpone(void) {
     const struct s_head* word = lfTickWord();
     if (word == NULL) return ERR_UNDEFINED_WORD;
     if (word->aux & A_CONSTANT) return ERR_POSTPONING_CONSTANT;
-    ////printf("postponing %s, ", word->name);
     int ior = 0;
     if (word->aux & A_IMMEDIATE) {
-        ////printf("immediate\n");
         ior = lfCompileWord(word);
     }
     else {
-        ////printf("compile\n");
         ior = CompUlit(word->w);
         commaCode(W_PRIMITIVE | VMI_API0 | API_COMPILE);
     }

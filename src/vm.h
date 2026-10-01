@@ -120,7 +120,10 @@ int32_t vmReset(void);
 /** @} */
 
 // When the VM yeets an error, the PC is loaded with this cell address.
-#define VM_YEET_ADDRESS 1
+// 0 = cold boot address
+// 1 = reserved for address of system data
+// 2 = yeet address
+#define VM_YEET_ADDRESS  2
 
 // Check the stack configuration
 #define STACK_MASK            (STACK_CAPACITY - 1)
@@ -183,6 +186,7 @@ extern uint32_t g_lf_sys_options; // used in forth.c, main.c, vm.c
 #define SYS_OPTION_USE_COLORS 0x0080	/* use color messages				*/
 #define SYS_OPTION_VERBOSE    0x0040	/* echo input lines					*/
 #define SYS_OPTION_IGNORE_CR  0x0020	/* ignore CR						*/
+#define SYS_OPTION_RUNNING    0x0010    /* run the VM                       */
 #define SYS_OPTION_VALIDATION 0x0004	/* quit immediately upon error		*/
 #define SYS_OPTION_NO_DOTESS  0x0002	/* do not display the stack			*/
 #define SYS_OPTION_NO_OK      0x0001	/* do not display "ok>"				*/

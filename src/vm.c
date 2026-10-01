@@ -345,7 +345,7 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
 
         if (steps) {
             steps--;
-            if (steps == 0) return 0;
+            if (steps == 0) return ERR_VM_TIMEOUT;
         }
         if (ior) return ior;
         if (once == 0) goto fetch;
@@ -368,7 +368,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     int32_t pc = PC;
     int32_t ior = vmExec(0, 0, address);
     dirty = 1;
-    if (ior == 0) {
+    if ((ior == 0) || (ior == ERR_VM_BREAK)) {
         PC = pc;
     }
     else {

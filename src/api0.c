@@ -294,7 +294,8 @@ static int execute(void) {
 /* COLD  ( -- ) */
 static int coldboot(void) {
     vmReset();
-    return vmStore(LF_TIBSTATE, 1);
+    g_lf_sys_options |= SYS_OPTION_RUNNING;
+    return 0;
 }
 
 /* `X'` ( <name> -- w aux ) */

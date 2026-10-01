@@ -57,8 +57,9 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
   does); flash is write-protected otherwise and `:` fails with ior -20.
 - `open-flash` maps the flash page to a RAM buffer from the memory pool.
-  `close-flash` relocates header pointers into the buffer (`lfRelocateHeaders`:
-  headers hold C pointers), programs the page and frees the buffer. Without
+  `close-flash` programs the page and frees the buffer; nothing needs
+  relocating, because headers in VM memory hold VM values (see the header
+  links note below). Without
   a matching `close-flash`, lf exits with code 196 (pool_free fails in main).
 - lf reads (or, if missing, creates) `lfblocks.bin` / `lfflash.bin` in the
   current directory. The repo tracks both at the root and in `bin/`; keep all
@@ -159,15 +160,19 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   With piped input the app mostly runs after EOF, when there's nothing to
   read. To test on a tty, use a pty (python `pty.fork`); if you wrap lf in
   `timeout`, use `--foreground` or lf can't read the tty.
+- **Header links are tagged** (doc on `s_head` in `forth.h`): a link or
+  `s_wid.head` is 0 (end), `(a << 1) | 1` (header in VM memory at cell
+  address a), `(n << 2) | 2` (the built-in list of wordlist n), or else a C
+  pointer (only inside the built-in tables). A VM header's `name` is the
+  name's VM byte address. Walk lists with `lfFollow` (forth.c), never
+  `->link`/`->name` directly. So flash holds no C addresses: no rebase at
+  `close-flash`, and the image boots wherever it's mapped.
 - **Booting** (`-o 8`, `SYS_OPTION_BOOTING`): `go.f` ends with
   `_text here 32 bit 1 ! ,wids`, so cell 1 points to a record (skip address,
-  wordlist count, the flash page's C address, raw `wids` table; offsets
-  `WIDS_RECORD_*` in `forth.h`). At startup `lfQuit` calls `lfBootFromFlash`
-  to restore `wids`, then resets the VM and sets `SYS_OPTION_RUNNING`.
-  Headers hold C pointers, and the desktop loads flash at a new address each
-  run, so the loader moves heads, links and names by the difference; a list's
-  last link (into the built-in tables) becomes that wordlist's `empty` head.
-  A head outside the page can't be resolved and becomes NULL.
+  wordlist count, raw `wids` table; offsets `WIDS_RECORD_*` in `forth.h`).
+  At startup `lfQuit` calls `lfBootFromFlash` to restore `wids`, then resets
+  the VM and sets `SYS_OPTION_RUNNING`. A head that isn't a valid link
+  (e.g. a C pointer in an image from an older build) becomes NULL.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

@@ -10,7 +10,7 @@
 //#include <stdio.h> // remove
 
 // globals
-char* lfCreatedName; // used by api0.c
+uint32_t lfCreatedName; // used by api0.c
 
 /*===========================================================================
 * Dictionary pointer functions (F_PTRS in RAM page)
@@ -281,7 +281,7 @@ int lfAPI_semicolon(void) {
     }
     noname = 0;
     lfSTATEstore(0);
-    lfCreatedName = NULL; // WORDLIST not used yet
+    lfCreatedName = 0; // WORDLIST not used yet
     return CompExit();
 }
 
@@ -341,7 +341,7 @@ int lfAPI_dotDoes(void) {
     }
     ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
     created = 0;
-    lfCreatedName = NULL;
+    lfCreatedName = 0;
     return ior;
 }
 

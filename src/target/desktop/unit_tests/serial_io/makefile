@@ -4,7 +4,7 @@ SRC_DIR     = ../../../..
 DESKTOP_DIR = ../..
 
 CC     ?= gcc
-CFLAGS  = -Wall -Wextra -std=c99 -I$(DESKTOP_DIR) -I$(SRC_DIR)
+CFLAGS  = -Wall -Wextra -std=c99 -pthread -I$(DESKTOP_DIR) -I$(SRC_DIR)
 
 SRC = $(DESKTOP_DIR)/serial_io.c
 

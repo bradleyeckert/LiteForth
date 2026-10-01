@@ -152,7 +152,13 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   stopped and `loadTIB(int* length)` returns it for QUIT to report; otherwise
   `loadTIB` returns 0 or `ERR_TIB_OVERFLOW`. `go.f` puts the app's entry jump at code
   cell 0 and the handler's at cell 2 with `,jump`.
-  With piped input the app only runs after EOF, when there's nothing to read.
+  `serial_ready` never blocks: in stdio mode a reader thread (`serial_io.c`,
+  pthreads or Win32) reads fd 0 into a ring buffer, so the app runs while a
+  line is being typed. It reads the fd, not the `stdin` stream, because a
+  thread blocked in `fgetc` holds the stream lock and `exit()` would hang.
+  With piped input the app mostly runs after EOF, when there's nothing to
+  read. To test on a tty, use a pty (python `pty.fork`); if you wrap lf in
+  `timeout`, use `--foreground` or lf can't read the tty.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

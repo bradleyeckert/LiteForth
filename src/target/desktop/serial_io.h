@@ -34,7 +34,10 @@ void serial_close(void);
 
 /**
  * Checks if there is pending data to read from standard input or the active serial COM port.
- * Does NOT block.
+ * Does NOT block. In stdio mode, a reader thread (started by the first call
+ * to serial_ready or serial_getc) does the blocking reads of stdin into a
+ * buffer, and this reports whether the buffer holds anything. A console in
+ * line mode only delivers a line when Enter is pressed.
  * 
  * @return 1 if data is available, 0 if empty, or a negative ERR_* code on error.
  */
@@ -50,8 +53,12 @@ int serial_busy(void);
 
 /**
  * Reads a single byte from stdin, or from the serial port if one is open.
- * In stdio mode, reaching the end of redirected input (e.g. `lf < file.f`)
- * reconnects stdin to the console, so input continues from the keyboard.
+ * In stdio mode it takes the byte from the reader thread's buffer, waiting
+ * if the buffer is empty. Reaching the end of redirected input (e.g.
+ * `lf < file.f`) reconnects stdin to the console and adds a space, so input
+ * continues from the keyboard. If there is no console, input ends there:
+ * serial_ready reports 0 from then on and serial_getc returns
+ * ERR_TERM_RX_FAILED.
  * 
  * @return The unsigned byte value on success, else ERR_TERM_RX_FAILED.
  */

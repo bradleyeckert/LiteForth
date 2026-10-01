@@ -21,7 +21,7 @@ OBJS = $(addprefix $(BUILD_DIR)/, $(notdir $(SRCS:.c=.o)))
 # Compiler and flags (-I adds both directories to header search paths)
 # -MMD -MP generate header dependency files so edits to .h files trigger rebuilds
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 $(addprefix -I,$(SRC_DIRS))
+CFLAGS = -Wall -Wextra -O2 -pthread $(addprefix -I,$(SRC_DIRS))
 DEPFLAGS = -MMD -MP
 
 # Unit test suites under src/target/desktop/unit_tests

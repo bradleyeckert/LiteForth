@@ -416,14 +416,21 @@ uint32_t g_lf_sys_options = 0;
 static uint32_t linecount = 0;
 
 /*
- * Reads one line from the terminal into TIB, NUL-terminated, and returns its
- * length. If the line does not fit, the rest of it is discarded and
- * *overflowed is set.
+ * Reads one line from the terminal into TIB, NUL-terminated, and stores its
+ * length (counting the NUL) in *length.
+ *
+ * While no input is waiting and the app is running (SYS_OPTION_RUNNING, set
+ * by `cold`), the app's VM code runs from its PC until its next `break`.
+ * If it fails instead, or runs VM_STEP_LIMIT steps without a `break`, the
+ * app is stopped and its error is returned, ending the line early.
+ *
+ * Returns 0, ERR_TIB_OVERFLOW if the line did not fit in TIB (the rest of it
+ * is discarded), or the app's error.
  */
-static int loadTIB(int* overflowed) {
+static int loadTIB(int* length) {
     char *tib = (char*)TIB; // reset the TIB pointer
     int remaining = TIBSIZE; // remaining space in TIB
-    *overflowed = 0;
+    int ior = 0;
 
     while (1) {
         if (serial_ready() < 1) {
@@ -431,10 +438,13 @@ static int loadTIB(int* overflowed) {
             yield2c(); // Yield to other tasks while waiting...
 #endif
             if (g_lf_sys_options & SYS_OPTION_RUNNING) {
-                int ior = vmRun(0, VM_STEP_LIMIT, 0);
+                int err = vmRun(0, VM_STEP_LIMIT, 0);
+                if ((err != 0) && (err != ERR_VM_BREAK)) {
+                    g_lf_sys_options &= ~SYS_OPTION_RUNNING; // stop the app
+                    ior = err;
+                    break;
+                }
             }
-            // check ior: 0 or ERR_VM_BREAK is okay, else means it timed out (ERR_VM_TIMEOUT), 
-            // nonzero sp or rp is an error, ERR_VM_BREAK = okay
             continue;
         }
         int c = serial_getc();
@@ -453,12 +463,13 @@ static int loadTIB(int* overflowed) {
             remaining--;
         }
         else {                      // ignore input remaining until EOL
-            *overflowed = 1;
+            ior = ERR_TIB_OVERFLOW;
         }
     }
     *tib++ = 0;                     // Null-terminate the TIB
     remaining--;
-    return TIBSIZE - remaining;
+    *length = TIBSIZE - remaining;
+    return ior;
 }
 
 static void lfDotLinecount(void) {
@@ -676,19 +687,19 @@ static int checkStackDepth(void) {
 /*
  * Reads one line from the terminal and interprets it. A line too long for
  * TIB is not interpreted at all, since running part of it could leave a
- * definition half-compiled.
+ * definition half-compiled. Nor is a line cut short by an app error.
  */
 static int interpretLine(void) {
-    int overflowed;
+    int len;
     linecount++;
-    int len = loadTIB(&overflowed);
+    int ior = loadTIB(&len);
     if (g_lf_sys_options & SYS_OPTION_VERBOSE) {
         lfCR();
         lfDotLinecount();
         lf_puts(TIB);
     }
-    if (overflowed) return ERR_TIB_OVERFLOW;
-    int ior = lfInterpret((char*)TIB, len);
+    if (ior) return ior;
+    ior = lfInterpret((char*)TIB, len);
     if (ior) return ior;
     return checkStackDepth();
 }

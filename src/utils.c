@@ -463,6 +463,10 @@ static const ErrorMapping error_table[] = {
     { ERR_WID_OVERFLOW, "Wordlist allocation overflowed" },
     { ERR_TOO_MANY_BITS, "Only 1 to 32 bits are allowed in a bit field" },
     { ERR_INTERPRETATION_ONLY, "Word may not be compiled" },
+    { ERR_POSTPONING_CONSTANT, "a constant cannot be postponed" },
+    { ERR_NO_API_CALL_ALLOWED, "API call attempted while all API calls are disabled" },
+    { ERR_VM_BREAK, "VM break instruction executed" },
+    { ERR_VM_TIMEOUT, "VM ran too long before `break`" },
 };
 
 /**

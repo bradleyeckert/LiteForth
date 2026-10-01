@@ -194,25 +194,21 @@ static int flashClose(void) {
     // 1. The backing flash page that open-flash saved
     int32_t* flash_page_ptr = flash;
 
-    // 2. Headers compiled into the cache point into it: move those
-    //    pointers to where the cache contents are going
-    lfRelocateHeaders(cache, flash_page_ptr, FLASH_PAGE_CELLS);
-
-    // 3. Restore vm_memory page pointer back to backing flash memory
+    // 2. Restore vm_memory page pointer back to backing flash memory
     vm_memory[openpage] = flash_page_ptr;
     vm_memory_wp_limit[openpage] = FLASH_PAGE_CELLS; // write-protect
 
-    // 4. Persist RAM cache contents to disk/flashmem
+    // 3. Persist RAM cache contents to disk/flashmem
     int ior = flash_program((uint32_t*)cache, openpage);
 
     openpage = -1;
 
-    // 5. Burn (zero-fill) the cache buffer before freeing
+    // 4. Burn (zero-fill) the cache buffer before freeing
     if (cache != NULL) {
         memset(cache, 0, FLASH_PAGE_CELLS * sizeof(int32_t));
     }
 
-    // 6. Free allocated cache memory and check for errors
+    // 5. Free allocated cache memory and check for errors
     int free_res = pool_free(cache);
     cache = NULL;
 
@@ -265,9 +261,9 @@ static int endbracket(void) {
 
 /* WORDLIST  ( -- wid ) */
 static int wordlist(void) {
-    int ior = lfAddWordlist(lfCreatedName);
+    int ior = lfAddWordlist(lfCreatedName ? lfVmBytes(lfCreatedName) : NULL);
     if (ior < 0) return ior;
-    lfCreatedName = NULL;
+    lfCreatedName = 0;
     return vmPush(ior);
 }
 

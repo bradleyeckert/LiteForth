@@ -73,10 +73,22 @@ locations for accessibility by Forth or by C.
 
 /**
  * Structure representing an individual entry (word) in the dictionary.
+ *
+ * Built-in headers (the C tables in forth.c) hold C pointers. Headers that
+ * `lfHeader` makes in VM memory hold VM values instead, so that flash holds
+ * no C addresses and needs no relocating when it's programmed or booted:
+ *   - link (and s_wid.head) is a tagged value:
+ *       0             end of the list;
+ *       (a << 1) | 1  a header in VM memory at cell address a;
+ *       (n << 2) | 2  the built-in headers of wordlist n (forth, only);
+ *       otherwise     a C pointer to a built-in header.
+ *   - name is the VM byte address of the name, when the header is in VM
+ *     memory; a C string pointer in the built-in tables.
+ * Follow links with lfFollow in forth.c, which also resolves the name.
  */
 typedef struct s_head { 
-    struct s_head *link; /* Pointer to the previous word in the list       */
-    char *name;          /* Pointer to a C-string representing word name   */
+    struct s_head *link; /* Previous word in the list (tagged, see above)  */
+    char *name;          /* Name: C string, or VM byte address (see above) */
     uint32_t w;          /* Execution token / Word identifier payload      */
     uint32_t aux;        /* Auxiliary storage parameter                    */
 } s_head;
@@ -183,10 +195,21 @@ int lfParseWord(char* dest, int destSize);
  * CURRENT wordlist, and makes it the latest header (see lfToHeader).
  * @param w Execution token or value for the header's w field.
  * @param aux Initial flags for the header's aux field (e.g., A_SMUDGED, A_CONSTANT).
- * @param name If not NULL, receives a C pointer to the stored name string.
+ * The header's link and name are VM values, not C pointers (see s_head),
+ * so the header is valid wherever its page is mapped.
+ * @param name If not NULL, receives the VM byte address of the stored name.
  * @return 0 on success, or a negative error code (e.g., ERR_DICTIONARY_OVERFLOW).
  */
-int lfHeader(uint32_t w, uint32_t aux, char** name);
+int lfHeader(uint32_t w, uint32_t aux, uint32_t* name);
+
+/**
+ * Finds the C address of a VM address.
+ * @param a Cell address, or byte slice address (an 8-bit slice selects a
+ *          byte of the cell, as in a name's address).
+ * @return The C address, or NULL if a's page isn't mapped or a is past its
+ *         read limit.
+ */
+char* lfVmBytes(uint32_t a);
 
 /**
  * Modifies the latest header created by lfHeader.
@@ -287,27 +310,10 @@ int lfAPI_load(void);
  */
 int lfAPI_empty(void);
 
-/**
- * Moves header pointers from a RAM buffer to the flash page it will be
- * programmed into. Headers compiled while `open-flash` maps a flash page to
- * a RAM buffer hold C pointers into that buffer; `close-flash` calls this
- * before programming the page and freeing the buffer.
- * Rewrites every pointer into [from, from + cells) to the same offset in
- * `to`: the wordlist heads, the latest header, the name kept for
- * `wordlist`, the link and name fields of headers inside the buffer, and the
- * base address and heads in the record most recently compiled by `,wids`.
- * @param from  The RAM buffer.
- * @param to    The flash page the buffer's contents are going to.
- * @param cells Size of the buffer in cells.
- */
-void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells);
-
 /* Cell offsets in the record compiled by `,wids` */
 #define WIDS_RECORD_SKIP   0  /* address of the cell after the record        */
 #define WIDS_RECORD_COUNT  1  /* number of wordlists (wids_pointer)          */
-#define WIDS_RECORD_BASE   2  /* C address of the flash page, as programmed  */
-#define WIDS_RECORD_TABLE  (WIDS_RECORD_BASE + (int)((sizeof(void*) + 3) / 4))
-                              /* the s_wid structures, as raw bytes          */
+#define WIDS_RECORD_TABLE  2  /* the s_wid structures, as raw bytes          */
 
 /**
  * ,WIDS  ( -- )
@@ -316,12 +322,10 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells);
  * (see WIDS_RECORD_*):
  *   - the address just past the record, to skip it;
  *   - the number of wordlists in use (wids_pointer);
- *   - the C address of the flash page, so the loader can tell whether the
- *     page has moved since it was programmed (a C pointer, padded to cells);
  *   - that many s_wid structures as raw bytes, padded to a whole cell.
- * The base and heads are C pointers; close-flash rebases them from the
- * open-flash buffer to the flash page. Use `,wids` last before close-flash:
- * words defined after it aren't in the saved wordlists.
+ * The heads are links (see s_head), not C pointers, so the record is valid
+ * wherever the page is mapped. Use `,wids` last before close-flash: words
+ * defined after it aren't in the saved wordlists.
  * @return 0, ERR_DICTIONARY_OVERFLOW if text space is too small, or an
  *         ior from vmStore.
  */
@@ -330,13 +334,10 @@ int lfAPI_commaWids(void);
 /**
  * Restores the wordlists from flash, for booting. Cell 1 holds the address
  * of the record compiled by `,wids`. This checks the record, then sets
- * `wids_pointer` and `wids` from it. A head that isn't in the record's flash
- * page can't be resolved and is set to NULL.
- * If the page is at a different C address than when it was programmed (as on
- * the desktop, where the flash image is loaded anew each run), the heads and
- * the link and name of each header in their lists are moved by the
- * difference. A list's last link, out of the page and into the built-in
- * header table, is set to that wordlist's head after `empty`.
+ * `wids_pointer` and `wids` from it. Heads and header links are VM values,
+ * so nothing needs translating. A head that can't be resolved (not a link to
+ * mapped VM memory or to a built-in list, e.g. a C pointer saved by an older
+ * build) is set to NULL.
  * The search order is not changed. lfQuit calls this when
  * SYS_OPTION_BOOTING is set, then resets the VM and starts the app.
  * @return 0, or ERR_BAD_BOOT_RECORD if cell 1 doesn't point to a valid record.

@@ -266,13 +266,67 @@ static int findConstant(char* name, int32_t* val) {
 
 struct s_wid wids[WIDS_MAX];
 
-static struct s_wid wids_empty[] = { // wordlists
-    {.head = LAST_HEAD(forth_heads), .name = "`forth" },
-    {.head = LAST_HEAD(only_heads),  .name = "`only" }
+/*
+ * Links (documented with s_head in forth.h). A link is a tagged value, so
+ * that headers in flash hold no C addresses:
+ *   0               end of the list
+ *   (a << 1) | 1    a header in VM memory at cell address a
+ *   (n << 2) | 2    the built-in headers of wordlist n (builtin_heads[n])
+ *   other           a C pointer to a built-in header (links inside the tables)
+ * The name of a header in VM memory is a VM byte address, not a C pointer.
+ */
+#define EMPTY_WIDS  2
+#define LINK_BUILTIN(n)  ((const struct s_head*)(uintptr_t)(((n) << 2) | 2))
+
+static const struct s_head* const builtin_heads[EMPTY_WIDS] = {
+    LAST_HEAD(forth_heads), LAST_HEAD(only_heads)
 };
 
-#define EMPTY_WIDS  2
+static struct s_wid wids_empty[] = { // wordlists
+    {.head = LINK_BUILTIN(0), .name = "`forth" },
+    {.head = LINK_BUILTIN(1), .name = "`only" }
+};
+
 static int wids_pointer = 2;
+
+// lfVmBytes (documented in forth.h)
+char* lfVmBytes(uint32_t a) {
+    int page = (a & 0x3FFFFF) >> (22 - VM_LOG2_PAGES);
+    uint32_t cell = a & VM_PAGE_MASK;
+    if ((vm_memory[page] == NULL) || (cell >= vm_memory_rd_limit[page])) return NULL;
+    return (char*)&vm_memory[page][cell] + ((a >> 25) & 3);
+}
+
+// The link to a header at VM cell address a
+static const struct s_head* linkToVM(uint32_t a) {
+    return (const struct s_head*)(uintptr_t)(((uintptr_t)a << 1) | 1);
+}
+
+/*
+ * Follows a link: returns the header it refers to, or NULL at the end of the
+ * list (or if it can't be resolved). If name isn't NULL, it receives the
+ * header's name as a C string.
+ */
+static const struct s_head* lfFollow(const struct s_head* link, const char** name) {
+    uintptr_t v = (uintptr_t)link;
+    const struct s_head* h;
+    if (v & 1) {                        // header in VM memory
+        h = (const struct s_head*)lfVmBytes((uint32_t)(v >> 1));
+        if ((h != NULL) && (name != NULL)) {
+            *name = lfVmBytes((uint32_t)(uintptr_t)h->name);
+            if (*name == NULL) *name = "";
+        }
+        return h;
+    }
+    if (v & 2) {                        // built-in list of a wordlist
+        v >>= 2;
+        h = (v < EMPTY_WIDS) ? builtin_heads[v] : NULL;
+    } else {
+        h = link;                       // C pointer into a built-in table
+    }
+    if ((h != NULL) && (name != NULL)) *name = h->name;
+    return h;
+}
 
 static void lfResetWids(void) { // initialize the wordlists
     memcpy(wids, wids_empty, sizeof(wids_empty));
@@ -313,7 +367,8 @@ int lfAPI_dotWid(void) {
 
 /* WORDS */
 int lfAPI_words(void) {
-    const struct s_head* link = wids[CONTEXT[0]].head;
+    const char* name = NULL;
+    const struct s_head* link = lfFollow(wids[CONTEXT[0]].head, &name);
 
     while (link != NULL) {
         if ((link->aux & A_SMUDGED) == 0) {
@@ -326,11 +381,11 @@ int lfAPI_words(void) {
             else if (link->aux & A_CONSTANT) {
                 lfSetColor(COLOR_BRIGHT_CYAN);
             }
-            lf_puts(link->name);
+            lf_puts(name);
             lfSetColor(COLOR_NORMAL);
             lfSpace();
         }
-        link = link->link;
+        link = lfFollow(link->link, &name);
     }
     return 0;
 }
@@ -346,15 +401,16 @@ static const struct s_head* search_wordlist(int wid_index, const char *target_na
     if (wid_index < 0 || wid_index >= wids_pointer) {
         return NULL;
     }
-    const struct s_head *link = wids[wid_index].head;
+    const char* name = NULL;
+    const struct s_head *link = lfFollow(wids[wid_index].head, &name);
     while (link != NULL) {
-        if (TheStringsMatch(link->name, (char *)target_name)) {
+        if (TheStringsMatch((char*)name, (char *)target_name)) {
             if ((link->aux & A_SMUDGED) == 0) {
                 return link;
             }
         }
         g_neighbor_w = link->w;
-        link = link->link;
+        link = lfFollow(link->link, &name);
     }
     return NULL;
 }
@@ -375,18 +431,19 @@ char* lfFindLabel(uint32_t value, uint32_t mask, uint32_t must, uint32_t expecte
     for (int i = 0; i < CONTEXT_MAX; i++) {
         int wid_idx = CONTEXT[i];
         if (wid_idx == -1) break; // end of context
-        const struct s_head* link = wids[wid_idx].head;
+        const char* name = NULL;
+        const struct s_head* link = lfFollow(wids[wid_idx].head, &name);
         while (link != NULL) { // traverse the wordlist
             uint32_t xt = link->w;
             if ((xt & must) == expected) {
                 xt &= mask;
                 if (xt == value) {
                     if ((link->aux & A_SMUDGED) == 0) {
-                        return link->name;
+                        return (char*)name;
                     }
                 }
             }
-            link = link->link;
+            link = lfFollow(link->link, &name);
         }
     }
     return NULL;
@@ -778,26 +835,22 @@ const struct s_head* lfTickWord(void) {
     return word;
 }
 
-static struct s_head* latest = NULL;
+static uint32_t latest = 0;             // VM address of the last header, or 0
 
 // Modify the last created header (immediate, etc.)
 int lfToHeader(uint32_t w, uint32_t aux) {
-    if (latest == NULL) return ERR_UNSUPPORTED_OPERATION;
-    latest->w |= w;
-    latest->aux ^= aux;
+    struct s_head* h = (latest) ? (struct s_head*)lfVmBytes(latest) : NULL;
+    if (h == NULL) return ERR_UNSUPPORTED_OPERATION;
+    h->w |= w;
+    h->aux ^= aux;
     return 0;
 }
 
-char* lfHeaderName = NULL;
-
 /*
  * ,WIDS  ( -- )  (documented in forth.h)
- * The record is remembered until close-flash, which rebases its base address
- * and heads from the open-flash buffer to the flash page.
+ * Heads are links (see lfFollow), not C pointers, so the record is valid
+ * wherever the flash page is mapped.
  */
-static int32_t* wids_record;            // last ,wids record, or NULL
-static int wids_record_count;
-
 int lfAPI_commaWids(void) {
     int32_t tp = 0;
     lfTpFetch(&tp);
@@ -807,119 +860,30 @@ int lfAPI_commaWids(void) {
     int cells = WIDS_RECORD_TABLE + (bytes + 3) / 4;
     int ior = lfTpStore(tp + cells);    // fails if text space is too small
     if (ior) return ior;
-    int page = (tp >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     ior = vmStore(tp + WIDS_RECORD_SKIP, tp + cells);
     if (!ior) ior = vmStore(tp + WIDS_RECORD_COUNT, n);
-    // The base, then the table, are raw bytes: build them in a cell buffer.
-    const void* base = vm_memory[page];
-    for (int i = WIDS_RECORD_BASE; (i < cells) && !ior; i++) {
+    for (int i = WIDS_RECORD_TABLE; (i < cells) && !ior; i++) {
         int32_t x = 0;
-        int offset = (i - WIDS_RECORD_BASE) * 4;
-        if (i < WIDS_RECORD_TABLE) {
-            int len = (int)sizeof(base) - offset;
-            if (len > 0) memcpy(&x, (const char*)&base + offset, (len < 4) ? len : 4);
-        } else {
-            offset = (i - WIDS_RECORD_TABLE) * 4;
-            int len = bytes - offset;
-            memcpy(&x, (char*)wids + offset, (len < 4) ? len : 4);
-        }
+        int offset = (i - WIDS_RECORD_TABLE) * 4;
+        int len = bytes - offset;
+        memcpy(&x, (char*)wids + offset, (len < 4) ? len : 4);
         ior = vmStore(tp + i, x);
     }
-    if (ior) return ior;
-    wids_record = &vm_memory[page][tp & VM_PAGE_MASK];
-    wids_record_count = n;
-    return 0;
-}
-
-// If p points into the buffer [lo, lo + bytes), the same place in `to`.
-static void* rebase(const void* p, uintptr_t lo, uintptr_t bytes, char* to) {
-    uintptr_t u = (uintptr_t)p;
-    if (u - lo < bytes) return to + (u - lo);
-    return (void*)p;
+    return ior;
 }
 
 /*
- * lfRelocateHeaders (documented in forth.h).
- * Only headers inside the buffer are edited, and the walk down each list
- * stops at the first header outside it: older headers were made before the
- * page was opened, so they can't point into the buffer.
+ * Boot from flash (lfBootFromFlash, documented in forth.h).
+ * A head is kept if it's a link to a header in mapped VM memory or to a
+ * built-in list; anything else (such as a C pointer from another build)
+ * can't be resolved and is set to NULL.
  */
-void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
-    uintptr_t lo = (uintptr_t)from;
-    uintptr_t bytes = (uintptr_t)cells * sizeof(int32_t);
-    for (int i = 0; i < wids_pointer; i++) {
-        struct s_head* h = (struct s_head*)wids[i].head;
-        while (h != NULL && (uintptr_t)h - lo < bytes) {
-            struct s_head* next = h->link;
-            h->link = rebase(h->link, lo, bytes, (char*)to);
-            h->name = rebase(h->name, lo, bytes, (char*)to);
-            h = next;
-        }
-        wids[i].head = rebase(wids[i].head, lo, bytes, (char*)to);
-    }
-    latest = rebase(latest, lo, bytes, (char*)to);
-    lfCreatedName = rebase(lfCreatedName, lo, bytes, (char*)to);
-    if (wids_record == NULL) return;
-    // The ,wids record may not be aligned for a pointer, so use memcpy.
-    char* field = (char*)&wids_record[WIDS_RECORD_BASE];
-    const void* p;
-    memcpy(&p, field, sizeof(p));
-    p = rebase(p, lo, bytes, (char*)to);
-    memcpy(field, &p, sizeof(p));
-    char* table = (char*)&wids_record[WIDS_RECORD_TABLE];
-    for (int i = 0; i < wids_record_count; i++) {
-        field = table + i * sizeof(struct s_wid) + offsetof(struct s_wid, head);
-        memcpy(&p, field, sizeof(p));
-        p = rebase(p, lo, bytes, (char*)to);
-        memcpy(field, &p, sizeof(p));
-    }
-    wids_record = NULL;                 // the buffer is about to be freed
-}
-
-/*
- * Boot from flash (lfBootFromFlash, documented in forth.h)
- *
- * Pointers saved in flash were made for the flash page at old_base. If the
- * page is now somewhere else (on the desktop, the flash image is loaded into
- * a different place each run), they are moved by the same amount: the heads
- * of the wordlists, and the link and name of every header in their lists.
- * Then the record's base and heads are updated too, so the page is consistent
- * if it is opened and programmed again. On an MCU the page doesn't move, so
- * nothing in flash is written.
- */
-struct relocation {
-    const char* old_base;               // where the page was when programmed
-    char* new_base;                     // where it is now
-    uintptr_t bytes;                    // size of the page
-};
-
-// The pointer moved from old_base to new_base, or NULL if it isn't in the page.
-static void* translate(const struct relocation* r, const void* p) {
-    uintptr_t offset = (uintptr_t)p - (uintptr_t)r->old_base;
-    if (offset < r->bytes) return r->new_base + offset;
+static const struct s_head* checkHead(const struct s_head* link) {
+    uintptr_t v = (uintptr_t)link;
+    if (v == 0) return NULL;
+    if (v & 1) return (lfFollow(link, NULL) != NULL) ? link : NULL;
+    if (v & 2) return ((v >> 2) < EMPTY_WIDS) ? link : NULL;
     return NULL;
-}
-
-/*
- * Moves the headers of wordlist `wid`, starting from its (moved) head.
- * The list ends with a link out of the page: into the built-in header table,
- * which is at a different address in this build, so it is linked to the
- * wordlist's head after `empty` instead (or NULL for a later wordlist).
- */
-static void relinkHeaders(const struct relocation* r, int wid, struct s_head* h) {
-    const struct s_head* bottom = (wid < EMPTY_WIDS) ? wids_empty[wid].head : NULL;
-    uintptr_t limit = r->bytes / sizeof(struct s_head);   // guards against loops
-    while ((h != NULL) && limit--) {
-        char* name = translate(r, h->name);
-        if (name != NULL) h->name = name;
-        struct s_head* link = translate(r, h->link);
-        if (link == NULL) {
-            h->link = (struct s_head*)bottom;
-            return;
-        }
-        h->link = link;
-        h = link;
-    }
 }
 
 int lfBootFromFlash(void) {
@@ -940,33 +904,19 @@ int lfBootFromFlash(void) {
     if ((offset + cells > limit) || ((uint32_t)record[WIDS_RECORD_SKIP] != addr + cells))
         return ERR_BAD_BOOT_RECORD;
 
-    struct relocation r;
-    memcpy(&r.old_base, &record[WIDS_RECORD_BASE], sizeof(r.old_base));
-    r.new_base = (char*)vm_memory[page];
-    r.bytes = (uintptr_t)limit * sizeof(int32_t);
-    int moved = (r.old_base != r.new_base);
-
-    char* table = (char*)&record[WIDS_RECORD_TABLE];
     lfResetWids();
+    memcpy(wids, &record[WIDS_RECORD_TABLE], bytes);
     for (int i = 0; i < n; i++) {
-        struct s_wid* w = &wids[i];
-        memcpy(w, table + i * sizeof(struct s_wid), sizeof(struct s_wid));
-        w->name[sizeof(w->name) - 1] = '\0';
-        w->head = translate(&r, w->head);   // NULL if it can't be resolved
-        if (moved) {
-            relinkHeaders(&r, i, (struct s_head*)w->head);
-            memcpy(table + i * sizeof(struct s_wid) + offsetof(struct s_wid, head),
-                   &w->head, sizeof(w->head));
-        }
+        wids[i].name[sizeof(wids[i].name) - 1] = '\0';
+        wids[i].head = checkHead(wids[i].head);
     }
     wids_pointer = n;
-    if (moved) memcpy(&record[WIDS_RECORD_BASE], &r.new_base, sizeof(r.new_base));
-    latest = NULL;
+    latest = 0;
     return 0;
 }
 
 // Create a header structure in Forth memory space
-int lfHeader(uint32_t w, uint32_t aux, char** name) {
+int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
     char token[32] = { 0 };
     int ior = lfParseWord(token, sizeof(token));
     if (ior) return ior;
@@ -981,8 +931,8 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
 
     int32_t* cell_dest = &vm_memory[page][dest];
 
-    // Name string starts here
-    char* name_dest = ((char*)cell_dest) + ((ch_dest >> 25) & 3);
+    // Name string starts here: the header holds its VM byte address
+    uint32_t name_dest = (uint32_t)ch_dest;
     if (name != NULL) {
         *name = name_dest;
     }
@@ -1009,17 +959,17 @@ int lfHeader(uint32_t w, uint32_t aux, char** name) {
 
     // Construct struct s_head header directly in the next cell boundary
     struct s_head* target_head = (struct s_head*)cell_dest;
-    latest = target_head;
-    target_head->name = name_dest;
+    uint32_t head_addr = (page << (22 - VM_LOG2_PAGES)) | ch_dest;
+    latest = head_addr;
+    target_head->name = (char*)(uintptr_t)name_dest;
     target_head->w = w;
     target_head->aux = aux;
 
-    // Insert header at top of current wordlist (linked list)
+    // Insert header at top of current wordlist (linked list). Links are
+    // tagged values (see lfFollow), so they stay valid in flash.
     s_wid* current = &wids[*CURRENT];
-    target_head->link = (struct s_head*)current->head; // Point new node to current head
-
-    // Update current wordlist head pointer
-    current->head = target_head;
+    target_head->link = (struct s_head*)current->head;
+    current->head = linkToVM(head_addr);
 
     // Advance cell_dest past the struct s_head
     int32_t head_cells = (sizeof(struct s_head) + sizeof(int32_t) - 1) / sizeof(int32_t);

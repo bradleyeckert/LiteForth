@@ -53,7 +53,7 @@ int lfExecuteXT(uint32_t xt);
 int lfCompileWord(const struct s_head* word);
 
 // globals
-extern char* lfCreatedName; // CREATE (comp.c) --> WORDLIST (forth.c)
+extern uint32_t lfCreatedName; // CREATE (comp.c) --> WORDLIST: VM address of the name, or 0
 
 /**
  * Aligns the code pointer to an even instruction address (a cell boundary).

@@ -38,7 +38,8 @@ foo 7 .
 50 load .( never )
 F
 tail -n +2 out.txt > got.txt   # drop the version banner
-if diff -u "$HERE/expected.txt" got.txt; then
+# --strip-trailing-cr: a Windows checkout may have given expected.txt CRLF endings
+if diff -u --strip-trailing-cr "$HERE/expected.txt" got.txt; then
     echo "load tests passed"
 else
     cp got.txt "$HERE/got.txt"

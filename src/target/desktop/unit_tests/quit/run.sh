@@ -30,7 +30,8 @@ drops8=$(printf 'drop %.0s' $(seq 8))
 } > in.txt
 "$LF" -o 3 < in.txt > out.txt 2>&1 || true
 tail -n +2 out.txt > got.txt            # drop the version banner
-if diff -u "$HERE/expected.txt" got.txt; then
+# --strip-trailing-cr: a Windows checkout may have given expected.txt CRLF endings
+if diff -u --strip-trailing-cr "$HERE/expected.txt" got.txt; then
     echo "quit tests passed"
 else
     cp got.txt "$HERE/got.txt"

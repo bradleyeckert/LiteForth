@@ -17,7 +17,7 @@ $(TARGET): api0_order.c $(SRC_DIR)/api0_list.h $(SRC_DIR)/api0.h
 
 test: $(TARGET)
 	./$(TARGET) > got.txt
-	@if diff -u expected.txt got.txt; then \
+	@if diff -u --strip-trailing-cr expected.txt got.txt; then \
 		echo "api0 order test passed"; rm -f got.txt; \
 	else \
 		echo "api0 order test FAILED: API 0 indices changed (see api0_list.h)"; \

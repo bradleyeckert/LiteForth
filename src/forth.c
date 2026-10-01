@@ -119,6 +119,8 @@ static const struct s_head forth_heads[] = {
     { PREV, "]task",        SYSTO(VMSTO_TASK),                        0},
     { PREV, "yeet",         SYSTO(VMSTO_YEET),                        0},
     { PREV, "task[",        SYSFM(VMSFROM_TASK),                      0},
+    { PREV, "x@",           SYSFM(VMSFROM_X),                         0},
+    { PREV, "y@",           SYSFM(VMSFROM_Y),                         0},
     { PREV, "um*",          API0(API_UMSTAR),                         0},
     { PREV, "m*",           API0(API_MSTAR),                          0},
     { PREV, "mu/mod",       API0(API_MUDIVMOD),                       0},
@@ -421,11 +423,14 @@ static uint32_t linecount = 0;
  *
  * While no input is waiting and the app is running (SYS_OPTION_RUNNING, set
  * by `cold`), the app's VM code runs from its PC until its next `break`.
- * If it fails instead, or runs VM_STEP_LIMIT steps without a `break`, the
- * app is stopped and its error is returned, ending the line early.
+ * If it fails instead (an error or `yeet`), vmYeet sends it to its yeet
+ * handler, and it keeps running from there: the app handles its own errors,
+ * as on a Forth chip. The exception is running VM_STEP_LIMIT steps without a
+ * `break`: the app is stuck, so it is stopped and ERR_VM_TIMEOUT is returned,
+ * ending the line early.
  *
  * Returns 0, ERR_TIB_OVERFLOW if the line did not fit in TIB (the rest of it
- * is discarded), or the app's error.
+ * is discarded), or ERR_VM_TIMEOUT.
  */
 static int loadTIB(int* length) {
     char *tib = (char*)TIB; // reset the TIB pointer
@@ -439,10 +444,13 @@ static int loadTIB(int* length) {
 #endif
             if (g_lf_sys_options & SYS_OPTION_RUNNING) {
                 int err = vmRun(0, VM_STEP_LIMIT, 0);
-                if ((err != 0) && (err != ERR_VM_BREAK)) {
-                    g_lf_sys_options &= ~SYS_OPTION_RUNNING; // stop the app
+                if (err == ERR_VM_TIMEOUT) {    // stuck: stop the app
+                    g_lf_sys_options &= ~SYS_OPTION_RUNNING;
                     ior = err;
                     break;
+                }
+                if ((err != 0) && (err != ERR_VM_BREAK)) {
+                    vmYeet(err);    // the app's yeet handler deals with it
                 }
             }
             continue;
@@ -687,7 +695,7 @@ static int checkStackDepth(void) {
 /*
  * Reads one line from the terminal and interprets it. A line too long for
  * TIB is not interpreted at all, since running part of it could leave a
- * definition half-compiled. Nor is a line cut short by an app error.
+ * definition half-compiled. Nor is a line cut short by ERR_VM_TIMEOUT.
  */
 static int interpretLine(void) {
     int len;

@@ -97,9 +97,10 @@ variable counter
     again
 ; hex 80000000 ,jump decimal
 
-:noname ( yeet handler )
-
-
+:noname ( yeet handler: y@ = error code, x@ = PC after the fault )
+    cr ." App error " y@ .  ." at " x@ hex . decimal cr
+    begin  break  again         ( park the app until the next `cold` )
+; hex 80000002 ,jump decimal
 
 cr .( `cold` is supposed to launch the demo app : note the jump: ) cr
 

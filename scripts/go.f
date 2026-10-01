@@ -117,7 +117,7 @@ hex 80000000 @ decimal 14 dasm
 
 : dump-all  0 chere 2* dasm ;
 
-_text here 32 bit  1 !  ( Bootup data structure here... To be populated later. )
+_text here 32 bit  1 !  ,wids  ( boot record: lf -o 8 restores the wordlists from it )
 
 close-flash
 0 >options

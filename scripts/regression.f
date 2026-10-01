@@ -406,11 +406,11 @@ T{ -5 neg? -> -1 }T
 T{  0 neg? ->  0 }T
 T{  5 neg? ->  0 }T
 
-( ,wids compiles a record to text space: CRC, skip address, number of   )
-( wordlists, then the s_wid table. t-wids leaves the number and the skip )
-( address xor HERE, which is 0 when the skip address is just past it     )
+( ,wids compiles a record to text space: skip address, number of        )
+( wordlists, flash base, then the s_wid table. t-wids leaves the number  )
+( and the skip address xor HERE, which is 0 when it is just past it      )
 : t-wids  ( -- n 0 )
-   _text here 32 bit  ,wids  dup 2 + @  swap 1 + @  here xor  _data ;
+   _text here 32 bit  ,wids  dup 1 + @  swap @  here xor  _data ;
 T{ t-wids  -> 4 0 }T
 
 ( begin until: loops while the flag is 0 )

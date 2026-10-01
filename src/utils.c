@@ -467,6 +467,7 @@ static const ErrorMapping error_table[] = {
     { ERR_NO_API_CALL_ALLOWED, "API call attempted while all API calls are disabled" },
     { ERR_VM_BREAK, "VM break instruction executed" },
     { ERR_VM_TIMEOUT, "VM ran too long before `break`" },
+    { ERR_BAD_BOOT_RECORD, "no valid `,wids` boot record in flash" },
 };
 
 /**

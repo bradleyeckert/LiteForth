@@ -785,8 +785,8 @@ char* lfHeaderName = NULL;
 /*
  * ,WIDS  ( -- )  (documented in forth.h)
  * The record is remembered until close-flash, which rebases its heads and
- * fills in its CRC: the CRC covers headers that close-flash rewrites, and
- * anything compiled to code space after ,wids.
+ * recomputes its CRC: the CRC covers headers whose pointers close-flash
+ * rewrites, and anything compiled to code space after ,wids.
  */
 static int32_t* wids_record;            // last ,wids record, or NULL
 static int wids_record_count;
@@ -800,7 +800,9 @@ int lfAPI_commaWids(void) {
     int cells = WIDS_RECORD_TABLE + (bytes + 3) / 4;
     int ior = lfTpStore(tp + cells);    // fails if text space is too small
     if (ior) return ior;
-    ior = vmStore(tp + WIDS_RECORD_CRC, 0);             // set by close-flash
+    int page = (tp >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
+    uint32_t below = (uint32_t)tp & VM_PAGE_MASK;   // cells below the record
+    ior = vmStore(tp + WIDS_RECORD_CRC, (int32_t)lfCrc32(vm_memory[page], below));
     if (!ior) ior = vmStore(tp + WIDS_RECORD_SKIP, tp + cells);
     if (!ior) ior = vmStore(tp + WIDS_RECORD_COUNT, n);
     for (int i = WIDS_RECORD_TABLE; (i < cells) && !ior; i++) {
@@ -811,8 +813,7 @@ int lfAPI_commaWids(void) {
         ior = vmStore(tp + i, x);
     }
     if (ior) return ior;
-    int page = (tp >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
-    wids_record = &vm_memory[page][tp & VM_PAGE_MASK];
+    wids_record = &vm_memory[page][below];
     wids_record_count = n;
     return 0;
 }
@@ -856,7 +857,7 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
         head = rebase(head, lo, bytes, (char*)to);
         memcpy(field, &head, sizeof(head));
     }
-    // Seal the record with the CRC of the page below it, as programmed.
+    // Recompute the record's CRC over the page below it, as programmed.
     uintptr_t offset = (uintptr_t)wids_record - lo;
     if (offset < bytes) {
         wids_record[WIDS_RECORD_CRC] =

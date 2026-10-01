@@ -296,8 +296,8 @@ int lfAPI_empty(void);
  * `to`: the wordlist heads, the latest header, the name kept for
  * `wordlist`, the link and name fields of headers inside the buffer, and the
  * heads in the record most recently compiled by `,wids`.
- * If that record is inside the buffer, it then sets the record's CRC to the
- * CRC-32 of the buffer's cells below it, which are now as they will be
+ * If that record is inside the buffer, it then recomputes the record's CRC
+ * over the buffer's cells below it, which are now as they will be
  * programmed.
  * @param from  The RAM buffer.
  * @param to    The flash page the buffer's contents are going to.
@@ -318,7 +318,8 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells);
  * (see WIDS_RECORD_*):
  *   - the CRC-32 (crc32.h) of the page from cell 0 up to the record. Text
  *     space is last in the page, so this covers everything compiled to it.
- *     It is 0 until close-flash fills it in;
+ *     close-flash recomputes it after rebasing header pointers, so that it
+ *     matches the page as programmed;
  *   - the address just past the record, to skip it;
  *   - the number of wordlists in use (wids_pointer);
  *   - that many s_wid structures as raw bytes, padded to a whole cell.

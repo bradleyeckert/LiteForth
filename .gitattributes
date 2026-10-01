@@ -2,3 +2,11 @@
 # compatibility checks), and Unity is a vendored third-party test library.
 *.h linguist-language=C
 src/target/desktop/unit_tests/unity/** linguist-vendored
+
+# Line endings: shell scripts and makefiles must be LF even on a Windows
+# checkout (sh rejects `set -e\r`), and the test suites' expected output is
+# compared byte for byte (lf's `cr` prints CR LF), so git must not convert it.
+*.sh text eol=lf
+makefile text eol=lf
+Makefile text eol=lf
+src/target/desktop/unit_tests/*/expected.txt -text

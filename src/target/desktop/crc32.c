@@ -1,9 +1,8 @@
 #include "crc32.h"
 
 /*
- * Bitwise CRC-32: no table, so it costs no flash on an MCU. The flash page
- * is small enough that speed doesn't matter. (An MCU's CRC unit can be set
- * to the same CRC: polynomial 0x04C11DB7, input and output reflected.)
+ * Desktop CRC-32, bitwise. Speed doesn't matter for one flash page, and it
+ * doubles as a reference for MCU targets that use CRC hardware.
  */
 uint32_t lfCrc32(const int32_t* cells, uint32_t n) {
     uint32_t crc = 0xFFFFFFFFu;

@@ -1,4 +1,4 @@
-/* Unit tests for lfCrc32 (src/crc32.c) */
+/* Unit tests for lfCrc32 (src/target/desktop/crc32.c) */
 #include "unity.h"
 #include "crc32.h"
 

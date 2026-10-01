@@ -8,6 +8,11 @@ extern "C" {
 #include <stdint.h>
 
 /**
+ * Each target provides lfCrc32. This one is the desktop's, in software; an
+ * MCU target can use its CRC unit instead, set to the same CRC (polynomial
+ * 0x04C11DB7, input and output reflected, initial value and final XOR
+ * 0xFFFFFFFF), feeding cells LSB first (a little-endian MCU's word order).
+ *
  * Computes the standard CRC-32 (IEEE 802.3, as used by zlib and PNG:
  * reflected polynomial 0xEDB88320, initial value and final XOR 0xFFFFFFFF)
  * of an array of cells.

@@ -293,13 +293,26 @@ int lfAPI_empty(void);
  * a RAM buffer hold C pointers into that buffer; `close-flash` calls this
  * before programming the page and freeing the buffer.
  * Rewrites every pointer into [from, from + cells) to the same offset in
- * `to`: the wordlist heads and names, the latest header, the name kept for
- * `wordlist`, and the link and name fields of headers inside the buffer.
+ * `to`: the wordlist heads, the latest header, the name kept for
+ * `wordlist`, the link and name fields of headers inside the buffer, and the
+ * heads in the table most recently compiled by `,wids`.
  * @param from  The RAM buffer.
  * @param to    The flash page the buffer's contents are going to.
  * @param cells Size of the buffer in cells.
  */
 void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells);
+
+/**
+ * ,WIDS  ( -- )
+ * Compiles the wordlist table to text space for bootup: the text pointer is
+ * aligned to a cell, then it compiles the number of wordlists in use
+ * (wids_pointer) as one cell, followed by that many s_wid structures as raw
+ * bytes, padded to a whole cell. The heads are C pointers; close-flash
+ * rebases them if they point into the open-flash buffer.
+ * @return 0, ERR_DICTIONARY_OVERFLOW if text space is too small, or an
+ *         ior from vmStore.
+ */
+int lfAPI_commaWids(void);
 
 #ifdef __cplusplus
 }

@@ -406,6 +406,13 @@ T{ -5 neg? -> -1 }T
 T{  0 neg? ->  0 }T
 T{  5 neg? ->  0 }T
 
+( ,wids compiles the number of wordlists, then the s_wid table, to text )
+( space. t-wids leaves that number and the cells used, which must be more )
+( than the number: at least one cell for it and one per wordlist         )
+: t-wids  ( -- n cells )
+   _text here 32 bit  ,wids  dup @  swap here swap -  _data ;
+T{ t-wids  over - 1 - neg?  -> 4 0 }T
+
 ( begin until: loops while the flag is 0 )
 : t-until ( n -- m ) begin 2* dup 64 and until ;
 T{ 1 t-until -> 64 }T

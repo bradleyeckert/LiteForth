@@ -78,7 +78,8 @@
     X(API_NEWINST,          lfAPI_newinst)      \
     X(API_COLD,             coldboot)           \
     X(API_NONAME,           lfAPI_noname)       \
-    X(API_EXECUTE,          execute)
+    X(API_EXECUTE,          execute)            \
+    X(API_COMMAWIDS,        lfAPI_commaWids)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

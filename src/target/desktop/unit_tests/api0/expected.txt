@@ -51,17 +51,18 @@
  50 API_COLD             coldboot
  51 API_NONAME           lfAPI_noname
  52 API_EXECUTE          execute
- 53 API_ENDTEST          lfAPI_endTest
- 54 API_DOTEST           lfAPI_doTest
- 55 API_BEGINTEST        lfAPI_beginTest
- 56 API_HEX              lfAPI_hex
- 57 API_DECIMAL          lfAPI_decimal
- 58 API_DOTPAGE          lfAPI_dotPage
- 59 API_DOTPAGES         lfAPI_dotPages
- 60 API_DUMP             lfAPI_dump
- 61 API_DUMPI            lfAPI_dumpIns
- 62 API_DASM             lfAPI_dasm
- 63 API_DOTS             lfAPI_dotEss
- 64 API_DOT              lfAPI_dot
- 65 API_SEE              lfAPI_see
-count 66
+ 53 API_COMMAWIDS        lfAPI_commaWids
+ 54 API_ENDTEST          lfAPI_endTest
+ 55 API_DOTEST           lfAPI_doTest
+ 56 API_BEGINTEST        lfAPI_beginTest
+ 57 API_HEX              lfAPI_hex
+ 58 API_DECIMAL          lfAPI_decimal
+ 59 API_DOTPAGE          lfAPI_dotPage
+ 60 API_DOTPAGES         lfAPI_dotPages
+ 61 API_DUMP             lfAPI_dump
+ 62 API_DUMPI            lfAPI_dumpIns
+ 63 API_DASM             lfAPI_dasm
+ 64 API_DOTS             lfAPI_dotEss
+ 65 API_DOT              lfAPI_dot
+ 66 API_SEE              lfAPI_see
+count 67

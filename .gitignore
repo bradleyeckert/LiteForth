@@ -12,7 +12,6 @@ src/target/desktop/unit_tests/flash/lfflash.bin
 src/target/desktop/unit_tests/memalloc/test_memalloc
 src/target/desktop/unit_tests/serial_io/test_serial_io
 src/target/desktop/unit_tests/serial_io/demo_terminal
-src/target/desktop/unit_tests/crc32/test_crc32
 *.exe
 
 # Editor and OS clutter

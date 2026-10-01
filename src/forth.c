@@ -16,7 +16,6 @@
 #include "utils.h"
 #include "main.h"
 #include "api0.h"
-#include "crc32.h"
 #endif
 
 static int case_insensitive = CASE_INSENSITIVE;
@@ -742,6 +741,15 @@ int lfQuit(void) {
     lfAPI_only();
     lfAPI_forth();
     vmReset();
+    if (g_lf_sys_options & SYS_OPTION_BOOTING) {
+        int ior = lfBootFromFlash();    // restore the wordlists saved by ,wids
+        if (ior) {
+            reportError(ior);           // and don't start the app
+        } else {
+            vmReset();
+            g_lf_sys_options |= SYS_OPTION_RUNNING;
+        }
+    }
     while (1) {
         quitReset();
         int ior;
@@ -784,9 +792,8 @@ char* lfHeaderName = NULL;
 
 /*
  * ,WIDS  ( -- )  (documented in forth.h)
- * The record is remembered until close-flash, which rebases its heads and
- * recomputes its CRC: the CRC covers headers whose pointers close-flash
- * rewrites, and anything compiled to code space after ,wids.
+ * The record is remembered until close-flash, which rebases its base address
+ * and heads from the open-flash buffer to the flash page.
  */
 static int32_t* wids_record;            // last ,wids record, or NULL
 static int wids_record_count;
@@ -801,19 +808,25 @@ int lfAPI_commaWids(void) {
     int ior = lfTpStore(tp + cells);    // fails if text space is too small
     if (ior) return ior;
     int page = (tp >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
-    uint32_t below = (uint32_t)tp & VM_PAGE_MASK;   // cells below the record
-    ior = vmStore(tp + WIDS_RECORD_CRC, (int32_t)lfCrc32(vm_memory[page], below));
-    if (!ior) ior = vmStore(tp + WIDS_RECORD_SKIP, tp + cells);
+    ior = vmStore(tp + WIDS_RECORD_SKIP, tp + cells);
     if (!ior) ior = vmStore(tp + WIDS_RECORD_COUNT, n);
-    for (int i = WIDS_RECORD_TABLE; (i < cells) && !ior; i++) {
+    // The base, then the table, are raw bytes: build them in a cell buffer.
+    const void* base = vm_memory[page];
+    for (int i = WIDS_RECORD_BASE; (i < cells) && !ior; i++) {
         int32_t x = 0;
-        int offset = (i - WIDS_RECORD_TABLE) * 4;
-        int len = bytes - offset;
-        memcpy(&x, (char*)wids + offset, (len < 4) ? len : 4);
+        int offset = (i - WIDS_RECORD_BASE) * 4;
+        if (i < WIDS_RECORD_TABLE) {
+            int len = (int)sizeof(base) - offset;
+            if (len > 0) memcpy(&x, (const char*)&base + offset, (len < 4) ? len : 4);
+        } else {
+            offset = (i - WIDS_RECORD_TABLE) * 4;
+            int len = bytes - offset;
+            memcpy(&x, (char*)wids + offset, (len < 4) ? len : 4);
+        }
         ior = vmStore(tp + i, x);
     }
     if (ior) return ior;
-    wids_record = &vm_memory[page][below];
+    wids_record = &vm_memory[page][tp & VM_PAGE_MASK];
     wids_record_count = n;
     return 0;
 }
@@ -847,23 +860,109 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
     latest = rebase(latest, lo, bytes, (char*)to);
     lfCreatedName = rebase(lfCreatedName, lo, bytes, (char*)to);
     if (wids_record == NULL) return;
-    // The ,wids table may not be aligned for a pointer, so use memcpy.
+    // The ,wids record may not be aligned for a pointer, so use memcpy.
+    char* field = (char*)&wids_record[WIDS_RECORD_BASE];
+    const void* p;
+    memcpy(&p, field, sizeof(p));
+    p = rebase(p, lo, bytes, (char*)to);
+    memcpy(field, &p, sizeof(p));
     char* table = (char*)&wids_record[WIDS_RECORD_TABLE];
     for (int i = 0; i < wids_record_count; i++) {
-        char* field = table + i * sizeof(struct s_wid)
-                    + offsetof(struct s_wid, head);
-        const void* head;
-        memcpy(&head, field, sizeof(head));
-        head = rebase(head, lo, bytes, (char*)to);
-        memcpy(field, &head, sizeof(head));
-    }
-    // Recompute the record's CRC over the page below it, as programmed.
-    uintptr_t offset = (uintptr_t)wids_record - lo;
-    if (offset < bytes) {
-        wids_record[WIDS_RECORD_CRC] =
-            (int32_t)lfCrc32(from, (uint32_t)(offset / sizeof(int32_t)));
+        field = table + i * sizeof(struct s_wid) + offsetof(struct s_wid, head);
+        memcpy(&p, field, sizeof(p));
+        p = rebase(p, lo, bytes, (char*)to);
+        memcpy(field, &p, sizeof(p));
     }
     wids_record = NULL;                 // the buffer is about to be freed
+}
+
+/*
+ * Boot from flash (lfBootFromFlash, documented in forth.h)
+ *
+ * Pointers saved in flash were made for the flash page at old_base. If the
+ * page is now somewhere else (on the desktop, the flash image is loaded into
+ * a different place each run), they are moved by the same amount: the heads
+ * of the wordlists, and the link and name of every header in their lists.
+ * Then the record's base and heads are updated too, so the page is consistent
+ * if it is opened and programmed again. On an MCU the page doesn't move, so
+ * nothing in flash is written.
+ */
+struct relocation {
+    const char* old_base;               // where the page was when programmed
+    char* new_base;                     // where it is now
+    uintptr_t bytes;                    // size of the page
+};
+
+// The pointer moved from old_base to new_base, or NULL if it isn't in the page.
+static void* translate(const struct relocation* r, const void* p) {
+    uintptr_t offset = (uintptr_t)p - (uintptr_t)r->old_base;
+    if (offset < r->bytes) return r->new_base + offset;
+    return NULL;
+}
+
+/*
+ * Moves the headers of wordlist `wid`, starting from its (moved) head.
+ * The list ends with a link out of the page: into the built-in header table,
+ * which is at a different address in this build, so it is linked to the
+ * wordlist's head after `empty` instead (or NULL for a later wordlist).
+ */
+static void relinkHeaders(const struct relocation* r, int wid, struct s_head* h) {
+    const struct s_head* bottom = (wid < EMPTY_WIDS) ? wids_empty[wid].head : NULL;
+    uintptr_t limit = r->bytes / sizeof(struct s_head);   // guards against loops
+    while ((h != NULL) && limit--) {
+        char* name = translate(r, h->name);
+        if (name != NULL) h->name = name;
+        struct s_head* link = translate(r, h->link);
+        if (link == NULL) {
+            h->link = (struct s_head*)bottom;
+            return;
+        }
+        h->link = link;
+        h = link;
+    }
+}
+
+int lfBootFromFlash(void) {
+    int32_t a = 0;
+    if (vmFetch(1, &a)) return ERR_BAD_BOOT_RECORD;
+    uint32_t addr = (uint32_t)a;
+    int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
+    uint32_t offset = addr & VM_PAGE_MASK;
+    if ((addr >> 22) || (page >= RAM_PAGE) || (vm_memory[page] == NULL))
+        return ERR_BAD_BOOT_RECORD;     // not a cell address in flash
+    uint32_t limit = vm_memory_rd_limit[page];
+    if (offset + WIDS_RECORD_TABLE > limit) return ERR_BAD_BOOT_RECORD;
+    int32_t* record = &vm_memory[page][offset];
+    int n = record[WIDS_RECORD_COUNT];
+    if ((n < 1) || (n > WIDS_MAX)) return ERR_BAD_BOOT_RECORD;
+    uint32_t bytes = (uint32_t)n * sizeof(struct s_wid);
+    uint32_t cells = WIDS_RECORD_TABLE + (bytes + 3) / 4;
+    if ((offset + cells > limit) || ((uint32_t)record[WIDS_RECORD_SKIP] != addr + cells))
+        return ERR_BAD_BOOT_RECORD;
+
+    struct relocation r;
+    memcpy(&r.old_base, &record[WIDS_RECORD_BASE], sizeof(r.old_base));
+    r.new_base = (char*)vm_memory[page];
+    r.bytes = (uintptr_t)limit * sizeof(int32_t);
+    int moved = (r.old_base != r.new_base);
+
+    char* table = (char*)&record[WIDS_RECORD_TABLE];
+    lfResetWids();
+    for (int i = 0; i < n; i++) {
+        struct s_wid* w = &wids[i];
+        memcpy(w, table + i * sizeof(struct s_wid), sizeof(struct s_wid));
+        w->name[sizeof(w->name) - 1] = '\0';
+        w->head = translate(&r, w->head);   // NULL if it can't be resolved
+        if (moved) {
+            relinkHeaders(&r, i, (struct s_head*)w->head);
+            memcpy(table + i * sizeof(struct s_wid) + offsetof(struct s_wid, head),
+                   &w->head, sizeof(w->head));
+        }
+    }
+    wids_pointer = n;
+    if (moved) memcpy(&record[WIDS_RECORD_BASE], &r.new_base, sizeof(r.new_base));
+    latest = NULL;
+    return 0;
 }
 
 // Create a header structure in Forth memory space

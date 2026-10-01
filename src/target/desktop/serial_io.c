@@ -101,6 +101,10 @@ int serial_open(char* name, int baudrate) {
         SetConsoleOutputCP(CP_UTF8);
         // Set console input to UTF-8 (CP 65001)
         SetConsoleCP(CP_UTF8);
+#else
+        // Unbuffered, so serial_ready can poll the file descriptor: bytes
+        // stdio had already read ahead would be invisible to select().
+        setvbuf(stdin, NULL, _IONBF, 0);
 #endif
         return 0;
     }
@@ -209,6 +213,20 @@ void serial_close(void) {
 
 int serial_ready(void) {
     if (is_terminal_mode) {
+#if !defined(_WIN32) && !defined(_WIN64)
+        // Poll stdin without blocking, so loadTIB can run the app while it
+        // waits. A tty in cooked mode is ready once a line has been entered.
+        // After EOF (when there is no terminal to switch to), report nothing
+        // waiting, so piped input ends with the app running.
+        if (feof(stdin)) return 0;
+        fd_set read_fds;
+        struct timeval timeout = {0, 0};
+        FD_ZERO(&read_fds);
+        FD_SET(STDIN_FILENO, &read_fds);
+        int res = select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &timeout);
+        if (res < 0) return ERR_IO_CHECK_FAILED;
+        return (res > 0) ? 1 : 0;
+#else
         if (!TARGET_ISATTY()) {
             // If we haven't hit EOF yet, a character is available to read
             return !feof(stdin) ? 1 : 0;
@@ -219,6 +237,7 @@ int serial_ready(void) {
             return 1;         // Character is available
         }
         return 0;             // EOF or buffer empty
+#endif
     }
 
 #if defined(_WIN32) || defined(_WIN64)

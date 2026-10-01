@@ -190,10 +190,13 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
         }
         else {
             page = PC >> (24 - VM_LOG2_PAGES);
-            if (page >= VM_MEM_PAGES) return ERR_EXEC_PROTECTED;
-
+            if (page >= VM_MEM_PAGES) {
+                ior = ERR_EXEC_PROTECTED;  goto byee;
+            }
             uint32_t a = (PC >> 1) & VM_PAGE_MASK;
-            if (a >= vm_memory_executable[page]) return ERR_EXEC_PROTECTED;
+            if (a >= vm_memory_executable[page]) {
+                ior = ERR_EXEC_PROTECTED;  goto byee;
+            }
             inst = vm_memory[page][a];
             if (PC & 1) {
                 inst = inst >> 16;
@@ -348,6 +351,7 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
             if (steps == 0) return ERR_VM_TIMEOUT;
  //           printf("%x ", PC); // print PC while stepping
         }
+    byee:
         if (ior) {
             if ((ior != 0) && (ior != ERR_VM_BREAK) && (steps)) {
                 // The app is being stepped: send it to its yeet handler.

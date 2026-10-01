@@ -443,6 +443,7 @@ static int loadTIB(int* length) {
             yield2c(); // Yield to other tasks while waiting...
 #endif
             if (g_lf_sys_options & SYS_OPTION_RUNNING) {
+                lf_putc('.'); // make sure we are running
                 int err = vmRun(0, VM_STEP_LIMIT, 0);
                 if (err == ERR_VM_TIMEOUT) {    // stuck: stop the app
                     g_lf_sys_options &= ~SYS_OPTION_RUNNING;
@@ -728,7 +729,7 @@ static void reportError(int ior) {
 
 // QUIT (documented in forth.h). Open the terminal with serial_open first.
 int lfQuit(void) {
-    lf_puts(u8"幸运狐 v");
+    lf_puts(u8"[幸运狐] v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();
     lfAPI_empty();

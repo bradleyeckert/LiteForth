@@ -21,7 +21,7 @@ int lfInitPointers(void) {
     mem[F_PTRS + 0] = LF_HERE0 + 0x400;
     mem[F_PTRS + 1] = VARIABLE(RAM_PAGE_CELLS);
     // idata space origin and limit
-    mem[F_PTRS + 2] = LF_HERE0;
+    mem[F_PTRS + 2] = LF_HERE0; // start of IDATA is LF_PTRS
     mem[F_PTRS + 3] = LF_HERE0 + 0x400;
     // code space origin and limit
     mem[F_PTRS + 4] = 0x80000003;

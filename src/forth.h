@@ -23,10 +23,10 @@ locations for accessibility by Forth or by C.
 #define F_TIB        2
 #define F_BLK        (F_TIB + TIBCELLS)
 #define F_SCR        (F_BLK + 1)
-#define F_PTRS       (F_SCR + 1)
-#define F_CONTEXT    (F_PTRS + 9)
+#define F_CONTEXT    (F_SCR + 1)
 #define F_BLOCKBUFS  (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
-#define F_HERE0      (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
+#define F_PTRS       (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
+#define F_HERE0      (F_PTRS + 9)
 
 #define F_PTRS_UDP   (F_PTRS)
 #define F_PTRS_IDP   (F_PTRS + 2)
@@ -41,7 +41,8 @@ locations for accessibility by Forth or by C.
 #define LF_TOIN      BITFIELD(13, 13, 0)
 #define LF_MSPACE    BITFIELD(2, 26, 0)
 #define LF_CURRENT   BITFIELD(8, 0, F_CURRENT)
-#define LF_TIB       BITFIELD(8, 0, F_TIB) /* Terminal Input Buffer       */
+    // there is spare room for 24 more bits of state in F_CURRENT
+#define LF_TIB       BITFIELD(8, 0, F_TIB) /* Terminal Input Buffer        */
 #define LF_CONTEXT   BITFIELD(8, 0, F_CONTEXT)    /* context list          */
 #define LF_BLOCKBUFS VARIABLE(F_BLOCKBUFS)
 #define LF_HERE0     VARIABLE(F_HERE0)      /* first free RAM              */

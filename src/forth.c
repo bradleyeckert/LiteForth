@@ -8,6 +8,7 @@
 #include "lfblocks.h"
 #include "options.h"
 #include <string.h>
+#include <stddef.h>
 
 // wsl: // cd /mnt/c/Users/User/Documents/GitHub/LiteForth
 
@@ -171,6 +172,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "cold",         API0(API_COLD),                           0},
     { PREV, ":noname",      API0(API_NONAME),                         0},
     { PREV, "execute",      API0(API_EXECUTE),                        0},
+    { PREV, ",wids",        API0(API_COMMAWIDS),                      0},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        0},
     { PREV, "->",           API0(API_DOTEST),                         0},
@@ -779,6 +781,41 @@ int lfToHeader(uint32_t w, uint32_t aux) {
 
 char* lfHeaderName = NULL;
 
+/*
+ * ,WIDS  ( -- )
+ * Compiles the wordlist table to text space, cell aligned: wids_pointer, then
+ * the bytes of wids[0] to wids[wids_pointer-1], padded to a whole cell.
+ * The copy's head pointers are C pointers. If they point into the open-flash
+ * buffer, close-flash rebases them along with the live table, so the copy
+ * is remembered until then.
+ */
+static char* wids_copy;                 // last ,wids table, or NULL
+static int wids_copy_count;
+
+int lfAPI_commaWids(void) {
+    int32_t tp = 0;
+    lfTpFetch(&tp);
+    tp = (int32_t)lfSetSliceWidth((uint32_t)tp, 32);
+    int n = wids_pointer;
+    int bytes = n * (int)sizeof(struct s_wid);
+    int cells = 1 + (bytes + 3) / 4;
+    int ior = lfTpStore(tp + cells);    // fails if text space is too small
+    if (ior) return ior;
+    ior = vmStore(tp, n);
+    for (int i = 1; (i < cells) && !ior; i++) {
+        int32_t x = 0;
+        int offset = (i - 1) * 4;
+        int len = bytes - offset;
+        memcpy(&x, (char*)wids + offset, (len < 4) ? len : 4);
+        ior = vmStore(tp + i, x);
+    }
+    if (ior) return ior;
+    int page = (tp >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
+    wids_copy = (char*)&vm_memory[page][(tp + 1) & VM_PAGE_MASK];
+    wids_copy_count = n;
+    return 0;
+}
+
 // If p points into the buffer [lo, lo + bytes), the same place in `to`.
 static void* rebase(const void* p, uintptr_t lo, uintptr_t bytes, char* to) {
     uintptr_t u = (uintptr_t)p;
@@ -807,6 +844,16 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
     }
     latest = rebase(latest, lo, bytes, (char*)to);
     lfCreatedName = rebase(lfCreatedName, lo, bytes, (char*)to);
+    // The ,wids copy may not be aligned for a pointer, so use memcpy.
+    for (int i = 0; (wids_copy != NULL) && (i < wids_copy_count); i++) {
+        char* field = wids_copy + i * sizeof(struct s_wid)
+                    + offsetof(struct s_wid, head);
+        const void* head;
+        memcpy(&head, field, sizeof(head));
+        head = rebase(head, lo, bytes, (char*)to);
+        memcpy(field, &head, sizeof(head));
+    }
+    wids_copy = NULL;                   // the buffer is about to be freed
 }
 
 // Create a header structure in Forth memory space

@@ -368,15 +368,19 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     int32_t pc = PC;
     int32_t ior = vmExec(0, 0, address);
     dirty = 1;
-    if ((ior == 0) || (ior == ERR_VM_BREAK)) {
-        PC = pc;
-    }
-    else {
-        X = pc;
-        Y = ior;
-        PC = VM_YEET_ADDRESS << 1;
+    PC = pc;
+    if ((ior != 0) && (ior != ERR_VM_BREAK)) {
+        vmYeet(ior);
     }
     return ior;
+}
+
+/* vmYeet (documented in vm.h) */
+void vmYeet(int32_t ior) {
+    X = PC;
+    Y = ior;
+    PC = VM_YEET_ADDRESS << 1;
+    dirty = 1;
 }
 
 // API access to internal VM state

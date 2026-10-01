@@ -143,10 +143,13 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - **The app runs while the terminal is idle.** `cold` resets the VM and sets
   `SYS_OPTION_RUNNING`; `loadTIB` then runs the VM in step mode from its PC
   whenever no input is waiting, until the app executes `break`
-  (`ERR_VM_BREAK`). Any other result (an error, `yeet`, or `ERR_VM_TIMEOUT`
-  after `VM_STEP_LIMIT` steps) stops the app and is returned by `loadTIB`
-  (`int loadTIB(int* length)`: 0, `ERR_TIB_OVERFLOW` or that error) for QUIT
-  to report. `go.f` puts the app's entry jump at code address 0 with `,jump`.
+  (`ERR_VM_BREAK`). An error or `yeet` goes to `vmYeet`: X = PC, Y = ior,
+  PC = the yeet handler at cell `VM_YEET_ADDRESS` (2), and the app keeps
+  running; it handles its own errors, as on a Forth chip. The exception is
+  `ERR_VM_TIMEOUT` (`VM_STEP_LIMIT` steps without a `break`): the app is
+  stopped and `loadTIB(int* length)` returns it for QUIT to report; otherwise
+  `loadTIB` returns 0 or `ERR_TIB_OVERFLOW`. `go.f` puts the app's entry jump at code
+  cell 0 and the handler's at cell 2 with `,jump`.
   With piped input the app only runs after EOF, when there's nothing to read.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.

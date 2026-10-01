@@ -48,10 +48,22 @@ extern char* vm_memory_name[VM_MEM_PAGES];
   *
   * Calling a word (0 steps) is re-entrant: a word may make an API call that
   * runs other words through vmRun. When the word returns normally, PC is
-  * restored to its value before the call. On an error, PC is left at the
-  * fault.
+  * restored to its value before the call. On an error (other than a
+  * `break`), PC is restored and vmYeet sets the VM up to run the yeet
+  * handler.
   */
 int32_t vmRun(int once, uint32_t inst, int32_t address);
+
+/**
+ * @brief Sends the VM to its yeet handler.
+ *
+ * Saves PC in X and `ior` in Y, then sets PC to the yeet handler at cell
+ * VM_YEET_ADDRESS, so the next vmRun from the PC runs the handler. Forth
+ * code reads X and Y with the sys> X and Y instructions.
+ *
+ * @param ior The error code.
+ */
+void vmYeet(int32_t ior);
 
 /**
  * @brief Reads from the memory space

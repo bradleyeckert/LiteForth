@@ -60,7 +60,7 @@ Name lookup ignores case.
 | `b!` | `( x -- )` | Sets register `B`. |
 | `bit` | `( addr n -- addr' )` | Returns `addr` with its slice width set to `n` bits, moved up to the next `n`-bit slice position, or to the next cell if the slice would not fit. An `n` outside 1 to 31 means a whole cell. |
 | `bits` | `( n <name> -- )` | Defines a variable `n` bits wide: `<name>` returns its slice address. |
-| `break` | `( -- )` | Ends the app's turn: the VM returns to the terminal task, which runs the app again from the next instruction when the terminal is idle. An app must `break` within `VM_STEP_LIMIT` steps or it is stopped. Typed at the terminal, it reports `-115`. |
+| `break` | `( -- )` | Ends the app's turn: the VM returns to the terminal task, which runs the app again from the next instruction when the terminal is idle. An app that runs `VM_STEP_LIMIT` steps without a `break` is stopped, and QUIT reports `-116`. Typed at the terminal, it reports `-115`. |
 | `block` | `( u -- addr )` | Returns the address of a buffer holding block `u`, reading it from storage if needed. |
 | `buffer` | `( u -- addr )` | Assigns a buffer to block `u` without reading it. |
 | `bye` | `( -- )` | Leaves QUIT (and exits `lf`). |
@@ -122,7 +122,7 @@ Name lookup ignores case.
 | `words` | `( -- )` | Lists the words in the first wordlist of the search order. |
 | `x'` | `( <name> -- w aux )` | Returns the header fields of `<name>`: `w` (its execution token or value) and `aux` (its flags). |
 | `xor` | `( x1 x2 -- x3 )` | Bitwise exclusive OR. |
-| `yeet` | `( ior -- )` | Stops the VM and returns `ior` as an error. |
+| `yeet` | `( ior -- )` | Raises error `ior`. When interpreting, QUIT reports it. In the app, the VM jumps to the yeet handler at cell 2 with the PC in X and `ior` in Y. |
 | `\|inst` | `( -- )` | Ends the current micro-op group, so the next primitive starts a new instruction. |
 | `}t` | `( ? -- )` | † Ends a test and checks the results. |
 

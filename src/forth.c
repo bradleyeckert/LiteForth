@@ -284,10 +284,14 @@ int lfAPI_empty(void) {
 }
 
 // Start a new wordlist
-int lfAddWordlist(char* name) {
+int lfAddWordlist(const char* name) {
     if (wids_pointer >= WIDS_MAX) return ERR_WID_OVERFLOW;
-    wids[wids_pointer].head = NULL;
-    wids[wids_pointer].name = name;
+    struct s_wid* w = &wids[wids_pointer];
+    w->head = NULL;
+    memset(w->name, 0, sizeof(w->name));
+    if (name != NULL) {
+        strncpy(w->name, name, sizeof(w->name) - 1);
+    }
     return wids_pointer++;
 }
 
@@ -301,7 +305,7 @@ int lfAPI_dotWid(void) {
     uint8_t wid = (uint8_t)vmPop();
     if (wid >= wids_pointer) return ERR_SEARCH_ORDER_OVERFLOW;
     char* s = wids[wid].name;
-    if (s == NULL)  return lfDot(wid);
+    if (s[0] == '\0')  return lfDot(wid);
     lf_puts(s); return lfSpace();
 }
 
@@ -800,7 +804,6 @@ void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells) {
             h = next;
         }
         wids[i].head = rebase(wids[i].head, lo, bytes, (char*)to);
-        wids[i].name = rebase(wids[i].name, lo, bytes, (char*)to);
     }
     latest = rebase(latest, lo, bytes, (char*)to);
     lfCreatedName = rebase(lfCreatedName, lo, bytes, (char*)to);

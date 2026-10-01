@@ -29,7 +29,7 @@ Name lookup ignores case.
 | `.page` | `( n -- )` | † Prints the memory map entry of page `n`: base address, write-protect, read and execute limits, and name. |
 | `.pages` | `( -- )` | † Prints the memory map entries of all pages. |
 | `.s` | `( -- )` | † Prints the data stack without changing it. |
-| `.wid` | `( wid -- )` | Prints the name of a wordlist, or its number if it has no name. |
+| `.wid` | `( wid -- )` | Prints the name of a wordlist (up to 7 characters), or its number if it has no name. |
 | `2*` | `( n1 -- n2 )` | Shifts left by one bit (multiplies by 2). |
 | `2/` | `( n1 -- n2 )` | Arithmetic shift right by one bit (divides by 2, rounding toward minus infinity). |
 | `2/c` | `( n1 -- n2 )` | Rotates right through carry: `cy` goes into bit 31 and bit 0 goes into `cy`. |

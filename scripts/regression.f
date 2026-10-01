@@ -325,7 +325,7 @@ hex
 : allot     ( n -- )        here 20 bit + 'here ! ;
 : negate    ( n -- -n )     1 swap inv + ;
 : unused    ( -- n )        'here a! @a+ negate @a+ + 3FFFFF and ;
-: chere     ( -- addr )     |inst [ dp[] 4 cells + ] literal @ ;
+: chere     ( -- addr )     postpone |inst [ dp[] 4 cells + ] literal @ ;
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;
 

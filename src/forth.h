@@ -26,7 +26,7 @@ locations for accessibility by Forth or by C.
 #define F_CONTEXT    (F_SCR + 1)
 #define F_BLOCKBUFS  (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
 #define F_PTRS       (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
-#define F_HERE0      (F_PTRS + 9)
+#define F_HERE0      (F_PTRS + 8)
 
 #define F_PTRS_UDP   (F_PTRS)
 #define F_PTRS_IDP   (F_PTRS + 2)

@@ -168,7 +168,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "-->",          API0(API_NEXTBLOCK),                      0},
     { PREV, "postpone",     API0(API_POSTPONE),         A_IMMEDIATE | 0},
     { PREV, ",compile",     API0(API_COMPILE),                        0},
-    { PREV, "|inst",        API0(API_NEWINST),                        0},
+    { PREV, "|inst",        API0(API_NEWINST),          A_IMMEDIATE | 0},
     { PREV, "cold",         API0(API_COLD),                           0},
     { PREV, ":noname",      API0(API_NONAME),                         0},
     { PREV, "execute",      API0(API_EXECUTE),                        0},

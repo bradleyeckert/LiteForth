@@ -1,10 +1,10 @@
 ﻿( LiteForth boot code )
 
 empty only forth  0 open-flash
-( forth wid = 0, only wid = 1. Define definitions in only )
+( forth wid = 0, only wid = 1 )
 1 current !
-: definitions  ( -- )       context @ current ! ;
-definitions
+: dummy ;
+0 current !
 : cells ; immediate
 : base!     ( n -- )        base ! ;
 : decimal   ( -- )          10 base! ;
@@ -18,6 +18,7 @@ definitions
 
 ( dictionary )
 hex
+: definitions  ( -- )       context @ current ! ;
 : variable  ( -- )          20 bits ;
 : _section  ( n -- )        dp^ ! ;
 : _udata    ( -- )          0 _section ;
@@ -25,12 +26,13 @@ hex
 : _code     ( -- )          2 _section ;
 : _text     ( -- )          3 _section ;
 : 'here     ( -- a )        dp^ @ 2* dp[] + ;
+: ,         ( n -- )        'here @ a! !a+ a 'here ! ;
 : here      ( -- a )        'here @ ;
 : allot     ( n -- )        here 20 bit + 'here ! ;
 : negate    ( n -- -n )     1 swap inv + ;
 : amask     ( a -- a' )     3FFFFF and ;
 : unused    ( -- n )        'here a! @a+ negate @a+ + amask ;
-: chere     ( -- addr )     |inst [ dp[] 4 cells + ] literal @ ;
+: chere     ( -- addr )     postpone |inst [ dp[] 4 cells + ] literal @ ;
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;
 
@@ -68,15 +70,26 @@ decimal
    ." unused " unused . ." cells" cr
 ;
 : .map      ( -- )
-   dp^ >r
+   dp^ @ >r
    _udata ." _udata " _.map
    _idata ." _idata " _.map
    _code  ." _code  " _.map
    _text  ." _text  " _.map
-   [ dp[] 2 cells + ] literal a! @a
-   a 6 + @  swap - amask . ." cells of idata" cr
    r> _section
 ;
+
+: idata>text  ( -- )
+    _idata here  dp[] tuck - amask
+    _text dup , ( 'src len )
+    for  @+ ,  next  drop
+;
+
+: init-idata  ( addr -- )
+    1 @ @  @+ >r  a! dp[] b!  |inst
+    @a+ !b+ unext
+;
+
+: rsh  >r |inst 2/ unext ;
 
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;
 : =         ( n1 n2 -- flag ) xor 0 swap if exit then invert ;
@@ -95,6 +108,7 @@ variable counter
 ;
 
 :noname ( demo application )
+    init-idata
     hi
     begin  demo-step  break
     again
@@ -105,23 +119,15 @@ variable counter
     begin  break  again         ( park the app until the next `cold` )
 ; hex 80000002 ,jump decimal
 
-cr .( `cold` is supposed to launch the demo app : note the jump: ) cr
 
-( The first 3 cells are reserved for: )
+_text here 32 bit  1 !  ( Bootup data structure here... To be populated later. )
+,wids idata>text
+
+cr .( The first 3 cells: ) 0 3 dump
 ( Cell 0: 1 or 2 instructions for jump to application )
 ( Cell 1: address of system initialization data {TBD} )
 ( Cell 2: 1 or 2 instructions for jump to yeet handler )
 
-0 6 dasm
-
-cr .( and the demo code ) cr
-
-hex 80000000 @ decimal 14 dasm
-
-: dump-all  0 chere 2* dasm ;
-
-_text here 32 bit  1 !  ( Bootup data structure here... To be populated later. )
-,wids
 
 close-flash
 0 >options

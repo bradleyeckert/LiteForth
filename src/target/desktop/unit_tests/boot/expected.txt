@@ -1,0 +1,7 @@
+Error: ior=-117 no valid `,wids` boot record in flash
+no-record 
+`forth `only extra 
+42 
+7 42 
+nosuchword ?
+42 

@@ -81,7 +81,7 @@ Name lookup ignores case.
 | `empty` | `( -- )` | Resets the dictionary: removes user words and wordlists and resets the dictionary pointers. |
 | `empty-buffers` | `( -- )` | Unassigns all block buffers without saving them. |
 | `execute` | `( i*x xt -- j*x )` | Runs execution token `xt`: a primitive, macro or API word as one instruction, anything else (colon, `:noname` or `create` code) as a call. |
-| `,wids` | `( -- )` | Compiles the wordlist record to text space for bootup, cell aligned: a CRC-32 of the page below the record, the address just past the record, the number of wordlists in use, then that many raw `s_wid` structures (head pointer and 12-byte name), padded to a cell. `close-flash` rebases the copied heads that point into its buffer and recomputes the CRC. Use it last before `close-flash`. |
+| `,wids` | `( -- )` | Compiles the wordlist record to text space for booting, cell aligned: the address just past the record, the number of wordlists in use, the C address of the flash page, then that many raw `s_wid` structures (head pointer and 12-byte name), padded to a cell. `close-flash` rebases the base and heads from its buffer to flash. Store the record's address in cell 1, and use it last before `close-flash`. Booting with `-o 8` restores the wordlists from it. |
 | `exit` | `( -- )` | Immediate. Compiles a return from the current word. |
 | `flush` | `( -- )` | Saves modified block buffers, then unassigns all of them. |
 | `forth` | `( -- )` | Makes the forth wordlist first in the search order. |

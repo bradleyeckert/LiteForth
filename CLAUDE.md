@@ -50,8 +50,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 ```
 
 - `-o N` sets `g_lf_sys_options` (flags in `vm.h`): 1 no `ok>`, 2 no stack
-  display, 4 quit on first error (validation), 16 app running (set by
-  `cold`), 32 ignore CR, 64 verbose echo. Without 32, CRLF input counts every line twice (the CR ends a line
+  display, 4 quit on first error (validation), 8 boot from flash, 16 app
+  running (set by `cold`), 32 ignore CR, 64 verbose echo. Without 32, CRLF input counts every line twice (the CR ends a line
   and the LF makes an empty one), so reported line numbers double. There are no options to skip the flash or block files: lf always
   loads or creates them. Use `-o 3` when a test must keep going after errors.
 - Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
@@ -85,8 +85,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/lfblocks.c/.h` | Block buffer management (LRU, `lfAssignBlock`) |
 | `src/memalloc.c/.h` | LIFO memory pool |
 | `src/errcodes.h` | Forth `ior` codes (standard negative throw codes) |
-| `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O, `crc32.c` (`lfCrc32`, software CRC-32 for the `,wids` record; MCU targets may use CRC hardware) |
-| `src/target/STM32H743/` | MCU target code (not built by the makefile), including `crc32.c` (`lfCrc32` on the CRC unit) |
+| `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
+| `src/target/STM32H743/` | MCU target code (not built by the makefile) |
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `scripts/regression.f` | Regression script run by `make test` |
 
@@ -159,6 +159,15 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   With piped input the app mostly runs after EOF, when there's nothing to
   read. To test on a tty, use a pty (python `pty.fork`); if you wrap lf in
   `timeout`, use `--foreground` or lf can't read the tty.
+- **Booting** (`-o 8`, `SYS_OPTION_BOOTING`): `go.f` ends with
+  `_text here 32 bit 1 ! ,wids`, so cell 1 points to a record (skip address,
+  wordlist count, the flash page's C address, raw `wids` table; offsets
+  `WIDS_RECORD_*` in `forth.h`). At startup `lfQuit` calls `lfBootFromFlash`
+  to restore `wids`, then resets the VM and sets `SYS_OPTION_RUNNING`.
+  Headers hold C pointers, and the desktop loads flash at a new address each
+  run, so the loader moves heads, links and names by the difference; a list's
+  last link (into the built-in tables) becomes that wordlist's `empty` head.
+  A head outside the page can't be resolved and becomes NULL.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

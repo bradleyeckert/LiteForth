@@ -23,7 +23,8 @@ Where it goes depends on what it needs:
   /* COLD  ( -- ) */
   static int coldboot(void) {
       vmReset();
-      return vmStore(LF_TIBSTATE, 1);
+      g_lf_sys_options |= SYS_OPTION_RUNNING;
+      return 0;
   }
   ```
 

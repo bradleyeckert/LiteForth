@@ -50,8 +50,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 ```
 
 - `-o N` sets `g_lf_sys_options` (flags in `vm.h`): 1 no `ok>`, 2 no stack
-  display, 4 quit on first error (validation), 32 ignore CR, 64 verbose
-  echo. Without 32, CRLF input counts every line twice (the CR ends a line
+  display, 4 quit on first error (validation), 16 app running (set by
+  `cold`), 32 ignore CR, 64 verbose echo. Without 32, CRLF input counts every line twice (the CR ends a line
   and the LF makes an empty one), so reported line numbers double. There are no options to skip the flash or block files: lf always
   loads or creates them. Use `-o 3` when a test must keep going after errors.
 - Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
@@ -140,6 +140,14 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - `n for ... next` runs n times (R = n..1); `0 for` runs 2^32 times.
 - `does>` works right after `create`, not inside a defining word:
   `create arr 3 allot does> ] + exit [` (end with `exit [`, not `;`).
+- **The app runs while the terminal is idle.** `cold` resets the VM and sets
+  `SYS_OPTION_RUNNING`; `loadTIB` then runs the VM in step mode from its PC
+  whenever no input is waiting, until the app executes `break`
+  (`ERR_VM_BREAK`). Any other result (an error, `yeet`, or `ERR_VM_TIMEOUT`
+  after `VM_STEP_LIMIT` steps) stops the app and is returned by `loadTIB`
+  (`int loadTIB(int* length)`: 0, `ERR_TIB_OVERFLOW` or that error) for QUIT
+  to report. `go.f` puts the app's entry jump at code address 0 with `,jump`.
+  With piped input the app only runs after EOF, when there's nothing to read.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

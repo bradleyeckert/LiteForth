@@ -46,11 +46,16 @@ extern char* vm_memory_name[VM_MEM_PAGES];
   * @param address Instruction address of the word to run (0 steps only).
   * @return Return code IOR, see errcodes.h.
   *
-  * Calling a word (0 steps) is re-entrant: a word may make an API call that
-  * runs other words through vmRun. When the word returns normally, PC is
-  * restored to its value before the call. On an error (other than a
-  * `break`), PC is restored and vmYeet sets the VM up to run the yeet
-  * handler.
+  * Stepping (steps > 0) runs the app from PC. If it fails (anything but
+  * ERR_VM_BREAK or ERR_VM_TIMEOUT), X gets the PC just after the failing
+  * instruction, Y the error code, and PC the yeet handler at cell
+  * VM_YEET_ADDRESS, so the app handles its own errors. The error is still
+  * returned.
+  *
+  * Calling a word (0 steps) runs the terminal's code and is re-entrant: a
+  * word may make an API call that runs other words through vmRun. PC is
+  * always restored to its value before the call, and errors are only
+  * returned, so they can't disturb the app.
   */
 int32_t vmRun(int once, uint32_t inst, int32_t address);
 

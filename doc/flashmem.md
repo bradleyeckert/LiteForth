@@ -68,9 +68,10 @@ Errors are handled according to who called the VM:
 - Interpreting: QUIT runs words through `lfInterpret`, so an error propagates back
 to `lfQuit`, which displays an error message.
 
-- Running the app: if the app fails (an error or `yeet`), `loadTIB` calls `vmYeet`, which saves
-the PC in X and the error code in Y and jumps to the yeet handler at cell 2
-(`VM_YEET_ADDRESS`). The app keeps running from there: it handles its own errors,
+- Running the app: if the app fails (an error or `yeet`), the VM (stepping, so
+`steps` is nonzero) saves the PC in X
+and the error code in Y and sets the PC to the yeet handler at cell 2
+(`VM_YEET_ADDRESS`, code address 4), whose jump `go.f` installs. The app keeps running from there: it handles its own errors,
 as it would on a Forth chip, so it could eventually run its own QUIT loop with no
 API calls. A yeet handler is installed like the app's entry point:
 

@@ -348,7 +348,18 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
             if (steps == 0) return ERR_VM_TIMEOUT;
  //           printf("%x ", PC); // print PC while stepping
         }
-        if (ior) return ior;
+        if (ior) {
+            if ((ior != 0) && (ior != ERR_VM_BREAK) && (steps)) {
+                // The app is being stepped: send it to its yeet handler.
+                // (A word run by the terminal has steps == 0, so its errors
+                // only go back to the terminal and the PC is left alone.)
+                X = PC;
+                Y = ior;
+                PC = VM_YEET_ADDRESS << 1;
+                dirty = 1;
+            }
+            return ior;
+        }
         if (once == 0) goto fetch;
     }
     return ior;
@@ -360,7 +371,9 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
  * block, which executes more words. The nested call leaves PC at the
  * 0xDEADC0DE terminator, so the caller's PC is saved here and put back.
  * dirty = 1 makes the caller refetch its instruction pair from memory.
- * On an error, PC is left where the fault happened.
+ * The caller's PC is put back even after an error: the terminal's errors
+ * must not disturb the app. (vmExec sends a stepped app's errors to its
+ * yeet handler.)
  */
 int32_t vmRun(int once, uint32_t inst, int32_t address) {
     if (once || inst) {
@@ -370,12 +383,6 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     int32_t ior = vmExec(0, 0, address);
     dirty = 1;
     PC = pc;
-    if ((ior != 0) && (ior != ERR_VM_BREAK)) {
-        X = PC;
-        Y = ior;
-        PC = VM_YEET_ADDRESS << 1;
-        dirty = 1;
-    }
     return ior;
 }
 

@@ -423,7 +423,7 @@ static uint32_t linecount = 0;
  *
  * While no input is waiting and the app is running (SYS_OPTION_RUNNING, set
  * by `cold`), the app's VM code runs from its PC until its next `break`.
- * If it fails instead (an error or `yeet`), vmYeet sends it to its yeet
+ * If it fails instead (an error or `yeet`), the VM sends it to its yeet
  * handler, and it keeps running from there: the app handles its own errors,
  * as on a Forth chip. The exception is running VM_STEP_LIMIT steps without a
  * `break`: the app is stuck, so it is stopped and ERR_VM_TIMEOUT is returned,

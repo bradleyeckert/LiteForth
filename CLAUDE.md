@@ -143,9 +143,11 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - **The app runs while the terminal is idle.** `cold` resets the VM and sets
   `SYS_OPTION_RUNNING`; `loadTIB` then runs the VM in step mode from its PC
   whenever no input is waiting, until the app executes `break`
-  (`ERR_VM_BREAK`). An error or `yeet` goes to `vmYeet`: X = PC, Y = ior,
-  PC = the yeet handler at cell `VM_YEET_ADDRESS` (2), and the app keeps
-  running; it handles its own errors, as on a Forth chip. The exception is
+  (`ERR_VM_BREAK`). An error or `yeet` in the app (`vmExec` with `steps` nonzero)
+  sets X = PC, Y = ior, PC = the yeet handler at cell `VM_YEET_ADDRESS` (2),
+  and the app keeps running; it handles its own errors, as on a Forth chip.
+  Errors in words the terminal runs (word-call mode) only flow back through
+  `interpretSource` to `lfQuit`; they never touch the app's PC. The exception is
   `ERR_VM_TIMEOUT` (`VM_STEP_LIMIT` steps without a `break`): the app is
   stopped and `loadTIB(int* length)` returns it for QUIT to report; otherwise
   `loadTIB` returns 0 or `ERR_TIB_OVERFLOW`. `go.f` puts the app's entry jump at code

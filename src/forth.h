@@ -295,20 +295,36 @@ int lfAPI_empty(void);
  * Rewrites every pointer into [from, from + cells) to the same offset in
  * `to`: the wordlist heads, the latest header, the name kept for
  * `wordlist`, the link and name fields of headers inside the buffer, and the
- * heads in the table most recently compiled by `,wids`.
+ * heads in the record most recently compiled by `,wids`.
+ * If that record is inside the buffer, it then recomputes the record's CRC
+ * over the buffer's cells below it, which are now as they will be
+ * programmed.
  * @param from  The RAM buffer.
  * @param to    The flash page the buffer's contents are going to.
  * @param cells Size of the buffer in cells.
  */
 void lfRelocateHeaders(const int32_t* from, int32_t* to, int cells);
 
+/* Cell offsets in the record compiled by `,wids` */
+#define WIDS_RECORD_CRC    0  /* CRC-32 of the page's cells below the record */
+#define WIDS_RECORD_SKIP   1  /* address of the cell after the record        */
+#define WIDS_RECORD_COUNT  2  /* number of wordlists (wids_pointer)          */
+#define WIDS_RECORD_TABLE  3  /* that many s_wid structures, as raw bytes    */
+
 /**
  * ,WIDS  ( -- )
- * Compiles the wordlist table to text space for bootup: the text pointer is
- * aligned to a cell, then it compiles the number of wordlists in use
- * (wids_pointer) as one cell, followed by that many s_wid structures as raw
- * bytes, padded to a whole cell. The heads are C pointers; close-flash
- * rebases them if they point into the open-flash buffer.
+ * Compiles the wordlist record to text space, for the loader to restore
+ * `wids` at bootup. The text pointer is aligned to a cell, then it compiles
+ * (see WIDS_RECORD_*):
+ *   - the CRC-32 (crc32.h) of the page from cell 0 up to the record. Text
+ *     space is last in the page, so this covers everything compiled to it.
+ *     close-flash recomputes it after rebasing header pointers, so that it
+ *     matches the page as programmed;
+ *   - the address just past the record, to skip it;
+ *   - the number of wordlists in use (wids_pointer);
+ *   - that many s_wid structures as raw bytes, padded to a whole cell.
+ * The heads are C pointers; close-flash rebases them if they point into the
+ * open-flash buffer.
  * @return 0, ERR_DICTIONARY_OVERFLOW if text space is too small, or an
  *         ior from vmStore.
  */

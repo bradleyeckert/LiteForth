@@ -33,50 +33,41 @@ The app's startup code sets up *idata* and dictionary links.
 By default, the VM is stopped. It only runs when the terminal interprets input.
 If there is an error, the VM quits with an error code, which makes it out to the terminal.
 
-While the terminal task is waiting for keyboard input, it can either spin or step the VM through the code.
-If `TIBstate` = 0, it is stopped. Otherwise, it is running.
-Errors returned by the VM are handled differently in each case:
-
-- Stopped: The QUIT loop calls VM, so the return value propagates back through `lfInterpret`
-to `lfQuit`, which displays an error message.
-
-- Running: The keyboard input spin loop steps the VM using `vmRun`, igloring the return value.
-When the VM sees an error, is sets the PC to 2 and loads B with the ior.
-Forth code will handle the error.
-
-Forth and C coexist by sharing a `TIBstate` handshake variable with 4 possible values:
-
-0. The application is stopped.
-1. QUIT is waiting for terminal input, indicating the app is safe to run.
-2. QUIT has received terminal input, waiting for the "go" signal from the app.
-3. The app has sent the "go" signal, handing control to the terminal.
-
-This scheme expects the Forth app to run a macroloop that includes this FSM.
+While the terminal task waits for keyboard input, it can also run the application.
+`cold` resets the VM and sets `SYS_OPTION_RUNNING`. From then on, whenever no input
+is waiting, `loadTIB` runs the VM from its PC (`vmRun` in step mode) until the app
+executes `break`, then checks the terminal again:
 
 ```mermaid
-stateDiagram-v2
-    direction LR
-
-    state "TIBstate = 1" as S1
-    state "TIBstate = 2" as S2
-    state "TIBstate = 3" as S3
-
-    note left of S1
-        <b>Terminal Task Owns</b>
-        Prepares TIB data
-    end note
-
-    note right of S2
-        <b>App Task Owns</b>
-        Processes TIB data
-    end note
-
-    note right of S3
-        <b>Terminal Task Owns</b>
-        Post-processes TIB
-    end note
-
-    S1 --> S2 : Terminal sets to 2
-    S2 --> S3 : App sets to 3
-    S3 --> S1 : Terminal sets to 1
+flowchart LR
+    W{"Input waiting?"}
+    R["Read a character into TIB"]
+    A["Run the app until its next break"]
+    W -- yes --> R
+    R --> W
+    W -- "no, and the app is running" --> A
+    A --> W
 ```
+
+So the app is a macroloop that calls `break` regularly, like the demo in `go.f`:
+
+```forth
+:noname ( demo application )
+    hi
+    begin  demo-step  break
+    again
+; hex 80000000 ,jump decimal
+```
+
+`,jump` compiles a jump to it at code address 0, where `cold` starts the VM.
+Because the app only runs between `break`s while the terminal is idle, the terminal
+and the app never run at the same time, and handing off control needs no shared variable.
+
+Errors are handled according to who called the VM:
+
+- Interpreting: QUIT runs words through `lfInterpret`, so an error propagates back
+to `lfQuit`, which displays an error message.
+
+- Running the app: if the app fails (an error or `yeet`), or runs `VM_STEP_LIMIT`
+steps without a `break` (`ERR_VM_TIMEOUT`), `loadTIB` stops the app by clearing
+`SYS_OPTION_RUNNING` and returns the error, which QUIT displays. `cold` starts it again.

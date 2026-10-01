@@ -58,14 +58,15 @@ Name lookup ignores case.
 | `and` | `( x1 x2 -- x3 )` | Bitwise AND. |
 | `b` | `( -- x )` | Pushes register `B`. |
 | `b!` | `( x -- )` | Sets register `B`. |
-| `bit` | `( n -- )` | Sets the slice width of `here` in the current space to `n` bits (1 to 32). |
+| `bit` | `( addr n -- addr' )` | Returns `addr` with its slice width set to `n` bits, moved up to the next `n`-bit slice position, or to the next cell if the slice would not fit. An `n` outside 1 to 31 means a whole cell. |
 | `bits` | `( n <name> -- )` | Defines a variable `n` bits wide: `<name>` returns its slice address. |
+| `break` | `( -- )` | Ends the app's turn: the VM returns to the terminal task, which runs the app again from the next instruction when the terminal is idle. An app must `break` within `VM_STEP_LIMIT` steps or it is stopped. Typed at the terminal, it reports `-115`. |
 | `block` | `( u -- addr )` | Returns the address of a buffer holding block `u`, reading it from storage if needed. |
 | `buffer` | `( u -- addr )` | Assigns a buffer to block `u` without reading it. |
 | `bye` | `( -- )` | Leaves QUIT (and exits `lf`). |
 | `capacity` | `( -- u )` | Number of blocks in the block file. |
 | `close-flash` | `( -- )` | Programs the open flash page from its RAM buffer, write-protects it, and frees the buffer. |
-| `cold` | `( -- )` | Resets the VM (registers and stacks) and sets `TIBstate` to 1. |
+| `cold` | `( -- )` | Resets the VM (registers and stacks) and starts the app: sets `SYS_OPTION_RUNNING`, so while QUIT waits for input it runs VM code from address 0 until each `break`. See `doc/flashmem.md`. |
 | `constant` | `( n <name> -- )` | Defines `<name>`, which returns `n`. |
 | `cr` | `( -- )` | Starts a new line on the terminal. |
 | `create` | `( <name> -- )` | Defines `<name>`, which returns the address of `here` at the time it was created. |
@@ -160,7 +161,6 @@ Name lookup ignores case.
 | `ram-base` | Base RAM memory boundary pointer. |
 | `state` | Pointer to bitfield holding compilation (`1`) vs interpretation (`0`) state. |
 | `TIB` | Base memory address of Terminal Input Buffer. |
-| `TIBstate` | 2-bit variable: the terminal/application handshake (0 = off, 1 = waiting for input, 2 = input ready, 3 = go). See `doc/flashmem.md`. |
 | `true` | Boolean true flag. |
 | `w_macro` | Executable flag marking multi-slot micro-op macro word. |
 | `w_no_tail_call` | Header flag: `;` must not turn a call to this word into a jump. |
@@ -188,7 +188,7 @@ These are compiled by the boot script, not built in.
 | `key?` | `( -- flag )` | Nonzero if a character is waiting (`t_rx?`). |
 | `definitions` | `( -- )` | Makes the first wordlist in the search order the one new words go into. |
 | `variable` | `( <name> -- )` | Defines a 32-bit variable. |
-| `_data` | `( -- )` | Selects the udata space. |
+| `_udata` | `( -- )` | Selects the udata space. |
 | `_idata` | `( -- )` | Selects the idata space. |
 | `_code` | `( -- )` | Selects the code space. |
 | `_text` | `( -- )` | Selects the text space. |
@@ -196,10 +196,13 @@ These are compiled by the boot script, not built in.
 | `here` | `( -- a )` | Next free address in the current space. |
 | `allot` | `( n -- )` | Reserves `n` cells in the current space. |
 | `unused` | `( -- n )` | Free cells left in the current space. |
+| `amask` | `( a -- a' )` | Strips the slice fields from an address, leaving the 22-bit cell address. |
+| `+!` | `( n a -- )` | Adds `n` to the cell at `a`. |
 | `chere` | `( -- addr )` | Next free code address. |
 | `negate` | `( n -- -n )` | Negates. |
 | `-` | `( n1 n2 -- n3 )` | Subtracts `n2` from `n1`. |
 | `or` | `( x1 x2 -- x3 )` | Bitwise OR. |
+| `=` | `( n1 n2 -- flag )` | True (-1) if `n1` equals `n2`, else 0. |
 | `1+` | `( n -- n+1 )` | Adds 1. |
 | `1-` | `( n -- n-1 )` | Subtracts 1. |
 | `rshift` | `( u1 u2 -- u3 )` | Shifts `u1` right (unsigned) by `u2` bits. |
@@ -220,3 +223,4 @@ These are compiled by the boot script, not built in.
 | `$type` | `( ca -- )` | Prints a counted string. |
 | `."` | `( <text"> -- )` | Immediate. Compiles a string to print. |
 | `.map` | `( -- )` | Prints the extent and free space of each memory space. |
+| `,jump` | `( xt addr -- )` | Compiles a jump to `xt` at code address `addr` (as `go.f` does at 0 for the app). |

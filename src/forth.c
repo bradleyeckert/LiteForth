@@ -449,9 +449,6 @@ static int loadTIB(int* length) {
                     ior = err;
                     break;
                 }
-                if ((err != 0) && (err != ERR_VM_BREAK)) {
-                    vmYeet(err);    // the app's yeet handler deals with it
-                }
             }
             continue;
         }

@@ -4,7 +4,7 @@
 #include "vm_labels.h"
 #include "errcodes.h"
 #include "api0.h"
-//#include <stdio.h> //////////////////////////////////
+#include <stdio.h> //////////////////////////////////
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -346,6 +346,7 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
         if (steps) {
             steps--;
             if (steps == 0) return ERR_VM_TIMEOUT;
+ //           printf("%x ", PC); // print PC while stepping
         }
         if (ior) return ior;
         if (once == 0) goto fetch;
@@ -370,17 +371,12 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     dirty = 1;
     PC = pc;
     if ((ior != 0) && (ior != ERR_VM_BREAK)) {
-        vmYeet(ior);
+        X = PC;
+        Y = ior;
+        PC = VM_YEET_ADDRESS << 1;
+        dirty = 1;
     }
     return ior;
-}
-
-/* vmYeet (documented in vm.h) */
-void vmYeet(int32_t ior) {
-    X = PC;
-    Y = ior;
-    PC = VM_YEET_ADDRESS << 1;
-    dirty = 1;
 }
 
 // API access to internal VM state

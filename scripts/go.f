@@ -104,13 +104,20 @@ variable counter
 
 cr .( `cold` is supposed to launch the demo app : note the jump: ) cr
 
-0 2 dasm
+( The first 3 cells are reserved for: )
+( Cell 0: 1 or 2 instructions for jump to application )
+( Cell 1: address of system initialization data {TBD} )
+( Cell 2: 1 or 2 instructions for jump to yeet handler )
+
+0 6 dasm
 
 cr .( and the demo code ) cr
 
 hex 80000000 @ decimal 14 dasm
 
 : dump-all  0 chere 2* dasm ;
+
+_text here 32 bit  1 !  ( Bootup data structure here... To be populated later. )
 
 close-flash
 0 >options

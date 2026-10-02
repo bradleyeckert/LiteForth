@@ -166,6 +166,7 @@ Name lookup ignores case.
 | `false` | Boolean false flag. |
 | `log2pages` | Memory page count exponent shift value ($\log_2$). |
 | `ram-base` | Base RAM memory boundary pointer. |
+| `stack-masks` | `STACK_CAPACITY` - 1 in both halves, as `rp:sp`: the masks for the stack pointers. `task` uses it to check that stack windows fit. |
 | `state` | Pointer to bitfield holding compilation (`1`) vs interpretation (`0`) state. |
 | `TIB` | Base memory address of Terminal Input Buffer. |
 | `true` | Boolean true flag. |
@@ -185,6 +186,7 @@ These are compiled by the boot script, not built in.
 | Word | Stack Effect | Description |
 | :--- | :--- | :--- |
 | `$type` | `( ca -- )` | Prints a counted string. |
+| `'` | `( <name> -- xt )` | The execution token of the next word (`x' drop`). |
 | `'here` | `( -- a )` | Address of the current space's pointer. |
 | `+!` | `( n a -- )` | Adds `n` to the cell at `a`. |
 | `,jump` | `( xt addr -- )` | Compiles a jump to `xt` at code address `addr` (as `go.f` does at 0 for the app). |
@@ -192,18 +194,24 @@ These are compiled by the boot script, not built in.
 | `-if` | `( -- a )` | Immediate. Branches past `then` if T is not negative; keeps T. |
 | `."` | `( <text"> -- )` | Immediate. Compiles a string to print. |
 | `.map` | `( -- )` | Prints the extent and free space of each memory space. |
+| `0=` | `( x -- flag )` | True if `x` is 0. |
 | `1+` | `( n -- n+1 )` | Adds 1. |
 | `1-` | `( n -- n-1 )` | Subtracts 1. |
 | `=` | `( n1 n2 -- flag )` | True (-1) if `n1` equals `n2`, else 0. |
 | `@+` | `( a -- a+1 x )` | Fetches and advances the address. |
+| `[start]` | `( -- )` | STATUS of a task that hasn't run yet: sets STATUS to `awake`, switches to the task's empty stacks and jumps to its ENTRY. See [Multitasking](multitasking.md). |
 | `_code` | `( -- )` | Selects the code space. |
 | `_idata` | `( -- )` | Selects the idata space. |
 | `_text` | `( -- )` | Selects the text space. |
 | `_udata` | `( -- )` | Selects the udata space. |
+| `activate` | `( task -- )` | Links `task` into the ring after the running task and makes the rest of the calling word its code; the caller of that word goes on. Starts the ring (`multi`) if U is 0. |
 | `again` | `( a -- )` | Immediate. Branches back to `begin`. |
 | `ahead` | `( -- a )` | Immediate. Unconditional forward branch. |
+| `align` | `( -- )` | Aligns `here` to a whole cell. |
 | `allot` | `( n -- )` | Reserves `n` cells in the current space. |
 | `amask` | `( a -- a' )` | Strips the slice fields from an address, leaving the 22-bit cell address. |
+| `asleep` | `( -- )` | STATUS of a sleeping task: moves on to the next task. |
+| `awake` | `( -- )` | STATUS of a running task: switches to its stacks and returns into it after its `pause`. |
 | `base!` | `( n -- )` | Sets `base`. |
 | `begin` | `( -- a )` | Immediate. Starts a loop. |
 | `cells` | `( n -- n )` | Immediate no-op: addresses are cell addresses. |
@@ -219,14 +227,21 @@ These are compiled by the boot script, not built in.
 | `if` | `( -- a )` | Immediate. Branches past `else`/`then` if T is 0; drops T. |
 | `key` | `( -- c )` | Reads a character (`t_rx`). |
 | `key?` | `( -- flag )` | Nonzero if a character is waiting (`t_rx?`). |
+| `lshift` | `( u1 u2 -- u3 )` | Shifts `u1` left by `u2` bits. |
+| `multi` | `( -- )` | Starts the round-robin ring with only the terminal task (`operator`). |
 | `negate` | `( n -- -n )` | Negates. |
 | `next` | `( a -- )` | Immediate. Ends a `for` loop. |
+| `operator` | `( -- a )` | The terminal task's user area. |
 | `or` | `( x1 x2 -- x3 )` | Bitwise OR. |
+| `pause` | `( -- )` | Saves the running task and runs the next awake task in the ring. Needs a ring (`multi` or `activate`) first. |
 | `repeat` | `( a1 a2 -- )` | Immediate. Ends a `begin ... while ... repeat` loop. |
 | `rshift` | `( u1 u2 -- u3 )` | Shifts `u1` right (unsigned) by `u2` bits. |
+| `stackused` | `( -- a )` | Variable (IDATA): the `rp:sp` stack cells given out so far; the terminal reserves the first `0x30` of each. |
+| `task` | `( user_cells data_stack return_stack <name> -- )` | Creates a task: reserves its stack windows (yeets -118 if they don't fit) and a user area of `user_cells` + 4 cells. `name` returns the task's header. |
 | `then` | `( a -- )` | Immediate. Resolves `if`, `-if`, `else` or `ahead`. |
 | `type` | `( ca n -- )` | Prints `n` characters from `ca`. |
 | `until` | `( a -- )` | Immediate. Branches back to `begin` while T is 0; drops T. |
 | `unused` | `( -- n )` | Free cells left in the current space. |
+| `up` | `( -- a )` | The running task's user area (register U). |
 | `variable` | `( <name> -- )` | Defines a 32-bit variable. |
 | `while` | `( a1 -- a1 a2 )` | Immediate. Leaves the loop when T is 0; drops T. |

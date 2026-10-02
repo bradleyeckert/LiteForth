@@ -58,49 +58,58 @@ decimal
 
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 
-( multitasker - work in progress, do not test )
+( Multitasker: cooperative, round robin. Each task has a user area, which )
+( the U register points to while the task runs:                           )
+(   U+0 STATUS    xt that pause jumps to: awake, asleep or [start]        )
+(   U+1 FOLLOWER  user area of the next task in the ring                  )
+(   U+2 TASKNOW   saved rp:sp while the task isn't running                )
+(   U+3 ENTRY     where a task that hasn't run yet starts                 )
+( The physical stacks are shared: each task gets its own window of them.  )
 
-: pause   [ 0 _user + ,inst ]  @a+ >r ;
-: asleep  @a >r ;
-: awake   @a+ b!  task[ @a swap !a ]task ;
+: up      ( -- a )  [ 0 _user + ,inst ] a ;       ( the current user area )
+: asleep  ( -- )   [ 1 _user + ,inst ] @a u!      ( U = follower )
+                   [ 0 _user + ,inst ] @a >r ;    ( jump to its STATUS )
+: pause   ( -- )   task[ [ 2 _user + ,inst ] !a   ( save T, R, rp:sp )
+                   asleep ;
+: awake   ( -- )   [ 2 _user + ,inst ] @a ]task   ( switch stacks )
+                   r> drop drop ;                 ( restore R and T, return )
+: [start] ( -- )   [ 3 _user + ,inst ] @a b!      ( B = ENTRY )
+                   [ 0 _user + ,inst ] [ ' awake ] literal !a
+                   [ 2 _user + ,inst ] @a ]task ; ( empty stacks, R = B: go )
+
+_udata create operator  4 allot   ( the terminal's user area )
+
+: multi   ( -- )   ( start the ring with just the terminal )
+   operator u!  operator a!  [ ' awake ] literal !a+  operator !a ;
 
 hex
 _idata variable stackused  300030 stackused ! ( reserved for the terminal task )
 decimal
-( Task headers are kept in _idata )
-( CELL 0 = Base location of stack pointers )
-( CELL 1 = Address of user data )
+( Task headers are kept in _idata: cell 0 = stack base rp:sp, )
+( cell 1 = address of the user area                         )
 
 : task  ( user_cells data_stack return_stack <name> -- )
-    _idata create  16 lshift +  
-    stackused a! @a swap over + ( old new ) dup !a swap ,
-    stack-masks inv and if -118 yeet then
-    _udata here  swap  3 + allot  _idata , 
+    _idata create  16 lshift +           ( uc r:d )
+    stackused @ +                        ( uc new )
+    dup stack-masks inv and if -118 yeet then
+    stackused @ ,  stackused !           ( uc ) ( header cell 0 = base )
+    _udata here  swap 4 + allot  _idata , ( header cell 1 = user area )
+    _udata
 ;
 
-( Add a task to the queue, pointed to by the U register, and activate it. )
-( To launch a task, use `activate` like this: )
-( : launchtask MyTask activate begin pause {your code here} again ; )
+( Add a task to the ring after the current one. The rest of the word that )
+( calls `activate` becomes the task, and the caller of that word goes on: )
+( : launch  t1 activate begin {your code} pause again ; )
 
-: activate  ( task -- | R: ra -- )
-    a! @a+ @a+  ( rpsp1 'user )
-    a!  [ ' asleep ] literal !a+  a    ( rpsp1 user )
-    task[ drop r> drop a                ( rpsp1 user rpsp0 U )
-    dup 0= if drop
-        swap dup a!  dup u!  !a+ !a+    ( User = link )
-    else
-        >r swap a! r> !a+ !a+           ( rpsp1 )
-    then
-    r> b! ]task
+: activate  ( task -- )  ( R: ra -- )
+    up 0= if multi then
+    a! @a+ @a+  dup b!                   ( base user ) ( B = user area )
+    [ ' [start] ] literal !b+            ( STATUS )
+    up 1 + @ !b+                         ( FOLLOWER = ours )
+    swap 65536 + !b+                     ( user ) ( TASKNOW, rp+1 for ; )
+    r> !b                                ( ENTRY = the rest of the caller )
+    up 1 + !                             ( link it in after this task )
 ;
-
-decimal
-
-100 32 32 task t1
-  8 20 20 task t2
-  
-t1 3 dump 
-t2 3 dump 
 
 ( string output )
 : @+        ( a -- a+1 n )  a! @a+ a swap ;
@@ -170,6 +179,7 @@ variable counter
 
 _text here 32 bit  1 !  ( Boot structure at end of text )
 save-wids save-idata
+_udata  ( leave data space selected: `variable` in text space corrupts headers )
 
 ( Cell 0: 1 or 2 instructions for jump to application )
 ( Cell 1: address of system initialization data {TBD} )

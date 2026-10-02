@@ -794,7 +794,10 @@ static void reportError(int ior) {
 
 // QUIT (documented in forth.h). Open the terminal with serial_open first.
 int lfQuit(void) {
-    lf_puts(u8"[幸运狐] v");
+    // u8 keeps the bytes UTF-8 on any compiler (MSVC without /utf-8 would
+    // convert a plain literal to the code page). In C23 u8 strings are
+    // unsigned char (char8_t), hence the cast.
+    lf_puts((const char*)u8"[幸运狐] v");
     lfDotB(TF_VERSION, 10, 2, 3);
     lfCR();
     lfAPI_empty();

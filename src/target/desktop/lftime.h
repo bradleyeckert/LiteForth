@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /**
- * @file systime.h
+ * @file lftime.h
  * @brief Header file for time functions.
  */
 
@@ -13,9 +13,13 @@ extern "C" {
 #endif
 
 /**
- * Gets the system time in microseconds since hard reset, or Epoch time if the
- * system has a real-time clock. The resolution is typically 1 microsecond,
- * but the actual precision may be lower depending on the hardware.
+ * Reads a free-running microsecond counter. Each target provides it: on an
+ * MCU it counts from hard reset, or is Epoch time if the system has a
+ * real-time clock. The desktop version uses the host's monotonic clock,
+ * which starts at an unspecified time and isn't affected by changes to the
+ * wall-clock time. Only differences between readings are meaningful. The
+ * resolution is 1 microsecond, but the actual precision may be lower
+ * depending on the hardware.
  * @return 64-bit count.
  */
 uint64_t lfGetTimeMicroSec(void);

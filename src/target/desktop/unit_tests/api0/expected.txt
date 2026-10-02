@@ -51,7 +51,7 @@
  50 API_COLD             coldboot
  51 API_NONAME           lfAPI_noname
  52 API_EXECUTE          execute
- 53 API_COMMAWIDS        lfAPI_commaWids
+ 53 API_SAVE_WIDS        lfAPI_saveWids
  54 API_ENDTEST          lfAPI_endTest
  55 API_DOTEST           lfAPI_doTest
  56 API_BEGINTEST        lfAPI_beginTest

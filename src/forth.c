@@ -172,7 +172,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "cold",         API0(API_COLD),                           0},
     { PREV, ":noname",      API0(API_NONAME),                         0},
     { PREV, "execute",      API0(API_EXECUTE),                        0},
-    { PREV, "save-wids",    API0(API_COMMAWIDS),                      0},
+    { PREV, "save-wids",    API0(API_SAVE_WIDS),                      0},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        0},
     { PREV, "->",           API0(API_DOTEST),                         0},
@@ -800,7 +800,7 @@ int lfQuit(void) {
     lfAPI_forth();
     vmReset();
     if (g_lf_sys_options & SYS_OPTION_BOOTING) {
-        int ior = lfBootFromFlash();    // restore the wordlists saved by ,wids
+        int ior = lfBootFromFlash();    // restore the wordlists saved by save-wids
         if (ior) {
             reportError(ior);           // and don't start the app
         } else {
@@ -848,11 +848,11 @@ int lfToHeader(uint32_t w, uint32_t aux) {
 }
 
 /*
- * ,WIDS  ( -- )  (documented in forth.h)
+ * SAVE-WIDS  ( -- )  (documented in forth.h)
  * Heads are links (see lfFollow), not C pointers, so the record is valid
  * wherever the flash page is mapped.
  */
-int lfAPI_commaWids(void) {
+int lfAPI_saveWids(void) {
     int32_t tp = 0;
     lfTpFetch(&tp);
     tp = (int32_t)lfSetSliceWidth((uint32_t)tp, 32);

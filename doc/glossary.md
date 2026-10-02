@@ -61,6 +61,7 @@ Name lookup ignores case.
 | `bit` | `( addr n -- addr' )` | Returns `addr` with its slice width set to `n` bits, moved up to the next `n`-bit slice position, or to the next cell if the slice would not fit. An `n` outside 1 to 31 means a whole cell. |
 | `bits` | `( n <name> -- )` | Defines a variable `n` bits wide: `<name>` returns its slice address. |
 | `break` | `( -- )` | Ends the app's turn: the VM returns to the terminal task, which runs the app again from the next instruction when the terminal is idle. An app that runs `VM_STEP_LIMIT` steps without a `break` is stopped, and QUIT reports `-116`. Typed at the terminal, it reports `-115`. |
+| `capusec` | `( -- )` | Captures the free-running microsecond counter: `Y` gets the upper 32 bits and `X` the lower 32 (read them with `y@` and `x@`). The counter's starting point is unknown, so only differences between captures are meaningful. |
 | `block` | `( u -- addr )` | Returns the address of a buffer holding block `u`, reading it from storage if needed. |
 | `buffer` | `( u -- addr )` | Assigns a buffer to block `u` without reading it. |
 | `bye` | `( -- )` | Leaves QUIT (and exits `lf`). |

@@ -116,6 +116,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "]shr",         SYS(VMS_SHR),                             0},
     { PREV, "]shl",         SYS(VMS_SHL),                             0},
     { PREV, "break",        SYS(VMS_BREAK),                           0},
+    { PREV, "capusec",      SYS(VMS_GETUSEC),                         0},
     { PREV, "shft[",        SYSTO(VMSTO_SHIFT),                       0},
     { PREV, "]task",        SYSTO(VMSTO_TASK),                        0},
     { PREV, "yeet",         SYSTO(VMSTO_YEET),                        0},

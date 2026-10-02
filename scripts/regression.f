@@ -406,6 +406,10 @@ T{ -5 neg? -> -1 }T
 T{  0 neg? ->  0 }T
 T{  5 neg? ->  0 }T
 
+( capusec captures the microsecond counter into Y:X: the low word of a )
+( later capture is no smaller, unless X wraps, every 71 minutes        )
+T{ capusec x@  capusec x@  swap - neg?  -> 0 }T
+
 ( save-wids compiles a record to text space: skip address, number of        )
 ( wordlists, flash base, then the s_wid table. t-wids leaves the number  )
 ( and the skip address xor HERE, which is 0 when it is just past it      )

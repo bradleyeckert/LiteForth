@@ -26,6 +26,12 @@
  */
 
 #define API0_LIST(X)                            \
+    /* Terminal I/O first, indices 0 to 3 (API_T_RXQ to API_T_TXQ), so */ \
+    /* that a restricted mode can allow only these calls.              */ \
+    X(API_T_RXQ,            qkey)               \
+    X(API_T_RX,             key)                \
+    X(API_T_TXSTORE,        emit)               \
+    X(API_T_TXQ,            qemit)              \
     X(API_BYE,              bye)                \
     X(API_WORDS,            lfAPI_words)        \
     X(API_FORTH,            lfAPI_forth)        \
@@ -34,10 +40,6 @@
     X(API_MSTAR,            mstar)              \
     X(API_MUDIVMOD,         mudivmod)           \
     X(API_STARDIVMOD,       stardivmod)         \
-    X(API_T_RXQ,            qkey)               \
-    X(API_T_RX,             key)                \
-    X(API_T_TXSTORE,        emit)               \
-    X(API_T_TXQ,            qemit)              \
     X(API_COLON,            lfAPI_colon)        \
     X(API_SEMICOLON,        lfAPI_semicolon)    \
     X(API_TOOPTIONS,        lfAPI_setFlags)     \

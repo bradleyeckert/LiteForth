@@ -1,15 +1,15 @@
-  0 API_BYE              bye
-  1 API_WORDS            lfAPI_words
-  2 API_FORTH            lfAPI_forth
-  3 API_ONLY             lfAPI_only
-  4 API_UMSTAR           umstar
-  5 API_MSTAR            mstar
-  6 API_MUDIVMOD         mudivmod
-  7 API_STARDIVMOD       stardivmod
-  8 API_T_RXQ            qkey
-  9 API_T_RX             key
- 10 API_T_TXSTORE        emit
- 11 API_T_TXQ            qemit
+  0 API_T_RXQ            qkey
+  1 API_T_RX             key
+  2 API_T_TXSTORE        emit
+  3 API_T_TXQ            qemit
+  4 API_BYE              bye
+  5 API_WORDS            lfAPI_words
+  6 API_FORTH            lfAPI_forth
+  7 API_ONLY             lfAPI_only
+  8 API_UMSTAR           umstar
+  9 API_MSTAR            mstar
+ 10 API_MUDIVMOD         mudivmod
+ 11 API_STARDIVMOD       stardivmod
  12 API_COLON            lfAPI_colon
  13 API_SEMICOLON        lfAPI_semicolon
  14 API_TOOPTIONS        lfAPI_setFlags

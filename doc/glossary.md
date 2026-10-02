@@ -2,6 +2,8 @@
 
 The built-in Forth words (`forth_heads[]` and `only_heads[]`) and system constants (`constant_table[]`) defined in `forth.c`, followed by the words that `scripts/go.f` defines on top of them.
 
+Each table is sorted by name in ASCII order, ignoring case.
+
 ---
 
 ## 1. Dictionary Words (`forth_heads[]` and `only_heads[]`)
@@ -60,12 +62,12 @@ Name lookup ignores case.
 | `b!` | `( x -- )` | Sets register `B`. |
 | `bit` | `( addr n -- addr' )` | Returns `addr` with its slice width set to `n` bits, moved up to the next `n`-bit slice position, or to the next cell if the slice would not fit. An `n` outside 1 to 31 means a whole cell. |
 | `bits` | `( n <name> -- )` | Defines a variable `n` bits wide: `<name>` returns its slice address. |
-| `break` | `( -- )` | Ends the app's turn: the VM returns to the terminal task, which runs the app again from the next instruction when the terminal is idle. An app that runs `VM_STEP_LIMIT` steps without a `break` is stopped, and QUIT reports `-116`. Typed at the terminal, it reports `-115`. |
-| `capusec` | `( -- )` | Captures the free-running microsecond counter: `Y` gets the upper 32 bits and `X` the lower 32 (read them with `y@` and `x@`). The counter's starting point is unknown, so only differences between captures are meaningful. |
 | `block` | `( u -- addr )` | Returns the address of a buffer holding block `u`, reading it from storage if needed. |
+| `break` | `( -- )` | Ends the app's turn: the VM returns to the terminal task, which runs the app again from the next instruction when the terminal is idle. An app that runs `VM_STEP_LIMIT` steps without a `break` is stopped, and QUIT reports `-116`. Typed at the terminal, it reports `-115`. |
 | `buffer` | `( u -- addr )` | Assigns a buffer to block `u` without reading it. |
 | `bye` | `( -- )` | Leaves QUIT (and exits `lf`). |
 | `capacity` | `( -- u )` | Number of blocks in the block file. |
+| `capusec` | `( -- )` | Captures the free-running microsecond counter: `Y` gets the upper 32 bits and `X` the lower 32 (read them with `y@` and `x@`). The counter's starting point is unknown, so only differences between captures are meaningful. |
 | `close-flash` | `( -- )` | Programs the open flash page from its RAM buffer, write-protects it, and frees the buffer. |
 | `cold` | `( -- )` | Resets the VM (registers and stacks) and starts the app: sets `SYS_OPTION_RUNNING`, so while QUIT waits for input it runs VM code from address 0 until each `break`. See `doc/flashmem.md`. |
 | `constant` | `( n <name> -- )` | Defines `<name>`, which returns `n`. |
@@ -82,7 +84,6 @@ Name lookup ignores case.
 | `empty` | `( -- )` | Resets the dictionary: removes user words and wordlists and resets the dictionary pointers. |
 | `empty-buffers` | `( -- )` | Unassigns all block buffers without saving them. |
 | `execute` | `( i*x xt -- j*x )` | Runs execution token `xt`: a primitive, macro or API word as one instruction, anything else (colon, `:noname` or `create` code) as a call. |
-| `save-wids` | `( -- )` | Compiles the wordlist record to text space for booting, cell aligned: the address just past the record, the number of wordlists in use, then that many raw `s_wid` structures (head link and 12-byte name), padded to a cell. Heads are tagged links, not C addresses, so the record is valid wherever flash is mapped. Store the record's address in cell 1, and use it last before `close-flash`. Booting with `-o 8` restores the wordlists from it. |
 | `exit` | `( -- )` | Immediate. Compiles a return from the current word. |
 | `flush` | `( -- )` | Saves modified block buffers, then unassigns all of them. |
 | `forth` | `( -- )` | Makes the forth wordlist first in the search order. |
@@ -104,6 +105,7 @@ Name lookup ignores case.
 | `r@` | `( -- x ) (R: x -- x)` | Copies the top of the return stack. |
 | `s@` | `( addr -- x )` | Fetches from `addr`, sign-extending a bit field. |
 | `save-buffers` | `( -- )` | Writes modified block buffers to storage. |
+| `save-wids` | `( -- )` | Compiles the wordlist record to text space for booting, cell aligned: the address just past the record, the number of wordlists in use, then that many raw `s_wid` structures (head link and 12-byte name), padded to a cell. Heads are tagged links, not C addresses, so the record is valid wherever flash is mapped. Store the record's address in cell 1, and use it last before `close-flash`. Booting with `-o 8` restores the wordlists from it. |
 | `see` | `( <name> -- )` | † Disassembles a word. |
 | `shft[` | `( n -- )` | Sets the shift count used by `]shl` and `]shr` (0 to 31). |
 | `slice+` | `( a1 -- a2 )` | Advances an address to the next cell or bit-field slice. |
@@ -136,6 +138,7 @@ Name lookup ignores case.
 
 | Name | Description / Usage |
 | :--- | :--- |
+| `>in` | Parse offset in the current input source (TIB or a block). |
 | `_0bran` | Instruction bit pattern for branch-if-zero (`if`; drops T). |
 | `_api0` | Opcode mask dispatching core C API 0 system calls. |
 | `_api1` | Opcode mask dispatching secondary C API 1 calls. |
@@ -170,7 +173,6 @@ Name lookup ignores case.
 | `w_no_tail_call` | Header flag: `;` must not turn a call to this word into a jump. |
 | `w_primitive` | Executable flag marking primitive VM micro-op definition. |
 | `w_wide_inst` | Header flag: the primitive is a whole 16-bit instruction, not micro-ops. |
-| `>in` | Parse offset in the current input source (TIB or a block). |
 | `\|block\|` | Capacity size of single block buffer measured in 32-bit cells. |
 | `\|context\|` | Maximum capacity limit for wordlist search-order list. |
 
@@ -182,49 +184,49 @@ These are compiled by the boot script, not built in.
 
 | Word | Stack Effect | Description |
 | :--- | :--- | :--- |
-| `cells` | `( n -- n )` | Immediate no-op: addresses are cell addresses. |
-| `base!` | `( n -- )` | Sets `base`. |
-| `decimal` | `( -- )` | Sets `base` to 10. |
-| `hex` | `( -- )` | Sets `base` to 16. |
-| `emit` | `( c -- )` | Sends a character (`t_tx!`). |
-| `emit?` | `( -- flag )` | Nonzero while output is busy (`t_tx?`). |
-| `key` | `( -- c )` | Reads a character (`t_rx`). |
-| `key?` | `( -- flag )` | Nonzero if a character is waiting (`t_rx?`). |
-| `definitions` | `( -- )` | Makes the first wordlist in the search order the one new words go into. |
-| `variable` | `( <name> -- )` | Defines a 32-bit variable. |
-| `_udata` | `( -- )` | Selects the udata space. |
-| `_idata` | `( -- )` | Selects the idata space. |
-| `_code` | `( -- )` | Selects the code space. |
-| `_text` | `( -- )` | Selects the text space. |
-| `'here` | `( -- a )` | Address of the current space's pointer. |
-| `here` | `( -- a )` | Next free address in the current space. |
-| `allot` | `( n -- )` | Reserves `n` cells in the current space. |
-| `unused` | `( -- n )` | Free cells left in the current space. |
-| `amask` | `( a -- a' )` | Strips the slice fields from an address, leaving the 22-bit cell address. |
-| `+!` | `( n a -- )` | Adds `n` to the cell at `a`. |
-| `chere` | `( -- addr )` | Next free code address. |
-| `negate` | `( n -- -n )` | Negates. |
-| `-` | `( n1 n2 -- n3 )` | Subtracts `n2` from `n1`. |
-| `or` | `( x1 x2 -- x3 )` | Bitwise OR. |
-| `=` | `( n1 n2 -- flag )` | True (-1) if `n1` equals `n2`, else 0. |
-| `1+` | `( n -- n+1 )` | Adds 1. |
-| `1-` | `( n -- n-1 )` | Subtracts 1. |
-| `rshift` | `( u1 u2 -- u3 )` | Shifts `u1` right (unsigned) by `u2` bits. |
-| `if` | `( -- a )` | Immediate. Branches past `else`/`then` if T is 0; drops T. |
-| `-if` | `( -- a )` | Immediate. Branches past `then` if T is not negative; keeps T. |
-| `else` | `( a1 -- a2 )` | Immediate. |
-| `then` | `( a -- )` | Immediate. Resolves `if`, `-if`, `else` or `ahead`. |
-| `ahead` | `( -- a )` | Immediate. Unconditional forward branch. |
-| `begin` | `( -- a )` | Immediate. Starts a loop. |
-| `again` | `( a -- )` | Immediate. Branches back to `begin`. |
-| `until` | `( a -- )` | Immediate. Branches back to `begin` while T is 0; drops T. |
-| `while` | `( a1 -- a1 a2 )` | Immediate. Leaves the loop when T is 0; drops T. |
-| `repeat` | `( a1 a2 -- )` | Immediate. Ends a `begin ... while ... repeat` loop. |
-| `for` | `( -- a )` | Immediate. At run time `( n -- )`: starts a loop that runs `n` times (`R` = n..1). `0 for` runs 2^32 times. |
-| `next` | `( a -- )` | Immediate. Ends a `for` loop. |
-| `@+` | `( a -- a+1 x )` | Fetches and advances the address. |
-| `type` | `( ca n -- )` | Prints `n` characters from `ca`. |
 | `$type` | `( ca -- )` | Prints a counted string. |
+| `'here` | `( -- a )` | Address of the current space's pointer. |
+| `+!` | `( n a -- )` | Adds `n` to the cell at `a`. |
+| `,jump` | `( xt addr -- )` | Compiles a jump to `xt` at code address `addr` (as `go.f` does at 0 for the app). |
+| `-` | `( n1 n2 -- n3 )` | Subtracts `n2` from `n1`. |
+| `-if` | `( -- a )` | Immediate. Branches past `then` if T is not negative; keeps T. |
 | `."` | `( <text"> -- )` | Immediate. Compiles a string to print. |
 | `.map` | `( -- )` | Prints the extent and free space of each memory space. |
-| `,jump` | `( xt addr -- )` | Compiles a jump to `xt` at code address `addr` (as `go.f` does at 0 for the app). |
+| `1+` | `( n -- n+1 )` | Adds 1. |
+| `1-` | `( n -- n-1 )` | Subtracts 1. |
+| `=` | `( n1 n2 -- flag )` | True (-1) if `n1` equals `n2`, else 0. |
+| `@+` | `( a -- a+1 x )` | Fetches and advances the address. |
+| `_code` | `( -- )` | Selects the code space. |
+| `_idata` | `( -- )` | Selects the idata space. |
+| `_text` | `( -- )` | Selects the text space. |
+| `_udata` | `( -- )` | Selects the udata space. |
+| `again` | `( a -- )` | Immediate. Branches back to `begin`. |
+| `ahead` | `( -- a )` | Immediate. Unconditional forward branch. |
+| `allot` | `( n -- )` | Reserves `n` cells in the current space. |
+| `amask` | `( a -- a' )` | Strips the slice fields from an address, leaving the 22-bit cell address. |
+| `base!` | `( n -- )` | Sets `base`. |
+| `begin` | `( -- a )` | Immediate. Starts a loop. |
+| `cells` | `( n -- n )` | Immediate no-op: addresses are cell addresses. |
+| `chere` | `( -- addr )` | Next free code address. |
+| `decimal` | `( -- )` | Sets `base` to 10. |
+| `definitions` | `( -- )` | Makes the first wordlist in the search order the one new words go into. |
+| `else` | `( a1 -- a2 )` | Immediate. |
+| `emit` | `( c -- )` | Sends a character (`t_tx!`). |
+| `emit?` | `( -- flag )` | Nonzero while output is busy (`t_tx?`). |
+| `for` | `( -- a )` | Immediate. At run time `( n -- )`: starts a loop that runs `n` times (`R` = n..1). `0 for` runs 2^32 times. |
+| `here` | `( -- a )` | Next free address in the current space. |
+| `hex` | `( -- )` | Sets `base` to 16. |
+| `if` | `( -- a )` | Immediate. Branches past `else`/`then` if T is 0; drops T. |
+| `key` | `( -- c )` | Reads a character (`t_rx`). |
+| `key?` | `( -- flag )` | Nonzero if a character is waiting (`t_rx?`). |
+| `negate` | `( n -- -n )` | Negates. |
+| `next` | `( a -- )` | Immediate. Ends a `for` loop. |
+| `or` | `( x1 x2 -- x3 )` | Bitwise OR. |
+| `repeat` | `( a1 a2 -- )` | Immediate. Ends a `begin ... while ... repeat` loop. |
+| `rshift` | `( u1 u2 -- u3 )` | Shifts `u1` right (unsigned) by `u2` bits. |
+| `then` | `( a -- )` | Immediate. Resolves `if`, `-if`, `else` or `ahead`. |
+| `type` | `( ca n -- )` | Prints `n` characters from `ca`. |
+| `until` | `( a -- )` | Immediate. Branches back to `begin` while T is 0; drops T. |
+| `unused` | `( -- n )` | Free cells left in the current space. |
+| `variable` | `( <name> -- )` | Defines a 32-bit variable. |
+| `while` | `( a1 -- a1 a2 )` | Immediate. Leaves the loop when T is 0; drops T. |

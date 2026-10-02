@@ -152,7 +152,8 @@
 #define VMS_SHR                 0
 #define VMS_SHL                 1
 #define VMS_FIELDPLUS           2
-#define VMS_BREAK               3
+#define VMS_GETUSEC             3
+#define VMS_BREAK               4
 
 #define VMSTO_TASK              0
 #define VMSTO_SHIFT             1

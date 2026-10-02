@@ -77,6 +77,12 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         case VMS_SHR: T = (unsigned)T >> shift_size; break;
         case VMS_SHL: T = T << shift_size; break;
         case VMS_FIELDPLUS: T = vmFieldPlus(T);  break;
+        case VMS_GETUSEC: {
+            uint64_t usec = lfGetTimeMicroSec();
+			Y = (int32_t)(usec >> 32);
+			X = (int32_t)(usec & 0xFFFFFFFF);
+			break;
+        }
         case VMS_BREAK: return ERR_VM_BREAK;
         default: break;
         } break;

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Regression test for booting from flash (-o 8): one run of bin/lf compiles
-# a small dictionary and app, ends with `,wids` and close-flash; a second run
+# a small dictionary and app, ends with `save-wids` and close-flash; a second run
 # boots from that flash image, which the desktop loads at a different address,
 # so the saved wordlists must not depend on C addresses. Also checks that a
 # flash image without a valid record is reported and not run. Runs in a temp
@@ -45,7 +45,7 @@ decimal
 : boot-test  42 . ;
 create extra wordlist drop
 1 current !  : only-mark  7 . ;  0 current !
-_text here 32 bit  1 !  ,wids
+_text here 32 bit  1 !  save-wids
 close-flash
 bye
 F

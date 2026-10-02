@@ -168,8 +168,9 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   `->link`/`->name` directly. So flash holds no C addresses: no rebase at
   `close-flash`, and the image boots wherever it's mapped.
 - **Booting** (`-o 8`, `SYS_OPTION_BOOTING`): `go.f` ends with
-  `_text here 32 bit 1 ! ,wids`, so cell 1 points to a record (skip address,
-  wordlist count, raw `wids` table; offsets `WIDS_RECORD_*` in `forth.h`).
+  `_text here 32 bit 1 !` then `save-wids save-idata`, so cell 1 points to a
+  record (skip address, wordlist count, raw `wids` table; offsets
+  `WIDS_RECORD_*` in `forth.h`), followed by the saved IDATA.
   At startup `lfQuit` calls `lfBootFromFlash` to restore `wids`, then resets
   the VM and sets `SYS_OPTION_RUNNING`. A head that isn't a valid link
   (e.g. a C pointer in an image from an older build) becomes NULL.

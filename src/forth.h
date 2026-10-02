@@ -310,13 +310,13 @@ int lfAPI_load(void);
  */
 int lfAPI_empty(void);
 
-/* Cell offsets in the record compiled by `,wids` */
+/* Cell offsets in the record compiled by `save-wids` */
 #define WIDS_RECORD_SKIP   0  /* address of the cell after the record        */
 #define WIDS_RECORD_COUNT  1  /* number of wordlists (wids_pointer)          */
 #define WIDS_RECORD_TABLE  2  /* the s_wid structures, as raw bytes          */
 
 /**
- * ,WIDS  ( -- )
+ * SAVE-WIDS  ( -- )
  * Compiles the wordlist record to text space, for the loader to restore
  * `wids` at bootup. The text pointer is aligned to a cell, then it compiles
  * (see WIDS_RECORD_*):
@@ -324,16 +324,16 @@ int lfAPI_empty(void);
  *   - the number of wordlists in use (wids_pointer);
  *   - that many s_wid structures as raw bytes, padded to a whole cell.
  * The heads are links (see s_head), not C pointers, so the record is valid
- * wherever the page is mapped. Use `,wids` last before close-flash: words
+ * wherever the page is mapped. Use `save-wids` last before close-flash: words
  * defined after it aren't in the saved wordlists.
  * @return 0, ERR_DICTIONARY_OVERFLOW if text space is too small, or an
  *         ior from vmStore.
  */
-int lfAPI_commaWids(void);
+int lfAPI_saveWids(void);
 
 /**
  * Restores the wordlists from flash, for booting. Cell 1 holds the address
- * of the record compiled by `,wids`. This checks the record, then sets
+ * of the record compiled by `save-wids`. This checks the record, then sets
  * `wids_pointer` and `wids` from it. Heads and header links are VM values,
  * so nothing needs translating. A head that can't be resolved (not a link to
  * mapped VM memory or to a built-in list, e.g. a C pointer saved by an older

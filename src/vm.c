@@ -211,7 +211,6 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
             }
             dirty = 0;
         }
-//      printf("Fetched inst %x from code address %x\n", inst, PC & 0xFFFF);
         PC++;
         // Run a 16-bit instruction or instruction group using the lower half
         // of `inst`. The upper half of 'inst' is a cache for the next one.

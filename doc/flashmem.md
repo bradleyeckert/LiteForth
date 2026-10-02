@@ -28,6 +28,21 @@ This address is compiled before page 0 is closed, so a multi-page application wo
 startup code in the last compiled page at a pre-arranged address.
 The app's startup code sets up *idata* and dictionary links.
 
+## Boot data structure
+
+The app code and the C part of LiteForth share a data structure called `bootStruct`.
+Cell 1 of page 0 flash contains its cell address.
+`bootStruct`'s structure is:
+
+- 1-cell CRC32 of 0 up to `_text here`
+- 1-cell of next free data (idata-struct)
+- WID initialization structure
+
+idata-struct is:
+
+- 1-cell Number of IDATA cells
+- IDATA
+
 ## Terminal task
 
 By default, the VM is stopped. It only runs when the terminal interprets input.

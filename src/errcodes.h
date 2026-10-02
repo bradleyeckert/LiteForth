@@ -135,5 +135,6 @@
 #define ERR_VM_BREAK               (-115)   /* VM break instruction executed */
 #define ERR_VM_TIMEOUT             (-116)   /* VM ran too long before `break` */
 #define ERR_BAD_BOOT_RECORD        (-117)   /* no valid `save-wids` boot record in flash */
+#define ERR_BAD_STACK_ALLOCATION   (-118)   /* Not enough stack for requested task usage */
 
 #endif // ERRCODES_H

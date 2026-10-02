@@ -253,31 +253,6 @@ A 22-bit literal, jump, or call takes two instructions.
 | ]shl  | 6 | 1 | T = T << shift_size] |
 | char+ | 6 | 2 | Skip to next bit field |
 
-## pause
-
-Multitasking involves swapping out user state. To handle this, register U points to
-a user space in memory. When `pause` is called, the return address is on the stack.
-A minimum user task space contains:
-
-- STATUS, the execution address of the task's handler
-- FOLLOWER, the link to the next task in the chain
-- TASKNOW, task state data
-
-`: pause  status @a+ >r ;` jumps to the task handler, which is either:
-`: sleeping  @a >r ;` which skips to the next task, or:
-`: woke  @a+ b!  task[ @a swap !a ]task ;` which swaps out the task:
-
-- `@a+ b!` saves FOLLOWER in B
-- `status` compiles `0 user`, which loads A with U.
-- `task[` pushes R to the return stack, T to the data stack, loads A with U,
-and packs T with rp:sp.
-- `@a swap !a` swaps out the state.
-- `]task` unpacks T into rp and sp, and loads R with B.
-- `;` returns to the caller of `pause`.
-
-The core of the multitasker, `pause`, `sleeping`, and `woke`,
-is 10 instructions (20 bytes).
-
 ## C API
 
 Root functions and App functions are useful when the ISA is simulated.

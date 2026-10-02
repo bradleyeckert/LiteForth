@@ -27,12 +27,15 @@ hex
 : _text     ( -- )          3 _section ;
 : 'here     ( -- a )        dp^ @ 2* dp[] + ;
 : ,         ( n -- )        'here @ a! !a+ a 'here ! ;
+: '         ( <name> -- xt) x' drop ;
 : here      ( -- a )        'here @ ;
-: allot     ( n -- )        here 20 bit + 'here ! ;
+: align     ( -- )          here 20 bit 'here ! ;
+: allot     ( n -- )        align here + 'here ! ;
 : negate    ( n -- -n )     1 swap inv + ;
 : amask     ( a -- a' )     3FFFFF and ;
 : unused    ( -- n )        'here a! @a+ negate @a+ + amask ;
 : chere     ( -- addr )     postpone |inst [ dp[] 4 cells + ] literal @ ;
+: lshift    ( u1 u2 -- u3 ) shft[ ]shl ;
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;
 
@@ -53,6 +56,52 @@ hex
 : next      ( a -- )        _next _again ; immediate
 decimal
 
+: 0=        ( x -- flag )   if 0 exit then -1 ;
+
+( multitasker - work in progress, do not test )
+
+: pause   [ 0 _user + ,inst ]  @a+ >r ;
+: asleep  @a >r ;
+: awake   @a+ b!  task[ @a swap !a ]task ;
+
+hex
+_idata variable stackused  300030 stackused ! ( reserved for the terminal task )
+decimal
+( Task headers are kept in _idata )
+( CELL 0 = Base location of stack pointers )
+( CELL 1 = Address of user data )
+
+: task  ( user_cells data_stack return_stack <name> -- )
+    _idata create  16 lshift +  
+    stackused a! @a swap over + ( old new ) dup !a swap ,
+    stack-masks inv and if -118 yeet then
+    _udata here  swap  3 + allot  _idata , 
+;
+
+( Add a task to the queue, pointed to by the U register, and activate it. )
+( To launch a task, use `activate` like this: )
+( : launchtask MyTask activate begin pause {your code here} again ; )
+
+: activate  ( task -- | R: ra -- )
+    a! @a+ @a+  ( rpsp1 'user )
+    a!  [ ' asleep ] literal !a+  a    ( rpsp1 user )
+    task[ drop r> drop a                ( rpsp1 user rpsp0 U )
+    dup 0= if drop
+        swap dup a!  dup u!  !a+ !a+    ( User = link )
+    else
+        >r swap a! r> !a+ !a+           ( rpsp1 )
+    then
+    r> b! ]task
+;
+
+decimal
+
+100 32 32 task t1
+  8 20 20 task t2
+  
+t1 3 dump 
+t2 3 dump 
+
 ( string output )
 : @+        ( a -- a+1 n )  a! @a+ a swap ;
 : 1+        ( n1 -- n2 )    1 + ;
@@ -70,12 +119,11 @@ decimal
    ." unused " unused . ." cells" cr
 ;
 : .map      ( -- )
-   dp^ @ >r
    _udata ." _udata " _.map
    _idata ." _idata " _.map
    _code  ." _code  " _.map
    _text  ." _text  " _.map
-   r> _section
+   _udata
 ;
 
 : save-idata  ( -- )

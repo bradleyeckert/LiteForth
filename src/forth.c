@@ -209,6 +209,7 @@ static const ConstantMapping constant_table[] = {
     { LF_MSPACE,        "dp^" },
     { VM_LOG2_PAGES,    "log2pages"},
     { VARIABLE(F_HERE0),"ram-base"},
+    { ((STACK_CAPACITY - 1) << 16) | (STACK_CAPACITY - 1), "stack-masks"},
     { VMI_CALL,         "_call"},
     { VMI_JUMP,         "_jump"},
     { VMI_LIT,          "_lit"},

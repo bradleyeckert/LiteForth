@@ -68,8 +68,9 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   links note below). Without
   a matching `close-flash`, lf exits with code 196 (pool_free fails in main).
 - lf reads (or, if missing, creates) `lfblocks.bin` / `lfflash.bin` in the
-  current directory. The repo tracks both at the root and in `bin/`; keep all
-  of them, never delete or regenerate them. `lfflash.bin` mimics an MCU's
+  current directory. The repo tracks both in `bin/` only; keep them, never
+  delete or regenerate them. Running lf in the repo root creates untracked
+  copies there, so don't. `lfflash.bin` mimics an MCU's
   flash memory; `lfblocks.bin` will hold source code and other data, and
   code to write flash to blocks is planned. `make test` uses copies of the
   `bin/` images. Run experiments in the scratchpad, not the repo, so the

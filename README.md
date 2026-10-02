@@ -101,6 +101,7 @@ Visual Studio builds without the makefile.
 - [Glossary](doc/glossary.md): Forth words and VM constants
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
 - [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
+- [Multitasking](doc/multitasking.md): user areas, `pause`, `task` and `activate`
 - [Adding to the API](doc/add2api.md): how to add a C function as a Forth word
 - [Terminals](doc/terminals.md): terminal emulators, raw vs cooked mode, serial setup
 - [Editors](doc/editors.md): notes toward a block editor

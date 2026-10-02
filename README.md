@@ -84,6 +84,17 @@ Run `./bin/lf` to start LiteForth in the terminal.
 (39 = validation, quiet, and ignore CR, so CRLF line endings work).
 It compiles into, and saves, `bin/lfflash.bin`; `make test` runs it on copies instead.
 
+On Windows, there are three ways to build:
+
+- WSL, as above.
+- MinGW-w64 `gcc` and GNU `make` run from PowerShell or cmd. The makefile
+  detects cmd.exe and builds `bin\lf.exe`. There, `make test` runs only
+  `regression.f`, because the unit tests are shell scripts. If `make` picks
+  the wrong mode, override it with `make WINCMD=1` or `make WINCMD=`.
+- An MSYS2 shell, which has everything the Unix build needs.
+
+Visual Studio builds without the makefile.
+
 ## Documentation
 
 - [Tutorial](doc/tutorial.md): a first look at using LiteForth (rough draft)

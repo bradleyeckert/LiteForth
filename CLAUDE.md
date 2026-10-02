@@ -19,6 +19,12 @@ make test       # scripts/regression.f, then every src/target/desktop/unit_tests
 make clean      # leaves the tracked bin/*.bin images alone
 ```
 
+- The makefile has a cmd.exe branch (`WINCMD`, set when make runs on Windows
+  without sh: `$(shell echo %OS%)` gives `Windows_NT`). It builds
+  `bin/lf.exe` without `-pthread`, and its `test` runs only `regression.f`.
+  Keep both branches in step when changing recipes; check that the Unix one
+  is unchanged with `make -n` before and after. Use `make -n WINCMD=1` to see
+  the cmd commands.
 - Keep the build free of warnings. Clang (macOS) is stricter than gcc on some
   things, e.g. `FALLTHROUGH` must be followed by `;`.
 - A new unit test suite is picked up automatically: add a directory under

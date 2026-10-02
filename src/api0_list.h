@@ -34,10 +34,6 @@
     X(API_MSTAR,            mstar)              \
     X(API_MUDIVMOD,         mudivmod)           \
     X(API_STARDIVMOD,       stardivmod)         \
-    X(API_T_RXQ,            qkey)               \
-    X(API_T_RX,             key)                \
-    X(API_T_TXSTORE,        emit)               \
-    X(API_T_TXQ,            qemit)              \
     X(API_COLON,            lfAPI_colon)        \
     X(API_SEMICOLON,        lfAPI_semicolon)    \
     X(API_TOOPTIONS,        lfAPI_setFlags)     \
@@ -79,7 +75,13 @@
     X(API_COLD,             coldboot)           \
     X(API_NONAME,           lfAPI_noname)       \
     X(API_EXECUTE,          execute)            \
-    X(API_SAVE_WIDS,        lfAPI_saveWids)
+    X(API_SAVE_WIDS,        lfAPI_saveWids)     \
+    /* Terminal I/O, kept together (API_T_RXQ to API_T_TXQ) so that a */ \
+    /* restricted mode can allow only these calls.                     */ \
+    X(API_T_RXQ,            qkey)               \
+    X(API_T_RX,             key)                \
+    X(API_T_TXSTORE,        emit)               \
+    X(API_T_TXQ,            qemit)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

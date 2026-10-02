@@ -357,12 +357,3 @@ int VMapi1Call(int fn) {
     (void)fn;
     return ERR_INVALID_API_CALL;
 }
-
-/*=========================================================================
-* Timing function for the VM
-=========================================================================*/
-
-// Get the system time in microseconds. This is a stub implementation.
-uint64_t lfGetTimeMicroSec(void) {
-    return 0;
-}

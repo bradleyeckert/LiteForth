@@ -4,6 +4,7 @@
 #include "vm_labels.h"
 #include "errcodes.h"
 #include "api0.h"
+#include "lftime.h"
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };

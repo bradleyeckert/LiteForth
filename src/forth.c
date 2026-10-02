@@ -172,7 +172,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "cold",         API0(API_COLD),                           0},
     { PREV, ":noname",      API0(API_NONAME),                         0},
     { PREV, "execute",      API0(API_EXECUTE),                        0},
-    { PREV, ",wids",        API0(API_COMMAWIDS),                      0},
+    { PREV, "save-wids",    API0(API_COMMAWIDS),                      0},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        0},
     { PREV, "->",           API0(API_DOTEST),                         0},
@@ -274,6 +274,7 @@ struct s_wid wids[WIDS_MAX];
  *   (n << 2) | 2    the built-in headers of wordlist n (builtin_heads[n])
  *   other           a C pointer to a built-in header (links inside the tables)
  * The name of a header in VM memory is a VM byte address, not a C pointer.
+ * This scheme works because C pointers are always 4-byte-aligned, (2 LSBs 00).
  */
 #define EMPTY_WIDS  2
 #define LINK_BUILTIN(n)  ((const struct s_head*)(uintptr_t)(((n) << 2) | 2))
@@ -287,7 +288,7 @@ static struct s_wid wids_empty[] = { // wordlists
     {.head = LINK_BUILTIN(1), .name = "`only" }
 };
 
-static int wids_pointer = 2;
+static int wids_pointer = EMPTY_WIDS;
 
 // lfVmBytes (documented in forth.h)
 char* lfVmBytes(uint32_t a) {
@@ -1023,7 +1024,6 @@ int lfParseInputString(putcfunc* echo, char terminator) {
         else if (c == terminator) {
             break;
         }
-
         if (echo) {
             ior = echo(c);
         }

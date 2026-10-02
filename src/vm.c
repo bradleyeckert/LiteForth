@@ -4,7 +4,6 @@
 #include "vm_labels.h"
 #include "errcodes.h"
 #include "api0.h"
-#include <stdio.h> //////////////////////////////////
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -49,10 +48,10 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     static int shift_size = 0;
     imm &= 0x1FF;       // u9
     int32_t simm = imm; // s9
-    if (simm & 0x100) {
-        simm |= ~0x1FF;
+    if (simm & (1 << (VM_IMM_BITS - 1))) {
+        simm |= ~VM_IMM_MASK;
     }
-    int imm9opcode = (inst >> 9) & 0x0F;
+    int imm9opcode = (inst >> VM_IMM_BITS) & 0x0F;
     switch (imm9opcode) {
     case VMO_ZBRAN: {
         int32_t tos = T;
@@ -112,8 +111,10 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     case VMO_QLIT:
         VM_DDUP;  T = U + imm;
         break;
-    case VMO_PFX:  prefix = (prefix << 10) | imm; break;
-    case VMO_PFX1: prefix = (prefix << 10) | imm | (1 << 9); break;
+    case VMO_PFX:  
+        prefix = (prefix << (VM_IMM_BITS + 1)) | imm; break;
+    case VMO_PFX1: 
+        prefix = (prefix << (VM_IMM_BITS + 1)) | imm | (1 << VM_IMM_BITS); break;
     case VMO_API0: 
         if (g_lf_sys_options & SYS_OPTION_NO_API) return ERR_NO_API_CALL_ALLOWED;
         return VMapi0Call(imm);

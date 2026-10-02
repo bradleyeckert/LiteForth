@@ -78,7 +78,7 @@ decimal
    r> _section
 ;
 
-: idata>text  ( -- )
+: save-idata  ( -- )
     _idata here  dp[] tuck - amask
     _text dup , ( 'src len )
     for  @+ ,  next  drop
@@ -120,14 +120,17 @@ variable counter
 ; hex 80000002 ,jump decimal
 
 
-_text here 32 bit  1 !  ( Bootup data structure here... To be populated later. )
-,wids idata>text
+_text here 32 bit  1 !  ( Boot structure at end of text )
+save-wids save-idata
 
-cr .( The first 3 cells: ) 0 3 dump
 ( Cell 0: 1 or 2 instructions for jump to application )
 ( Cell 1: address of system initialization data {TBD} )
 ( Cell 2: 1 or 2 instructions for jump to yeet handler )
 
-
 close-flash
+
+.( A demo application has now been compiled to flash. At this point, you can:) cr
+.( - Enter `cold` to boot it up and `counter @ .` to see it working. ) cr
+.( - `bye` and then `./lf -o 8` to boot and run from flash. ) cr
+
 0 >options

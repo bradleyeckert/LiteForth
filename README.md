@@ -246,13 +246,17 @@ A 22-bit literal, jump, or call takes two instructions.
 
 | ***Name*** | ***12:9*** | ***8:0*** | ***Action*** |
 |:-------|:------|:-------|:-------|
-| *yeet* | 8  | 0 | VM quits and returns ior \= T |
-|***task\[***| 10 | 0 | Get task state |
-|*\]task*| 8 | 1 | Save task state |
-|*shft\[*| 8 | 2 | shift_size = T |
-| ]shr  | 6 | 0 | T = T >> shift_size |
-| ]shl  | 6 | 1 | T = T << shift_size] |
-| char+ | 6 | 2 | Skip to next bit field |
+| \]task | 6 | 0 | sp, rp \= T (rp:sp); T stays |
+| slice+ | 6 | 1 | Skip to next bit field |
+| \]shr  | 6 | 2 | T \= T \>\> shift_size |
+| \]shl  | 6 | 3 | T \= T \<\< shift_size |
+| capusec | 6 | 4 | Y:X \= microsecond counter |
+| break  | 6 | 5 | Return to the terminal (`ERR_VM_BREAK`) |
+| *shft\[* | 8 | 0 | shift_size \= T |
+| *yeet* | 8 | 1 | VM quits and returns ior \= T |
+|***task\[***| 10 | 0 | Push R, T \= rp:sp |
+|***x@***| 10 | 1 | T \= X |
+|***y@***| 10 | 2 | T \= Y |
 
 ## C API
 

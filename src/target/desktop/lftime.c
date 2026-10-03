@@ -39,3 +39,12 @@ uint64_t lfGetTimeMicroSec(void) {
 }
 
 #endif
+
+/*=========================================================================
+* Watchdog
+*
+* The desktop has no watchdog: hung Forth code is stopped by VM_STEP_LIMIT.
+=========================================================================*/
+
+void lfWatchdogPing(void) {
+}

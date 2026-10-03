@@ -133,6 +133,17 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   chains don't consume nesting.
 - **Error traces** print as the error unwinds: each `load` prints its line
   (innermost first) and `lfInterpret` prints the `Terminal` line last.
+- **vmExec keeps the VM registers in locals** (`VM_LOAD`/`VM_SAVE`) so the
+  compiler can hold them in CPU registers; save around anything that reads
+  or changes the globals (API calls) and at every return. Each micro-op does
+  its own stack effect. Fetch reads the cell every time (no pair cache) and
+  one range check, `pc - cbase < cspan`, covers the page, the executable
+  limit and the `0xDEADC0DE` terminator; set `cspan = 0` after anything that
+  may remap memory. Micro-op slots are shifted out of `slots`, so trailing
+  nops cost nothing. The switches cover every value with an unreachable
+  default so the jump tables have no range check. Judge speed changes by
+  RV32 instruction counts (clang `--target=riscv32-unknown-elf`), not by
+  desktop timings, which are noisy.
 - **vmRun is re-entrant when calling a word** (`vmRun(0, 0, addr)`): it saves
   `PC` and restores it after a normal return, so a word can call `load`, which
   runs more words. Single-instruction and step modes don't touch `PC`.

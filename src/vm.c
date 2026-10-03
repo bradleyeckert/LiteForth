@@ -13,7 +13,6 @@ uint32_t vm_memory_executable[VM_MEM_PAGES] = { 0 };
 char* vm_memory_name[VM_MEM_PAGES] = { NULL };
 
 PLACE_IN_DTCM;
-static const uint8_t stackeffects[32] = VM_STACKEFFECTS;
 static int32_t datastack[STACK_CAPACITY];
 static int32_t returnstack[STACK_CAPACITY];
 static int32_t T = 0;  // Top of Data Stack
@@ -27,7 +26,6 @@ static int32_t Y = 0;  // GP register
 static int8_t  cy = 0;  // Carry
 static int8_t  sp = 0;  // Data Stack Pointer
 static int8_t  rp = 0;  // Return Stack Pointer
-static int8_t  dirty = 0;
 static int32_t prefix = 0;  // Literal prefix
 
 int32_t vmFieldPlus(int32_t addr) {
@@ -43,94 +41,6 @@ int32_t vmFieldPlus(int32_t addr) {
         }
         return (bsize << 27) | (bshift << 22) | (addr & 0x3FFFFF);
     }
-}
-
-static int vmLitIns9(uint16_t inst, int32_t imm) {
-    static int shift_size = 0;
-    imm &= 0x1FF;       // u9
-    int32_t simm = imm; // s9
-    if (simm & (1 << (VM_IMM_BITS - 1))) {
-        simm |= ~VM_IMM_MASK;
-    }
-    int imm9opcode = (inst >> VM_IMM_BITS) & 0x0F;
-    switch (imm9opcode) {
-    case VMO_ZBRAN: {
-        int32_t tos = T;
-        VM_DDROP;
-        if (tos == 0) goto qbranch;
-    } break;
-    case VMO_BRAN:
-    qbranch:
-        PC = PC + simm; 
-        dirty = 1;  break;
-    case VMO_PBRAN:
-        if ((T & 0x80000000) == 0) {
-            goto qbranch;
-        } break;
-    case VMO_RCALL: VM_RDUP; R = PC;
-        goto qbranch;
-    case VMO_NEXT:
-        R--;
-        if (R) goto qbranch;
-        VM_RDROP;  break;
-    case VMO_SYS:
-        switch (imm) {
-        case VMS_SHR: T = (unsigned)T >> shift_size; break;
-        case VMS_SHL: T = T << shift_size; break;
-        case VMS_FIELDPLUS: T = vmFieldPlus(T);  break;
-        case VMS_GETUSEC: {
-            uint64_t usec = lfGetTimeMicroSec();
-			Y = (int32_t)(usec >> 32);
-			X = (int32_t)(usec & 0xFFFFFFFF);
-			break;
-        }
-        case VMS_TASK: // ]task
-            sp = T & 0xFFFF;
-            rp = (T >> 16) & 0xFFFF;
-            break;
-        case VMS_BREAK:
-            lfWatchdogPing();   // the app is alive: it reached a `break`
-            return ERR_VM_BREAK;
-        default: break;
-        } break;
-    case VMO_TOSYS: {
-        int32_t tos = T;
-        VM_DDROP;
-        switch (imm) {
-        case VMSTO_YEET: return tos;
-        case VMSTO_SHIFT:
-            shift_size = tos & 0x1F; break;
-        default: break;
-        }
-    } break;
-    case VMO_USER: A = U + imm;  break;
-    case VMO_FROMSYS: 
-        VM_DDUP;
-        switch (imm) {
-        case VMSFROM_TASK:  // task[
-            VM_RDUP;
-            T = (rp << 16) | sp;
-            break;
-        case VMSFROM_X: T = X; break;
-        case VMSFROM_Y: T = Y; break;
-        default: break;
-        } break;
-    case VMO_QLIT:
-        VM_DDUP;  T = U + imm;
-        break;
-    case VMO_PFX:  
-        prefix = (prefix << (VM_IMM_BITS + 1)) | imm; break;
-    case VMO_PFX1: 
-        prefix = (prefix << (VM_IMM_BITS + 1)) | imm | (1 << VM_IMM_BITS); break;
-    case VMO_API0: 
-        if (g_lf_sys_options & SYS_OPTION_NO_API) return ERR_NO_API_CALL_ALLOWED;
-        return VMapi0Call(imm);
-    case VMO_API1: 
-        if (g_lf_sys_options & SYS_OPTION_NO_API) return ERR_NO_API_CALL_ALLOWED;
-        return VMapi1Call(imm);
-    default: return ERR_INVALID_OPCODE;
-    }
-    return 0;
 }
 
 PLACE_IN_ITCM;
@@ -170,209 +80,301 @@ int vmStore(uint32_t addr, int32_t data) {
     return 0;
 }
 
+/*
+ * vmExec runs VM code with the VM registers in local variables, so the
+ * compiler can keep them in CPU registers. VM_LOAD copies the registers in
+ * and VM_SAVE copies them back: at every exit, and around calls into C that
+ * use the VM state (API calls, which pop and push, and can run more VM code
+ * through vmRun).
+ */
+static int shift_size = 0;              // set by shft[ for ]shl and ]shr
+
+#define VM_LOAD() do {                                          \
+    t = T;  r = R;  a = A;  b = B;  u = U;  pc = PC;            \
+    dsp = (uint32_t)sp & STACK_MASK;                            \
+    rsp = (uint32_t)rp & STACK_MASK;                            \
+    c = (uint32_t)cy & 1;  pfx = prefix;                        \
+} while (0)
+
+#define VM_SAVE() do {                                          \
+    T = t;  R = r;  A = a;  B = b;  U = u;  PC = pc;            \
+    sp = (int8_t)dsp;  rp = (int8_t)rsp;                        \
+    cy = (int8_t)c;  prefix = pfx;                              \
+} while (0)
+
+// Stack moves on the local copies (VM_DDUP etc. in vm_labels.h use globals)
+#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = t; } while (0)
+#define DDROP() do { t = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#define RDUP()  do { rsp = (rsp + 1) & STACK_MASK; returnstack[rsp] = r; } while (0)
+#define RDROP() do { r = returnstack[rsp]; rsp = (rsp - 1) & STACK_MASK; } while (0)
+
+// A switch default that can't be reached: lets the compiler drop the range
+// check before the jump table.
+#if defined(__GNUC__)
+#define UNREACHABLE() __builtin_unreachable()
+#else
+#define UNREACHABLE() break
+#endif
+
+// A micro-op that reads or writes memory ends its group if the access fails.
+#define MEMOP(x) do { x; if (ior) slots = 0; } while (0)
+
 static int32_t vmExec(int once, uint32_t inst, int32_t address) {
+    int32_t t, r, a, b, u, pc, pfx;     // T, R, A, B, U, PC and prefix
+    uint32_t dsp, rsp, c;               // sp, rp and cy
+    VM_LOAD();
 
     int32_t ior = 0;                    // 0 = okay
     uint32_t steps = 0;
-    dirty = 1;
+    // The code page being run: PC values cbase .. cbase+cspan-1 are in it and
+    // executable. cspan = 0 forces a lookup. Anything outside, including the
+    // 0xDEADC0DE terminator, takes the slow path in fetch.
+    const int32_t* code = NULL;
+    uint32_t cbase = 0, cspan = 0;
+    int slow = once;                    // check after each instruction:
+                                        // once, or stepping (not word calls)
 
     if (once) {
         goto execute;                   // vmRun(1, inst, 0)
     }
-    else {                              // RUN 'inst' steps of code
-
-        steps = inst;                   // vmRun(0,steps,0) or
-        int page;                       // vmRun(0,0,address)
-
-        if (steps == 0) {               // run a word indefinitely
-            VM_RDUP;                    // launch it with a terminator
-            R = 0xDEADC0DE;             // on the return stack
-            PC = address;
-        }
-
-    fetch:                              // outer loop starts here...
-        if (PC == (int32_t)0xDEADC0DE) return 0; // hit ;
-
-        if ((PC & 1) && (dirty == 0)) { // 2nd instruction in pair
-            inst = inst >> 16;
-        }
-        else {
-            page = PC >> (24 - VM_LOG2_PAGES);
-            if (page >= VM_MEM_PAGES) {
-                ior = ERR_EXEC_PROTECTED;  goto byee;
-            }
-            uint32_t a = (PC >> 1) & VM_PAGE_MASK;
-            if (a >= vm_memory_executable[page]) {
-                ior = ERR_EXEC_PROTECTED;  goto byee;
-            }
-            inst = vm_memory[page][a];
-            if (PC & 1) {
-                inst = inst >> 16;
-            }
-            dirty = 0;
-        }
-        PC++;
-        // Run a 16-bit instruction or instruction group using the lower half
-        // of `inst`. The upper half of 'inst' is a cache for the next one.
-    execute:
-        if (inst & VM_UOPS) {
-            if (inst & VM_RET) {
-                PC = R;
-                VM_RDROP;
-                dirty = 1;
-            }
-            int i = SLOT0_POSITION + 5;
-            int bumpa = 0;
-            while (i > 0) { // Execute a group of 5-bit MISC instructions
-                i -= 5;
-                int uop;
-                if (i < 0) uop = inst & LAST_SLOT_MASK;
-                else uop = (inst >> i) & 0x1F;
-                int se = stackeffects[uop];
-                int32_t n = T;
-                if (se & 1) {
-                    VM_DDUP;
-                }
-                else if (se & 2) {
-                    VM_DDROP; // `n` is now "next on stack"
-                }
-                int maddr = 0;
-
-                switch (uop) {
-                case VMU_NOP:
-                case VMU_DUP:
-                case VMU_DROP:                                      break;
-                case VMU_INV:       T = ~T;                         break;
-                case VMU_TWOSTAR:   T = T * 2;                      break;
-                case VMU_TWODIV:    // arithmetic shift right
-                    T = (int32_t)(((uint32_t)T >> 1) | ((uint32_t)T & 0x80000000u));
-                                                                    break;
-                case VMU_TWODIVC: { // rotate right through carry
-                    uint32_t u = (uint32_t)T;
-                    T = (int32_t)(((uint32_t)cy << 31) | (u >> 1));
-                    cy = (int8_t)(u & 1);
-                }                                                   break;
-                case VMU_PLUS: {    // cy = carry out of bit 31
-                    uint64_t sum = (uint64_t)(uint32_t)n + (uint32_t)T;
-                    T = (int32_t)(uint32_t)sum;
-                    cy = (int8_t)(sum >> 32);
-                }                                                   break;
-                case VMU_XOR:       T = n ^ T;                      break;
-                case VMU_AND:       T = n & T;                      break;
-                case VMU_SWAP: {
-                    int32_t temp = datastack[sp];
-                    datastack[sp] = T;
-                    T = temp;
-                }                                                   break;
-                case VMU_CY:        T = cy;                         break;
-                case VMU_B:         T = B;                          break;
-                case VMU_OVER:      T = datastack[(sp - 1) & STACK_MASK]; break;
-                case VMU_PUSH:      VM_RDUP;  R = n;                break;
-                case VMU_R:         T = R;                          break;
-                case VMU_POP:       T = R;  VM_RDROP;               break;
-                case VMU_UNEXT:     R--;
-                    if (R == 0) VM_RDROP;
-                    else i = SLOT0_POSITION + 5;
-                    break;
-                case VMU_PLUSSTAR: { // multiply step: T:A >> 1, adding N if A odd
-                    uint64_t sum = (uint32_t)T;
-                    if (A & 1) {
-                        sum += (uint32_t)datastack[sp]; // N, not popped
-                    }
-                    sum = (sum << 31) | ((uint32_t)A >> 1);
-                    T = (int32_t)(uint32_t)(sum >> 32);
-                    A = (int32_t)(uint32_t)sum;
-                }                                                   break;
-                case VMU_BSTORE:    B = n;                          break;
-                case VMU_USTORE:    U = n;                          break;
-                case VMU_A:         T = A;                          break;
-                case VMU_ASTORE:    A = n;                          break;
-                case VMU_FETCHA:     maddr = A; bumpa = 0; goto memfetch;
-                case VMU_FETCHAPLUS: maddr = A; bumpa = 1; goto memfetch;
-                case VMU_FETCHB:     maddr = B; bumpa = 0; goto memfetch;
-                case VMU_FETCHBPLUS: maddr = B; bumpa = 2; goto memfetch;
-                case VMU_FETCHASIGN: maddr = A; bumpa = 4; goto memfetch;
-
-                memfetch: 
-                    ior = vmFetch(maddr, &T);
-                    if (bumpa & 1) {
-                        A = vmFieldPlus(A);
-                    }
-                    else if (bumpa & 2) {
-                        B = vmFieldPlus(B);
-                    }
-                    else if (bumpa & 4) {
-                        int bsize = maddr >> 27;
-                        if (bsize) {
-                            int32_t sign = 1 << (bsize - 1);
-                            if (T & sign) {
-                                T |= (-sign);
-                            }
-                        }
-                    }
-                    break;
-
-                case VMU_STOREA:     maddr = A; bumpa = 0; goto memstore;
-                case VMU_STOREAPLUS: maddr = A; bumpa = 1; goto memstore;
-                case VMU_STOREB:     maddr = B; bumpa = 0; goto memstore;
-                case VMU_STOREBPLUS: maddr = B; bumpa = 2; goto memstore;
-
-                memstore:
-                    ior = vmStore(maddr, n);
-                    if (bumpa & 1) {
-                        A = vmFieldPlus(A);
-                    }
-                    else if (bumpa & 2) {
-                        B = vmFieldPlus(B);
-                    }
-                    break;
-                
-                default: break;
-                }
-            }
-        }
-        else { // inst = 0...
-            int32_t imm = inst & 0x1FFF;
-            int32_t immex = (prefix << 13) | imm;
-            if (!(inst & 0x4000)) {
-                if (inst & 0x2000) {        // push PC
-                    VM_RDUP; R = PC;
-                }
-                PC = immex;                 // jump
-                dirty = 1;
-                prefix = 0;
-            }
-            else {
-                if (!(inst & 0x2000)) {
-                    VM_DDUP; T = immex;     // literal
-                    prefix = 0;
-                }
-                else {
-                    ior = vmLitIns9((uint16_t)inst, imm);
-                }
-            }
-        }
-
-        if (steps) {
-            steps--;
-            if (steps == 0) return ERR_VM_TIMEOUT;
- //           printf("%x ", PC); // print PC while stepping
-        }
-    byee:
-        if (ior) {
-            if ((ior != 0) && (ior != ERR_VM_BREAK) && (steps)) {
-                // The app is being stepped: send it to its yeet handler.
-                // (A word run by the terminal has steps == 0, so its errors
-                // only go back to the terminal and the PC is left alone.)
-                X = PC;
-                Y = ior;
-                PC = VM_YEET_ADDRESS << 1;
-                dirty = 1;
-            }
-            return ior;
-        }
-        if (once == 0) goto fetch;
+    steps = inst;                       // vmRun(0,steps,0) or
+    if (steps == 0) {                   // vmRun(0,0,address):
+        RDUP();                         // run a word with a terminator
+        r = (int32_t)0xDEADC0DE;        // on the return stack
+        pc = address;
     }
+    slow = (steps != 0);                // (once is 0 here)
+
+fetch:                                  // outer loop starts here...
+    if ((uint32_t)pc - cbase >= cspan) {
+        if (pc == (int32_t)0xDEADC0DE) {    // hit ;
+            VM_SAVE();
+            return 0;
+        }
+        uint32_t page = (uint32_t)pc >> (24 - VM_LOG2_PAGES);
+        if (page >= VM_MEM_PAGES) {
+            ior = ERR_EXEC_PROTECTED;  goto byee;
+        }
+        code = vm_memory[page];
+        cbase = page << (24 - VM_LOG2_PAGES);
+        cspan = vm_memory_executable[page] << 1;
+        if ((uint32_t)pc - cbase >= cspan) {
+            ior = ERR_EXEC_PROTECTED;  goto byee;
+        }
+    }
+    // Two instructions per cell, the even one in the lower half. Only the
+    // lower 16 bits of inst are used below.
+    inst = (uint32_t)code[((uint32_t)pc - cbase) >> 1] >> ((pc & 1) << 4);
+    pc++;
+execute:
+    if (inst & VM_UOPS) {
+        if (inst & VM_RET) {            // return first, then the micro-ops
+            pc = r;
+            RDROP();
+        }
+        // Up to three micro-ops: bits 13:9, 8:4 and 3:0. They are lined up
+        // as 5-bit fields at the top of `slots` and shifted out, so trailing
+        // nops are skipped. unext runs the group again.
+        uint32_t slots;
+    group:
+        slots = ((inst << 18) & 0xFFC00000u) | ((inst & LAST_SLOT_MASK) << 17);
+        do {
+            int32_t n;
+            uint32_t uop = slots >> 27;
+            slots <<= 5;
+            switch (uop) {
+            case VMU_NOP:                                           break;
+            case VMU_INV:       t = ~t;                             break;
+            case VMU_OVER:      DDUP();  t = datastack[(dsp - 1) & STACK_MASK]; break;
+            case VMU_ASTORE:    n = t;  DDROP();  a = n;            break;
+            case VMU_XOR:       n = t;  DDROP();  t ^= n;           break;
+            case VMU_PLUS: {    // cy = carry out of bit 31
+                uint32_t sum = (uint32_t)t + (uint32_t)datastack[dsp];
+                c = sum < (uint32_t)t;
+                dsp = (dsp - 1) & STACK_MASK;
+                t = (int32_t)sum;
+            }                                                       break;
+            case VMU_AND:       n = t;  DDROP();  t &= n;           break;
+            case VMU_PUSH:      n = t;  DDROP();  RDUP();  r = n;   break;
+            case VMU_UNEXT:
+                if (--r) goto group;    // run the group again
+                RDROP();                                            break;
+            case VMU_TWOSTAR:   t = (int32_t)((uint32_t)t << 1);    break;
+            case VMU_DUP:       DDUP();                             break;
+            case VMU_DROP:      DDROP();                            break;
+            case VMU_FETCHA:    DDUP();  MEMOP(ior = vmFetch(a, &n));  t = n;  break;
+            case VMU_FETCHAPLUS:
+                DDUP();  MEMOP(ior = vmFetch(a, &n));  t = n;  a = vmFieldPlus(a);  break;
+            case VMU_R:         DDUP();  t = r;                     break;
+            case VMU_POP:       DDUP();  t = r;  RDROP();           break;
+            case VMU_TWODIVC: { // rotate right through carry
+                uint32_t v = (uint32_t)t;
+                t = (int32_t)((c << 31) | (v >> 1));
+                c = v & 1;
+            }                                                       break;
+            case VMU_TWODIV:    // arithmetic shift right
+                t = (int32_t)(((uint32_t)t >> 1) | ((uint32_t)t & 0x80000000u));
+                break;
+            case VMU_FETCHASIGN: {  // @a, sign-extending a slice
+                DDUP();
+                MEMOP(ior = vmFetch(a, &n));
+                uint32_t bsize = (uint32_t)a >> 27;
+                if (bsize) {
+                    int32_t sign = 1 << (bsize - 1);
+                    if (n & sign) n |= -sign;
+                }
+                t = n;
+            }                                                       break;
+            case VMU_USTORE:    n = t;  DDROP();  u = n;            break;
+            case VMU_STOREA:    n = t;  DDROP();  MEMOP(ior = vmStore(a, n));  break;
+            case VMU_STOREAPLUS:
+                n = t;  DDROP();  MEMOP(ior = vmStore(a, n));  a = vmFieldPlus(a);  break;
+            case VMU_STOREB:    n = t;  DDROP();  MEMOP(ior = vmStore(b, n));  break;
+            case VMU_STOREBPLUS:
+                n = t;  DDROP();  MEMOP(ior = vmStore(b, n));  b = vmFieldPlus(b);  break;
+            case VMU_SWAP:
+                n = datastack[dsp];  datastack[dsp] = t;  t = n;    break;
+            case VMU_PLUSSTAR: { // multiply step: T:A >> 1, adding N if A odd
+                uint64_t sum = (uint32_t)t;
+                if (a & 1) {
+                    sum += (uint32_t)datastack[dsp]; // N, not popped
+                }
+                sum = (sum << 31) | ((uint32_t)a >> 1);
+                t = (int32_t)(uint32_t)(sum >> 32);
+                a = (int32_t)(uint32_t)sum;
+            }                                                       break;
+            case VMU_B:         DDUP();  t = b;                     break;
+            case VMU_BSTORE:    n = t;  DDROP();  b = n;            break;
+            case VMU_FETCHB:    DDUP();  MEMOP(ior = vmFetch(b, &n));  t = n;  break;
+            case VMU_FETCHBPLUS:
+                DDUP();  MEMOP(ior = vmFetch(b, &n));  t = n;  b = vmFieldPlus(b);  break;
+            case VMU_A:         DDUP();  t = a;                     break;
+            case VMU_CY:        DDUP();  t = (int32_t)c;            break;
+            default:            UNREACHABLE();  // all 32 are cases
+            }
+        } while (slots);
+    } else if (!(inst & 0x4000)) {      // jump or call
+        int32_t immex = (pfx << 13) | (int32_t)(inst & 0x1FFF);
+        if (inst & 0x2000) {            // call: push PC
+            RDUP();  r = pc;
+        }
+        pc = immex;
+        pfx = 0;
+    } else if (!(inst & 0x2000)) {      // literal
+        DDUP();
+        t = (pfx << 13) | (int32_t)(inst & 0x1FFF);
+        pfx = 0;
+    } else {                            // instructions with 9-bit immediate data
+        int32_t imm = (int32_t)(inst & VM_IMM_MASK);    // u9
+        switch ((inst >> VM_IMM_BITS) & 0x0F) {
+        case VMO_ZBRAN: {
+            int32_t tos = t;
+            DDROP();
+            if (tos == 0) goto branch;
+        } break;
+        case VMO_BRAN:
+        branch:                         // add the s9 offset
+            pc += (int32_t)(inst << (32 - VM_IMM_BITS)) >> (32 - VM_IMM_BITS);
+            break;
+        case VMO_PBRAN:
+            if (t >= 0) goto branch;
+            break;
+        case VMO_RCALL: RDUP();  r = pc;
+            goto branch;
+        case VMO_NEXT:
+            if (--r) goto branch;
+            RDROP();  break;
+        case VMO_SYS:
+            switch (imm) {
+            case VMS_SHR: t = (int32_t)((uint32_t)t >> shift_size); break;
+            case VMS_SHL: t = (int32_t)((uint32_t)t << shift_size); break;
+            case VMS_FIELDPLUS: t = vmFieldPlus(t);  break;
+            case VMS_GETUSEC: {
+                uint64_t usec = lfGetTimeMicroSec();
+                Y = (int32_t)(usec >> 32);
+                X = (int32_t)(usec & 0xFFFFFFFF);
+                break;
+            }
+            case VMS_TASK: // ]task
+                dsp = (uint32_t)t & STACK_MASK;
+                rsp = ((uint32_t)t >> 16) & STACK_MASK;
+                break;
+            case VMS_BREAK:
+                lfWatchdogPing();   // the app is alive: it reached a `break`
+                ior = ERR_VM_BREAK;
+                break;
+            default: break;
+            } break;
+        case VMO_TOSYS: {
+            int32_t tos = t;
+            DDROP();
+            switch (imm) {
+            case VMSTO_YEET: ior = tos;  break;
+            case VMSTO_SHIFT:
+                shift_size = tos & 0x1F; break;
+            default: break;
+            }
+        } break;
+        case VMO_USER: a = u + imm;  break;
+        case VMO_FROMSYS:
+            DDUP();
+            switch (imm) {
+            case VMSFROM_TASK:  // task[
+                RDUP();
+                t = (int32_t)((rsp << 16) | dsp);
+                break;
+            case VMSFROM_X: t = X; break;
+            case VMSFROM_Y: t = Y; break;
+            default: break;
+            } break;
+        case VMO_QLIT:
+            DDUP();  t = u + imm;
+            break;
+        case VMO_PFX:
+            pfx = (pfx << (VM_IMM_BITS + 1)) | imm; break;
+        case VMO_PFX1:
+            pfx = (pfx << (VM_IMM_BITS + 1)) | imm | (1 << VM_IMM_BITS); break;
+        case VMO_API0:
+        case VMO_API1:
+            if (g_lf_sys_options & SYS_OPTION_NO_API) {
+                ior = ERR_NO_API_CALL_ALLOWED;
+                break;
+            }
+            VM_SAVE();                  // the API sees and changes VM state,
+            ior = (((inst >> VM_IMM_BITS) & 0x0F) == VMO_API0)
+                ? VMapi0Call(imm) : VMapi1Call(imm);
+            VM_LOAD();                  // and may run more VM code
+            cspan = 0;                  // memory may have been remapped
+            break;
+        case 5:
+        case 7:  ior = ERR_INVALID_OPCODE;  break;
+        default: UNREACHABLE();         // all 16 are cases
+        }
+    }
+
+    if ((ior | slow) == 0) goto fetch;   // the usual case
+    if (steps) {
+        steps--;
+        if (steps == 0) {
+            VM_SAVE();
+            return ERR_VM_TIMEOUT;
+        }
+    }
+byee:
+    if (ior) {
+        if ((ior != ERR_VM_BREAK) && (steps)) {
+            // The app is being stepped: send it to its yeet handler.
+            // (A word run by the terminal has steps == 0, so its errors
+            // only go back to the terminal and the PC is left alone.)
+            X = pc;
+            Y = ior;
+            pc = VM_YEET_ADDRESS << 1;
+        }
+        VM_SAVE();
+        return ior;
+    }
+    if (once == 0) goto fetch;
+    VM_SAVE();
     return ior;
 }
 
@@ -381,7 +383,7 @@ static int32_t vmExec(int once, uint32_t inst, int32_t address) {
  * Calling a word can re-enter vmRun: an API call such as LOAD interprets a
  * block, which executes more words. The nested call leaves PC at the
  * 0xDEADC0DE terminator, so the caller's PC is saved here and put back.
- * dirty = 1 makes the caller refetch its instruction pair from memory.
+ * (The caller's vmExec refetches its instruction pair after an API call.)
  * The caller's PC is put back even after an error: the terminal's errors
  * must not disturb the app. (vmExec sends a stepped app's errors to its
  * yeet handler.)
@@ -392,7 +394,6 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     }
     int32_t pc = PC;
     int32_t ior = vmExec(0, 0, address);
-    dirty = 1;
     PC = pc;
     return ior;
 }

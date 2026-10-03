@@ -100,13 +100,6 @@ int lfAPI_inst(void) {
     return commaCode(vmPop());
 }
 
-// Align to even code address
-void lfCalign(void) {
-    freshSlots();
-    uint32_t pc = cpPC();
-    if (pc & 1) commaCode(0);
-}
-
 // Compile a call
 static int CompCall(uint32_t xt) {
     NewInst();
@@ -269,7 +262,7 @@ static int storeJump(int32_t slot, uint32_t pc) {
 
 /* :  ( <name> -- ) */
 int lfAPI_colon(void) {
-    lfCalign();
+    freshSlots();               // start a new instruction
     created = 0;
     noname = 0;
     const struct s_head* label = lfParseLabel();
@@ -291,7 +284,6 @@ int lfAPI_colon(void) {
 /* LABEL  ( <name> -- ) */
 int lfAPI_label(void) {
     NewInst();                  // nothing pending, no tail call to patch
-    lfCalign();
     int ior = lfHeader(cpPC(), A_UNRESOLVED, NULL);
     if (ior) return ior;
     // Room for a jump, with a prefix if needed. Until `:` resolves the label,
@@ -303,7 +295,7 @@ int lfAPI_label(void) {
 
 /* :NONAME  ( -- xt ) */
 int lfAPI_noname(void) {
-    lfCalign();
+    freshSlots();               // start a new instruction
     created = 0;
     noname = 1;
     int ior = vmPush((int32_t)cpPC());
@@ -356,7 +348,7 @@ int lfAPI_bits(void) {
 
 /* CREATE  ( <name> -- ) */
 int lfAPI_dotCreate(void) {
-    lfCalign();
+    freshSlots();               // start a new instruction
     int ior = lfHeader(cpPC(), 0, &lfCreatedName);
     if (ior) return ior;
     int32_t here = *herePtr();

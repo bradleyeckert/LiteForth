@@ -56,13 +56,6 @@ int lfCompileWord(const struct s_head* word);
 extern uint32_t lfCreatedName; // CREATE (comp.c) --> WORDLIST: VM address of the name, or 0
 
 /**
- * Aligns the code pointer to an even instruction address (a cell boundary).
- * Flushes any partly built micro-op group, then pads with one zero
- * instruction if the code pointer is at an odd address.
- */
-void lfCalign(void);
-
-/**
  * @brief Forth word `,inst`  ( inst -- )
  * Compiles a raw 16-bit instruction, after flushing any pending micro-ops.
  *

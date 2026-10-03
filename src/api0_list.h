@@ -81,7 +81,8 @@
     X(API_COLD,             coldboot)           \
     X(API_NONAME,           lfAPI_noname)       \
     X(API_EXECUTE,          execute)            \
-    X(API_SAVE_WIDS,        lfAPI_saveWids)
+    X(API_SAVE_WIDS,        lfAPI_saveWids)     \
+    X(API_LABEL,            lfAPI_label)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

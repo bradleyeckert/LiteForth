@@ -64,6 +64,7 @@ locations for accessibility by Forth or by C.
 #define A_IMMEDIATE     0x40000000 // this word is immediate
 #define A_NO_EXECUTE    0x20000000 // only execute while compiling
 #define A_CONSTANT      0x10000000 // w is a constant
+#define A_UNRESOLVED    0x08000000 // label has not been resolved
 #define A_IMMED_ONLY    (A_IMMEDIATE | A_NO_EXECUTE)
 
 
@@ -188,6 +189,25 @@ int lfDotS(void);
  * @return 0 on success, or ERR_PARSED_STRING_OVERFLOW if the word was truncated.
  */
 int lfParseWord(char* dest, int destSize);
+
+/**
+ * Searches the wordlists in the search order for a visible (not smudged)
+ * word that has all of `aux_flags` set in its aux field.
+ * @param target_name Name to find (case-insensitive), or NULL for any name.
+ * @param aux_flags   Flags the word must have, e.g. A_UNRESOLVED; 0 for none.
+ * @param found_name  If not NULL, receives the found word's name.
+ * @return The word's header, or NULL if there is none.
+ */
+const struct s_head* lfSearchContext(const char* target_name, uint32_t aux_flags,
+                                     const char** found_name);
+
+/**
+ * Parses the next name and finds an unresolved label (A_UNRESOLVED, made by
+ * `label`) with that name in the search order. If there is none, >IN is put
+ * back, so the name can be parsed again (by lfHeader).
+ * @return The label's header, or NULL.
+ */
+const struct s_head* lfParseLabel(void);
 
 /**
  * Creates a dictionary header for the next word in the input stream.

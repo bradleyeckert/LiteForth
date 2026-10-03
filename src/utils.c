@@ -469,6 +469,7 @@ static const ErrorMapping error_table[] = {
     { ERR_VM_TIMEOUT, "VM ran too long before `break`" },
     { ERR_BAD_BOOT_RECORD, "no valid `save-wids` boot record in flash" },
     { ERR_BAD_STACK_ALLOCATION, "Not enough stack for requested task usage" },
+    { ERR_UNRESOLVED_LATER, "Unresolved `later` found" },
 };
 
 /**

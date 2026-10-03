@@ -530,6 +530,16 @@ T{ ' awake  mt-t2 1 + @ !  3 mt-spin  mt-c1 @ mt-c2 @ -> 12 8 }T
 ( each task gets its own window of the stacks )
 T{ mt-t1 @  mt-t2 @  stackused @ -> 3145776 4194368 5242960 }T
 
+( label declares a word for a forward reference; a later : resolves it )
+( without a new header, so the word defined before it stays visible   )
+label lb-fwd
+: lb-use     lb-fwd 1 + ;
+: lb-tail    lb-fwd ;
+: lb-before  5 ;
+: lb-fwd     41 ;
+T{ lb-use lb-tail lb-before lb-fwd -> 42 41 5 41 }T
+T{ x' lb-fwd drop execute -> 41 }T
+
 ( t_rx reads stdin directly, so the next unread byte is the start of  )
 ( the next line of this file. With CRLF line endings and without -o 32 )
 ( lf ends the line at the CR, leaving the LF unread: nextc skips it.   )

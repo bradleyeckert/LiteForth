@@ -96,7 +96,8 @@ int lfAPI_noname(void);
  * LABEL  ( <name> -- )
  * Declares a word for a forward reference. Makes a header with A_UNRESOLVED
  * and reserves two code slots, but stays interpreting. Code can call the label
- * before it's defined. A later `: name` doesn't make a new header: it stores
+ * before it's defined. The slots hold an invalid opcode, so running such a
+ * call before the label is resolved fails with ERR_INVALID_OPCODE. A later `: name` doesn't make a new header: it stores
  * a jump to its code in the reserved slots and clears A_UNRESOLVED.
  * @return 0 on success, or an ior from lfHeader.
  */

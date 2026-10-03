@@ -1,7 +1,7 @@
 #!/bin/sh
-# Regression test for `label`: running a label at the terminal before a `:`
-# resolves it is an error (code that calls it before then jumps to cell 0,
-# so this doesn't), and `bye` with a label still unresolved reports it and makes lf
+# Regression test for `label`: before a `:` resolves a label, running it at
+# the terminal gives -119 and calling it from code gives -105 (its slots hold
+# an invalid opcode), and `bye` with a label still unresolved reports it and makes lf
 # exit with -119 (137). Runs in a temp dir and compares the output with
 # expected.txt. Usage: run.sh path/to/lf
 set -e
@@ -19,6 +19,7 @@ status=0
 label fwd
 : use-fwd  fwd 1 + ;
 fwd
+use-fwd
 : fwd  41 ;
 use-fwd .
 label never

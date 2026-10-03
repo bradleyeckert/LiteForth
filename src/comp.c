@@ -284,15 +284,21 @@ int lfAPI_colon(void) {
     return lfSTATEstore(1);
 }
 
+// An instruction the VM rejects: opcode 5 of the 9-bit-immediate group is
+// unused, so vmExec returns ERR_INVALID_OPCODE.
+#define VMI_INVALID  (VMI_OTHER + (5 << VM_IMM_BITS))
+
 /* LABEL  ( <name> -- ) */
 int lfAPI_label(void) {
     NewInst();                  // nothing pending, no tail call to patch
     lfCalign();
     int ior = lfHeader(cpPC(), A_UNRESOLVED, NULL);
     if (ior) return ior;
-    ior = commaCode(0);         // room for a jump, with a prefix if needed
+    // Room for a jump, with a prefix if needed. Until `:` resolves the label,
+    // calling it from code runs an invalid opcode (-105) instead.
+    ior = commaCode(VMI_INVALID);
     if (ior) return ior;
-    return commaCode(0);
+    return commaCode(VMI_INVALID);
 }
 
 /* :NONAME  ( -- xt ) */

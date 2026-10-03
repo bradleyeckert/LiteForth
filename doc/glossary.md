@@ -91,7 +91,7 @@ Name lookup ignores case.
 | `immediate` | `( -- )` | Makes the most recent definition immediate. |
 | `inv` | `( x1 -- x2 )` | Bitwise NOT (same as `invert`). |
 | `invert` | `( x1 -- x2 )` | Bitwise NOT. |
-| `label` | `( <name> -- )` | Declares `name` for a forward reference: a header (flag `A_UNRESOLVED`) with two reserved code slots. Code can call `name` before it's defined; a later `: name` stores a jump to its code there. Running an unresolved label at the terminal gives -119, and so does `bye` while one is left (it prints the name). |
+| `label` | `( <name> -- )` | Declares `name` for a forward reference: a header (flag `A_UNRESOLVED`) with two reserved code slots. Code can call `name` before it's defined; a later `: name` stores a jump to its code there. Until then, a call from code fails with -105 (the slots hold an invalid opcode), running it at the terminal gives -119, and so does `bye` while one is left (it prints the name). |
 | `literal` | `( n -- )` | Immediate. Compiles `n` as a literal. |
 | `load` | `( u -- )` | Interprets block `u`, then continues after `load`. Loads nest. |
 | `m*` | `( n1 n2 -- d )` | Signed 32 × 32 to 64-bit multiply. |

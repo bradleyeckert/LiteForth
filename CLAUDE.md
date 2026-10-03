@@ -181,6 +181,13 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   At startup `lfQuit` calls `lfBootFromFlash` to restore `wids`, then resets
   the VM and sets `SYS_OPTION_RUNNING`. A head that isn't a valid link
   (e.g. a C pointer in an image from an older build) becomes NULL.
+- **Multitasker** (`go.f`, `doc/multitasking.md`): user areas of 3 cells
+  (NEXT, ACTION, R:D). `pause` jumps to the running task's ACTION: `awake`
+  saves its `rp:sp` and switches to NEXT with `]task`; `asleep` only moves U.
+  `multitask` makes a ring of one, the terminal (`operator`). `task[` (`sys>`)
+  pushes T and R and gives `rp:sp`; `]task` is a `sys` instruction (not
+  `>sys`): it sets `sp`/`rp` from T and doesn't pop. `regression.f` carries a
+  copy of these words.
 - **`label`** declares a forward reference: a header with `A_UNRESOLVED` and
   two code slots holding an invalid opcode (`VMI_INVALID`, so an early call
   from code fails with -105). `:` checks for an unresolved label of that name first

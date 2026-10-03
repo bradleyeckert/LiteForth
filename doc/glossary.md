@@ -53,7 +53,7 @@ Name lookup ignores case.
 | `]` | `( -- )` | Switches to compiling (`state` = 1). |
 | `]shl` | `( u1 -- u2 )` | Shifts left by the count set with `shft[`. |
 | `]shr` | `( u1 -- u2 )` | Shifts right (unsigned) by the count set with `shft[`. |
-| `]task` | `( tstate -- )` | Restores the stack pointers from `tstate` (rp:sp) and loads `R` from `B`. Used for task switching. |
+| `]task` | `( r:d -- r:d )` | Sets the stack pointers from T (`rp:sp`, `rp` in the upper half). T stays: it doesn't pop. A `sys` instruction. Used for task switching; see [Multitasking](multitasking.md). |
 | `_,"` | `( <text"> -- addr )` | Compiles a counted string into text space and returns its (byte slice) address. |
 | `a` | `( -- x )` | Pushes register `A`. |
 | `a!` | `( x -- )` | Sets register `A`. |
@@ -115,7 +115,7 @@ Name lookup ignores case.
 | `t_rx?` | `( -- flag )` | Nonzero if a terminal character is waiting (`key?` in `go.f`). |
 | `t_tx!` | `( c -- )` | Sends a character to the terminal (`emit` in `go.f`). |
 | `t_tx?` | `( -- flag )` | Nonzero while the terminal output is busy (`emit?` in `go.f`). |
-| `task[` | `( -- tstate )` | Pushes the stack pointers as rp:sp, copies `R` onto the return stack, and loads `A` from `U`. Used for task switching. |
+| `task[` | `( -- r:d )` | Pushes T onto the data stack and R onto the return stack, then T = `rp:sp` (`rp` in the upper half). Used for task switching. |
 | `tuck` | `( x1 x2 -- x2 x1 x2 )` | Copies the top item under the second. |
 | `t{` | `( -- )` | † Starts a test: `t{ ... -> ... }t`. |
 | `u!` | `( x -- )` | Sets the user pointer register `U`. |
@@ -200,19 +200,17 @@ These are compiled by the boot script, not built in.
 | `1-` | `( n -- n-1 )` | Subtracts 1. |
 | `=` | `( n1 n2 -- flag )` | True (-1) if `n1` equals `n2`, else 0. |
 | `@+` | `( a -- a+1 x )` | Fetches and advances the address. |
-| `[start]` | `( -- )` | STATUS of a task that hasn't run yet: sets STATUS to `awake`, switches to the task's empty stacks and jumps to its ENTRY. See [Multitasking](multitasking.md). |
 | `_code` | `( -- )` | Selects the code space. |
 | `_idata` | `( -- )` | Selects the idata space. |
 | `_text` | `( -- )` | Selects the text space. |
 | `_udata` | `( -- )` | Selects the udata space. |
-| `activate` | `( task -- )` | Links `task` into the ring after the running task and makes the rest of the calling word its code; the caller of that word goes on. Starts the ring (`multi`) if U is 0. |
 | `again` | `( a -- )` | Immediate. Branches back to `begin`. |
 | `ahead` | `( -- a )` | Immediate. Unconditional forward branch. |
 | `align` | `( -- )` | Aligns `here` to a whole cell. |
 | `allot` | `( n -- )` | Reserves `n` cells in the current space. |
 | `amask` | `( a -- a' )` | Strips the slice fields from an address, leaving the 22-bit cell address. |
-| `asleep` | `( -- )` | STATUS of a sleeping task: moves on to the next task. |
-| `awake` | `( -- )` | STATUS of a running task: switches to its stacks and returns into it after its `pause`. |
+| `asleep` | `( -- xt )` | Constant: the ACTION of a sleeping task. When `pause` jumps to it, it sets U to NEXT and returns to the code that called `pause`, without switching stacks. |
+| `awake` | `( -- xt )` | Constant: the ACTION of a running task. When `pause` jumps to it, it saves the task's `rp:sp` in its user area, switches to the stacks of the next task in the ring, and returns into that task. |
 | `base!` | `( n -- )` | Sets `base`. |
 | `begin` | `( -- a )` | Immediate. Starts a loop. |
 | `cells` | `( n -- n )` | Immediate no-op: addresses are cell addresses. |
@@ -229,20 +227,18 @@ These are compiled by the boot script, not built in.
 | `key` | `( -- c )` | Reads a character (`t_rx`). |
 | `key?` | `( -- flag )` | Nonzero if a character is waiting (`t_rx?`). |
 | `lshift` | `( u1 u2 -- u3 )` | Shifts `u1` left by `u2` bits. |
-| `multi` | `( -- )` | Starts the round-robin ring with only the terminal task (`operator`). |
+| `multitask` | `( -- )` | Makes a ring of one task, the terminal (`operator`): sets U, NEXT = itself, ACTION = `awake`, and R:D. |
 | `negate` | `( n -- -n )` | Negates. |
 | `next` | `( a -- )` | Immediate. Ends a `for` loop. |
-| `operator` | `( -- a )` | The terminal task's user area. |
+| `operator` | `( -- a )` | Constant: the terminal task's user area (3 cells: NEXT, ACTION, R:D). |
 | `or` | `( x1 x2 -- x3 )` | Bitwise OR. |
-| `pause` | `( -- )` | Saves the running task and runs the next awake task in the ring. Needs a ring (`multi` or `activate`) first. |
+| `pause` | `( -- )` | Jumps to the running task's ACTION (`awake` or `asleep`), with NEXT and the address of its R:D cell on the stack. Needs a ring (`multitask`) first. See [Multitasking](multitasking.md). |
 | `repeat` | `( a1 a2 -- )` | Immediate. Ends a `begin ... while ... repeat` loop. |
 | `rshift` | `( u1 u2 -- u3 )` | Shifts `u1` right (unsigned) by `u2` bits. |
-| `stackused` | `( -- a )` | Variable (IDATA): the `rp:sp` stack cells given out so far; the terminal reserves the first `0x30` of each. |
-| `task` | `( user_cells data_stack return_stack <name> -- )` | Creates a task: reserves its stack windows (yeets -118 if they don't fit) and a user area of `user_cells` + 4 cells. `name` returns the task's header. |
+| `stop` | `( -- )` | Sets the running task's ACTION to `asleep`, then `pause`. |
 | `then` | `( a -- )` | Immediate. Resolves `if`, `-if`, `else` or `ahead`. |
 | `type` | `( ca n -- )` | Prints `n` characters from `ca`. |
 | `until` | `( a -- )` | Immediate. Branches back to `begin` while T is 0; drops T. |
 | `unused` | `( -- n )` | Free cells left in the current space. |
-| `up` | `( -- a )` | The running task's user area (register U). |
 | `variable` | `( <name> -- )` | Defines a 32-bit variable. |
 | `while` | `( a1 -- a1 a2 )` | Immediate. Leaves the loop when T is 0; drops T. |

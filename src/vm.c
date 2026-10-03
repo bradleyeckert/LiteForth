@@ -88,7 +88,9 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
             sp = T & 0xFFFF;
             rp = (T >> 16) & 0xFFFF;
             break;
-        case VMS_BREAK: return ERR_VM_BREAK;
+        case VMS_BREAK:
+            lfWatchdogPing();   // the app is alive: it reached a `break`
+            return ERR_VM_BREAK;
         default: break;
         } break;
     case VMO_TOSYS: {

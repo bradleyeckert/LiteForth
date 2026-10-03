@@ -24,6 +24,14 @@ extern "C" {
  */
 uint64_t lfGetTimeMicroSec(void);
 
+/**
+ * Tells the watchdog that the Forth code is alive. The VM calls it each time
+ * the app executes `break`, which it does at least once a turn. On an MCU it
+ * would reload a hardware watchdog timer, so code that hangs without reaching
+ * `break` gets a hard reset. On the desktop it does nothing.
+ */
+void lfWatchdogPing(void);
+
 #ifdef __cplusplus
 }
 #endif

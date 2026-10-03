@@ -74,6 +74,9 @@ int lfAPI_inst(void);
  * @brief Forth word `:`  ( <name> -- )
  * Aligns code space, creates a hidden (smudged) header for <name> at the
  * current code address, and switches STATE to compiling.
+ * If <name> is an unresolved `label` in the search order, no header is made:
+ * a jump to the current code address is stored in the label's reserved slots
+ * and its A_UNRESOLVED flag is cleared.
  *
  * @return 0 on success, or a negative error code.
  */
@@ -88,6 +91,16 @@ int lfAPI_colon(void);
  * @return 0 on success, or a negative error code.
  */
 int lfAPI_noname(void);
+
+/**
+ * LABEL  ( <name> -- )
+ * Declares a word for a forward reference. Makes a header with A_UNRESOLVED
+ * and reserves two code slots, but stays interpreting. Code can call the label
+ * before it's defined. A later `: name` doesn't make a new header: it stores
+ * a jump to its code in the reserved slots and clears A_UNRESOLVED.
+ * @return 0 on success, or an ior from lfHeader.
+ */
+int lfAPI_label(void);
 
 /**
  * @brief Forth word `;`  ( -- )  immediate

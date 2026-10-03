@@ -188,6 +188,7 @@ int lfExecuteXT(uint32_t xt) {
 
 // Execute using the VM
 int lfExecuteWord(const struct s_head* word) {
+    if (word->aux & A_UNRESOLVED) return ERR_UNRESOLVED_LATER; // no code yet
     if (word->aux & A_CONSTANT) return vmPush(word->w);
     return lfExecuteXT(word->w);
 }
@@ -249,13 +250,49 @@ ex: instruction |= VM_UOPS | VM_RET;
 static int32_t created = 0;
 static int noname = 0;  // the definition being compiled has no header (:noname)
 
+// The 16-bit slot address of code address pc (see cpPC)
+static int32_t pcSlot(uint32_t pc) {
+    return (int32_t)((16u << 27) | ((pc & 1) << 26) | (pc >> 1));
+}
+
+// Store a jump to code address pc at slot, with a prefix in the slot before
+// it if pc needs one. Two slots are needed when it does.
+static int storeJump(int32_t slot, uint32_t pc) {
+    if (pc >= VM_LIMM_MASK) { // 10-bit pfx + 13-bit imm = 32-bit code addr
+        int inst = (pc & (1 << 22)) ? VMI_PFX1 : VMI_PFX;
+        int ior = vmStore(slot, (inst + ((pc >> VM_LIMM_BITS) & VM_IMM_MASK)));
+        if (ior) return ior;
+        slot = vmFieldPlus(slot); // next 16-bit slot
+    }
+    return vmStore(slot, (VMI_JUMP + (pc & VM_LIMM_MASK)));
+}
+
 /* :  ( <name> -- ) */
 int lfAPI_colon(void) {
     lfCalign();
     created = 0;
     noname = 0;
-    lfHeader(cpPC(), A_SMUDGED, NULL);
+    const struct s_head* label = lfParseLabel();
+    if (label != NULL) {        // resolve a `label`: jump from it to here
+        int ior = storeJump(pcSlot(label->w), cpPC());
+        if (ior) return ior;
+        ((struct s_head*)label)->aux &= ~A_UNRESOLVED;
+        noname = 1;             // no new header for ; to reveal
+    } else {
+        lfHeader(cpPC(), A_SMUDGED, NULL);
+    }
     return lfSTATEstore(1);
+}
+
+/* LABEL  ( <name> -- ) */
+int lfAPI_label(void) {
+    NewInst();                  // nothing pending, no tail call to patch
+    lfCalign();
+    int ior = lfHeader(cpPC(), A_UNRESOLVED, NULL);
+    if (ior) return ior;
+    ior = commaCode(0);         // room for a jump, with a prefix if needed
+    if (ior) return ior;
+    return commaCode(0);
 }
 
 /* :NONAME  ( -- xt ) */
@@ -332,14 +369,7 @@ int lfAPI_dotCreate(void) {
 int lfAPI_dotDoes(void) {
     if (created == 0) return ERR_UNSUPPORTED_OPERATION;
     uint32_t pc = cpPC();   // instruction address of the code after does>
-    int ior = 0;
-    if (pc >= VM_LIMM_MASK) { // 10-bit pfx + 13-bit imm = 32-bit code addr
-        int inst = (pc & (1 << 22)) ? VMI_PFX1 : VMI_PFX;
-        ior = vmStore(created, (inst + ((pc >> VM_LIMM_BITS) & VM_IMM_MASK)));
-        if (ior) return ior;
-        created = vmFieldPlus(created); // next 16-bit slot
-    }
-    ior = vmStore(created, (VMI_JUMP + (pc & VM_LIMM_MASK)));
+    int ior = storeJump(created, pc);
     created = 0;
     lfCreatedName = 0;
     return ior;

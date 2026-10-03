@@ -136,5 +136,6 @@
 #define ERR_VM_TIMEOUT             (-116)   /* VM ran too long before `break` */
 #define ERR_BAD_BOOT_RECORD        (-117)   /* no valid `save-wids` boot record in flash */
 #define ERR_BAD_STACK_ALLOCATION   (-118)   /* Not enough stack for requested task usage */
+#define ERR_UNRESOLVED_LATER       (-119)   /* Unresolved `later` found */
 
 #endif // ERRCODES_H

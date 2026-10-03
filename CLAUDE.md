@@ -181,6 +181,13 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   At startup `lfQuit` calls `lfBootFromFlash` to restore `wids`, then resets
   the VM and sets `SYS_OPTION_RUNNING`. A head that isn't a valid link
   (e.g. a C pointer in an image from an older build) becomes NULL.
+- **`label`** declares a forward reference: a header with `A_UNRESOLVED` and
+  two zero code slots. `:` checks for an unresolved label of that name first
+  (`lfParseLabel`, which puts `>IN` back if there is none). If it finds one,
+  it stores a jump to the new code in the slots (`storeJump`, shared with
+  `does>`) and sets `noname` so `;` doesn't toggle `A_SMUDGED` on `latest`.
+  `lfSearchContext(name, flags, &name)` finds both, and `lfQuit` uses it at
+  `bye` to report a label left unresolved (-119).
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

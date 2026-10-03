@@ -174,6 +174,7 @@ static const struct s_head forth_heads[] = {
     { PREV, ":noname",      API0(API_NONAME),                         0},
     { PREV, "execute",      API0(API_EXECUTE),                        0},
     { PREV, "save-wids",    API0(API_SAVE_WIDS),                      0},
+    { PREV, "label",        API0(API_LABEL),                          0},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        0},
     { PREV, "->",           API0(API_DOTEST),                         0},
@@ -399,18 +400,21 @@ int lfAPI_words(void) {
 
 uint32_t g_neighbor_w = 0; // the w of the word defined after the found one
 
-// find a word in a given wordlist
-static const struct s_head* search_wordlist(int wid_index, const char *target_name) {
+// Find a visible word in a wordlist by name (or any name, if target_name is
+// NULL) that has all of aux_flags set. See lfSearchContext.
+static const struct s_head* search_wordlist(int wid_index, const char *target_name,
+                                            uint32_t aux_flags, const char** found_name) {
     if (wid_index < 0 || wid_index >= wids_pointer) {
         return NULL;
     }
     const char* name = NULL;
     const struct s_head *link = lfFollow(wids[wid_index].head, &name);
     while (link != NULL) {
-        if (TheStringsMatch((char*)name, (char *)target_name)) {
-            if ((link->aux & A_SMUDGED) == 0) {
-                return link;
-            }
+        if (((target_name == NULL) || TheStringsMatch((char*)name, (char *)target_name))
+            && ((link->aux & A_SMUDGED) == 0)
+            && ((link->aux & aux_flags) == aux_flags)) {
+            if (found_name != NULL) *found_name = name;
+            return link;
         }
         g_neighbor_w = link->w;
         link = lfFollow(link->link, &name);
@@ -418,15 +422,34 @@ static const struct s_head* search_wordlist(int wid_index, const char *target_na
     return NULL;
 }
 
-// Index through the context to find a word
-static const struct s_head* search_context(const char *target_name) {
+// lfSearchContext (documented in forth.h): index through the context
+const struct s_head* lfSearchContext(const char* target_name, uint32_t aux_flags,
+                                     const char** found_name) {
     for (int i = 0; i < CONTEXT_MAX; i++) {
         int wid_idx = CONTEXT[i];
         if (wid_idx == -1) break; // end of context
-        const struct s_head *found = search_wordlist(wid_idx, target_name);
+        const struct s_head *found = search_wordlist(wid_idx, target_name,
+                                                     aux_flags, found_name);
         if (found != NULL) return found; // found it
     }
     return NULL; // Word not found in any active wordlist
+}
+
+// Find a word by name in the context
+static const struct s_head* search_context(const char *target_name) {
+    return lfSearchContext(target_name, 0, NULL);
+}
+
+// lfParseLabel (documented in forth.h)
+const struct s_head* lfParseLabel(void) {
+    int toin = lfTOINfetch();
+    char token[32] = { 0 };
+    const struct s_head* label = NULL;
+    if (lfParseWord(token, sizeof(token)) == 0) {
+        label = lfSearchContext(token, A_UNRESOLVED, NULL);
+    }
+    if (label == NULL) lfTOINstore(toin);   // leave the name for lfHeader
+    return label;
 }
 
 // Traverse all wordlists in the context for the name of a value
@@ -822,7 +845,14 @@ int lfQuit(void) {
             ior = interpretLine();
         } while (ior == 0);
 
-        if (ior == ERR_QUIT) return 0;  // bye
+        if (ior == ERR_QUIT) {          // bye, unless a label is unresolved
+            const char* name = NULL;
+            if (lfSearchContext(NULL, A_UNRESOLVED, &name) == NULL) return 0;
+            lf_puts(name);
+            lfSpace();
+            reportError(ERR_UNRESOLVED_LATER);
+            return ERR_UNRESOLVED_LATER;
+        }
         reportError(ior);
         if (g_lf_sys_options & SYS_OPTION_VALIDATION) {
             lfDotLinecount();

@@ -149,15 +149,15 @@
 #define VMI_MASK               ((3 << VM_LIMM_BITS) | (0x0F << VM_IMM_BITS))
 
 // system instructions VMI_SYS, VMI_TOSYS, and VMI_FROMSYS
-#define VMS_SHR                 0
-#define VMS_SHL                 1
-#define VMS_FIELDPLUS           2
-#define VMS_GETUSEC             3
-#define VMS_BREAK               4
+#define VMS_TASK                0
+#define VMS_FIELDPLUS           1
+#define VMS_SHR                 2
+#define VMS_SHL                 3
+#define VMS_GETUSEC             4
+#define VMS_BREAK               5
 
-#define VMSTO_TASK              0
-#define VMSTO_SHIFT             1
-#define VMSTO_YEET              2
+#define VMSTO_SHIFT             0
+#define VMSTO_YEET              1
 
 #define VMSFROM_TASK            0
 #define VMSFROM_X               1

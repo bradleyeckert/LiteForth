@@ -58,58 +58,44 @@ decimal
 
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 
-( Multitasker: cooperative, round robin. Each task has a user area, which )
-( the U register points to while the task runs:                           )
-(   U+0 STATUS    xt that pause jumps to: awake, asleep or [start]        )
-(   U+1 FOLLOWER  user area of the next task in the ring                  )
-(   U+2 TASKNOW   saved rp:sp while the task isn't running                )
-(   U+3 ENTRY     where a task that hasn't run yet starts                 )
-( The physical stacks are shared: each task gets its own window of them.  )
+( The multitasker uses VM primitives `task[`, `]task`, `u!`, and `user`.    )
 
-: up      ( -- a )  [ 0 _user + ,inst ] a ;       ( the current user area )
-: asleep  ( -- )   [ 1 _user + ,inst ] @a u!      ( U = follower )
-                   [ 0 _user + ,inst ] @a >r ;    ( jump to its STATUS )
-: pause   ( -- )   task[ [ 2 _user + ,inst ] !a   ( save T, R, rp:sp )
-                   asleep ;
-: awake   ( -- )   [ 2 _user + ,inst ] @a ]task   ( switch stacks )
-                   r> drop drop ;                 ( restore R and T, return )
-: [start] ( -- )   [ 3 _user + ,inst ] @a b!      ( B = ENTRY )
-                   [ 0 _user + ,inst ] [ ' awake ] literal !a
-                   [ 2 _user + ,inst ] @a ]task ; ( empty stacks, R = B: go )
+( task[                  ]task                      user           u!       )
+( -----------------      ----------------------     ------------   -------- )
+( VM_DDUP; VM_RDUP;      sp = tos & 0xFFFF;         A = U + imm;   U = T;   )
+( T = {rp << 16} | sp;   rp = {tos >> 16} & 0xFFFF;                VM_DDROP;)
+            
+( Multitasker: cooperative, round robin. Each task has a user area, which   )
+( the U register points to while the task runs:                             )
+(   U+0 NEXT    user area of the next task in the ring                      )
+(   U+1 ACTION  xt that pause jumps to: awake, asleep or [start]            )
+(   U+2 R:D     saved rp:sp while the task isn't running                    )
+( The physical stacks are shared: each task gets its own window of them.    )
 
-_udata create operator  4 allot   ( the terminal's user area )
+( Define a `pause` that quickly passes over a sleeping task.                )
+:noname     ( next a -- )   drop u! ; constant asleep
+: pause     ( -- next a )   [ _user ,inst ] @a+ @a+ >r a ;
+: stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;
 
-: multi   ( -- )   ( start the ring with just the terminal )
-   operator u!  operator a!  [ ' awake ] literal !a+  operator !a ;
+( When `begin pause again` executes on an awake task, pause swaps out the   )
+( return address. `onlytask` creates a terminal task using `operator`.      )
 
-hex
-_idata variable stackused  300030 stackused ! ( reserved for the terminal task )
-decimal
-( Task headers are kept in _idata: cell 0 = stack base rp:sp, )
-( cell 1 = address of the user area                         )
+:noname     ( next a -- )
+    a! u! task[ dup !a ( ix r:d |R: ra ? \ save current r:d )
+    [ _user 2 + ,inst ] @a ]task r> drop drop
+; constant awake
 
-: task  ( user_cells data_stack return_stack <name> -- )
-    _idata create  16 lshift +           ( uc r:d )
-    stackused @ +                        ( uc new )
-    dup stack-masks inv and if -118 yeet then
-    stackused @ ,  stackused !           ( uc ) ( header cell 0 = base )
-    _udata here  swap 4 + allot  _idata , ( header cell 1 = user area )
-    _udata
+_udata here 3 allot constant operator
+
+: multitask ( -- )
+    operator                              ( this bulky literal is used once ) 
+    dup u! dup a! !a+  awake !a+     ( ix |R: ra \ populate next and action )
+    task[  !a+ r> drop 
 ;
 
-( Add a task to the ring after the current one. The rest of the word that )
-( calls `activate` becomes the task, and the caller of that word goes on: )
-( : launch  t1 activate begin {your code} pause again ; )
 
-: activate  ( task -- )  ( R: ra -- )
-    up 0= if multi then
-    a! @a+ @a+  dup b!                   ( base user ) ( B = user area )
-    [ ' [start] ] literal !b+            ( STATUS )
-    up 1 + @ !b+                         ( FOLLOWER = ours )
-    swap 65536 + !b+                     ( user ) ( TASKNOW, rp+1 for ; )
-    r> !b                                ( ENTRY = the rest of the caller )
-    up 1 + !                             ( link it in after this task )
-;
+
+
 
 ( string output )
 : @+        ( a -- a+1 n )  a! @a+ a swap ;
@@ -166,9 +152,8 @@ variable counter
 
 :noname ( demo application )
     init-idata
-    hi
-    begin  demo-step  break
-    again
+    multitask  hi
+    begin demo-step pause break again
 ; hex 80000000 ,jump decimal
 
 :noname ( yeet handler: y@ = error code, x@ = PC after the fault )

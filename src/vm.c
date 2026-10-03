@@ -84,6 +84,10 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
 			X = (int32_t)(usec & 0xFFFFFFFF);
 			break;
         }
+        case VMS_TASK: // ]task
+            sp = T & 0xFFFF;
+            rp = (T >> 16) & 0xFFFF;
+            break;
         case VMS_BREAK: return ERR_VM_BREAK;
         default: break;
         } break;
@@ -92,11 +96,6 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
         VM_DDROP;
         switch (imm) {
         case VMSTO_YEET: return tos;
-        case VMSTO_TASK: // ]task
-            sp = tos & 0xFFFF;
-            rp = (tos >> 16) & 0xFFFF;
-            R = B;
-            break;
         case VMSTO_SHIFT:
             shift_size = tos & 0x1F; break;
         default: break;
@@ -106,10 +105,9 @@ static int vmLitIns9(uint16_t inst, int32_t imm) {
     case VMO_FROMSYS: 
         VM_DDUP;
         switch (imm) {
-        case VMSFROM_TASK: // task[
+        case VMSFROM_TASK:  // task[
             VM_RDUP;
             T = (rp << 16) | sp;
-            A = U;
             break;
         case VMSFROM_X: T = X; break;
         case VMSFROM_Y: T = Y; break;

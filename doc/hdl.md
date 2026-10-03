@@ -51,7 +51,7 @@ How about a RMW?
 
 - `ce` is set to `1` and A or B is placed on the address bus.
 - The synchronous memory registers the address, `ce` is set to `0`.
-- *The data has not necessarily settled yet.
+- *The data has not necessarily settled yet.*
 - The 32-bit `mem_data_reg` is registered from the data bus.
 - `mem_data_reg` is barrel shifted, masked, and updated.
 - A write is issued to that same address, `ce` is set to `1`.
@@ -73,3 +73,13 @@ Some extra `sys` instructions are added to allow their use by Forth's
 LSHIFT and RSHIFT.
 They do not need to be active constantly. Any memory operation or `shft[` will
 momentarily trigger them. It would be kind of wasteful to leave them on all the time.
+
+## 128-bit prefetch buffers
+
+On-chip flash could use a 16-byte prefetch buffer.
+In an FPGA system, that could be simulated with a QPI NOR Flash like MX25L25645G.
+A 16-byte read takes 32 beats plus a 14-beat preamble. At 80 MHz, 575 ns.
+
+A `touch` instruction would be useful. Code would `touch` memory it will be accessing later.
+While it is executing, hardware is pre-filling cache with the code it will need.
+`touch` would take 9-bit immediate data for the pre-fill length and T would be the address.

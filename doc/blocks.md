@@ -6,6 +6,8 @@ LiteForth deviates from this standard by making the size of each block 4 KB inst
 4 KB blocks better-support the 4 KB sectors of SPI NOR Flash and are easier on SD cards.
 It uses cell addressing, so an `a-addr` is just `addr`.
 
+On an MCU the blocks live in a raw partition on a microSD card; see [sdcard.md](sdcard.md) to prepare one.
+
 In UTF-8 text, you will never see a 0xFF. The interpreter replaces 0xFF with `' '`.
 
 0xFF is interpreted as a space when listing screens.

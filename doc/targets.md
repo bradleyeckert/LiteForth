@@ -28,6 +28,8 @@ The most relevant MCU pins are:
 - LCD (DC CS SCLK MOSI RST) = PD9, PB12, PB13, PB15, PD8
 - SD (CLK CMD D0-D3 ) = PB11, PB10, PE8, PE9, PE10, PE11
 
+[sdcard.md](sdcard.md) explains how to partition a microSD card for LiteForth's blocks.
+
 The UART pins conflict with USB OTG_ID and OTG_VBUS pins, but that is not a problem if you only use
 the USB-C USB-FS connector as a device (such as a CDC port)
 

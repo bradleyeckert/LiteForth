@@ -159,6 +159,8 @@ so only the sectors in the image are erased.
 
 No block storage yet. `blk_init` reports 0 blocks, and `blk_read` /
 `blk_write` return `ERR_BLK_BOUNDS`, so `block` and `load` fail cleanly.
+The plan is a raw partition on the microSD card (type `DA`, 64 KB aligned);
+[doc/sdcard.md](../../../doc/sdcard.md) explains how to prepare the card.
 
 ## LiteForth on the V5F
 

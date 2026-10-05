@@ -26,6 +26,11 @@ void cdc_shared_init(void);
  * Output is discarded while the USB device is not configured, or once the
  * host has left a packet unread for CDC_TX_TIMEOUT (no terminal has the
  * port open), so the V5F never waits forever for space in the tx ring.
+ *
+ * Three consecutive Ctrl+X bytes from the host restart the V5F so that it
+ * boots without starting the app (see cdc_shared.h). That takes up to
+ * CDC_RESTART_WAIT_MS, after which the V3F resets the whole chip if the
+ * V5F hasn't started again.
  */
 void cdc_bridge_poll(void);
 

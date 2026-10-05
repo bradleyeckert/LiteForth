@@ -18,6 +18,7 @@
 #include "../../../../errcodes.h"
 #include "options.h"                    /* LiteForth target files, here */
 #include "serial_io.h"
+#include "cdc_shared.h"                 /* safe boot and restart (Common/) */
 #include "flash.h"
 #include "blocks.h"
 #include "lftime.h"
@@ -94,6 +95,40 @@ static int lfMapMemory(int32_t** flash)
     return 0;
 }
 
+/*********************************************************************
+ * Restart on request from the V3F (Ctrl+X x3, see cdc_shared.h)
+ *
+ * The V3F releases HSEM CDC_RESTART_HSEM; this interrupt clears what is
+ * pending and jumps to the V5F's reset entry, which reruns its startup
+ * code (stack, code copy to ITCM, .data/.bss, core CSRs) and main. Its
+ * closing mret also ends this interrupt. The startup code doesn't touch
+ * the clocks or anything the V3F uses, so USB keeps running. LiteForth
+ * never disables interrupts, so a runaway Forth app can't block this. If
+ * it doesn't work, the V3F resets the whole chip.
+ */
+extern void handle_reset(void);         /* SRC/Startup/startup_ch32h417_v5f.S */
+
+void HSEM_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+
+void HSEM_Handler(void)
+{
+    uint32_t pending = HSEM->ISM;
+    HSEM->ISR = pending;                /* clear all, so nothing fires again */
+    if (pending & (1u << CDC_RESTART_HSEM)) {
+        __asm__ volatile ("la t0, handle_reset\n\tjr t0");
+    }
+}
+
+/* Lets the V3F restart the V5F. Equal priority with SysTick1, so neither
+   interrupt nests inside the other. */
+static void lfRestartListen(void)
+{
+    HSEM_ClearITPendingBit((HSEM_ID_TypeDef)CDC_RESTART_HSEM);
+    HSEM_ITConfig((HSEM_ID_TypeDef)CDC_RESTART_HSEM, ENABLE);
+    NVIC_SetPriority(HSEM_IRQn, 0);
+    NVIC_EnableIRQ(HSEM_IRQn);
+}
+
 /* Runs LiteForth on the USB CDC terminal. Never returns: `bye` restarts it. */
 static void LiteForth(void)
 {
@@ -105,19 +140,34 @@ static void LiteForth(void)
     }
 
     // Boot from flash once go.f has saved an image: it stores the boot
-    // record's address in cell 1. Blank flash reads 0xFFFFFFFF.
-    if ((uint32_t)flash[1] != 0xFFFFFFFFu) {
+    // record's address in cell 1. Erased flash reads FLASH_ERASED_WORD
+    // (0xE339E339) on this chip; 0xFFFFFFFF counts as blank too.
+    uint32_t boot = (uint32_t)flash[1];
+    if (boot != FLASH_ERASED_WORD && boot != 0xFFFFFFFFu) {
         g_lf_sys_options |= SYS_OPTION_BOOTING;
     }
-    printf("V5F: LiteForth starting, %s\r\n",
-           (g_lf_sys_options & SYS_OPTION_BOOTING) ? "booting from flash" : "flash is blank");
+
+    // Safe boot (Ctrl+X x3): boot the dictionary, but don't start the app.
+    int safe = (CDC_SHARED->safe_boot == CDC_SAFE_BOOT_MAGIC);
+    if (safe) {
+        CDC_SHARED->safe_boot = 0;
+        g_lf_sys_options |= SYS_OPTION_NO_AUTORUN;
+    }
+    printf("V5F: LiteForth starting, %s%s\r\n",
+           (g_lf_sys_options & SYS_OPTION_BOOTING) ? "booting from flash" : "flash is blank",
+           safe ? ", safe boot (app not started)" : "");
 
     serial_open(NULL, 0);
+    if (safe) {
+        const char *msg = "\r\nSafe boot (Ctrl+X x3): the app is not running. `cold` starts it.\r\n";
+        while (*msg) serial_putc(*msg++);
+    }
     while (1) {
         ior = lfQuit();                 // returns on bye
         lfSetColor(COLOR_NORMAL);
         serial_close();
         printf("V5F: lfQuit returned %d, restarting\r\n", ior);
+        g_lf_sys_options &= ~SYS_OPTION_NO_AUTORUN; // bye boots normally
     }
 }
 
@@ -140,6 +190,7 @@ int main(void)
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
     printf("V5F released HSEM0, running LiteForth\r\n");
     lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
+    lfRestartListen();                  /* Ctrl+X x3 on the terminal restarts us */
     LiteForth();
 
 #elif (Run_Core == Run_Core_V3F)

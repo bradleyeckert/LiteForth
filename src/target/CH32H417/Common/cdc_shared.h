@@ -3,7 +3,7 @@
  *
  * The V3F runs the USB device (Common/ch32h417_usbfs_device.c) and moves
  * bytes between the USB endpoints and two rings in shared SRAM
- * (V3F/User/cdc_bridge.c). The V5F reads and writes the rings through
+ * (Common/cdc_bridge.c). The V5F reads and writes the rings through
  * serial_io (V5F/User/serial_io.c). Nothing else is shared, so each core
  * runs its own app.
  *
@@ -24,6 +24,15 @@
  * is needed. CDC_FENCE orders each core's accesses: a producer stores the
  * data before the new head, and a consumer reads the data before it
  * publishes the new tail.
+ *
+ * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host make
+ * the V3F restart the V5F in safe-boot mode, so a runaway app can always be
+ * stopped from the terminal. The V3F sets safe_boot to CDC_SAFE_BOOT_MAGIC
+ * and signals HSEM CDC_RESTART_HSEM; the V5F's HSEM interrupt restarts it
+ * from its reset entry, and serial_open counts the start in v5f_starts.
+ * If that count doesn't change within CDC_RESTART_WAIT_MS, the V3F resets
+ * the whole chip. safe_boot lives here, outside both cores' .bss, so a
+ * restart doesn't clear it; the V5F clears it once it has seen it.
  */
 #ifndef CDC_SHARED_H
 #define CDC_SHARED_H
@@ -37,6 +46,10 @@ extern "C" {
 #define CDC_SHARED_ADDR     0x20178000u     /* RAM_SHARED in Link_v3f.ld */
 #define CDC_SHARED_MAGIC    0x43444331u     /* "CDC1": rings initialized */
 #define CDC_RING_SIZE       4096u           /* bytes per ring, power of 2 */
+#define CDC_SAFE_BOOT_MAGIC 0x5AFEB007u     /* safe_boot: skip the app's autorun */
+#define CDC_RESTART_HSEM    1               /* HSEM_ID1: V3F -> V5F restart request */
+#define CDC_RESTART_WAIT_MS 500             /* then the V3F resets the chip */
+#define CDC_CTRL_X          0x18            /* three in a row restart the V5F */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -46,7 +59,8 @@ typedef struct {
 
 typedef struct {
     volatile uint32_t magic;                /* CDC_SHARED_MAGIC once set up */
-    volatile uint32_t connected;            /* V3F: 1 while the host reads EP3 */
+    volatile uint32_t safe_boot;            /* CDC_SAFE_BOOT_MAGIC: next V5F start skips the app */
+    volatile uint32_t v5f_starts;           /* V5F: counts serial_open calls */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
 } cdc_shared_t;

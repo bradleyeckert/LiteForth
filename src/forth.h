@@ -359,7 +359,8 @@ int lfAPI_saveWids(void);
  * mapped VM memory or to a built-in list, e.g. a C pointer saved by an older
  * build) is set to NULL.
  * The search order is not changed. lfQuit calls this when
- * SYS_OPTION_BOOTING is set, then resets the VM and starts the app.
+ * SYS_OPTION_BOOTING is set, then resets the VM and starts the app, unless
+ * SYS_OPTION_NO_AUTORUN is set.
  * @return 0, or ERR_BAD_BOOT_RECORD if cell 1 doesn't point to a valid record.
  */
 int lfBootFromFlash(void);

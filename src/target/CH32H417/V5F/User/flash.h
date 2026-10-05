@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+/* What an erased flash cell reads as. WCH's flash doesn't read erased
+   cells as all ones: on the CH32H417 they read 0xE339E339. */
+#define FLASH_ERASED_WORD   0xE339E339u
+
 /*
  * LiteForth's flash pages in the CH32H417's code flash, for the V5F.
  *
@@ -14,7 +18,7 @@
 
 /**
  * Points mem at the first flash page. Flash is memory-mapped, so nothing is
- * loaded or created: an erased page reads as 0xFF.
+ * loaded or created: an erased page reads as FLASH_ERASED_WORD.
  * filename: ignored.
  * mem: receives a pointer to flash page 0 (the pages are contiguous).
  * Returns 0.

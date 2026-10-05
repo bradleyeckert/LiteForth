@@ -142,7 +142,9 @@ dictionary, is 64K instead of the desktop's 16K. `VM_LOG2_PAGES` stays 3.
 The VM reads the pages in place. `close-flash` calls `flash_program`, which
 erases the page (one 64K block) and programs it from the RAM cache with
 WCH's `FLASH_ROM_ERASE` / `FLASH_ROM_WRITE`, then reads it back to check.
-A page that hasn't changed isn't rewritten. While a page is open its 64K
+A page that hasn't changed isn't rewritten. Erased flash on this chip reads `0xE339E339`, not
+`0xFFFFFFFF` (`FLASH_ERASED_WORD` in `flash.h`), so `0 12 dump` of blank
+flash shows that pattern. While a page is open its 64K
 cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
 256K DTCM). Other geometries work too, as long as a page is a whole number
 of 8K sectors and all pages fit in the 256K; `options.h` checks both.
@@ -187,7 +189,8 @@ After it wakes the V3F, the V5F starts the time base (`lfTimeInit`), maps
 LiteForth's memory as the desktop `main.c` does (flash pages 0-3 in the
 code flash, the RAM page from the pool, the rest unmapped), and runs
 `lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
-the boot record pointer that `go.f` stores, isn't blank), it boots from it
+the boot record pointer that `go.f` stores, isn't `0xE339E339` or
+`0xFFFFFFFF`), it boots from it
 (`SYS_OPTION_BOOTING`). `bye` restarts `lfQuit`. USART8 shows
 `V5F: LiteForth starting, booting from flash` or `..., flash is blank`.
 
@@ -208,3 +211,41 @@ the host wait while LiteForth works, so it can go at full speed. `go.f`
 compiles into flash page 0 and saves a boot image; after the next reset
 the V5F boots it. Remember that a MounRiver download erases it (see
 *Flash* above).
+
+### Escape hatch: Ctrl+X three times
+
+Pressing **Ctrl+X three times in a row** restarts the V5F in safe mode:
+it boots the saved dictionary but doesn't start the app, and the
+terminal says so (`Safe boot (Ctrl+X x3): the app is not running.`);
+`cold` starts the app. So an app that misbehaves at boot can always be stopped and
+fixed. USB stays up, and the terminal stays connected.
+
+How it works:
+
+1. The V3F's bridge (`Common/cdc_bridge.c`) counts consecutive `0x18`
+   bytes as it copies input into the rx ring. The bytes still go to the
+   V5F, so a single Ctrl+X is an ordinary character. (Three CANs in a
+   row is also XMODEM's cancel sequence.)
+2. On the third, the V3F sets `safe_boot` in the shared memory to
+   `CDC_SAFE_BOOT_MAGIC` and takes and releases HSEM1.
+3. The V5F's `HSEM_Handler` (`V5F/User/main.c`) jumps to its reset entry,
+   `handle_reset`, which reruns its startup code and `main`. That startup
+   code doesn't touch the clocks or anything the V3F uses. LiteForth never
+   disables interrupts, so a runaway Forth app can't block this.
+4. `main` sees `safe_boot`, clears it and sets `SYS_OPTION_NO_AUTORUN`
+   (`-o 256` on the desktop), so `lfQuit` boots without starting the app.
+   `serial_open` drops the input that was waiting and counts the start in
+   `v5f_starts`. A later `bye` boots normally again.
+5. If `v5f_starts` hasn't changed after 500 ms (`CDC_RESTART_WAIT_MS`),
+   the V3F resets the whole chip. Then USB drops and the terminal must
+   reconnect; `safe_boot` is kept in the shared SRAM, so the V5F still
+   comes up in safe mode, provided the SRAM keeps its contents through a
+   system reset.
+
+The V3F's USART1 shows `Ctrl+X x3: restarting the V5F in safe mode`,
+then `V5F restarted` or `V5F didn't restart: resetting the chip`.
+
+It can't help if the V5F stopped reading input long enough for 4K of
+typing to pile up in the rx ring: the USB link then holds the PC back and
+the Ctrl+X presses can't arrive. A C-level crash on the V5F already resets
+the chip (WCH's `HardFault_Handler` calls `NVIC_SystemReset`).

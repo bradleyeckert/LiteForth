@@ -1,0 +1,978 @@
+   1              		.file	"ch32h417_opa.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.OPA_CMP_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	OPA_CMP_DeInit
+  14              	OPA_CMP_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_opa.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * File Name          : ch32h417_opa.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * Version            : V1.0.0
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * Date               : 2025/03/01
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * Description        : This file provides all the OPA firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** #include "ch32h417_opa.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** #include "ch32h417_rcc.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_DeInit
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Deinitializes the OPA and CMP peripheral registers to their default
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *        reset values.
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_CMP_DeInit(void)
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+  17              		.loc 1 25 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_0
+  19      E7020300 
+  20              		.cfi_offset 1, -4
+  21              		.cfi_def_cfa_offset 16
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     RCC_HB2PeriphResetCmd(RCC_HB2Periph_OPCM, ENABLE);
+  22              		.loc 1 26 5
+  23 0008 8545     		li	a1,1
+  24 000a 37058000 		li	a0,8388608
+  25 000e 97000000 		call	RCC_HB2PeriphResetCmd
+  25      E7800000 
+  26              	.LVL0:
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     RCC_HB2PeriphResetCmd(RCC_HB2Periph_OPCM, DISABLE);
+  27              		.loc 1 27 5
+  28 0016 8145     		li	a1,0
+  29 0018 37058000 		li	a0,8388608
+  30 001c 97000000 		call	RCC_HB2PeriphResetCmd
+  30      E7800000 
+  31              	.LVL1:
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+  32              		.loc 1 28 1 is_stmt 0
+  33 0024 17030000 		tail	__riscv_restore_0
+  33      67000300 
+  34              		.cfi_restore 1
+  35              		.cfi_def_cfa_offset 0
+  36              		.cfi_endproc
+  37              	.LFE40:
+  39              		.section	.text.OPA_Init,"ax",@progbits
+  40              		.align	1
+  41              		.globl	OPA_Init
+  43              	OPA_Init:
+  44              	.LFB41:
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_Init
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Initializes the OPA peripheral according to the specified
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *        parameters in the OPA_InitStruct.
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   OPA_InitStruct - pointer to a OPA_InitTypeDef structure
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_Init(OPA_Num_TypeDef OPAx,OPA_InitTypeDef *OPA_InitStruct)
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+  45              		.loc 1 41 1 is_stmt 1
+  46              		.cfi_startproc
+  47              	.LVL2:
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     uint32_t tmp0 = 0, tmp = 0;
+  48              		.loc 1 42 5
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp = (uint32_t)OPA_BASE;
+  49              		.loc 1 44 5
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp += (OPAx << 2);
+  50              		.loc 1 45 5
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp0 = (OPA_InitStruct->Mode)<< (1)|(OPA_InitStruct->PSEL)<<(3)\
+  51              		.loc 1 47 5
+  52              		.loc 1 47 34 is_stmt 0
+  53 0000 9C45     		lw	a5,8(a1)
+  54              		.loc 1 47 63
+  55 0002 9841     		lw	a4,0(a1)
+  56              		.loc 1 47 34
+  57 0004 8607     		slli	a5,a5,1
+  58              		.loc 1 47 63
+  59 0006 0E07     		slli	a4,a4,3
+  60              		.loc 1 47 40
+  61 0008 D98F     		or	a5,a5,a4
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****          | (OPA_InitStruct->NSEL)<< (4)\
+  62              		.loc 1 48 34
+  63 000a D841     		lw	a4,4(a1)
+  64 000c 1207     		slli	a4,a4,4
+  65              		.loc 1 48 10
+  66 000e D98F     		or	a5,a5,a4
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****          | (OPA_InitStruct->FB)<< (8) | (OPA_InitStruct->PGADIF)<< (9)\
+  67              		.loc 1 49 32
+  68 0010 D845     		lw	a4,12(a1)
+  69 0012 2207     		slli	a4,a4,8
+  70              		.loc 1 49 10
+  71 0014 D98F     		or	a5,a5,a4
+  72              		.loc 1 49 65
+  73 0016 9849     		lw	a4,16(a1)
+  74 0018 2607     		slli	a4,a4,9
+  75              		.loc 1 49 39
+  76 001a D98F     		or	a5,a5,a4
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****          | (OPA_InitStruct->HS)<< (10);
+  77              		.loc 1 50 32
+  78 001c D849     		lw	a4,20(a1)
+  79 001e 2A07     		slli	a4,a4,10
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****          | (OPA_InitStruct->NSEL)<< (4)\
+  80              		.loc 1 47 10
+  81 0020 D98F     		or	a5,a5,a4
+  82              	.LVL3:
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     *(__IO uint32_t *)tmp =  tmp0 ;
+  83              		.loc 1 52 5 is_stmt 1
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  84              		.loc 1 45 9 is_stmt 0
+  85 0022 37870140 		li	a4,1073840128
+  86 0026 13070780 		addi	a4,a4,-2048
+  87 002a 3345E520 		sh2add	a0,a0,a4
+  88              	.LVL4:
+  89              		.loc 1 52 27
+  90 002e 1CC1     		sw	a5,0(a0)
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+  91              		.loc 1 53 1
+  92 0030 8280     		ret
+  93              		.cfi_endproc
+  94              	.LFE41:
+  96              		.section	.text.OPA_StructInit,"ax",@progbits
+  97              		.align	1
+  98              		.globl	OPA_StructInit
+ 100              	OPA_StructInit:
+ 101              	.LFB42:
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_StructInit
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Fills each OPA_StructInit member with its reset value.
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   OPA_StructInit - pointer to a OPA_InitTypeDef structure
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_StructInit(OPA_InitTypeDef *OPA_InitStruct)
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 102              		.loc 1 65 1 is_stmt 1
+ 103              		.cfi_startproc
+ 104              	.LVL5:
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->Mode = OUT_TO_CMP;
+ 105              		.loc 1 66 5
+ 106              		.loc 1 66 26 is_stmt 0
+ 107 0000 8947     		li	a5,2
+ 108 0002 1CC5     		sw	a5,8(a0)
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->PSEL = CHP0;
+ 109              		.loc 1 67 5 is_stmt 1
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->NSEL = CHN_OFF;
+ 110              		.loc 1 68 26 is_stmt 0
+ 111 0004 9D47     		li	a5,7
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->PSEL = CHP0;
+ 112              		.loc 1 67 26
+ 113 0006 23200500 		sw	zero,0(a0)
+ 114              		.loc 1 68 5 is_stmt 1
+ 115              		.loc 1 68 26 is_stmt 0
+ 116 000a 5CC1     		sw	a5,4(a0)
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->PGADIF = DIF_OFF;
+ 117              		.loc 1 69 5 is_stmt 1
+ 118              		.loc 1 69 28 is_stmt 0
+ 119 000c 23280500 		sw	zero,16(a0)
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->FB = FB_OFF;
+ 120              		.loc 1 70 5 is_stmt 1
+ 121              		.loc 1 70 24 is_stmt 0
+ 122 0010 23260500 		sw	zero,12(a0)
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA_InitStruct->HS = HS_OFF;
+ 123              		.loc 1 71 5 is_stmt 1
+ 124              		.loc 1 71 24 is_stmt 0
+ 125 0014 232A0500 		sw	zero,20(a0)
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 126              		.loc 1 72 1
+ 127 0018 8280     		ret
+ 128              		.cfi_endproc
+ 129              	.LFE42:
+ 131              		.section	.text.OPA_Cmd,"ax",@progbits
+ 132              		.align	1
+ 133              		.globl	OPA_Cmd
+ 135              	OPA_Cmd:
+ 136              	.LFB43:
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_Cmd
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Enables or disables the specified OPA peripheral.
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   OPA_NUM - Select OPAx
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *          NewState - ENABLE or DISABLE.
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_Cmd(OPA_Num_TypeDef OPAx, FunctionalState NewState)
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 137              		.loc 1 85 1 is_stmt 1
+ 138              		.cfi_startproc
+ 139              	.LVL6:
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     uint32_t tmp = 0;
+ 140              		.loc 1 86 5
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp = (uint32_t)OPA_BASE;
+ 141              		.loc 1 87 5
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp += (OPAx << 2);
+ 142              		.loc 1 88 5
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     if(NewState != DISABLE)
+ 143              		.loc 1 90 5
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp += (OPAx << 2);
+ 144              		.loc 1 88 9 is_stmt 0
+ 145 0000 B7870140 		li	a5,1073840128
+ 146 0004 93870780 		addi	a5,a5,-2048
+ 147 0008 3345F520 		sh2add	a0,a0,a5
+ 148              	.LVL7:
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         *(__IO uint32_t *)tmp |= (1 << 0);
+ 149              		.loc 1 92 9
+ 150 000c 1C41     		lw	a5,0(a0)
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 151              		.loc 1 90 7
+ 152 000e 89C5     		beq	a1,zero,.L6
+ 153              		.loc 1 92 9 is_stmt 1
+ 154              		.loc 1 92 31 is_stmt 0
+ 155 0010 93E71700 		ori	a5,a5,1
+ 156              	.L8:
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     else
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         *(__IO uint32_t *)tmp &= ~(1 << 0);
+ 157              		.loc 1 96 31
+ 158 0014 1CC1     		sw	a5,0(a0)
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 159              		.loc 1 98 1
+ 160 0016 8280     		ret
+ 161              	.L6:
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 162              		.loc 1 96 9 is_stmt 1
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 163              		.loc 1 96 31 is_stmt 0
+ 164 0018 F99B     		andi	a5,a5,-2
+ 165 001a EDBF     		j	.L8
+ 166              		.cfi_endproc
+ 167              	.LFE43:
+ 169              		.section	.text.OPA_CMP_Init,"ax",@progbits
+ 170              		.align	1
+ 171              		.globl	OPA_CMP_Init
+ 173              	OPA_CMP_Init:
+ 174              	.LFB44:
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_CMP_Init
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Initializes the CMP peripheral according to the specified
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *        parameters in the CMP_InitTypeDef.
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   CMP_InitStruct - pointer to a CMP_InitTypeDef structure
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_CMP_Init(CMP_InitTypeDef *CMP_InitStruct)
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 175              		.loc 1 111 1 is_stmt 1
+ 176              		.cfi_startproc
+ 177              	.LVL8:
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     uint32_t tmp = 0;
+ 178              		.loc 1 112 5
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp = OPA->CMP_CTLR ;
+ 179              		.loc 1 113 5
+ 180              		.loc 1 113 9 is_stmt 0
+ 181 0000 B7860140 		li	a3,1073840128
+ 182 0004 93860680 		addi	a3,a3,-2048
+ 183 0008 DC46     		lw	a5,12(a3)
+ 184              	.LVL9:
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp &= ~(0x1FFF);
+ 185              		.loc 1 114 5 is_stmt 1
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp |= (CMP_InitStruct->PSEL) | (CMP_InitStruct->NSEL << 2) |\
+ 186              		.loc 1 115 5
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp &= ~(0x1FFF);
+ 187              		.loc 1 114 9 is_stmt 0
+ 188 000a 7977     		li	a4,-8192
+ 189 000c F98F     		and	a5,a5,a4
+ 190              	.LVL10:
+ 191 000e 1845     		lw	a4,8(a0)
+ 192 0010 D98F     		or	a5,a5,a4
+ 193              	.LVL11:
+ 194              		.loc 1 115 59
+ 195 0012 5841     		lw	a4,4(a0)
+ 196 0014 0A07     		slli	a4,a4,2
+ 197 0016 D98F     		or	a5,a5,a4
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****            (CMP_InitStruct->Mode << 4) | (CMP_InitStruct->HYPSEL << 9) |\
+ 198              		.loc 1 116 34
+ 199 0018 1841     		lw	a4,0(a0)
+ 200 001a 1207     		slli	a4,a4,4
+ 201 001c D98F     		or	a5,a5,a4
+ 202              		.loc 1 116 66
+ 203 001e 1849     		lw	a4,16(a0)
+ 204 0020 2607     		slli	a4,a4,9
+ 205 0022 D98F     		or	a5,a5,a4
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****            (CMP_InitStruct->VREF << 11);
+ 206              		.loc 1 117 34
+ 207 0024 5845     		lw	a4,12(a0)
+ 208 0026 2E07     		slli	a4,a4,11
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     tmp |= (CMP_InitStruct->PSEL) | (CMP_InitStruct->NSEL << 2) |\
+ 209              		.loc 1 115 9
+ 210 0028 D98F     		or	a5,a4,a5
+ 211              	.LVL12:
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA->CMP_CTLR = tmp;
+ 212              		.loc 1 119 5 is_stmt 1
+ 213              		.loc 1 119 19 is_stmt 0
+ 214 002a DCC6     		sw	a5,12(a3)
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 215              		.loc 1 120 1
+ 216 002c 8280     		ret
+ 217              		.cfi_endproc
+ 218              	.LFE44:
+ 220              		.section	.text.OPA_CMP_StructInit,"ax",@progbits
+ 221              		.align	1
+ 222              		.globl	OPA_CMP_StructInit
+ 224              	OPA_CMP_StructInit:
+ 225              	.LFB45:
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn     OPA_CMP_StructInit
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Fills each CMP_StructInit member with its reset value.
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   CMP_StructInit - pointer to a CMP_StructInit structure
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_CMP_StructInit(CMP_InitTypeDef *CMP_InitStruct)
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 226              		.loc 1 132 1 is_stmt 1
+ 227              		.cfi_startproc
+ 228              	.LVL13:
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     CMP_InitStruct->Mode = OUT_TO_IO;
+ 229              		.loc 1 133 5
+ 230              		.loc 1 133 26 is_stmt 0
+ 231 0000 23200500 		sw	zero,0(a0)
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     CMP_InitStruct->NSEL = CMP_CHN0;
+ 232              		.loc 1 134 5 is_stmt 1
+ 233              		.loc 1 134 26 is_stmt 0
+ 234 0004 23220500 		sw	zero,4(a0)
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     CMP_InitStruct->PSEL = CMP_CHP1;
+ 235              		.loc 1 135 5 is_stmt 1
+ 236              		.loc 1 135 26 is_stmt 0
+ 237 0008 23240500 		sw	zero,8(a0)
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     CMP_InitStruct->VREF = CMP_VREF_OFF;
+ 238              		.loc 1 136 5 is_stmt 1
+ 239              		.loc 1 136 26 is_stmt 0
+ 240 000c 23260500 		sw	zero,12(a0)
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     CMP_InitStruct->HYPSEL = CMP_HYPSEL_OFF;
+ 241              		.loc 1 137 5 is_stmt 1
+ 242              		.loc 1 137 28 is_stmt 0
+ 243 0010 23280500 		sw	zero,16(a0)
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 244              		.loc 1 138 1
+ 245 0014 8280     		ret
+ 246              		.cfi_endproc
+ 247              	.LFE45:
+ 249              		.section	.text.OPA_CMP_Cmd,"ax",@progbits
+ 250              		.align	1
+ 251              		.globl	OPA_CMP_Cmd
+ 253              	OPA_CMP_Cmd:
+ 254              	.LFB46:
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_CMP_Cmd
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Enables or disables the specified CMP peripheral.
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   NewState - ENABLE or DISABLE.
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_CMP_Cmd(FunctionalState NewState)
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 255              		.loc 1 150 1 is_stmt 1
+ 256              		.cfi_startproc
+ 257              	.LVL14:
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     if(NewState != DISABLE)
+ 258              		.loc 1 151 5
+ 259 0000 B7870140 		li	a5,1073840128
+ 260 0004 93870780 		addi	a5,a5,-2048
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         OPA->CMP_CTLR |= OPA_CMP_CTLR_EN;
+ 261              		.loc 1 153 12 is_stmt 0
+ 262 0008 D847     		lw	a4,12(a5)
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     if(NewState != DISABLE)
+ 263              		.loc 1 151 7
+ 264 000a 09C5     		beq	a0,zero,.L12
+ 265              		.loc 1 153 9 is_stmt 1
+ 266              		.loc 1 153 23 is_stmt 0
+ 267 000c 13670710 		ori	a4,a4,256
+ 268              	.L14:
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     else
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         OPA->CMP_CTLR &= ~OPA_CMP_CTLR_EN;
+ 269              		.loc 1 157 23
+ 270 0010 D8C7     		sw	a4,12(a5)
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 271              		.loc 1 159 1
+ 272 0012 8280     		ret
+ 273              	.L12:
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 274              		.loc 1 157 9 is_stmt 1
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 275              		.loc 1 157 23 is_stmt 0
+ 276 0014 1377F7EF 		andi	a4,a4,-257
+ 277 0018 E5BF     		j	.L14
+ 278              		.cfi_endproc
+ 279              	.LFE46:
+ 281              		.section	.text.OPA_CMP_FILT_Cmd,"ax",@progbits
+ 282              		.align	1
+ 283              		.globl	OPA_CMP_FILT_Cmd
+ 285              	OPA_CMP_FILT_Cmd:
+ 286              	.LFB47:
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_CMP_FILT_Cmd
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Enables or disables digital filtering the specified CMP.
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   NewState - ENABLE or DISABLE.
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_CMP_FILT_Cmd(FunctionalState NewState)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 287              		.loc 1 171 1 is_stmt 1
+ 288              		.cfi_startproc
+ 289              	.LVL15:
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     if(NewState != DISABLE)
+ 290              		.loc 1 172 5
+ 291 0000 B7870140 		li	a5,1073840128
+ 292 0004 93870780 		addi	a5,a5,-2048
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         OPA->CMP_CTLR |= OPA_CMP_CTLR_FILT_EN;
+ 293              		.loc 1 174 12 is_stmt 0
+ 294 0008 D847     		lw	a4,12(a5)
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     if(NewState != DISABLE)
+ 295              		.loc 1 172 7
+ 296 000a 09C5     		beq	a0,zero,.L16
+ 297              		.loc 1 174 9 is_stmt 1
+ 298              		.loc 1 174 23 is_stmt 0
+ 299 000c 1317D728 		bseti	a4,a4,13
+ 300              	.L18:
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     else
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         OPA->CMP_CTLR &= ~OPA_CMP_CTLR_FILT_EN;
+ 301              		.loc 1 178 23
+ 302 0010 D8C7     		sw	a4,12(a5)
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 303              		.loc 1 180 1
+ 304 0012 8280     		ret
+ 305              	.L16:
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 306              		.loc 1 178 9 is_stmt 1
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 307              		.loc 1 178 23 is_stmt 0
+ 308 0014 1317D748 		bclri	a4,a4,13
+ 309 0018 E5BF     		j	.L18
+ 310              		.cfi_endproc
+ 311              	.LFE47:
+ 313              		.section	.text.OPA_CMP_FILTConfig,"ax",@progbits
+ 314              		.align	1
+ 315              		.globl	OPA_CMP_FILTConfig
+ 317              	OPA_CMP_FILTConfig:
+ 318              	.LFB48:
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_CMP_FILTConfig
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Configures the digital filtering sampling time base and interval of the CMP.
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   FILT_TimeBase - the digital filtering sampling time base.
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *            CMP_FILT_TimeBase_Div1 - HSE or HSI clock/1.
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *            CMP_FILT_TimeBase_Div2 - HSE or HSI clock/2.
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *            CMP_FILT_TimeBase_Div3 - HSE or HSI clock/3.
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *            CMP_FILT_TimeBase_Div4 - HSE or HSI clock/4.
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *          FILT_TimeInterval - the digital filtering sampling interval.
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *            This parameter must be a 9bit value.
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  none
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** void OPA_CMP_FILTConfig(uint8_t FILT_TimeBase, uint16_t FILT_TimeInterval)
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 319              		.loc 1 198 1 is_stmt 1
+ 320              		.cfi_startproc
+ 321              	.LVL16:
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA->CMP_CTLR &= ~(OPA_CMP_CTLR_FILT_CFG | OPA_CMP_CTLR_FILT_BASE);
+ 322              		.loc 1 199 5
+ 323              		.loc 1 199 8 is_stmt 0
+ 324 0000 B7870140 		li	a5,1073840128
+ 325 0004 93870780 		addi	a5,a5,-2048
+ 326 0008 D847     		lw	a4,12(a5)
+ 327              		.loc 1 199 19
+ 328 000a B706018E 		li	a3,-1912537088
+ 329 000e FD16     		addi	a3,a3,-1
+ 330 0010 758F     		and	a4,a4,a3
+ 331 0012 D8C7     		sw	a4,12(a5)
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     OPA->CMP_CTLR |= ((uint32_t)FILT_TimeBase << 28) | ((uint32_t)FILT_TimeInterval << 16);
+ 332              		.loc 1 200 5 is_stmt 1
+ 333              		.loc 1 200 8 is_stmt 0
+ 334 0014 D847     		lw	a4,12(a5)
+ 335              		.loc 1 200 85
+ 336 0016 C205     		slli	a1,a1,16
+ 337              	.LVL17:
+ 338              		.loc 1 200 47
+ 339 0018 7205     		slli	a0,a0,28
+ 340              	.LVL18:
+ 341              		.loc 1 200 19
+ 342 001a D98D     		or	a1,a1,a4
+ 343 001c C98D     		or	a1,a1,a0
+ 344 001e CCC7     		sw	a1,12(a5)
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 345              		.loc 1 201 1
+ 346 0020 8280     		ret
+ 347              		.cfi_endproc
+ 348              	.LFE48:
+ 350              		.section	.text.OPA_CMP_GetOutStatus,"ax",@progbits
+ 351              		.align	1
+ 352              		.globl	OPA_CMP_GetOutStatus
+ 354              	OPA_CMP_GetOutStatus:
+ 355              	.LFB49:
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** /*********************************************************************
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @fn      OPA_CMP_GetOutStatus
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @brief   Obtain the output status of the comparator.
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @param   none
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  *
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  * @return  FlagStatus - SET or RESET.
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****  */
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** FlagStatus OPA_CMP_GetOutStatus(void)
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** {
+ 356              		.loc 1 213 1 is_stmt 1
+ 357              		.cfi_startproc
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     FlagStatus bitstatus = RESET;
+ 358              		.loc 1 214 5
+ 359              	.LVL19:
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     if((OPA->CMP_STATR & OPA_CMP_STATR_OUTFILT) != (uint32_t)RESET)
+ 360              		.loc 1 216 5
+ 361              		.loc 1 216 12 is_stmt 0
+ 362 0000 B7870140 		li	a5,1073840128
+ 363 0004 93870780 		addi	a5,a5,-2048
+ 364 0008 884B     		lw	a0,16(a5)
+ 365              	.LVL20:
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         bitstatus = SET;
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     else
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     {
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****         bitstatus = RESET;
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     }
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** 
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c ****     return bitstatus;
+ 366              		.loc 1 225 5 is_stmt 1
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_opa.c **** }
+ 367              		.loc 1 226 1 is_stmt 0
+ 368 000a 0589     		andi	a0,a0,1
+ 369              	.LVL21:
+ 370 000c 8280     		ret
+ 371              		.cfi_endproc
+ 372              	.LFE49:
+ 374              		.text
+ 375              	.Letext0:
+ 376              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 377              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 378              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 379              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 380              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_opa.h"
+ 381              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_opa.c
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:14     .text.OPA_CMP_DeInit:0000000000000000 OPA_CMP_DeInit
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:18     .text.OPA_CMP_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:19     .text.OPA_CMP_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:19     .text.OPA_CMP_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:20     .text.OPA_CMP_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:21     .text.OPA_CMP_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:23     .text.OPA_CMP_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:28     .text.OPA_CMP_DeInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:33     .text.OPA_CMP_DeInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:34     .text.OPA_CMP_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:35     .text.OPA_CMP_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:36     .text.OPA_CMP_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:43     .text.OPA_Init:0000000000000000 OPA_Init
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:46     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:48     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:49     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:50     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:51     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:52     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:53     .text.OPA_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:53     .text.OPA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:55     .text.OPA_Init:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:57     .text.OPA_Init:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:59     .text.OPA_Init:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:61     .text.OPA_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:63     .text.OPA_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:66     .text.OPA_Init:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:68     .text.OPA_Init:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:71     .text.OPA_Init:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:73     .text.OPA_Init:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:76     .text.OPA_Init:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:78     .text.OPA_Init:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:81     .text.OPA_Init:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:84     .text.OPA_Init:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:85     .text.OPA_Init:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:90     .text.OPA_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:92     .text.OPA_Init:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:93     .text.OPA_Init:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:100    .text.OPA_StructInit:0000000000000000 OPA_StructInit
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:103    .text.OPA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:105    .text.OPA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:106    .text.OPA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:107    .text.OPA_StructInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:107    .text.OPA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:110    .text.OPA_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:111    .text.OPA_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:113    .text.OPA_StructInit:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:115    .text.OPA_StructInit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:116    .text.OPA_StructInit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:118    .text.OPA_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:119    .text.OPA_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:121    .text.OPA_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:122    .text.OPA_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:124    .text.OPA_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:125    .text.OPA_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:127    .text.OPA_StructInit:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:128    .text.OPA_StructInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:135    .text.OPA_Cmd:0000000000000000 OPA_Cmd
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:138    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:140    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:141    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:142    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:143    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:144    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:145    .text.OPA_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:145    .text.OPA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:150    .text.OPA_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:152    .text.OPA_Cmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:154    .text.OPA_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:155    .text.OPA_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:158    .text.OPA_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:160    .text.OPA_Cmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:163    .text.OPA_Cmd:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:164    .text.OPA_Cmd:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:166    .text.OPA_Cmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:173    .text.OPA_CMP_Init:0000000000000000 OPA_CMP_Init
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:176    .text.OPA_CMP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:178    .text.OPA_CMP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:179    .text.OPA_CMP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:180    .text.OPA_CMP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:181    .text.OPA_CMP_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:181    .text.OPA_CMP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:186    .text.OPA_CMP_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:187    .text.OPA_CMP_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:188    .text.OPA_CMP_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:195    .text.OPA_CMP_Init:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:199    .text.OPA_CMP_Init:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:203    .text.OPA_CMP_Init:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:207    .text.OPA_CMP_Init:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:210    .text.OPA_CMP_Init:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:213    .text.OPA_CMP_Init:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:214    .text.OPA_CMP_Init:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:216    .text.OPA_CMP_Init:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:217    .text.OPA_CMP_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:224    .text.OPA_CMP_StructInit:0000000000000000 OPA_CMP_StructInit
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:227    .text.OPA_CMP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:229    .text.OPA_CMP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:230    .text.OPA_CMP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:231    .text.OPA_CMP_StructInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:231    .text.OPA_CMP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:233    .text.OPA_CMP_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:234    .text.OPA_CMP_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:236    .text.OPA_CMP_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:237    .text.OPA_CMP_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:239    .text.OPA_CMP_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:240    .text.OPA_CMP_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:242    .text.OPA_CMP_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:243    .text.OPA_CMP_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:245    .text.OPA_CMP_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:246    .text.OPA_CMP_StructInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:253    .text.OPA_CMP_Cmd:0000000000000000 OPA_CMP_Cmd
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:256    .text.OPA_CMP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:258    .text.OPA_CMP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:259    .text.OPA_CMP_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:259    .text.OPA_CMP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:262    .text.OPA_CMP_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:264    .text.OPA_CMP_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:266    .text.OPA_CMP_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:267    .text.OPA_CMP_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:270    .text.OPA_CMP_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:272    .text.OPA_CMP_Cmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:275    .text.OPA_CMP_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:276    .text.OPA_CMP_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:278    .text.OPA_CMP_Cmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:285    .text.OPA_CMP_FILT_Cmd:0000000000000000 OPA_CMP_FILT_Cmd
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:288    .text.OPA_CMP_FILT_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:290    .text.OPA_CMP_FILT_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:291    .text.OPA_CMP_FILT_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:291    .text.OPA_CMP_FILT_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:294    .text.OPA_CMP_FILT_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:296    .text.OPA_CMP_FILT_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:298    .text.OPA_CMP_FILT_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:299    .text.OPA_CMP_FILT_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:302    .text.OPA_CMP_FILT_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:304    .text.OPA_CMP_FILT_Cmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:307    .text.OPA_CMP_FILT_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:308    .text.OPA_CMP_FILT_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:310    .text.OPA_CMP_FILT_Cmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:317    .text.OPA_CMP_FILTConfig:0000000000000000 OPA_CMP_FILTConfig
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:320    .text.OPA_CMP_FILTConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:322    .text.OPA_CMP_FILTConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:323    .text.OPA_CMP_FILTConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:324    .text.OPA_CMP_FILTConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:324    .text.OPA_CMP_FILTConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:328    .text.OPA_CMP_FILTConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:333    .text.OPA_CMP_FILTConfig:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:334    .text.OPA_CMP_FILTConfig:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:336    .text.OPA_CMP_FILTConfig:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:339    .text.OPA_CMP_FILTConfig:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:342    .text.OPA_CMP_FILTConfig:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:346    .text.OPA_CMP_FILTConfig:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:347    .text.OPA_CMP_FILTConfig:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:354    .text.OPA_CMP_GetOutStatus:0000000000000000 OPA_CMP_GetOutStatus
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:357    .text.OPA_CMP_GetOutStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:358    .text.OPA_CMP_GetOutStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:360    .text.OPA_CMP_GetOutStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:361    .text.OPA_CMP_GetOutStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:362    .text.OPA_CMP_GetOutStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:362    .text.OPA_CMP_GetOutStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:367    .text.OPA_CMP_GetOutStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:368    .text.OPA_CMP_GetOutStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:371    .text.OPA_CMP_GetOutStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000000a5 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000000f7 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:000000000000013b .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000001c5 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:000000000000024b .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:0000000000000285 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000002c9 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000002d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000002e7 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:00000000000002f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:0000000000000302 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:000000000000030f .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:000000000000031a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2128   .debug_line_str:0000000000000329 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:39     .text.OPA_CMP_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:96     .text.OPA_Init:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:131    .text.OPA_StructInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:169    .text.OPA_Cmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:220    .text.OPA_CMP_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:249    .text.OPA_CMP_StructInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:281    .text.OPA_CMP_Cmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:313    .text.OPA_CMP_FILT_Cmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:350    .text.OPA_CMP_FILTConfig:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:374    .text.OPA_CMP_GetOutStatus:000000000000000e .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:161    .text.OPA_Cmd:0000000000000018 .L6
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:156    .text.OPA_Cmd:0000000000000014 .L8
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:273    .text.OPA_CMP_Cmd:0000000000000014 .L12
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:268    .text.OPA_CMP_Cmd:0000000000000010 .L14
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:305    .text.OPA_CMP_FILT_Cmd:0000000000000014 .L16
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:300    .text.OPA_CMP_FILT_Cmd:0000000000000010 .L18
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1200   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1943   .debug_str:0000000000000165 .LASF117
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2124   .debug_line_str:0000000000000000 .LASF0
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2126   .debug_line_str:0000000000000053 .LASF1
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1849   .debug_rnglists:000000000000000c .LLRL9
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1883   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2025   .debug_str:0000000000000410 .LASF2
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2019   .debug_str:00000000000003da .LASF3
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1985   .debug_str:000000000000033a .LASF6
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2005   .debug_str:0000000000000393 .LASF4
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1929   .debug_str:0000000000000126 .LASF5
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1927   .debug_str:000000000000011b .LASF7
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2041   .debug_str:0000000000000458 .LASF8
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1975   .debug_str:000000000000030e .LASF9
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1917   .debug_str:00000000000000e3 .LASF10
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2063   .debug_str:00000000000004e6 .LASF11
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1963   .debug_str:00000000000002be .LASF12
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2021   .debug_str:00000000000003e6 .LASF13
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2089   .debug_str:000000000000059a .LASF14
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2027   .debug_str:000000000000041d .LASF15
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1947   .debug_str:0000000000000253 .LASF16
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1955   .debug_str:0000000000000288 .LASF17
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2119   .debug_str:0000000000000649 .LASF18
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2071   .debug_str:000000000000052c .LASF19
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2085   .debug_str:0000000000000581 .LASF20
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2115   .debug_str:000000000000062d .LASF21
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2029   .debug_str:0000000000000426 .LASF22
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2031   .debug_str:000000000000042c .LASF23
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2033   .debug_str:0000000000000432 .LASF24
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1987   .debug_str:0000000000000344 .LASF25
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1965   .debug_str:00000000000002cc .LASF26
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2083   .debug_str:0000000000000575 .LASF27
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2039   .debug_str:0000000000000453 .LASF28
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1991   .debug_str:000000000000035a .LASF29
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1993   .debug_str:000000000000035f .LASF30
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1995   .debug_str:0000000000000364 .LASF31
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1903   .debug_str:0000000000000079 .LASF32
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1937   .debug_str:000000000000014e .LASF33
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1939   .debug_str:0000000000000153 .LASF34
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2065   .debug_str:00000000000004f8 .LASF35
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2101   .debug_str:00000000000005d5 .LASF36
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2053   .debug_str:00000000000004a5 .LASF37
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2045   .debug_str:0000000000000475 .LASF38
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2037   .debug_str:0000000000000445 .LASF39
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1951   .debug_str:0000000000000271 .LASF40
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2091   .debug_str:00000000000005a2 .LASF41
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1923   .debug_str:0000000000000100 .LASF42
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2109   .debug_str:00000000000005fb .LASF43
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1999   .debug_str:0000000000000373 .LASF44
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2001   .debug_str:000000000000037f .LASF45
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2079   .debug_str:000000000000055d .LASF46
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1967   .debug_str:00000000000002d6 .LASF47
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2107   .debug_str:00000000000005f4 .LASF48
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1907   .debug_str:000000000000009c .LASF49
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1961   .debug_str:00000000000002af .LASF50
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2097   .debug_str:00000000000005c9 .LASF51
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1931   .debug_str:0000000000000130 .LASF52
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2057   .debug_str:00000000000004b8 .LASF53
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1983   .debug_str:0000000000000332 .LASF54
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1887   .debug_str:0000000000000005 .LASF55
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1905   .debug_str:0000000000000089 .LASF56
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2017   .debug_str:00000000000003d5 .LASF57
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1885   .debug_str:0000000000000000 .LASF58
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2099   .debug_str:00000000000005d0 .LASF59
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2015   .debug_str:00000000000003ce .LASF60
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1959   .debug_str:000000000000029f .LASF61
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1981   .debug_str:0000000000000328 .LASF62
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2007   .debug_str:00000000000003a1 .LASF63
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2055   .debug_str:00000000000004aa .LASF64
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1973   .debug_str:0000000000000301 .LASF65
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2035   .debug_str:0000000000000438 .LASF66
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1899   .debug_str:000000000000005c .LASF67
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1989   .debug_str:000000000000034d .LASF68
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2069   .debug_str:000000000000051f .LASF69
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2081   .debug_str:0000000000000568 .LASF70
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1921   .debug_str:00000000000000f3 .LASF71
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1969   .debug_str:00000000000002e7 .LASF72
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2047   .debug_str:0000000000000482 .LASF73
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1895   .debug_str:000000000000003d .LASF74
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2073   .debug_str:000000000000053c .LASF75
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1911   .debug_str:00000000000000b3 .LASF76
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1979   .debug_str:000000000000031e .LASF77
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2013   .debug_str:00000000000003bd .LASF78
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2075   .debug_str:000000000000054b .LASF79
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2077   .debug_str:0000000000000554 .LASF80
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2105   .debug_str:00000000000005eb .LASF81
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1935   .debug_str:0000000000000145 .LASF82
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2103   .debug_str:00000000000005da .LASF83
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2043   .debug_str:000000000000046b .LASF84
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2095   .debug_str:00000000000005bf .LASF85
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2011   .debug_str:00000000000003b4 .LASF86
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2117   .debug_str:0000000000000638 .LASF87
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1941   .debug_str:0000000000000158 .LASF88
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1925   .debug_str:0000000000000108 .LASF89
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2121   .debug_str:0000000000000650 .LASF90
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1891   .debug_str:000000000000001c .LASF91
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1897   .debug_str:000000000000004b .LASF92
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1933   .debug_str:0000000000000136 .LASF93
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2061   .debug_str:00000000000004d6 .LASF94
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1889   .debug_str:000000000000000c .LASF95
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1901   .debug_str:0000000000000069 .LASF96
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2023   .debug_str:00000000000003fd .LASF97
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1919   .debug_str:00000000000000ee .LASF98
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1977   .debug_str:0000000000000317 .LASF99
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2049   .debug_str:0000000000000490 .LASF100
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2067   .debug_str:0000000000000509 .LASF118
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1949   .debug_str:000000000000025c .LASF119
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:355    .text.OPA_CMP_GetOutStatus:0000000000000000 .LFB49
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:372    .text.OPA_CMP_GetOutStatus:000000000000000e .LFE49
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1997   .debug_str:0000000000000369 .LASF110
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1637   .debug_loclists:000000000000000c .LLST8
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2087   .debug_str:0000000000000587 .LASF103
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:318    .text.OPA_CMP_FILTConfig:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:348    .text.OPA_CMP_FILTConfig:0000000000000022 .LFE48
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1913   .debug_str:00000000000000c2 .LASF101
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1659   .debug_loclists:0000000000000033 .LLST6
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2111   .debug_str:000000000000060c .LASF102
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1674   .debug_loclists:000000000000004d .LLST7
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1909   .debug_str:00000000000000a2 .LASF104
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:286    .text.OPA_CMP_FILT_Cmd:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:311    .text.OPA_CMP_FILT_Cmd:000000000000001a .LFE47
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1945   .debug_str:000000000000024a .LASF105
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1971   .debug_str:00000000000002f5 .LASF106
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:254    .text.OPA_CMP_Cmd:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:279    .text.OPA_CMP_Cmd:000000000000001a .LFE46
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1915   .debug_str:00000000000000d0 .LASF107
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:225    .text.OPA_CMP_StructInit:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:247    .text.OPA_CMP_StructInit:0000000000000016 .LFE45
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2059   .debug_str:00000000000004c7 .LASF108
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1893   .debug_str:0000000000000030 .LASF109
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:174    .text.OPA_CMP_Init:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:218    .text.OPA_CMP_Init:000000000000002e .LFE44
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1689   .debug_loclists:0000000000000067 .LLST5
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2003   .debug_str:000000000000038b .LASF111
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:136    .text.OPA_Cmd:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:167    .text.OPA_Cmd:000000000000001c .LFE43
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2009   .debug_str:00000000000003af .LASF112
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1717   .debug_loclists:000000000000009b .LLST3
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1732   .debug_loclists:00000000000000b5 .LLST4
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2113   .debug_str:000000000000061e .LASF113
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:101    .text.OPA_StructInit:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:129    .text.OPA_StructInit:000000000000001a .LFE42
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1957   .debug_str:0000000000000290 .LASF114
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1953   .debug_str:000000000000027f .LASF115
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:44     .text.OPA_Init:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:94     .text.OPA_Init:0000000000000032 .LFE41
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1757   .debug_loclists:00000000000000e1 .LLST0
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2051   .debug_str:00000000000004a0 .LASF116
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1772   .debug_loclists:00000000000000fb .LLST1
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:1785   .debug_loclists:0000000000000113 .LLST2
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:2093   .debug_str:00000000000005b0 .LASF120
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:15     .text.OPA_CMP_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:37     .text.OPA_CMP_DeInit:000000000000002c .LFE40
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:26     .text.OPA_CMP_DeInit:0000000000000016 .LVL0
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:31     .text.OPA_CMP_DeInit:0000000000000024 .LVL1
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:359    .text.OPA_CMP_GetOutStatus:0000000000000000 .LVL19
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:365    .text.OPA_CMP_GetOutStatus:000000000000000a .LVL20
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:369    .text.OPA_CMP_GetOutStatus:000000000000000c .LVL21
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:321    .text.OPA_CMP_FILTConfig:0000000000000000 .LVL16
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:340    .text.OPA_CMP_FILTConfig:000000000000001a .LVL18
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:337    .text.OPA_CMP_FILTConfig:0000000000000018 .LVL17
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:177    .text.OPA_CMP_Init:0000000000000000 .LVL8
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:184    .text.OPA_CMP_Init:000000000000000a .LVL9
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:190    .text.OPA_CMP_Init:000000000000000e .LVL10
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:193    .text.OPA_CMP_Init:0000000000000012 .LVL11
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:211    .text.OPA_CMP_Init:000000000000002a .LVL12
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:139    .text.OPA_Cmd:0000000000000000 .LVL6
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:148    .text.OPA_Cmd:000000000000000c .LVL7
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:47     .text.OPA_Init:0000000000000000 .LVL2
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:88     .text.OPA_Init:000000000000002e .LVL4
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:82     .text.OPA_Init:0000000000000022 .LVL3
+C:\Users\User\AppData\Local\Temp\ccwCJkxN.s:383    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+RCC_HB2PeriphResetCmd
+__riscv_restore_0

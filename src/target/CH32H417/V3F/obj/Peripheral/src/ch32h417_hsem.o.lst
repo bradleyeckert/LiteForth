@@ -1,0 +1,1788 @@
+   1              		.file	"ch32h417_hsem.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.HSEM_Take,"ax",@progbits
+  11              		.align	1
+  12              		.globl	HSEM_Take
+  14              	HSEM_Take:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_hsem.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /********************************** (C) COPYRIGHT *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * File Name          : ch32h417_hsem.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * Version            : V1.0.0
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * Date               : 2025/03/01
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * Description        : This file provides all the HSEM firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** #include "ch32h417_hsem.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /* HSEM Key */
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** #define HSEM_KEY   (0x5AA50000)
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_Take
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Take a semaphore in 2 Step mode.
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          ProcessID - Process ID from 0 to 255.
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  READY - Take success.
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          NoREADY - Take error.
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** ErrorStatus HSEM_Take(HSEM_ID_TypeDef HSEM_ID, uint32_t ProcessID)
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+  17              		.loc 1 29 1
+  18              		.cfi_startproc
+  19              	.LVL0:
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     ErrorStatus status = NoREADY;
+  20              		.loc 1 30 5
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->RX[HSEM_ID] = ((ProcessID & 0xFF) | ((NVIC_GetCurrentCoreID() << 8) | (1 << 31)));
+  21              		.loc 1 32 5
+  22              	.LBB10:
+  23              	.LBB11:
+  24              		.file 2 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * File Name          : core_riscv.h
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Version            : V1.0.2
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Date               : 2026/03/18
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Description        : RISC-V V3F_V5F Core Peripheral Access Layer Header File for CH32H417_416_415
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifndef __CORE_RISCV_H__
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define __CORE_RISCV_H__
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  extern "C" {
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* IO definitions */
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile                /* defines 'read only' permissions    */
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #else
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile const          /* defines 'read only' permissions    */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __O     volatile                /* defines 'write only' permissions   */
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __IO    volatile                /* defines 'read / write' permissions */
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Standard Peripheral Library old types (maintained for legacy purpose) */
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint64_t vuc64;  /* Read Only */
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint32_t vuc32;  /* Read Only */
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint16_t vuc16;  /* Read Only */
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint8_t  vuc8;   /* Read Only */
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint64_t uc64;  /* Read Only */
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint32_t uc32;  /* Read Only */
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint16_t uc16;  /* Read Only */
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint8_t  uc8;   /* Read Only */
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int64_t vsc64;  /* Read Only */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int32_t vsc32;  /* Read Only */
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int16_t vsc16;  /* Read Only */
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int8_t  vsc8;   /* Read Only */
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int64_t sc64;  /* Read Only */
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int32_t sc32;  /* Read Only */
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int16_t sc16;  /* Read Only */
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int8_t  sc8;   /* Read Only */
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint64_t  vu64;
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint32_t  vu32;
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint16_t  vu16;
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint8_t   vu8;
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint64_t  u64;
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint32_t  u32;
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint16_t  u16;
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint8_t   u8;
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int64_t  vs64;
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int32_t  vs32;
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int16_t  vs16;
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int8_t   vs8;
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int64_t  s64;
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int32_t  s32;
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int16_t  s16;
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int8_t   s8;
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {NoREADY = 0, READY = !NoREADY} ErrorStatus;
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define RV_STATIC_INLINE  static inline
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for HSEM */
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t RX[32];
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[0x80];
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t RLRX[32]; 
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x80];
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t LSE;
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[4];
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CLR;
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t KEY;
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0xF0];
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IER;
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[4];
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVE5[4];
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[4];
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t LSM;
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }HSEM_Type;
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for IPC */
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR;
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ENA;
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t STS;
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t SET;
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t CLR;
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t MSG[4];
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }IPC_Type;
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for Program Fast Interrupt Controller (PFIC) */
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct{
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR[8];
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IPR[8];
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ITHRESDR;
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED;
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CFGR;
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t GISR;
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t VTFIDR[4];
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[12];
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t VTFADDR[4];
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x90];
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IENR[8];
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[0x60];
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IRER[8];
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0x60];
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPSR[8];
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[0x60];
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPRR[8];
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED5[0x60];
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IACTR[8];
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[0xE0];
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IPRIOR[256];
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED7[0x100]; 
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IALLOCR[256];
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IAUTR[8];
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t WAKEIP[2];
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED8[0x58]; 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t CSTAR[2];
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED9[0x4F8]; 
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EENR;
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EPR;
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EWUPR;
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED10[0x84]; 
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t SCTLR;
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }PFIC_Type;
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for SysTick */
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;  //only for SysTick0
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CNT;
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CMP;
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }SysTick_Type;
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define HSEM          ((HSEM_Type *) 0xE000C000 )
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define IPC           ((IPC_Type *) 0xE000D000 )
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define PFIC          ((PFIC_Type *) 0xE000E000 )
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define NVIC          PFIC
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define	NVIC_KEY3		  ((uint32_t)0xBEEF0000)
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick0      ((SysTick_Type *) 0xE000F000)
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick1      ((SysTick_Type *) 0xE000F080)
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Core_ID */
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V3F   ((uint8_t)0x00)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V5F   ((uint8_t)0x01)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_MASK;
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_WkupSource;
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __enable_irq
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Global Interrupt
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __enable_irq()
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrs 0x800, %0" : : "r" (0x88) );
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __disable_irq
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Global Interrupt
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __disable_irq()
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrc 0x800, %0" : : "r" (0x88) );
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __NOP
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   nop
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __NOP()
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("nop");
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_EnableIRQ
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Interrupt
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn)
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_DisableIRQ
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Interrupt
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn)
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IRER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetStatusIRQ
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Enable State
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Enable
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Disable
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_Type IRQn)
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->ISR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetPendingIRQ
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Pending State
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Pending Enable
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Pending Disable
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPendingIRQ
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Pending
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPSR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_ClearPendingIRQ
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Clear Interrupt Pending
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetActive
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Active State
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Active
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt No Active
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn)
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IACTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPriority
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Priority
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V5F:
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 5~8 Level(CSR-0x804 bit1 = 1 bit[3:2] = 3)
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:5] - Preemption Priority
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[4] - Sub priority
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 3~4 Level(CSR-0x804 bit1 = 1 bit[3:2] = 2)
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:6] - Preemption Priority
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[5:4] - Sub priority
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *             priority - bit[7:4] - Sub priority
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V3F:
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:4] - Sub priority
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint8_t p
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRIOR[(uint32_t)(IRQn)] = priority;
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetAllocateIRQ
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Allocate 
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to V5F
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Allocate to V3F
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetAllocateIRQ(IRQn_Type IRQn)
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IALLOCR[(uint32_t)(IRQn)] & (1 << 0))?1:0));
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetAllocateIRQ
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Allocate
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers ( >31 )
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          Core_ID - Core ID
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V5F - V5F
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V3F - V3F
+ 376:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 378:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 379:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetAllocateIRQ(IRQn_Type IRQn, uint8_
+ 380:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 381:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(IRQn > 31)
+ 382:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IALLOCR[(uint32_t)(IRQn)] = Core_ID;
+ 383:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 384:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 385:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 386:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_OwnCoreGetAllocateIRQ
+ 387:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 388:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Own Core Get Interrupt Allocate 
+ 389:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 390:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 391:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 392:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to own core
+ 393:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - No allocate to own core
+ 394:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 395:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_OwnCoreGetAllocateIRQ(IRQn_Type I
+ 396:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 397:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IAUTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 398:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 399:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 400:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 401:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFI
+ 402:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 403:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Interrupt
+ 404:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 405:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 406:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 407:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFI(void)
+ 408:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 409:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR &= ~(1<<3);	// wfi
+ 410:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 411:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 412:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 413:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 414:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      _SEV
+ 415:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 416:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Event
+ 417:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 418:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 419:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 420:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void _SEV(void)
+ 421:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 422:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t t;
+ 423:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 424:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   t = NVIC->SCTLR;
+ 425:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3)|(1<<5);
+ 426:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR = (NVIC->SCTLR & ~(1<<5)) | ( t & (1<<5));
+ 427:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 428:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 429:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 430:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE_IDSET
+ 431:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 432:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Events ID
+ 433:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 434:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 435:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 436:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE_IDSET(uint32_t LINE_ID)
+ 437:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 438:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_MASK |= LINE_ID;
+ 439:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 440:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 441:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 442:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE
+ 443:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 444:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Events
+ 445:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 446:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 447:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 448:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE(void)
+ 449:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 450:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __attribute__((unused)) uint32_t t=0;
+ 451:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 452:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 |= WFE_MASK;
+ 453:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 454:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = 0;
+ 455:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->EPR = 0xFFFFFFFF;
+ 456:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3);
+ 457:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 458:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   for(;;)
+ 460:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     t = *(__IO uint32_t*)0x40010414;
+ 462:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     if((t & WFE_MASK) || (WFE_MASK == 0))
+ 463:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     {
+ 464:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****       break;
+ 465:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     } else{
+ 466:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****      asm volatile ("wfi");
+ 467:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     }
+ 468:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }  
+ 469:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = *(__IO uint32_t*)0x40010414;
+ 470:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 &= ~WFE_MASK;
+ 471:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010414 |= WFE_MASK;
+ 472:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 473:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 474:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 475:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      SetVTFIRQ
+ 476:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 477:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set VTF Interrupt
+ 478:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 479:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - VTF interrupt service function base address.
+ 480:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          IRQn -Interrupt Numbers
+ 481:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          num - VTF Interrupt Numbers
+ 482:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          NewState - DISABLE or ENABLE
+ 483:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 484:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 485:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 486:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IRQn_Type IRQn, u
+ 487:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 488:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(num > 3)  return ;
+ 489:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 490:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if (NewState != DISABLE)
+ 491:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 492:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFIDR[num] = IRQn;
+ 493:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFADDR[num] = ((addr&0xFFFFFFFE)|0x1);
+ 494:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }
+ 495:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   else
+ 496:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 497:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFIDR[num] = IRQn;
+ 498:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFADDR[num] = ((addr&0xFFFFFFFE)&(~0x1));
+ 499:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }
+ 500:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 501:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 502:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 503:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SystemReset
+ 504:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 505:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Initiate a system reset request
+ 506:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 507:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 508:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 509:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SystemReset(void)
+ 510:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 511:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->CFGR = NVIC_KEY3|(1<<7);
+ 512:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 513:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 514:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 515:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_WakeUp_V3F
+ 516:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 517:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wake up V3F and set address for PC
+ 518:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 519:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - V3F wake up address for PC(addr%1024 == 0).
+ 520:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 521:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 522:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 523:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_WakeUp_V3F(uint32_t addr)
+ 524:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 525:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   addr &= ~0x3FF; 
+ 526:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->WAKEIP[0] = addr;
+ 527:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<5);
+ 528:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 529:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 530:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 531:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_WakeUp_V5F
+ 532:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 533:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wake up V5F and set address for PC
+ 534:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 535:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - V5F wake up address for PC(addr%1024 == 0).
+ 536:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 537:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 538:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 539:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_WakeUp_V5F(uint32_t addr)
+ 540:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 541:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   addr &= ~0x3FF; 
+ 542:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->WAKEIP[1] = addr;
+ 543:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<5);
+ 544:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 545:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 546:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 547:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetCurrentCoreID
+ 548:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 549:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Current Core ID
+ 550:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 551:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - V5F
+ 552:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - V3F
+ 553:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 554:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetCurrentCoreID(void)
+ 555:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 556:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)(NVIC->SCTLR & (1<<16))?1:0);
+  25              		.loc 2 556 25 is_stmt 0
+  26 0000 37F700E0 		li	a4,-536809472
+  27 0004 832707D1 		lw	a5,-752(a4)
+  28              	.LBE11:
+  29              	.LBE10:
+  30              		.loc 1 32 37
+  31 0008 93F5F50F 		andi	a1,a1,0xff
+  32              	.LVL1:
+  33              	.LBB13:
+  34              	.LBB12:
+  35              		.loc 2 556 3 is_stmt 1
+  36 000c B7C600E0 		li	a3,-536821760
+  37              		.loc 2 556 45 is_stmt 0
+  38 0010 93D70749 		bexti	a5,a5,16
+  39              	.LBE12:
+  40              	.LBE13:
+  41              		.loc 1 32 73
+  42 0014 A207     		slli	a5,a5,8
+  43              		.loc 1 32 45
+  44 0016 CD8F     		or	a5,a5,a1
+  45 0018 3345D520 		sh2add	a0,a0,a3
+  46              	.LVL2:
+  47 001c 9397F729 		bseti	a5,a5,31
+  48              		.loc 1 32 23
+  49 0020 1CC1     		sw	a5,0(a0)
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if( HSEM->RX[HSEM_ID] == ((ProcessID & 0xFF) | ((NVIC_GetCurrentCoreID() << 8) | (1 << 31))))
+  50              		.loc 1 34 5 is_stmt 1
+  51              		.loc 1 34 17 is_stmt 0
+  52 0022 1C41     		lw	a5,0(a0)
+  53              	.LBB14:
+  54              	.LBB15:
+  55              		.loc 2 556 3 is_stmt 1
+  56              		.loc 2 556 25 is_stmt 0
+  57 0024 032507D1 		lw	a0,-752(a4)
+  58              	.LVL3:
+  59              	.LBE15:
+  60              	.LBE14:
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         status = READY;
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     else
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         status = NoREADY;
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return (status);
+  61              		.loc 1 43 5 is_stmt 1
+  62              	.LBB17:
+  63              	.LBB16:
+  64              		.loc 2 556 45 is_stmt 0
+  65 0028 13550549 		bexti	a0,a0,16
+  66              	.LVL4:
+  67              	.LBE16:
+  68              	.LBE17:
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  69              		.loc 1 34 78
+  70 002c 2205     		slli	a0,a0,8
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  71              		.loc 1 34 50
+  72 002e 4D8D     		or	a0,a0,a1
+  73 0030 1315F529 		bseti	a0,a0,31
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  74              		.loc 1 34 7
+  75 0034 1D8D     		sub	a0,a0,a5
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+  76              		.loc 1 44 1
+  77 0036 13351500 		seqz	a0,a0
+  78 003a 8280     		ret
+  79              		.cfi_endproc
+  80              	.LFE40:
+  82              		.section	.text.HSEM_FastTake,"ax",@progbits
+  83              		.align	1
+  84              		.globl	HSEM_FastTake
+  86              	HSEM_FastTake:
+  87              	.LFB41:
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_FastTake
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Fast Take a semaphore with 1 Step mode.
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  READY - Take success.
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          NoREADY - Take error.
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** ErrorStatus HSEM_FastTake(HSEM_ID_TypeDef HSEM_ID)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+  88              		.loc 1 57 1 is_stmt 1
+  89              		.cfi_startproc
+  90              	.LVL5:
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     ErrorStatus status = NoREADY;
+  91              		.loc 1 58 5
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if( HSEM->RLRX[HSEM_ID] == ((NVIC_GetCurrentCoreID() << 8) | (1 << 31)))
+  92              		.loc 1 60 5
+  93              		.loc 1 60 19 is_stmt 0
+  94 0000 B7C700E0 		li	a5,-536821760
+  95 0004 13050504 		addi	a0,a0,64
+  96              	.LVL6:
+  97              	.LBB18:
+  98              	.LBB19:
+  99              		.loc 2 556 25
+ 100 0008 37F700E0 		li	a4,-536809472
+ 101              	.LBE19:
+ 102              	.LBE18:
+ 103              		.loc 1 60 19
+ 104 000c 3345F520 		sh2add	a0,a0,a5
+ 105              	.LVL7:
+ 106 0010 1C41     		lw	a5,0(a0)
+ 107              	.LBB22:
+ 108              	.LBB20:
+ 109              		.loc 2 556 3 is_stmt 1
+ 110              		.loc 2 556 25 is_stmt 0
+ 111 0012 032507D1 		lw	a0,-752(a4)
+ 112              	.LVL8:
+ 113              	.LBE20:
+ 114              	.LBE22:
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         status = READY;
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     else
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         status = NoREADY;
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return (status);
+ 115              		.loc 1 69 5 is_stmt 1
+ 116              	.LBB23:
+ 117              	.LBB21:
+ 118              		.loc 2 556 45 is_stmt 0
+ 119 0016 13550549 		bexti	a0,a0,16
+ 120              	.LVL9:
+ 121              	.LBE21:
+ 122              	.LBE23:
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 123              		.loc 1 60 58
+ 124 001a 2205     		slli	a0,a0,8
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 125              		.loc 1 60 64
+ 126 001c 1315F529 		bseti	a0,a0,31
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 127              		.loc 1 60 7
+ 128 0020 1D8D     		sub	a0,a0,a5
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 129              		.loc 1 70 1
+ 130 0022 13351500 		seqz	a0,a0
+ 131 0026 8280     		ret
+ 132              		.cfi_endproc
+ 133              	.LFE41:
+ 135              		.section	.text.HSEM_GetOneSemTakenState,"ax",@progbits
+ 136              		.align	1
+ 137              		.globl	HSEM_GetOneSemTakenState
+ 139              	HSEM_GetOneSemTakenState:
+ 140              	.LFB42:
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_GetOneSemTakenState
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Get one semaphore state Taken or not.
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  ENABLE - Take.
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          DISABLE - No Take.
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** FunctionalState HSEM_GetOneSemTakenState(HSEM_ID_TypeDef HSEM_ID)
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 141              		.loc 1 83 1 is_stmt 1
+ 142              		.cfi_startproc
+ 143              	.LVL10:
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     FunctionalState status = DISABLE;
+ 144              		.loc 1 84 5
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if( (HSEM->RX[HSEM_ID] & (1 << 31)) == (1 << 31))
+ 145              		.loc 1 86 5
+ 146              		.loc 1 86 18 is_stmt 0
+ 147 0000 B7C700E0 		li	a5,-536821760
+ 148 0004 3345F520 		sh2add	a0,a0,a5
+ 149              	.LVL11:
+ 150 0008 0841     		lw	a0,0(a0)
+ 151              	.LVL12:
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         status = ENABLE;
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     else
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         status = DISABLE;
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return (status);
+ 152              		.loc 1 95 5 is_stmt 1
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 153              		.loc 1 96 1 is_stmt 0
+ 154 000a 7D81     		srli	a0,a0,31
+ 155              	.LVL13:
+ 156 000c 8280     		ret
+ 157              		.cfi_endproc
+ 158              	.LFE42:
+ 160              		.section	.text.HSEM_GetAllSemTakenState,"ax",@progbits
+ 161              		.align	1
+ 162              		.globl	HSEM_GetAllSemTakenState
+ 164              	HSEM_GetAllSemTakenState:
+ 165              	.LFB43:
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_GetAllSemTakenState
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Get all semaphore state Taken or not.
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  All semaphore state Taken or not.
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** uint32_t HSEM_GetAllSemTakenState(void)
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 166              		.loc 1 106 1 is_stmt 1
+ 167              		.cfi_startproc
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return (HSEM->LSE);
+ 168              		.loc 1 107 5
+ 169              		.loc 1 107 17 is_stmt 0
+ 170 0000 B7C700E0 		li	a5,-536821760
+ 171 0004 03A50720 		lw	a0,512(a5)
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 172              		.loc 1 108 1
+ 173 0008 8280     		ret
+ 174              		.cfi_endproc
+ 175              	.LFE43:
+ 177              		.section	.text.HSEM_OwnCoreGetAllSemTakenState,"ax",@progbits
+ 178              		.align	1
+ 179              		.globl	HSEM_OwnCoreGetAllSemTakenState
+ 181              	HSEM_OwnCoreGetAllSemTakenState:
+ 182              	.LFB44:
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_OwnCoreGetAllSemTakenState
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Its own core(V3F or V5F) get all semaphore state Taken or not.
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  All semaphore state Taken or not for own core(V3F or V5F) .
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** uint32_t HSEM_OwnCoreGetAllSemTakenState(void)
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 183              		.loc 1 118 1 is_stmt 1
+ 184              		.cfi_startproc
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return (HSEM->LSM);
+ 185              		.loc 1 119 5
+ 186              		.loc 1 119 17 is_stmt 0
+ 187 0000 B7C700E0 		li	a5,-536821760
+ 188 0004 03A58731 		lw	a0,792(a5)
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 189              		.loc 1 120 1
+ 190 0008 8280     		ret
+ 191              		.cfi_endproc
+ 192              	.LFE44:
+ 194              		.section	.text.HSEM_ReleaseOneSem,"ax",@progbits
+ 195              		.align	1
+ 196              		.globl	HSEM_ReleaseOneSem
+ 198              	HSEM_ReleaseOneSem:
+ 199              	.LFB45:
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ReleaseOneSem
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Release one semaphore.
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          ProcessID - Process ID from 0 to 255.
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ReleaseOneSem(HSEM_ID_TypeDef HSEM_ID, uint32_t ProcessID)
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 200              		.loc 1 133 1 is_stmt 1
+ 201              		.cfi_startproc
+ 202              	.LVL14:
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->RX[HSEM_ID] = (ProcessID & 0xFF) | ((NVIC_GetCurrentCoreID() << 8));
+ 203              		.loc 1 134 5
+ 204              	.LBB24:
+ 205              	.LBB25:
+ 206              		.loc 2 556 3
+ 207              		.loc 2 556 25 is_stmt 0
+ 208 0000 B7F700E0 		li	a5,-536809472
+ 209 0004 83A707D1 		lw	a5,-752(a5)
+ 210              	.LBE25:
+ 211              	.LBE24:
+ 212              		.loc 1 134 36
+ 213 0008 93F5F50F 		andi	a1,a1,0xff
+ 214              	.LVL15:
+ 215              		.loc 1 134 23
+ 216 000c 37C700E0 		li	a4,-536821760
+ 217              	.LBB27:
+ 218              	.LBB26:
+ 219              		.loc 2 556 45
+ 220 0010 93D70749 		bexti	a5,a5,16
+ 221              	.LBE26:
+ 222              	.LBE27:
+ 223              		.loc 1 134 72
+ 224 0014 A207     		slli	a5,a5,8
+ 225              		.loc 1 134 44
+ 226 0016 CD8F     		or	a5,a5,a1
+ 227              		.loc 1 134 23
+ 228 0018 3345E520 		sh2add	a0,a0,a4
+ 229              	.LVL16:
+ 230 001c 1CC1     		sw	a5,0(a0)
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 231              		.loc 1 135 1
+ 232 001e 8280     		ret
+ 233              		.cfi_endproc
+ 234              	.LFE45:
+ 236              		.section	.text.HSEM_ReleaseAllSem,"ax",@progbits
+ 237              		.align	1
+ 238              		.globl	HSEM_ReleaseAllSem
+ 240              	HSEM_ReleaseAllSem:
+ 241              	.LFB46:
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ReleaseAllSem
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Release all semaphore.
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ReleaseAllSem(void)
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 242              		.loc 1 145 1 is_stmt 1
+ 243              		.cfi_startproc
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->CLR = HSEM_KEY | (1<<13) | (1<<12);
+ 244              		.loc 1 146 5
+ 245              		.loc 1 146 15 is_stmt 0
+ 246 0000 B7C700E0 		li	a5,-536821760
+ 247 0004 3737A55A 		li	a4,1520775168
+ 248 0008 23A4E720 		sw	a4,520(a5)
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 249              		.loc 1 147 1
+ 250 000c 8280     		ret
+ 251              		.cfi_endproc
+ 252              	.LFE46:
+ 254              		.section	.text.HSEM_ReleaseSem_MatchCID_PID,"ax",@progbits
+ 255              		.align	1
+ 256              		.globl	HSEM_ReleaseSem_MatchCID_PID
+ 258              	HSEM_ReleaseSem_MatchCID_PID:
+ 259              	.LFB47:
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ReleaseSem_MatchCID_PID
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Release semaphore that matches the ProcessID and CoreID.
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   CoreID - core ID.
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *            HSEM_Core_ID_V3F - Riscv V3F
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *            HSEM_Core_ID_V5F - Riscv V5F
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          ProcessID - Process ID from 0 to 255.
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ReleaseSem_MatchCID_PID(uint32_t CoreID, uint32_t ProcessID)
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 260              		.loc 1 162 1 is_stmt 1
+ 261              		.cfi_startproc
+ 262              	.LVL17:
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->CLR = HSEM_KEY | CoreID | (ProcessID & 0xFF);
+ 263              		.loc 1 163 5
+ 264              		.loc 1 163 48 is_stmt 0
+ 265 0000 93F5F50F 		andi	a1,a1,0xff
+ 266              	.LVL18:
+ 267              		.loc 1 163 35
+ 268 0004 B707A55A 		li	a5,1520762880
+ 269 0008 C98D     		or	a1,a1,a0
+ 270 000a DD8D     		or	a1,a1,a5
+ 271              		.loc 1 163 15
+ 272 000c B7C700E0 		li	a5,-536821760
+ 273 0010 23A4B720 		sw	a1,520(a5)
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 274              		.loc 1 164 1
+ 275 0014 8280     		ret
+ 276              		.cfi_endproc
+ 277              	.LFE47:
+ 279              		.section	.text.HSEM_ReleaseSem_MatchCID,"ax",@progbits
+ 280              		.align	1
+ 281              		.globl	HSEM_ReleaseSem_MatchCID
+ 283              	HSEM_ReleaseSem_MatchCID:
+ 284              	.LFB48:
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ReleaseSem_MatchCID
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Release semaphore that matches the CoreID.
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   CoreID - core ID.
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *            HSEM_Core_ID_V3F - Riscv V3F
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *            HSEM_Core_ID_V5F - Riscv V5F
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ReleaseSem_MatchCID(uint32_t CoreID )
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 285              		.loc 1 178 1 is_stmt 1
+ 286              		.cfi_startproc
+ 287              	.LVL19:
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->CLR = HSEM_KEY | CoreID | (1<<12);
+ 288              		.loc 1 179 5
+ 289              		.loc 1 179 35 is_stmt 0
+ 290 0000 B717A55A 		li	a5,1520766976
+ 291 0004 5D8D     		or	a0,a0,a5
+ 292              	.LVL20:
+ 293              		.loc 1 179 15
+ 294 0006 B7C700E0 		li	a5,-536821760
+ 295 000a 23A4A720 		sw	a0,520(a5)
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 296              		.loc 1 180 1
+ 297 000e 8280     		ret
+ 298              		.cfi_endproc
+ 299              	.LFE48:
+ 301              		.section	.text.HSEM_ReleaseSem_MatchPID,"ax",@progbits
+ 302              		.align	1
+ 303              		.globl	HSEM_ReleaseSem_MatchPID
+ 305              	HSEM_ReleaseSem_MatchPID:
+ 306              	.LFB49:
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ReleaseSem_MatchPID
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Release semaphore that matches the ProcessID and CoreID.
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   ProcessID - Process ID from 0 to 255.
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ReleaseSem_MatchPID(uint32_t ProcessID)
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 307              		.loc 1 192 1 is_stmt 1
+ 308              		.cfi_startproc
+ 309              	.LVL21:
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->CLR = HSEM_KEY | (ProcessID & 0xFF) | (1<<13);
+ 310              		.loc 1 193 5
+ 311              		.loc 1 193 47 is_stmt 0
+ 312 0000 B727A55A 		li	a5,1520771072
+ 313              		.loc 1 193 39
+ 314 0004 1375F50F 		andi	a0,a0,0xff
+ 315              	.LVL22:
+ 316              		.loc 1 193 47
+ 317 0008 5D8D     		or	a0,a0,a5
+ 318              		.loc 1 193 15
+ 319 000a B7C700E0 		li	a5,-536821760
+ 320 000e 23A4A720 		sw	a0,520(a5)
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 321              		.loc 1 194 1
+ 322 0012 8280     		ret
+ 323              		.cfi_endproc
+ 324              	.LFE49:
+ 326              		.section	.text.HSEM_SetClearKey,"ax",@progbits
+ 327              		.align	1
+ 328              		.globl	HSEM_SetClearKey
+ 330              	HSEM_SetClearKey:
+ 331              	.LFB50:
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_SetClearKey
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Set semaphore Key.
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   Key - semaphore key value from 0 to 0xFFFF.      
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_SetClearKey(uint32_t Key)
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 332              		.loc 1 206 1 is_stmt 1
+ 333              		.cfi_startproc
+ 334              	.LVL23:
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->CLR = (Key << 16);
+ 335              		.loc 1 207 5
+ 336              		.loc 1 207 22 is_stmt 0
+ 337 0000 4205     		slli	a0,a0,16
+ 338              	.LVL24:
+ 339              		.loc 1 207 15
+ 340 0002 B7C700E0 		li	a5,-536821760
+ 341 0006 23A4A720 		sw	a0,520(a5)
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 342              		.loc 1 208 1
+ 343 000a 8280     		ret
+ 344              		.cfi_endproc
+ 345              	.LFE50:
+ 347              		.section	.text.HSEM_GetClearKey,"ax",@progbits
+ 348              		.align	1
+ 349              		.globl	HSEM_GetClearKey
+ 351              	HSEM_GetClearKey:
+ 352              	.LFB51:
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_GetClearKey
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Get semaphore Key.
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  semaphore key value from 0 to 0xFFFF.
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** uint32_t HSEM_GetClearKey(void)
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 353              		.loc 1 218 1 is_stmt 1
+ 354              		.cfi_startproc
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return ((HSEM->KEY >> 16));
+ 355              		.loc 1 219 5
+ 356              		.loc 1 219 18 is_stmt 0
+ 357 0000 B7C700E0 		li	a5,-536821760
+ 358 0004 03A5C720 		lw	a0,524(a5)
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 359              		.loc 1 220 1
+ 360 0008 4181     		srli	a0,a0,16
+ 361 000a 8280     		ret
+ 362              		.cfi_endproc
+ 363              	.LFE51:
+ 365              		.section	.text.HSEM_ITConfig,"ax",@progbits
+ 366              		.align	1
+ 367              		.globl	HSEM_ITConfig
+ 369              	HSEM_ITConfig:
+ 370              	.LFB52:
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ITConfig
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Enables or disables the HSEM interrupts.
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *          NewState - ENABLE or DISABLE.
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ITConfig(HSEM_ID_TypeDef HSEM_ID, FunctionalState NewState)
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 371              		.loc 1 233 1 is_stmt 1
+ 372              		.cfi_startproc
+ 373              	.LVL25:
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if(NewState != DISABLE)
+ 374              		.loc 1 234 5
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         HSEM->IER |= (1 << HSEM_ID);
+ 375              		.loc 1 236 25 is_stmt 0
+ 376 0000 3315A028 		bset	a0,x0,a0
+ 377              	.LVL26:
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if(NewState != DISABLE)
+ 378              		.loc 1 234 7
+ 379 0004 89C9     		beq	a1,zero,.L14
+ 380              		.loc 1 236 9 is_stmt 1
+ 381              		.loc 1 236 13 is_stmt 0
+ 382 0006 37C700E0 		li	a4,-536821760
+ 383 000a 83270730 		lw	a5,768(a4)
+ 384              		.loc 1 236 19
+ 385 000e C98F     		or	a5,a5,a0
+ 386 0010 2320F730 		sw	a5,768(a4)
+ 387 0014 8280     		ret
+ 388              	.L14:
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     else
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         HSEM->IER &= (~(uint32_t)(1 << HSEM_ID));
+ 389              		.loc 1 240 9 is_stmt 1
+ 390              		.loc 1 240 13 is_stmt 0
+ 391 0016 B7C700E0 		li	a5,-536821760
+ 392 001a 03A70730 		lw	a4,768(a5)
+ 393              		.loc 1 240 19
+ 394 001e 3375A740 		andn	a0,a4,a0
+ 395 0022 23A0A730 		sw	a0,768(a5)
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 396              		.loc 1 242 1
+ 397 0026 8280     		ret
+ 398              		.cfi_endproc
+ 399              	.LFE52:
+ 401              		.section	.text.HSEM_GetFlagStatus,"ax",@progbits
+ 402              		.align	1
+ 403              		.globl	HSEM_GetFlagStatus
+ 405              	HSEM_GetFlagStatus:
+ 406              	.LFB53:
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_GetFlagStatus
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Checks whether the specified HSEM flag is set or not.
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  FlagStatus: SET or RESET.
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** FlagStatus HSEM_GetFlagStatus(HSEM_ID_TypeDef HSEM_ID)
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 407              		.loc 1 254 1 is_stmt 1
+ 408              		.cfi_startproc
+ 409              	.LVL27:
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     FlagStatus bitstatus = RESET;
+ 410              		.loc 1 255 5
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if((HSEM->ISR & (1<<HSEM_ID)) != (uint32_t)RESET)
+ 411              		.loc 1 257 5
+ 412              		.loc 1 257 13 is_stmt 0
+ 413 0000 B7C700E0 		li	a5,-536821760
+ 414 0004 83A78730 		lw	a5,776(a5)
+ 415              	.LVL28:
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         bitstatus = SET;
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     else
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         bitstatus = RESET;
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return bitstatus;
+ 416              		.loc 1 266 5 is_stmt 1
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 417              		.loc 1 267 1 is_stmt 0
+ 418 0008 33D5A748 		bext	a0,a5,a0
+ 419              	.LVL29:
+ 420 000c 8280     		ret
+ 421              		.cfi_endproc
+ 422              	.LFE53:
+ 424              		.section	.text.HSEM_ClearFlag,"ax",@progbits
+ 425              		.align	1
+ 426              		.globl	HSEM_ClearFlag
+ 428              	HSEM_ClearFlag:
+ 429              	.LFB54:
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ClearFlag
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Clears the HSEM's pending flags.
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ClearFlag(HSEM_ID_TypeDef HSEM_ID)
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 430              		.loc 1 279 1 is_stmt 1
+ 431              		.cfi_startproc
+ 432              	.LVL30:
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     HSEM->ISR = (1<<HSEM_ID);
+ 433              		.loc 1 280 5
+ 434              		.loc 1 280 15 is_stmt 0
+ 435 0000 B7C700E0 		li	a5,-536821760
+ 436              		.loc 1 280 19
+ 437 0004 3315A028 		bset	a0,x0,a0
+ 438              	.LVL31:
+ 439              		.loc 1 280 15
+ 440 0008 23A4A730 		sw	a0,776(a5)
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 441              		.loc 1 281 1
+ 442 000c 8280     		ret
+ 443              		.cfi_endproc
+ 444              	.LFE54:
+ 446              		.section	.text.HSEM_GetITStatus,"ax",@progbits
+ 447              		.align	1
+ 448              		.globl	HSEM_GetITStatus
+ 450              	HSEM_GetITStatus:
+ 451              	.LFB55:
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_GetITStatus
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Checks whether the specified HSEM interrupt has occurred or not.
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  FlagStatus: SET or RESET.
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** ITStatus HSEM_GetITStatus(HSEM_ID_TypeDef HSEM_ID)
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** {
+ 452              		.loc 1 293 1 is_stmt 1
+ 453              		.cfi_startproc
+ 454              	.LVL32:
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     ITStatus bitstatus = RESET;
+ 455              		.loc 1 294 5
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     if(((HSEM->ISM & (1<<HSEM_ID)) != (uint32_t)RESET))
+ 456              		.loc 1 296 5
+ 457              		.loc 1 296 14 is_stmt 0
+ 458 0000 B7C700E0 		li	a5,-536821760
+ 459 0004 83A70731 		lw	a5,784(a5)
+ 460              	.LVL33:
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         bitstatus = SET;
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     else
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     {
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****         bitstatus = RESET;
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     }
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****     return bitstatus;
+ 461              		.loc 1 305 5 is_stmt 1
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** }
+ 462              		.loc 1 306 1 is_stmt 0
+ 463 0008 33D5A748 		bext	a0,a5,a0
+ 464              	.LVL34:
+ 465 000c 8280     		ret
+ 466              		.cfi_endproc
+ 467              	.LFE55:
+ 469              		.section	.text.HSEM_ClearITPendingBit,"ax",@progbits
+ 470              		.align	1
+ 471              		.globl	HSEM_ClearITPendingBit
+ 473              	HSEM_ClearITPendingBit:
+ 474              	.LFB58:
+ 475              		.cfi_startproc
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** 
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** /*********************************************************************
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @fn      HSEM_ClearITPendingBit
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @brief   Clears the HSEM's interrupt pending bits.
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @param   HSEM_ID - pointer to a HSEM_ID_TypeDef structure.
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  *
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  * @return  none
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c ****  */
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_hsem.c **** void HSEM_ClearITPendingBit(HSEM_ID_TypeDef HSEM_ID)
+ 476              		.loc 1 317 6 is_stmt 1
+ 477 0000 B7C700E0 		li	a5,-536821760
+ 478 0004 3315A028 		bset	a0,x0,a0
+ 479 0008 23A4A730 		sw	a0,776(a5)
+ 480 000c 8280     		ret
+ 481              		.cfi_endproc
+ 482              	.LFE58:
+ 484              		.text
+ 485              	.Letext0:
+ 486              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 487              		.file 4 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 488              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_hsem.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_hsem.c
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:14     .text.HSEM_Take:0000000000000000 HSEM_Take
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:18     .text.HSEM_Take:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:20     .text.HSEM_Take:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:21     .text.HSEM_Take:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:25     .text.HSEM_Take:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:26     .text.HSEM_Take:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:26     .text.HSEM_Take:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:31     .text.HSEM_Take:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:36     .text.HSEM_Take:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:38     .text.HSEM_Take:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:42     .text.HSEM_Take:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:44     .text.HSEM_Take:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:49     .text.HSEM_Take:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:51     .text.HSEM_Take:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:52     .text.HSEM_Take:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:56     .text.HSEM_Take:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:57     .text.HSEM_Take:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:64     .text.HSEM_Take:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:65     .text.HSEM_Take:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:70     .text.HSEM_Take:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:72     .text.HSEM_Take:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:75     .text.HSEM_Take:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:77     .text.HSEM_Take:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:79     .text.HSEM_Take:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:86     .text.HSEM_FastTake:0000000000000000 HSEM_FastTake
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:89     .text.HSEM_FastTake:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:91     .text.HSEM_FastTake:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:92     .text.HSEM_FastTake:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:93     .text.HSEM_FastTake:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:94     .text.HSEM_FastTake:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:94     .text.HSEM_FastTake:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:100    .text.HSEM_FastTake:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:104    .text.HSEM_FastTake:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:110    .text.HSEM_FastTake:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:111    .text.HSEM_FastTake:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:118    .text.HSEM_FastTake:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:119    .text.HSEM_FastTake:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:124    .text.HSEM_FastTake:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:126    .text.HSEM_FastTake:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:128    .text.HSEM_FastTake:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:130    .text.HSEM_FastTake:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:132    .text.HSEM_FastTake:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:139    .text.HSEM_GetOneSemTakenState:0000000000000000 HSEM_GetOneSemTakenState
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:142    .text.HSEM_GetOneSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:144    .text.HSEM_GetOneSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:145    .text.HSEM_GetOneSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:146    .text.HSEM_GetOneSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:147    .text.HSEM_GetOneSemTakenState:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:147    .text.HSEM_GetOneSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:153    .text.HSEM_GetOneSemTakenState:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:154    .text.HSEM_GetOneSemTakenState:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:157    .text.HSEM_GetOneSemTakenState:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:164    .text.HSEM_GetAllSemTakenState:0000000000000000 HSEM_GetAllSemTakenState
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:167    .text.HSEM_GetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:168    .text.HSEM_GetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:169    .text.HSEM_GetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:170    .text.HSEM_GetAllSemTakenState:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:170    .text.HSEM_GetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:173    .text.HSEM_GetAllSemTakenState:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:174    .text.HSEM_GetAllSemTakenState:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:181    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 HSEM_OwnCoreGetAllSemTakenState
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:184    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:185    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:186    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:187    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:187    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:190    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:191    .text.HSEM_OwnCoreGetAllSemTakenState:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:198    .text.HSEM_ReleaseOneSem:0000000000000000 HSEM_ReleaseOneSem
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:201    .text.HSEM_ReleaseOneSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:203    .text.HSEM_ReleaseOneSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:206    .text.HSEM_ReleaseOneSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:207    .text.HSEM_ReleaseOneSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:208    .text.HSEM_ReleaseOneSem:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:208    .text.HSEM_ReleaseOneSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:213    .text.HSEM_ReleaseOneSem:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:216    .text.HSEM_ReleaseOneSem:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:220    .text.HSEM_ReleaseOneSem:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:224    .text.HSEM_ReleaseOneSem:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:226    .text.HSEM_ReleaseOneSem:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:228    .text.HSEM_ReleaseOneSem:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:232    .text.HSEM_ReleaseOneSem:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:233    .text.HSEM_ReleaseOneSem:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:240    .text.HSEM_ReleaseAllSem:0000000000000000 HSEM_ReleaseAllSem
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:243    .text.HSEM_ReleaseAllSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:244    .text.HSEM_ReleaseAllSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:245    .text.HSEM_ReleaseAllSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:246    .text.HSEM_ReleaseAllSem:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:246    .text.HSEM_ReleaseAllSem:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:250    .text.HSEM_ReleaseAllSem:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:251    .text.HSEM_ReleaseAllSem:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:258    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 HSEM_ReleaseSem_MatchCID_PID
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:261    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:263    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:264    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:265    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:265    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:268    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:272    .text.HSEM_ReleaseSem_MatchCID_PID:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:275    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:276    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:283    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 HSEM_ReleaseSem_MatchCID
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:286    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:288    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:289    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:290    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:290    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:294    .text.HSEM_ReleaseSem_MatchCID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:297    .text.HSEM_ReleaseSem_MatchCID:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:298    .text.HSEM_ReleaseSem_MatchCID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:305    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 HSEM_ReleaseSem_MatchPID
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:308    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:310    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:311    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:312    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:312    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:314    .text.HSEM_ReleaseSem_MatchPID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:317    .text.HSEM_ReleaseSem_MatchPID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:319    .text.HSEM_ReleaseSem_MatchPID:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:322    .text.HSEM_ReleaseSem_MatchPID:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:323    .text.HSEM_ReleaseSem_MatchPID:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:330    .text.HSEM_SetClearKey:0000000000000000 HSEM_SetClearKey
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:333    .text.HSEM_SetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:335    .text.HSEM_SetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:336    .text.HSEM_SetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:337    .text.HSEM_SetClearKey:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:337    .text.HSEM_SetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:340    .text.HSEM_SetClearKey:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:343    .text.HSEM_SetClearKey:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:344    .text.HSEM_SetClearKey:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:351    .text.HSEM_GetClearKey:0000000000000000 HSEM_GetClearKey
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:354    .text.HSEM_GetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:355    .text.HSEM_GetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:356    .text.HSEM_GetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:357    .text.HSEM_GetClearKey:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:357    .text.HSEM_GetClearKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:360    .text.HSEM_GetClearKey:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:362    .text.HSEM_GetClearKey:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:369    .text.HSEM_ITConfig:0000000000000000 HSEM_ITConfig
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:372    .text.HSEM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:374    .text.HSEM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:375    .text.HSEM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:376    .text.HSEM_ITConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:376    .text.HSEM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:379    .text.HSEM_ITConfig:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:381    .text.HSEM_ITConfig:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:382    .text.HSEM_ITConfig:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:385    .text.HSEM_ITConfig:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:390    .text.HSEM_ITConfig:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:391    .text.HSEM_ITConfig:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:394    .text.HSEM_ITConfig:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:397    .text.HSEM_ITConfig:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:398    .text.HSEM_ITConfig:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:405    .text.HSEM_GetFlagStatus:0000000000000000 HSEM_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:408    .text.HSEM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:410    .text.HSEM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:411    .text.HSEM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:412    .text.HSEM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:413    .text.HSEM_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:413    .text.HSEM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:417    .text.HSEM_GetFlagStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:418    .text.HSEM_GetFlagStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:421    .text.HSEM_GetFlagStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:428    .text.HSEM_ClearFlag:0000000000000000 HSEM_ClearFlag
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:431    .text.HSEM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:433    .text.HSEM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:434    .text.HSEM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:435    .text.HSEM_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:435    .text.HSEM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:437    .text.HSEM_ClearFlag:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:440    .text.HSEM_ClearFlag:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:442    .text.HSEM_ClearFlag:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:443    .text.HSEM_ClearFlag:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:450    .text.HSEM_GetITStatus:0000000000000000 HSEM_GetITStatus
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:453    .text.HSEM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:455    .text.HSEM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:456    .text.HSEM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:457    .text.HSEM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:458    .text.HSEM_GetITStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:458    .text.HSEM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:462    .text.HSEM_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:463    .text.HSEM_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:466    .text.HSEM_GetITStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:473    .text.HSEM_ClearITPendingBit:0000000000000000 HSEM_ClearITPendingBit
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:475    .text.HSEM_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:477    .text.HSEM_ClearITPendingBit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:477    .text.HSEM_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:481    .text.HSEM_ClearITPendingBit:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:00000000000000f8 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:000000000000013c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:0000000000000176 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:0000000000000200 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:0000000000000286 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:00000000000002ca .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:00000000000002da .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:00000000000002ea .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:00000000000002f7 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:0000000000000308 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2942   .debug_line_str:0000000000000312 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:82     .text.HSEM_Take:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:135    .text.HSEM_FastTake:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:160    .text.HSEM_GetOneSemTakenState:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:177    .text.HSEM_GetAllSemTakenState:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:194    .text.HSEM_OwnCoreGetAllSemTakenState:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:236    .text.HSEM_ReleaseOneSem:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:254    .text.HSEM_ReleaseAllSem:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:279    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:301    .text.HSEM_ReleaseSem_MatchCID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:326    .text.HSEM_ReleaseSem_MatchPID:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:347    .text.HSEM_SetClearKey:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:365    .text.HSEM_GetClearKey:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:401    .text.HSEM_ITConfig:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:424    .text.HSEM_GetFlagStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:446    .text.HSEM_ClearFlag:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:469    .text.HSEM_GetITStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:484    .text.HSEM_ClearITPendingBit:000000000000000e .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:388    .text.HSEM_ITConfig:0000000000000016 .L14
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:1561   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2755   .debug_str:000000000000010c .LASF112
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2940   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2938   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2650   .debug_rnglists:0000000000000061 .LLRL23
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2705   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2797   .debug_str:00000000000002c2 .LASF2
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2721   .debug_str:0000000000000059 .LASF3
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2723   .debug_str:0000000000000065 .LASF8
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2867   .debug_str:00000000000004a7 .LASF4
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2821   .debug_str:000000000000037f .LASF5
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2811   .debug_str:000000000000032e .LASF6
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2753   .debug_str:0000000000000103 .LASF7
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2907   .debug_str:0000000000000552 .LASF9
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2803   .debug_str:00000000000002e7 .LASF10
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2765   .debug_str:0000000000000217 .LASF11
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2727   .debug_str:0000000000000077 .LASF12
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2923   .debug_str:0000000000000596 .LASF13
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2877   .debug_str:00000000000004d3 .LASF14
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2919   .debug_str:0000000000000589 .LASF15
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2883   .debug_str:00000000000004ed .LASF16
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2711   .debug_str:000000000000000f .LASF17
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2725   .debug_str:000000000000006f .LASF18
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2763   .debug_str:0000000000000210 .LASF19
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2835   .debug_str:00000000000003db .LASF20
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2857   .debug_str:000000000000046c .LASF21
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2719   .debug_str:000000000000004e .LASF22
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2795   .debug_str:00000000000002b9 .LASF23
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2843   .debug_str:0000000000000426 .LASF24
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2871   .debug_str:00000000000004be .LASF25
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2845   .debug_str:0000000000000430 .LASF26
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2847   .debug_str:000000000000043a .LASF27
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2849   .debug_str:0000000000000444 .LASF28
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2851   .debug_str:000000000000044e .LASF29
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2869   .debug_str:00000000000004b5 .LASF30
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2855   .debug_str:0000000000000462 .LASF31
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2881   .debug_str:00000000000004e3 .LASF32
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2925   .debug_str:000000000000059e .LASF33
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2873   .debug_str:00000000000004c3 .LASF34
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2801   .debug_str:00000000000002e2 .LASF35
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2831   .debug_str:00000000000003cf .LASF36
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2875   .debug_str:00000000000004cc .LASF37
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2865   .debug_str:000000000000049f .LASF38
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2807   .debug_str:0000000000000310 .LASF39
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2911   .debug_str:0000000000000562 .LASF40
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2921   .debug_str:0000000000000591 .LASF41
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2927   .debug_str:00000000000005a7 .LASF42
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2853   .debug_str:0000000000000458 .LASF43
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2769   .debug_str:000000000000023e .LASF44
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2833   .debug_str:00000000000003d4 .LASF45
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2913   .debug_str:0000000000000567 .LASF46
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2931   .debug_str:00000000000005b2 .LASF47
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2709   .debug_str:0000000000000009 .LASF48
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2879   .debug_str:00000000000004dc .LASF49
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2859   .debug_str:0000000000000472 .LASF50
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2929   .debug_str:00000000000005ac .LASF51
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2861   .debug_str:000000000000047c .LASF52
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2909   .debug_str:000000000000055d .LASF53
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2729   .debug_str:000000000000008e .LASF54
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2751   .debug_str:00000000000000f8 .LASF55
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2759   .debug_str:00000000000001fb .LASF56
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2757   .debug_str:00000000000001f1 .LASF57
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2885   .debug_str:00000000000004f3 .LASF58
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2887   .debug_str:00000000000004f8 .LASF59
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2889   .debug_str:0000000000000501 .LASF60
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2891   .debug_str:000000000000050a .LASF61
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2893   .debug_str:0000000000000513 .LASF62
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2895   .debug_str:000000000000051c .LASF63
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2897   .debug_str:0000000000000525 .LASF64
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2899   .debug_str:000000000000052e .LASF65
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2901   .debug_str:0000000000000537 .LASF66
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2903   .debug_str:0000000000000540 .LASF67
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2905   .debug_str:0000000000000549 .LASF68
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2731   .debug_str:0000000000000094 .LASF69
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2733   .debug_str:000000000000009e .LASF70
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2735   .debug_str:00000000000000a8 .LASF71
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2737   .debug_str:00000000000000b2 .LASF72
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2739   .debug_str:00000000000000bc .LASF73
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2741   .debug_str:00000000000000c6 .LASF74
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2743   .debug_str:00000000000000d0 .LASF75
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2745   .debug_str:00000000000000da .LASF76
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2747   .debug_str:00000000000000e4 .LASF77
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2749   .debug_str:00000000000000ee .LASF78
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2771   .debug_str:0000000000000244 .LASF79
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2773   .debug_str:000000000000024e .LASF80
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2775   .debug_str:0000000000000258 .LASF81
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2777   .debug_str:0000000000000262 .LASF82
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2779   .debug_str:000000000000026c .LASF83
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2781   .debug_str:0000000000000276 .LASF84
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2783   .debug_str:0000000000000280 .LASF85
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2785   .debug_str:000000000000028a .LASF86
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2787   .debug_str:0000000000000294 .LASF87
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2789   .debug_str:000000000000029e .LASF88
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2813   .debug_str:0000000000000341 .LASF89
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2815   .debug_str:000000000000034b .LASF90
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2935   .debug_str:00000000000005c8 .LASF91
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2805   .debug_str:00000000000002f9 .LASF113
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2827   .debug_str:00000000000003aa .LASF92
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2841   .debug_str:0000000000000415 .LASF93
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:451    .text.HSEM_GetITStatus:0000000000000000 .LFB55
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:467    .text.HSEM_GetITStatus:000000000000000e .LFE55
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2162   .debug_loclists:000000000000000c .LLST21
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2791   .debug_str:00000000000002a8 .LASF95
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2177   .debug_loclists:0000000000000026 .LLST22
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2761   .debug_str:0000000000000201 .LASF114
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2715   .debug_str:0000000000000031 .LASF94
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:406    .text.HSEM_GetFlagStatus:0000000000000000 .LFB53
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:422    .text.HSEM_GetFlagStatus:000000000000000e .LFE53
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2220   .debug_loclists:0000000000000062 .LLST18
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2235   .debug_loclists:000000000000007c .LLST19
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2825   .debug_str:000000000000039c .LASF97
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:370    .text.HSEM_ITConfig:0000000000000000 .LFB52
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:399    .text.HSEM_ITConfig:0000000000000028 .LFE52
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2278   .debug_loclists:00000000000000b8 .LLST17
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2707   .debug_str:0000000000000000 .LASF96
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2837   .debug_str:00000000000003eb .LASF105
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:352    .text.HSEM_GetClearKey:0000000000000000 .LFB51
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:363    .text.HSEM_GetClearKey:000000000000000c .LFE51
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2915   .debug_str:0000000000000571 .LASF98
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:331    .text.HSEM_SetClearKey:0000000000000000 .LFB50
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:345    .text.HSEM_SetClearKey:000000000000000c .LFE50
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2293   .debug_loclists:00000000000000d2 .LLST16
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2809   .debug_str:0000000000000315 .LASF99
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:306    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 .LFB49
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:324    .text.HSEM_ReleaseSem_MatchPID:0000000000000014 .LFE49
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2717   .debug_str:0000000000000044 .LASF100
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2308   .debug_loclists:00000000000000ec .LLST15
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2839   .debug_str:00000000000003fc .LASF101
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:284    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:299    .text.HSEM_ReleaseSem_MatchCID:0000000000000010 .LFE48
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2793   .debug_str:00000000000002b2 .LASF102
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2323   .debug_loclists:0000000000000106 .LLST14
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2829   .debug_str:00000000000003b2 .LASF103
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:259    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:277    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000016 .LFE47
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2338   .debug_loclists:0000000000000120 .LLST13
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2823   .debug_str:0000000000000389 .LASF115
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:241    .text.HSEM_ReleaseAllSem:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:252    .text.HSEM_ReleaseAllSem:000000000000000e .LFE46
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2799   .debug_str:00000000000002cf .LASF104
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:199    .text.HSEM_ReleaseOneSem:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:234    .text.HSEM_ReleaseOneSem:0000000000000020 .LFE45
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2353   .debug_loclists:000000000000013a .LLST10
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2368   .debug_loclists:0000000000000154 .LLST11
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:204    .text.HSEM_ReleaseOneSem:0000000000000000 .LBB24
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2642   .debug_rnglists:000000000000004e .LLRL12
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2819   .debug_str:000000000000035f .LASF106
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:182    .text.HSEM_OwnCoreGetAllSemTakenState:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:192    .text.HSEM_OwnCoreGetAllSemTakenState:000000000000000a .LFE44
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2767   .debug_str:0000000000000225 .LASF107
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:165    .text.HSEM_GetAllSemTakenState:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:175    .text.HSEM_GetAllSemTakenState:000000000000000a .LFE43
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2863   .debug_str:0000000000000486 .LASF108
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:140    .text.HSEM_GetOneSemTakenState:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:158    .text.HSEM_GetOneSemTakenState:000000000000000e .LFE42
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2383   .debug_loclists:000000000000016e .LLST8
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2917   .debug_str:0000000000000582 .LASF109
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2398   .debug_loclists:0000000000000188 .LLST9
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2933   .debug_str:00000000000005ba .LASF110
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:87     .text.HSEM_FastTake:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:133    .text.HSEM_FastTake:0000000000000028 .LFE41
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2418   .debug_loclists:00000000000001a7 .LLST5
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2440   .debug_loclists:00000000000001ce .LLST6
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:97     .text.HSEM_FastTake:0000000000000008 .LBB18
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2631   .debug_rnglists:0000000000000032 .LLRL7
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2817   .debug_str:0000000000000355 .LASF111
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:15     .text.HSEM_Take:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:80     .text.HSEM_Take:000000000000003c .LFE40
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2477   .debug_loclists:00000000000001fe .LLST0
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2492   .debug_loclists:0000000000000218 .LLST1
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2507   .debug_loclists:0000000000000232 .LLST2
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:22     .text.HSEM_Take:0000000000000000 .LBB10
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2615   .debug_rnglists:000000000000000c .LLRL3
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:53     .text.HSEM_Take:0000000000000024 .LBB14
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2623   .debug_rnglists:000000000000001f .LLRL4
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2713   .debug_str:000000000000001b .LASF116
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:429    .text.HSEM_ClearFlag:0000000000000000 .LFB54
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:444    .text.HSEM_ClearFlag:000000000000000e .LFE54
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:2547   .debug_loclists:0000000000000265 .LLST20
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:454    .text.HSEM_GetITStatus:0000000000000000 .LVL32
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:464    .text.HSEM_GetITStatus:000000000000000c .LVL34
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:460    .text.HSEM_GetITStatus:0000000000000008 .LVL33
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:409    .text.HSEM_GetFlagStatus:0000000000000000 .LVL27
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:419    .text.HSEM_GetFlagStatus:000000000000000c .LVL29
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:415    .text.HSEM_GetFlagStatus:0000000000000008 .LVL28
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:373    .text.HSEM_ITConfig:0000000000000000 .LVL25
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:377    .text.HSEM_ITConfig:0000000000000004 .LVL26
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:334    .text.HSEM_SetClearKey:0000000000000000 .LVL23
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:338    .text.HSEM_SetClearKey:0000000000000002 .LVL24
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:309    .text.HSEM_ReleaseSem_MatchPID:0000000000000000 .LVL21
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:315    .text.HSEM_ReleaseSem_MatchPID:0000000000000008 .LVL22
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:287    .text.HSEM_ReleaseSem_MatchCID:0000000000000000 .LVL19
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:292    .text.HSEM_ReleaseSem_MatchCID:0000000000000006 .LVL20
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:262    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000000 .LVL17
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:266    .text.HSEM_ReleaseSem_MatchCID_PID:0000000000000004 .LVL18
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:202    .text.HSEM_ReleaseOneSem:0000000000000000 .LVL14
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:229    .text.HSEM_ReleaseOneSem:000000000000001c .LVL16
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:214    .text.HSEM_ReleaseOneSem:000000000000000c .LVL15
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:143    .text.HSEM_GetOneSemTakenState:0000000000000000 .LVL10
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:149    .text.HSEM_GetOneSemTakenState:0000000000000008 .LVL11
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:151    .text.HSEM_GetOneSemTakenState:000000000000000a .LVL12
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:155    .text.HSEM_GetOneSemTakenState:000000000000000c .LVL13
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:90     .text.HSEM_FastTake:0000000000000000 .LVL5
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:96     .text.HSEM_FastTake:0000000000000008 .LVL6
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:105    .text.HSEM_FastTake:0000000000000010 .LVL7
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:112    .text.HSEM_FastTake:0000000000000016 .LVL8
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:120    .text.HSEM_FastTake:000000000000001a .LVL9
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:19     .text.HSEM_Take:0000000000000000 .LVL0
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:46     .text.HSEM_Take:000000000000001c .LVL2
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:32     .text.HSEM_Take:000000000000000c .LVL1
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:58     .text.HSEM_Take:0000000000000028 .LVL3
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:66     .text.HSEM_Take:000000000000002c .LVL4
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:432    .text.HSEM_ClearFlag:0000000000000000 .LVL30
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:438    .text.HSEM_ClearFlag:0000000000000008 .LVL31
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:490    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:474    .text.HSEM_ClearITPendingBit:0000000000000000 .LFB58
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:482    .text.HSEM_ClearITPendingBit:000000000000000e .LFE58
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:29     .text.HSEM_Take:0000000000000008 .LBE10
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:33     .text.HSEM_Take:000000000000000c .LBB13
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:40     .text.HSEM_Take:0000000000000014 .LBE13
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:60     .text.HSEM_Take:0000000000000028 .LBE14
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:62     .text.HSEM_Take:0000000000000028 .LBB17
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:68     .text.HSEM_Take:000000000000002c .LBE17
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:102    .text.HSEM_FastTake:000000000000000c .LBE18
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:107    .text.HSEM_FastTake:0000000000000012 .LBB22
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:114    .text.HSEM_FastTake:0000000000000016 .LBE22
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:116    .text.HSEM_FastTake:0000000000000016 .LBB23
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:122    .text.HSEM_FastTake:000000000000001a .LBE23
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:211    .text.HSEM_ReleaseOneSem:0000000000000008 .LBE24
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:217    .text.HSEM_ReleaseOneSem:0000000000000010 .LBB27
+C:\Users\User\AppData\Local\Temp\cccMYnvC.s:222    .text.HSEM_ReleaseOneSem:0000000000000014 .LBE27
+
+NO UNDEFINED SYMBOLS

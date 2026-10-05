@@ -1,0 +1,500 @@
+   1              		.file	"ch32h417_rng.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.RNG_Cmd,"ax",@progbits
+  11              		.align	1
+  12              		.globl	RNG_Cmd
+  14              	RNG_Cmd:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_rng.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /********************************** (C) COPYRIGHT *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * File Name          : ch32h417_rng.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * Version            : V1.0.0
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * Date               : 2025/03/01
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * Description        : This file provides all the RNG firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** #include "ch32h417_rng.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** #include "ch32h417_rcc.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_Cmd
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Enables or disables the RNG peripheral.
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @param   NewState - ENABLE or DISABLE.
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  none
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** void RNG_Cmd(FunctionalState NewState)
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+  17              		.loc 1 25 1
+  18              		.cfi_startproc
+  19              	.LVL0:
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     if(NewState != DISABLE)
+  20              		.loc 1 26 5
+  21 0000 B7470240 		li	a5,1073889280
+  22 0004 938707C0 		addi	a5,a5,-1024
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         RNG->CR |= RNG_CR_RNGEN;
+  23              		.loc 1 28 12 is_stmt 0
+  24 0008 9843     		lw	a4,0(a5)
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     if(NewState != DISABLE)
+  25              		.loc 1 26 7
+  26 000a 09C5     		beq	a0,zero,.L2
+  27              		.loc 1 28 9 is_stmt 1
+  28              		.loc 1 28 17 is_stmt 0
+  29 000c 13674700 		ori	a4,a4,4
+  30              	.L4:
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     else
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         RNG->CR &= ~RNG_CR_RNGEN;
+  31              		.loc 1 32 17
+  32 0010 98C3     		sw	a4,0(a5)
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+  33              		.loc 1 34 1
+  34 0012 8280     		ret
+  35              	.L2:
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  36              		.loc 1 32 9 is_stmt 1
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  37              		.loc 1 32 17 is_stmt 0
+  38 0014 6D9B     		andi	a4,a4,-5
+  39 0016 EDBF     		j	.L4
+  40              		.cfi_endproc
+  41              	.LFE40:
+  43              		.section	.text.RNG_GetRandomNumber,"ax",@progbits
+  44              		.align	1
+  45              		.globl	RNG_GetRandomNumber
+  47              	RNG_GetRandomNumber:
+  48              	.LFB41:
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_GetRandomNumber
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Returns a 32-bit random number.
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  32-bit random number.
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** uint32_t RNG_GetRandomNumber(void)
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+  49              		.loc 1 44 1 is_stmt 1
+  50              		.cfi_startproc
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     return RNG->DR;
+  51              		.loc 1 45 5
+  52              		.loc 1 45 15 is_stmt 0
+  53 0000 B7470240 		li	a5,1073889280
+  54 0004 938707C0 		addi	a5,a5,-1024
+  55 0008 8847     		lw	a0,8(a5)
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+  56              		.loc 1 46 1
+  57 000a 8280     		ret
+  58              		.cfi_endproc
+  59              	.LFE41:
+  61              		.section	.text.RNG_ITConfig,"ax",@progbits
+  62              		.align	1
+  63              		.globl	RNG_ITConfig
+  65              	RNG_ITConfig:
+  66              	.LFB42:
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_ITConfig
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Enables or disables the RNG interrupt.
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @param   NewState - ENABLE or DISABLE.
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  32-bit random number.
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** void RNG_ITConfig(FunctionalState NewState)
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+  67              		.loc 1 58 1 is_stmt 1
+  68              		.cfi_startproc
+  69              	.LVL1:
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     if(NewState != DISABLE)
+  70              		.loc 1 59 5
+  71 0000 B7470240 		li	a5,1073889280
+  72 0004 938707C0 		addi	a5,a5,-1024
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         RNG->CR |= RNG_CR_IE;
+  73              		.loc 1 61 12 is_stmt 0
+  74 0008 9843     		lw	a4,0(a5)
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     if(NewState != DISABLE)
+  75              		.loc 1 59 7
+  76 000a 09C5     		beq	a0,zero,.L7
+  77              		.loc 1 61 9 is_stmt 1
+  78              		.loc 1 61 17 is_stmt 0
+  79 000c 13678700 		ori	a4,a4,8
+  80              	.L9:
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     else
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         RNG->CR &= ~RNG_CR_IE;
+  81              		.loc 1 65 17
+  82 0010 98C3     		sw	a4,0(a5)
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+  83              		.loc 1 67 1
+  84 0012 8280     		ret
+  85              	.L7:
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  86              		.loc 1 65 9 is_stmt 1
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  87              		.loc 1 65 17 is_stmt 0
+  88 0014 5D9B     		andi	a4,a4,-9
+  89 0016 EDBF     		j	.L9
+  90              		.cfi_endproc
+  91              	.LFE42:
+  93              		.section	.text.RNG_GetFlagStatus,"ax",@progbits
+  94              		.align	1
+  95              		.globl	RNG_GetFlagStatus
+  97              	RNG_GetFlagStatus:
+  98              	.LFB43:
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_GetFlagStatus
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Checks whether the specified RNG flag is set or not.
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @param   RNG_FLAG - specifies the RNG flag to check.
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_FLAG_DRDY - Data Ready flag.
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_FLAG_CECS - Clock Error Current flag.
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_FLAG_SECS - Seed Error Current flag.
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  32-bit random number.
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** FlagStatus RNG_GetFlagStatus(uint8_t RNG_FLAG)
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+  99              		.loc 1 82 1 is_stmt 1
+ 100              		.cfi_startproc
+ 101              	.LVL2:
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     FlagStatus bitstatus = RESET;
+ 102              		.loc 1 83 5
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     if((RNG->SR & RNG_FLAG) != (uint8_t)RESET)
+ 103              		.loc 1 85 5
+ 104              		.loc 1 85 12 is_stmt 0
+ 105 0000 B7470240 		li	a5,1073889280
+ 106 0004 938707C0 		addi	a5,a5,-1024
+ 107 0008 DC43     		lw	a5,4(a5)
+ 108              	.LVL3:
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         bitstatus = SET;
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     else
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         bitstatus = RESET;
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     return bitstatus;
+ 109              		.loc 1 94 5 is_stmt 1
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+ 110              		.loc 1 85 17 is_stmt 0
+ 111 000a 7D8D     		and	a0,a0,a5
+ 112              	.LVL4:
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+ 113              		.loc 1 95 1
+ 114 000c 3335A000 		snez	a0,a0
+ 115 0010 8280     		ret
+ 116              		.cfi_endproc
+ 117              	.LFE43:
+ 119              		.section	.text.RNG_ClearFlag,"ax",@progbits
+ 120              		.align	1
+ 121              		.globl	RNG_ClearFlag
+ 123              	RNG_ClearFlag:
+ 124              	.LFB44:
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_ClearFlag
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Clears the RNG flags.
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @param   RNG_FLAG - specifies the flag to clear.
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_FLAG_CECS - Clock Error Current flag.
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_FLAG_SECS - Seed Error Current flag.
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  32-bit random number.
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** void RNG_ClearFlag(uint8_t RNG_FLAG)
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+ 125              		.loc 1 109 1 is_stmt 1
+ 126              		.cfi_startproc
+ 127              	.LVL5:
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     RNG->SR = ~(uint32_t)(((uint32_t)RNG_FLAG) << 4);
+ 128              		.loc 1 110 5
+ 129              		.loc 1 110 16 is_stmt 0
+ 130 0000 1205     		slli	a0,a0,4
+ 131              	.LVL6:
+ 132              		.loc 1 110 13
+ 133 0002 B7470240 		li	a5,1073889280
+ 134              		.loc 1 110 15
+ 135 0006 1345F5FF 		not	a0,a0
+ 136              		.loc 1 110 13
+ 137 000a 938707C0 		addi	a5,a5,-1024
+ 138 000e C8C3     		sw	a0,4(a5)
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+ 139              		.loc 1 111 1
+ 140 0010 8280     		ret
+ 141              		.cfi_endproc
+ 142              	.LFE44:
+ 144              		.section	.text.RNG_GetITStatus,"ax",@progbits
+ 145              		.align	1
+ 146              		.globl	RNG_GetITStatus
+ 148              	RNG_GetITStatus:
+ 149              	.LFB48:
+ 150              		.cfi_startproc
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_GetFlagStatus
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Checks whether the specified RNG interrupt has occurred or not.
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @param   RNG_IT - specifies the RNG interrupt source to check.
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_IT_CEI - Clock Error Interrupt.
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_IT_SEI - Seed Error Interrupt.
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  bitstatus:SET or RESET.
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** ITStatus RNG_GetITStatus(uint8_t RNG_IT)
+ 151              		.loc 1 124 10 is_stmt 1
+ 152 0000 17030000 		tail	RNG_GetFlagStatus
+ 152      67000300 
+ 153              		.cfi_endproc
+ 154              	.LFE48:
+ 156              		.section	.text.RNG_ClearITPendingBit,"ax",@progbits
+ 157              		.align	1
+ 158              		.globl	RNG_ClearITPendingBit
+ 160              	RNG_ClearITPendingBit:
+ 161              	.LFB46:
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     ITStatus bitstatus = RESET;
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     if((RNG->SR & RNG_IT) != (uint8_t)RESET)
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         bitstatus = SET;
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     else
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     {
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****         bitstatus = RESET;
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     }
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     return bitstatus;
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** /*********************************************************************
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @fn      RNG_ClearITPendingBit
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @brief   Clears the RNG interrupt pending bit(s).
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @param   RNG_IT - specifies the RNG interrupt pending bit(s) to clear.
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_IT_CEI - Clock Error Interrupt.
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *            RNG_IT_SEI - Seed Error Interrupt.
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  *
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  * @return  none
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****  */
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** void RNG_ClearITPendingBit(uint8_t RNG_IT)
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** {
+ 162              		.loc 1 152 1
+ 163              		.cfi_startproc
+ 164              	.LVL7:
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c ****     RNG->SR = (uint8_t)~RNG_IT;
+ 165              		.loc 1 153 5
+ 166              		.loc 1 153 15 is_stmt 0
+ 167 0000 1345F5FF 		not	a0,a0
+ 168              	.LVL8:
+ 169              		.loc 1 153 13
+ 170 0004 B7470240 		li	a5,1073889280
+ 171              		.loc 1 153 15
+ 172 0008 1375F50F 		andi	a0,a0,0xff
+ 173              		.loc 1 153 13
+ 174 000c 938707C0 		addi	a5,a5,-1024
+ 175 0010 C8C3     		sw	a0,4(a5)
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_rng.c **** }
+ 176              		.loc 1 154 1
+ 177 0012 8280     		ret
+ 178              		.cfi_endproc
+ 179              	.LFE46:
+ 181              		.text
+ 182              	.Letext0:
+ 183              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 184              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 185              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 186              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_rng.c
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:14     .text.RNG_Cmd:0000000000000000 RNG_Cmd
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:18     .text.RNG_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:20     .text.RNG_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:21     .text.RNG_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:21     .text.RNG_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:24     .text.RNG_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:26     .text.RNG_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:28     .text.RNG_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:29     .text.RNG_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:32     .text.RNG_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:34     .text.RNG_Cmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:37     .text.RNG_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:38     .text.RNG_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:40     .text.RNG_Cmd:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:47     .text.RNG_GetRandomNumber:0000000000000000 RNG_GetRandomNumber
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:50     .text.RNG_GetRandomNumber:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:51     .text.RNG_GetRandomNumber:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:52     .text.RNG_GetRandomNumber:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:53     .text.RNG_GetRandomNumber:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:53     .text.RNG_GetRandomNumber:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:57     .text.RNG_GetRandomNumber:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:58     .text.RNG_GetRandomNumber:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:65     .text.RNG_ITConfig:0000000000000000 RNG_ITConfig
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:68     .text.RNG_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:70     .text.RNG_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:71     .text.RNG_ITConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:71     .text.RNG_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:74     .text.RNG_ITConfig:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:76     .text.RNG_ITConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:78     .text.RNG_ITConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:79     .text.RNG_ITConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:82     .text.RNG_ITConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:84     .text.RNG_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:87     .text.RNG_ITConfig:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:88     .text.RNG_ITConfig:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:90     .text.RNG_ITConfig:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:97     .text.RNG_GetFlagStatus:0000000000000000 RNG_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:100    .text.RNG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:102    .text.RNG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:103    .text.RNG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:104    .text.RNG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:105    .text.RNG_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:105    .text.RNG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:110    .text.RNG_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:111    .text.RNG_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:114    .text.RNG_GetFlagStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:116    .text.RNG_GetFlagStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:123    .text.RNG_ClearFlag:0000000000000000 RNG_ClearFlag
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:126    .text.RNG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:128    .text.RNG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:129    .text.RNG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:130    .text.RNG_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:130    .text.RNG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:133    .text.RNG_ClearFlag:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:135    .text.RNG_ClearFlag:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:137    .text.RNG_ClearFlag:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:140    .text.RNG_ClearFlag:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:141    .text.RNG_ClearFlag:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:148    .text.RNG_GetITStatus:0000000000000000 RNG_GetITStatus
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:150    .text.RNG_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:152    .text.RNG_GetITStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:152    .text.RNG_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:153    .text.RNG_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:160    .text.RNG_ClearITPendingBit:0000000000000000 RNG_ClearITPendingBit
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:163    .text.RNG_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:165    .text.RNG_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:166    .text.RNG_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:167    .text.RNG_ClearITPendingBit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:167    .text.RNG_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:170    .text.RNG_ClearITPendingBit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:172    .text.RNG_ClearITPendingBit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:174    .text.RNG_ClearITPendingBit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:177    .text.RNG_ClearITPendingBit:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:178    .text.RNG_ClearITPendingBit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000000a5 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000000f7 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:000000000000013b .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000001c5 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:000000000000024b .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:0000000000000285 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000002c9 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000002d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000002e7 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:00000000000002f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:0000000000000302 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1058   .debug_line_str:000000000000030f .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:43     .text.RNG_Cmd:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:61     .text.RNG_GetRandomNumber:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:93     .text.RNG_ITConfig:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:119    .text.RNG_GetFlagStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:144    .text.RNG_ClearFlag:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:156    .text.RNG_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:181    .text.RNG_ClearITPendingBit:0000000000000014 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:35     .text.RNG_Cmd:0000000000000014 .L2
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:30     .text.RNG_Cmd:0000000000000010 .L4
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:85     .text.RNG_ITConfig:0000000000000014 .L7
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:80     .text.RNG_ITConfig:0000000000000010 .L9
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:460    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1041   .debug_str:0000000000000141 .LASF29
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1056   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1054   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:960    .debug_rnglists:000000000000000c .LLRL4
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:985    .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1023   .debug_str:00000000000000d8 .LASF2
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1007   .debug_str:000000000000006c .LASF3
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:987    .debug_str:0000000000000000 .LASF8
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1009   .debug_str:0000000000000078 .LASF4
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1035   .debug_str:0000000000000120 .LASF5
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:993    .debug_str:000000000000001c .LASF6
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:991    .debug_str:0000000000000013 .LASF7
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1021   .debug_str:00000000000000cd .LASF9
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1015   .debug_str:00000000000000a5 .LASF10
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1033   .debug_str:0000000000000112 .LASF11
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1029   .debug_str:00000000000000f2 .LASF12
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1027   .debug_str:00000000000000ea .LASF13
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1043   .debug_str:0000000000000226 .LASF14
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1047   .debug_str:000000000000023b .LASF15
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1005   .debug_str:0000000000000065 .LASF16
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:995    .debug_str:000000000000002f .LASF17
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1019   .debug_str:00000000000000c7 .LASF18
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1011   .debug_str:0000000000000086 .LASF19
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:989    .debug_str:000000000000000a .LASF20
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1045   .debug_str:000000000000022f .LASF21
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1025   .debug_str:00000000000000e5 .LASF22
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1049   .debug_str:0000000000000243 .LASF23
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:161    .text.RNG_ClearITPendingBit:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:179    .text.RNG_ClearITPendingBit:0000000000000014 .LFE46
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1003   .debug_str:000000000000005e .LASF25
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:837    .debug_loclists:000000000000000c .LLST3
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1017   .debug_str:00000000000000b7 .LASF30
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1001   .debug_str:0000000000000054 .LASF31
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1037   .debug_str:000000000000012a .LASF24
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:124    .text.RNG_ClearFlag:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:142    .text.RNG_ClearFlag:0000000000000012 .LFE44
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1031   .debug_str:0000000000000109 .LASF26
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:852    .debug_loclists:0000000000000026 .LLST2
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1051   .debug_str:0000000000000259 .LASF32
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:98     .text.RNG_GetFlagStatus:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:117    .text.RNG_GetFlagStatus:0000000000000012 .LFE43
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:867    .debug_loclists:0000000000000040 .LLST0
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:882    .debug_loclists:000000000000005a .LLST1
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:997    .debug_str:000000000000003f .LASF27
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:66     .text.RNG_ITConfig:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:91     .text.RNG_ITConfig:0000000000000018 .LFE42
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1039   .debug_str:0000000000000138 .LASF28
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:1013   .debug_str:0000000000000091 .LASF33
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:48     .text.RNG_GetRandomNumber:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:59     .text.RNG_GetRandomNumber:000000000000000c .LFE41
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:999    .debug_str:000000000000004c .LASF34
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:15     .text.RNG_Cmd:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:41     .text.RNG_Cmd:0000000000000018 .LFE40
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:164    .text.RNG_ClearITPendingBit:0000000000000000 .LVL7
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:168    .text.RNG_ClearITPendingBit:0000000000000004 .LVL8
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:127    .text.RNG_ClearFlag:0000000000000000 .LVL5
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:131    .text.RNG_ClearFlag:0000000000000002 .LVL6
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:101    .text.RNG_GetFlagStatus:0000000000000000 .LVL2
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:112    .text.RNG_GetFlagStatus:000000000000000c .LVL4
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:108    .text.RNG_GetFlagStatus:000000000000000a .LVL3
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:188    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:149    .text.RNG_GetITStatus:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\ccuF5ZmQ.s:154    .text.RNG_GetITStatus:0000000000000008 .LFE48
+
+NO UNDEFINED SYMBOLS

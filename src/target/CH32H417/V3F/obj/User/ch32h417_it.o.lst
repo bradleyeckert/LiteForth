@@ -1,0 +1,709 @@
+   1              		.file	"ch32h417_it.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.NMI_Handler,"ax",@progbits
+  11              		.align	1
+  12              		.globl	NMI_Handler
+  14              	NMI_Handler:
+  15              	.LFB40:
+  16              		.file 1 "../User/ch32h417_it.c"
+   1:../User/ch32h417_it.c **** /********************************** (C) COPYRIGHT *******************************
+   2:../User/ch32h417_it.c **** * File Name          : ch32h417_it.c
+   3:../User/ch32h417_it.c **** * Author             : WCH
+   4:../User/ch32h417_it.c **** * Version            : V1.0.0
+   5:../User/ch32h417_it.c **** * Date               : 2025/03/01
+   6:../User/ch32h417_it.c **** * Description        : Main Interrupt Service Routines.
+   7:../User/ch32h417_it.c **** *********************************************************************************
+   8:../User/ch32h417_it.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:../User/ch32h417_it.c **** * Attention: This software (modified or not) and binary are used for 
+  10:../User/ch32h417_it.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:../User/ch32h417_it.c **** *******************************************************************************/
+  12:../User/ch32h417_it.c **** #include "ch32h417_it.h"
+  13:../User/ch32h417_it.c **** 
+  14:../User/ch32h417_it.c **** void NMI_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+  15:../User/ch32h417_it.c **** void HardFault_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+  16:../User/ch32h417_it.c **** 
+  17:../User/ch32h417_it.c **** /*********************************************************************
+  18:../User/ch32h417_it.c ****  * @fn      NMI_Handler
+  19:../User/ch32h417_it.c ****  *
+  20:../User/ch32h417_it.c ****  * @brief   This function handles NMI exception.
+  21:../User/ch32h417_it.c ****  *
+  22:../User/ch32h417_it.c ****  * @return  none
+  23:../User/ch32h417_it.c ****  */
+  24:../User/ch32h417_it.c **** void NMI_Handler(void)
+  25:../User/ch32h417_it.c **** {
+  17              		.loc 1 25 1
+  18              		.cfi_startproc
+  19              	.L2:
+  26:../User/ch32h417_it.c ****   while (1)
+  20              		.loc 1 26 3 discriminator 1
+  27:../User/ch32h417_it.c ****   {
+  28:../User/ch32h417_it.c ****   }
+  21              		.loc 1 28 3 discriminator 1
+  26:../User/ch32h417_it.c ****   while (1)
+  22              		.loc 1 26 9 discriminator 1
+  23 0000 01A0     		j	.L2
+  24              		.cfi_endproc
+  25              	.LFE40:
+  27              		.section	.text.HardFault_Handler,"ax",@progbits
+  28              		.align	1
+  29              		.globl	HardFault_Handler
+  31              	HardFault_Handler:
+  32              	.LFB41:
+  29:../User/ch32h417_it.c **** }
+  30:../User/ch32h417_it.c **** 
+  31:../User/ch32h417_it.c **** /*********************************************************************
+  32:../User/ch32h417_it.c ****  * @fn      HardFault_Handler
+  33:../User/ch32h417_it.c ****  *
+  34:../User/ch32h417_it.c ****  * @brief   This function handles Hard Fault exception.
+  35:../User/ch32h417_it.c ****  *
+  36:../User/ch32h417_it.c ****  * @return  none
+  37:../User/ch32h417_it.c ****  */
+  38:../User/ch32h417_it.c **** void HardFault_Handler(void)
+  39:../User/ch32h417_it.c **** {
+  33              		.loc 1 39 1
+  34              		.cfi_startproc
+  40:../User/ch32h417_it.c ****   NVIC_SystemReset();
+  35              		.loc 1 40 3
+  36              	.LBB4:
+  37              	.LBB5:
+  38              		.file 2 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * File Name          : core_riscv.h
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Version            : V1.0.2
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Date               : 2026/03/18
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Description        : RISC-V V3F_V5F Core Peripheral Access Layer Header File for CH32H417_416_415
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifndef __CORE_RISCV_H__
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define __CORE_RISCV_H__
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  extern "C" {
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* IO definitions */
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile                /* defines 'read only' permissions    */
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #else
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile const          /* defines 'read only' permissions    */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __O     volatile                /* defines 'write only' permissions   */
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __IO    volatile                /* defines 'read / write' permissions */
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Standard Peripheral Library old types (maintained for legacy purpose) */
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint64_t vuc64;  /* Read Only */
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint32_t vuc32;  /* Read Only */
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint16_t vuc16;  /* Read Only */
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint8_t  vuc8;   /* Read Only */
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint64_t uc64;  /* Read Only */
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint32_t uc32;  /* Read Only */
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint16_t uc16;  /* Read Only */
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint8_t  uc8;   /* Read Only */
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int64_t vsc64;  /* Read Only */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int32_t vsc32;  /* Read Only */
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int16_t vsc16;  /* Read Only */
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int8_t  vsc8;   /* Read Only */
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int64_t sc64;  /* Read Only */
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int32_t sc32;  /* Read Only */
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int16_t sc16;  /* Read Only */
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int8_t  sc8;   /* Read Only */
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint64_t  vu64;
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint32_t  vu32;
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint16_t  vu16;
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint8_t   vu8;
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint64_t  u64;
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint32_t  u32;
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint16_t  u16;
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint8_t   u8;
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int64_t  vs64;
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int32_t  vs32;
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int16_t  vs16;
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int8_t   vs8;
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int64_t  s64;
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int32_t  s32;
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int16_t  s16;
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int8_t   s8;
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {NoREADY = 0, READY = !NoREADY} ErrorStatus;
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define RV_STATIC_INLINE  static inline
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for HSEM */
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t RX[32];
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[0x80];
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t RLRX[32]; 
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x80];
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t LSE;
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[4];
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CLR;
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t KEY;
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0xF0];
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IER;
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[4];
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVE5[4];
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[4];
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t LSM;
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }HSEM_Type;
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for IPC */
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR;
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ENA;
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t STS;
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t SET;
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t CLR;
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t MSG[4];
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }IPC_Type;
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for Program Fast Interrupt Controller (PFIC) */
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct{
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR[8];
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IPR[8];
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ITHRESDR;
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED;
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CFGR;
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t GISR;
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t VTFIDR[4];
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[12];
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t VTFADDR[4];
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x90];
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IENR[8];
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[0x60];
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IRER[8];
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0x60];
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPSR[8];
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[0x60];
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPRR[8];
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED5[0x60];
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IACTR[8];
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[0xE0];
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IPRIOR[256];
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED7[0x100]; 
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IALLOCR[256];
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IAUTR[8];
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t WAKEIP[2];
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED8[0x58]; 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t CSTAR[2];
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED9[0x4F8]; 
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EENR;
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EPR;
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EWUPR;
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED10[0x84]; 
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t SCTLR;
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }PFIC_Type;
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for SysTick */
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;  //only for SysTick0
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CNT;
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CMP;
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }SysTick_Type;
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define HSEM          ((HSEM_Type *) 0xE000C000 )
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define IPC           ((IPC_Type *) 0xE000D000 )
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define PFIC          ((PFIC_Type *) 0xE000E000 )
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define NVIC          PFIC
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define	NVIC_KEY3		  ((uint32_t)0xBEEF0000)
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick0      ((SysTick_Type *) 0xE000F000)
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick1      ((SysTick_Type *) 0xE000F080)
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Core_ID */
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V3F   ((uint8_t)0x00)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V5F   ((uint8_t)0x01)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_MASK;
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_WkupSource;
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __enable_irq
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Global Interrupt
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __enable_irq()
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrs 0x800, %0" : : "r" (0x88) );
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __disable_irq
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Global Interrupt
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __disable_irq()
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrc 0x800, %0" : : "r" (0x88) );
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __NOP
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   nop
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __NOP()
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("nop");
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_EnableIRQ
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Interrupt
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn)
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_DisableIRQ
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Interrupt
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn)
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IRER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetStatusIRQ
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Enable State
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Enable
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Disable
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_Type IRQn)
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->ISR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetPendingIRQ
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Pending State
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Pending Enable
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Pending Disable
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPendingIRQ
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Pending
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPSR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_ClearPendingIRQ
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Clear Interrupt Pending
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetActive
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Active State
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Active
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt No Active
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn)
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IACTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPriority
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Priority
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V5F:
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 5~8 Level(CSR-0x804 bit1 = 1 bit[3:2] = 3)
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:5] - Preemption Priority
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[4] - Sub priority
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 3~4 Level(CSR-0x804 bit1 = 1 bit[3:2] = 2)
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:6] - Preemption Priority
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[5:4] - Sub priority
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *             priority - bit[7:4] - Sub priority
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V3F:
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:4] - Sub priority
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint8_t p
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRIOR[(uint32_t)(IRQn)] = priority;
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetAllocateIRQ
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Allocate 
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to V5F
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Allocate to V3F
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetAllocateIRQ(IRQn_Type IRQn)
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IALLOCR[(uint32_t)(IRQn)] & (1 << 0))?1:0));
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetAllocateIRQ
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Allocate
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers ( >31 )
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          Core_ID - Core ID
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V5F - V5F
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V3F - V3F
+ 376:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 378:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 379:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetAllocateIRQ(IRQn_Type IRQn, uint8_
+ 380:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 381:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(IRQn > 31)
+ 382:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IALLOCR[(uint32_t)(IRQn)] = Core_ID;
+ 383:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 384:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 385:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 386:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_OwnCoreGetAllocateIRQ
+ 387:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 388:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Own Core Get Interrupt Allocate 
+ 389:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 390:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 391:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 392:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to own core
+ 393:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - No allocate to own core
+ 394:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 395:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_OwnCoreGetAllocateIRQ(IRQn_Type I
+ 396:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 397:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IAUTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 398:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 399:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 400:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 401:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFI
+ 402:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 403:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Interrupt
+ 404:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 405:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 406:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 407:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFI(void)
+ 408:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 409:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR &= ~(1<<3);	// wfi
+ 410:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 411:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 412:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 413:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 414:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      _SEV
+ 415:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 416:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Event
+ 417:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 418:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 419:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 420:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void _SEV(void)
+ 421:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 422:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t t;
+ 423:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 424:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   t = NVIC->SCTLR;
+ 425:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3)|(1<<5);
+ 426:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR = (NVIC->SCTLR & ~(1<<5)) | ( t & (1<<5));
+ 427:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 428:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 429:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 430:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE_IDSET
+ 431:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 432:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Events ID
+ 433:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 434:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 435:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 436:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE_IDSET(uint32_t LINE_ID)
+ 437:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 438:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_MASK |= LINE_ID;
+ 439:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 440:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 441:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 442:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE
+ 443:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 444:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Events
+ 445:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 446:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 447:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 448:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE(void)
+ 449:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 450:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __attribute__((unused)) uint32_t t=0;
+ 451:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 452:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 |= WFE_MASK;
+ 453:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 454:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = 0;
+ 455:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->EPR = 0xFFFFFFFF;
+ 456:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3);
+ 457:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 458:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   for(;;)
+ 460:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     t = *(__IO uint32_t*)0x40010414;
+ 462:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     if((t & WFE_MASK) || (WFE_MASK == 0))
+ 463:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     {
+ 464:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****       break;
+ 465:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     } else{
+ 466:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****      asm volatile ("wfi");
+ 467:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     }
+ 468:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }  
+ 469:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = *(__IO uint32_t*)0x40010414;
+ 470:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 &= ~WFE_MASK;
+ 471:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010414 |= WFE_MASK;
+ 472:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 473:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 474:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 475:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      SetVTFIRQ
+ 476:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 477:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set VTF Interrupt
+ 478:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 479:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - VTF interrupt service function base address.
+ 480:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          IRQn -Interrupt Numbers
+ 481:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          num - VTF Interrupt Numbers
+ 482:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          NewState - DISABLE or ENABLE
+ 483:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 484:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 485:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 486:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IRQn_Type IRQn, u
+ 487:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 488:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(num > 3)  return ;
+ 489:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 490:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if (NewState != DISABLE)
+ 491:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 492:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFIDR[num] = IRQn;
+ 493:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFADDR[num] = ((addr&0xFFFFFFFE)|0x1);
+ 494:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }
+ 495:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   else
+ 496:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 497:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFIDR[num] = IRQn;
+ 498:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFADDR[num] = ((addr&0xFFFFFFFE)&(~0x1));
+ 499:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }
+ 500:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 501:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 502:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 503:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SystemReset
+ 504:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 505:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Initiate a system reset request
+ 506:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 507:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 508:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 509:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SystemReset(void)
+ 510:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 511:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->CFGR = NVIC_KEY3|(1<<7);
+  39              		.loc 2 511 3
+  40              		.loc 2 511 14 is_stmt 0
+  41 0000 B707EFBE 		li	a5,-1091633152
+  42 0004 37E700E0 		li	a4,-536813568
+  43 0008 93870708 		addi	a5,a5,128
+  44 000c 3CC7     		sw	a5,72(a4)
+  45              	.L4:
+  46              	.LBE5:
+  47              	.LBE4:
+  41:../User/ch32h417_it.c ****   while (1)
+  48              		.loc 1 41 3 is_stmt 1 discriminator 1
+  42:../User/ch32h417_it.c ****   {
+  43:../User/ch32h417_it.c ****   }
+  49              		.loc 1 43 3 discriminator 1
+  41:../User/ch32h417_it.c ****   while (1)
+  50              		.loc 1 41 9 discriminator 1
+  51 000e 01A0     		j	.L4
+  52              		.cfi_endproc
+  53              	.LFE41:
+  55              		.text
+  56              	.Letext0:
+  57              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+  58              		.file 4 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_it.c
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:14     .text.NMI_Handler:0000000000000000 NMI_Handler
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:18     .text.NMI_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:20     .text.NMI_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:21     .text.NMI_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:22     .text.NMI_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:23     .text.NMI_Handler:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:23     .text.NMI_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:24     .text.NMI_Handler:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:31     .text.HardFault_Handler:0000000000000000 HardFault_Handler
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:34     .text.HardFault_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:35     .text.HardFault_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:39     .text.HardFault_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:40     .text.HardFault_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:41     .text.HardFault_Handler:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:41     .text.HardFault_Handler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:49     .text.HardFault_Handler:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:50     .text.HardFault_Handler:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:51     .text.HardFault_Handler:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:52     .text.HardFault_Handler:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:00000000000000ba .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:00000000000000c2 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:00000000000000fc .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:0000000000000186 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:000000000000020c .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:000000000000021a .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:0000000000000228 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:0000000000000235 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:931    .debug_line_str:0000000000000246 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:27     .text.NMI_Handler:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:55     .text.HardFault_Handler:0000000000000010 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:19     .text.NMI_Handler:0000000000000000 .L2
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:45     .text.HardFault_Handler:000000000000000e .L4
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:522    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:908    .debug_str:0000000000000177 .LASF47
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:929    .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:927    .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:816    .debug_rnglists:000000000000000c .LLRL0
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:826    .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:918    .debug_str:000000000000027d .LASF2
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:830    .debug_str:000000000000000a .LASF7
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:862    .debug_str:0000000000000090 .LASF3
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:904    .debug_str:0000000000000168 .LASF4
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:868    .debug_str:00000000000000bb .LASF5
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:912    .debug_str:0000000000000265 .LASF6
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:880    .debug_str:00000000000000fe .LASF8
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:874    .debug_str:00000000000000de .LASF9
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:898    .debug_str:0000000000000141 .LASF10
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:922    .debug_str:0000000000000293 .LASF11
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:886    .debug_str:0000000000000117 .LASF12
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:890    .debug_str:0000000000000129 .LASF13
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:892    .debug_str:000000000000012e .LASF14
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:910    .debug_str:000000000000025c .LASF15
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:914    .debug_str:000000000000026e .LASF16
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:878    .debug_str:00000000000000f5 .LASF17
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:832    .debug_str:0000000000000014 .LASF18
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:876    .debug_str:00000000000000f0 .LASF19
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:882    .debug_str:0000000000000109 .LASF20
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:840    .debug_str:000000000000002e .LASF21
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:858    .debug_str:0000000000000080 .LASF22
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:920    .debug_str:0000000000000289 .LASF23
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:894    .debug_str:0000000000000136 .LASF24
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:844    .debug_str:000000000000003e .LASF25
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:870    .debug_str:00000000000000ce .LASF26
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:924    .debug_str:00000000000002aa .LASF27
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:836    .debug_str:000000000000001f .LASF28
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:846    .debug_str:0000000000000048 .LASF29
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:888    .debug_str:0000000000000124 .LASF30
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:828    .debug_str:0000000000000000 .LASF31
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:896    .debug_str:000000000000013b .LASF32
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:850    .debug_str:0000000000000058 .LASF33
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:902    .debug_str:0000000000000161 .LASF34
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:852    .debug_str:0000000000000062 .LASF35
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:860    .debug_str:0000000000000088 .LASF36
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:848    .debug_str:0000000000000052 .LASF37
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:884    .debug_str:0000000000000110 .LASF38
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:854    .debug_str:000000000000006c .LASF39
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:916    .debug_str:0000000000000277 .LASF40
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:856    .debug_str:0000000000000076 .LASF41
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:906    .debug_str:0000000000000172 .LASF42
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:834    .debug_str:0000000000000019 .LASF43
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:872    .debug_str:00000000000000d3 .LASF44
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:842    .debug_str:0000000000000038 .LASF45
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:838    .debug_str:0000000000000024 .LASF46
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:900    .debug_str:000000000000014f .LASF48
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:32     .text.HardFault_Handler:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:53     .text.HardFault_Handler:0000000000000010 .LFE41
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:36     .text.HardFault_Handler:0000000000000000 .LBB4
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:47     .text.HardFault_Handler:000000000000000e .LBE4
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:864    .debug_str:000000000000009e .LASF49
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:15     .text.NMI_Handler:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:25     .text.NMI_Handler:0000000000000002 .LFE40
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:866    .debug_str:00000000000000aa .LASF50
+C:\Users\User\AppData\Local\Temp\ccSdlp0j.s:60     .debug_info:0000000000000000 .Ldebug_info0
+
+NO UNDEFINED SYMBOLS

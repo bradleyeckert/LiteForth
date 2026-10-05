@@ -1,0 +1,491 @@
+   1              		.file	"ch32h417_dbgmcu.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.DBGMCU_GetREVID,"ax",@progbits
+  11              		.align	1
+  12              		.globl	DBGMCU_GetREVID
+  14              	DBGMCU_GetREVID:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dbgmcu.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * File Name          : ch32h417_dbgmcu.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * Version            : V1.0.1
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * Date               : 2025/09/05
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * Description        : This file provides all the DBGMCU firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** #include "ch32h417_dbgmcu.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** #include "ch32h417_flash.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** #define IDCODE_DEVID_MASK    ((uint32_t)0x0000FFFF)
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /*********************************************************************
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @fn      DBGMCU_GetREVID
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @brief   Returns the device revision identifier.
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @return  Revision identifier.
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  */
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** uint32_t DBGMCU_GetREVID(void)
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** {
+  17              		.loc 1 24 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_0
+  19      E7020300 
+  20              		.cfi_offset 1, -4
+  21              		.cfi_def_cfa_offset 16
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     FLASH_BOOT_GetMode();
+  22              		.loc 1 25 5
+  23 0008 97000000 		call	FLASH_BOOT_GetMode
+  23      E7800000 
+  24              	.LVL0:
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     return ((*(uint32_t *)0x1FFFF704) & IDCODE_DEVID_MASK);
+  25              		.loc 1 26 5
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+  26              		.loc 1 27 1 is_stmt 0
+  27 0010 B7F7FF1F 		li	a5,536866816
+  28 0014 03D54770 		lhu	a0,1796(a5)
+  29 0018 17030000 		tail	__riscv_restore_0
+  29      67000300 
+  30              		.cfi_restore 1
+  31              		.cfi_def_cfa_offset 0
+  32              		.cfi_endproc
+  33              	.LFE40:
+  35              		.section	.text.DBGMCU_GetDEVID,"ax",@progbits
+  36              		.align	1
+  37              		.globl	DBGMCU_GetDEVID
+  39              	DBGMCU_GetDEVID:
+  40              	.LFB41:
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /*********************************************************************
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @fn      DBGMCU_GetDEVID
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @brief   Returns the device identifier.
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @return  Device identifier.
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  */
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** uint32_t DBGMCU_GetDEVID(void)
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** {
+  41              		.loc 1 37 1 is_stmt 1
+  42              		.cfi_startproc
+  43 0000 17030000 		call	t0,__riscv_save_0
+  43      E7020300 
+  44              		.cfi_offset 1, -4
+  45              		.cfi_def_cfa_offset 16
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     FLASH_BOOT_GetMode();
+  46              		.loc 1 38 5
+  47 0008 97000000 		call	FLASH_BOOT_GetMode
+  47      E7800000 
+  48              	.LVL1:
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     return ((*(uint32_t *)0x1FFFF704) >> 16);
+  49              		.loc 1 39 5
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+  50              		.loc 1 40 1 is_stmt 0
+  51 0010 B7F7FF1F 		li	a5,536866816
+  52 0014 03D56770 		lhu	a0,1798(a5)
+  53 0018 17030000 		tail	__riscv_restore_0
+  53      67000300 
+  54              		.cfi_restore 1
+  55              		.cfi_def_cfa_offset 0
+  56              		.cfi_endproc
+  57              	.LFE41:
+  59              		.section	.text.__get_DEBUG_CR,"ax",@progbits
+  60              		.align	1
+  61              		.globl	__get_DEBUG_CR
+  63              	__get_DEBUG_CR:
+  64              	.LFB42:
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /*********************************************************************
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @fn      __get_DEBUG_CR
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @brief   Return the DEBUGE Control Register
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @return  DEBUGE Control value
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  */
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** uint32_t __get_DEBUG_CR(void)
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** {
+  65              		.loc 1 50 1 is_stmt 1
+  66              		.cfi_startproc
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     uint32_t result;
+  67              		.loc 1 51 5
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     __asm volatile("csrr %0,""0x7C0" : "=r"(result));
+  68              		.loc 1 53 5
+  69              	 #APP
+  70              	# 53 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dbgmcu.c" 1
+  54              	    return (result);
+  71              		csrr a0,0x7C0
+  72              	# 0 "" 2
+  73              	.LVL2:
+  74              		.loc 1 54 5
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+  75              		.loc 1 55 1 is_stmt 0
+  76              	 #NO_APP
+  77 0004 8280     		ret
+  78              		.cfi_endproc
+  79              	.LFE42:
+  81              		.section	.text.__set_DEBUG_CR,"ax",@progbits
+  82              		.align	1
+  83              		.globl	__set_DEBUG_CR
+  85              	__set_DEBUG_CR:
+  86              	.LFB43:
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /*********************************************************************
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @fn      __set_DEBUG_CR
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @brief   Set the DEBUGE Control Register
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @param   value  - set DEBUGE Control value
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @return  none
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  */
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** void __set_DEBUG_CR(uint32_t value)
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** {
+  87              		.loc 1 67 1 is_stmt 1
+  88              		.cfi_startproc
+  89              	.LVL3:
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     __asm volatile("csrw 0x7C0, %0" : : "r"(value));
+  90              		.loc 1 68 5
+  91              	 #APP
+  92              	# 68 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dbgmcu.c" 1
+  69              	}
+  93              		csrw 0x7C0, a0
+  94              	# 0 "" 2
+  95              		.loc 1 69 1 is_stmt 0
+  96              	 #NO_APP
+  97 0004 8280     		ret
+  98              		.cfi_endproc
+  99              	.LFE43:
+ 101              		.section	.text.DBGMCU_Config,"ax",@progbits
+ 102              		.align	1
+ 103              		.globl	DBGMCU_Config
+ 105              	DBGMCU_Config:
+ 106              	.LFB44:
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /*********************************************************************
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @fn      DBGMCU_Config
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @brief   Configures the specified peripheral and low power mode behavior
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *        when the MCU under Debug mode.
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @param   DBGMCU_Periph - specifies the peripheral and low power mode.
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_IWDG_STOP - Debug IWDG stopped when Core is halted
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_WWDG_STOP - Debug WWDG stopped when Core is halted
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_I2C1_SMBUS_TIMEOUT - Debug I2C1 SMBUS time out when Core is halted
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_I2C2_SMBUS_TIMEOUT - Debug I2C2 SMBUS time out when Core is halted
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM1_STOP - TIM1 counter stopped when Core is halted
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM2_STOP - TIM2 counter stopped when Core is halted
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM3_STOP - TIM3 counter stopped when Core is halted
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM4_STOP - TIM4 counter stopped when Core is halted
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM5_STOP - TIM5 counter stopped when Core is halted
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM6_STOP - TIM6 counter stopped when Core is halted
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM7_STOP - TIM7 counter stopped when Core is halted
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM8_STOP - TIM8 counter stopped when Core is halted
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM9_STOP - TIM9 counter stopped when Core is halted
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM10_STOP - TIM10 counter stopped when Core is halted
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM11_STOP - TIM11 counter stopped when Core is halted
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_TIM12_STOP - TIM12 counter stopped when Core is halted
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_LPTIM1_STOP - LPTIM1 counter stopped when Core is halted
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_LPTIM2_STOP - LPTIM2 counter stopped when Core is halted
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_I2C3_SMBUS_TIMEOUT - Debug I2C3 SMBUS time out when Core is halted
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_I2C4_SMBUS_TIMEOUT - Debug I2C4 SMBUS time out when Core is halted
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_CAN1_STOP - Debug CAN1 stopped when Core is halted
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_CAN2_STOP - Debug CAN2 stopped when Core is halted
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *            DBGMCU_CAN3_STOP - Debug CAN3 stopped when Core is halted
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *          NewState - ENABLE or DISABLE.
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @return  none
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  */
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** void DBGMCU_Config(uint32_t DBGMCU_Periph, FunctionalState NewState)
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** {
+ 107              		.loc 1 106 1 is_stmt 1
+ 108              		.cfi_startproc
+ 109              	.LVL4:
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     uint32_t val;
+ 110              		.loc 1 107 5
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     if(NewState != DISABLE)
+ 111              		.loc 1 109 5
+ 112              		.loc 1 109 7 is_stmt 0
+ 113 0000 81C5     		beq	a1,zero,.L8
+ 114              	.LVL5:
+ 115              	.L10:
+ 116              	.LBB8:
+ 117              	.LBB9:
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+ 118              		.loc 1 68 5
+ 119              	 #APP
+ 120              	# 68 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dbgmcu.c" 1
+ 121              		csrw 0x7C0, a0
+ 122              	# 0 "" 2
+ 123              	 #NO_APP
+ 124              	.LBE9:
+ 125              	.LBE8:
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     {
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         __set_DEBUG_CR(DBGMCU_Periph);
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     }
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     else
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     {
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         val = __get_DEBUG_CR();
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         val &= ~(uint32_t)DBGMCU_Periph;
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         __set_DEBUG_CR(val);
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     }
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+ 126              		.loc 1 119 1
+ 127 0006 8280     		ret
+ 128              	.LVL6:
+ 129              	.L8:
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         val &= ~(uint32_t)DBGMCU_Periph;
+ 130              		.loc 1 115 9 is_stmt 1
+ 131              	.LBB11:
+ 132              	.LBB12:
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+ 133              		.loc 1 51 5
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     return (result);
+ 134              		.loc 1 53 5
+ 135              	 #APP
+ 136              	# 53 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dbgmcu.c" 1
+ 137              		csrr a5,0x7C0
+ 138              	# 0 "" 2
+ 139              	.LVL7:
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+ 140              		.loc 1 54 5
+ 141              	 #NO_APP
+ 142              	.LBE12:
+ 143              	.LBE11:
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         __set_DEBUG_CR(val);
+ 144              		.loc 1 116 9
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     }
+ 145              		.loc 1 117 9
+ 146              	.LBB13:
+ 147              	.LBB10:
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+ 148              		.loc 1 68 5
+ 149              	.LBE10:
+ 150              	.LBE13:
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****         __set_DEBUG_CR(val);
+ 151              		.loc 1 116 13 is_stmt 0
+ 152 000c 33F5A740 		andn	a0,a5,a0
+ 153              	.LVL8:
+ 154 0010 CDBF     		j	.L10
+ 155              		.cfi_endproc
+ 156              	.LFE44:
+ 158              		.section	.text.DBGMCU_GetCHIPID,"ax",@progbits
+ 159              		.align	1
+ 160              		.globl	DBGMCU_GetCHIPID
+ 162              	DBGMCU_GetCHIPID:
+ 163              	.LFB45:
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** 
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** /*********************************************************************
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @fn      DBGMCU_GetCHIPID
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @brief   Returns the CHIP identifier.
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  * @return Device identifier.
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *          ChipID List-
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *  CH32H417QEU - 0x417005xD 
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *  CH32H417MEU - 0x417105xD
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *  CH32H417WEU - 0x417205xD
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *  CH32H415REU - 0x415005xD
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  *  CH32H416RDU - 0x416005xD
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****  */
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** uint32_t DBGMCU_GetCHIPID( void )
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** {
+ 164              		.loc 1 135 1 is_stmt 1
+ 165              		.cfi_startproc
+ 166 0000 17030000 		call	t0,__riscv_save_0
+ 166      E7020300 
+ 167              		.cfi_offset 1, -4
+ 168              		.cfi_def_cfa_offset 16
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     FLASH_BOOT_GetMode();
+ 169              		.loc 1 136 5
+ 170 0008 97000000 		call	FLASH_BOOT_GetMode
+ 170      E7800000 
+ 171              	.LVL9:
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c ****     return( *( uint32_t * )0x1FFFF704 );
+ 172              		.loc 1 137 5
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c **** }
+ 173              		.loc 1 138 1 is_stmt 0
+ 174 0010 B7F7FF1F 		li	a5,536866816
+ 175 0014 03A54770 		lw	a0,1796(a5)
+ 176 0018 17030000 		tail	__riscv_restore_0
+ 176      67000300 
+ 177              		.cfi_restore 1
+ 178              		.cfi_def_cfa_offset 0
+ 179              		.cfi_endproc
+ 180              	.LFE45:
+ 182              		.text
+ 183              	.Letext0:
+ 184              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 185              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 186              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 187              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_flash.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_dbgmcu.c
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:14     .text.DBGMCU_GetREVID:0000000000000000 DBGMCU_GetREVID
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:18     .text.DBGMCU_GetREVID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:19     .text.DBGMCU_GetREVID:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:19     .text.DBGMCU_GetREVID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:20     .text.DBGMCU_GetREVID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:21     .text.DBGMCU_GetREVID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:23     .text.DBGMCU_GetREVID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:26     .text.DBGMCU_GetREVID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:27     .text.DBGMCU_GetREVID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:30     .text.DBGMCU_GetREVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:31     .text.DBGMCU_GetREVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:32     .text.DBGMCU_GetREVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:39     .text.DBGMCU_GetDEVID:0000000000000000 DBGMCU_GetDEVID
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:42     .text.DBGMCU_GetDEVID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:43     .text.DBGMCU_GetDEVID:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:43     .text.DBGMCU_GetDEVID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:44     .text.DBGMCU_GetDEVID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:45     .text.DBGMCU_GetDEVID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:47     .text.DBGMCU_GetDEVID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:50     .text.DBGMCU_GetDEVID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:51     .text.DBGMCU_GetDEVID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:54     .text.DBGMCU_GetDEVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:55     .text.DBGMCU_GetDEVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:56     .text.DBGMCU_GetDEVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:63     .text.__get_DEBUG_CR:0000000000000000 __get_DEBUG_CR
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:66     .text.__get_DEBUG_CR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:67     .text.__get_DEBUG_CR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:68     .text.__get_DEBUG_CR:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c:53     .text.__get_DEBUG_CR:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c:53     .text.__get_DEBUG_CR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:75     .text.__get_DEBUG_CR:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:77     .text.__get_DEBUG_CR:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:78     .text.__get_DEBUG_CR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:85     .text.__set_DEBUG_CR:0000000000000000 __set_DEBUG_CR
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:88     .text.__set_DEBUG_CR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:90     .text.__set_DEBUG_CR:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c:68     .text.__set_DEBUG_CR:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c:68     .text.__set_DEBUG_CR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:97     .text.__set_DEBUG_CR:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:98     .text.__set_DEBUG_CR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:105    .text.DBGMCU_Config:0000000000000000 DBGMCU_Config
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:108    .text.DBGMCU_Config:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:110    .text.DBGMCU_Config:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:111    .text.DBGMCU_Config:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:112    .text.DBGMCU_Config:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:113    .text.DBGMCU_Config:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:113    .text.DBGMCU_Config:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c:68     .text.DBGMCU_Config:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:127    .text.DBGMCU_Config:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:133    .text.DBGMCU_Config:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:134    .text.DBGMCU_Config:0000000000000008 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dbgmcu.c:53     .text.DBGMCU_Config:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:144    .text.DBGMCU_Config:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:145    .text.DBGMCU_Config:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:148    .text.DBGMCU_Config:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:151    .text.DBGMCU_Config:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:152    .text.DBGMCU_Config:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:155    .text.DBGMCU_Config:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:162    .text.DBGMCU_GetCHIPID:0000000000000000 DBGMCU_GetCHIPID
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:165    .text.DBGMCU_GetCHIPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:166    .text.DBGMCU_GetCHIPID:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:166    .text.DBGMCU_GetCHIPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:167    .text.DBGMCU_GetCHIPID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:168    .text.DBGMCU_GetCHIPID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:170    .text.DBGMCU_GetCHIPID:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:173    .text.DBGMCU_GetCHIPID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:174    .text.DBGMCU_GetCHIPID:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:177    .text.DBGMCU_GetCHIPID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:178    .text.DBGMCU_GetCHIPID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:179    .text.DBGMCU_GetCHIPID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:00000000000000a8 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:00000000000000fa .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:000000000000013e .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:00000000000001c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:000000000000024e .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:0000000000000288 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:00000000000002cc .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:00000000000002de .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:00000000000002f0 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:0000000000000301 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:000000000000030b .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1011   .debug_line_str:0000000000000318 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:35     .text.DBGMCU_GetREVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:59     .text.DBGMCU_GetDEVID:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:81     .text.__get_DEBUG_CR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:101    .text.__set_DEBUG_CR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:158    .text.DBGMCU_Config:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:182    .text.DBGMCU_GetCHIPID:0000000000000020 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:129    .text.DBGMCU_Config:0000000000000008 .L8
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:115    .text.DBGMCU_Config:0000000000000002 .L10
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:434    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1002   .debug_str:0000000000000140 .LASF22
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1009   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1007   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:928    .debug_rnglists:000000000000001f .LLRL4
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:950    .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:954    .debug_str:000000000000000e .LASF2
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:994    .debug_str:0000000000000115 .LASF3
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:976    .debug_str:0000000000000098 .LASF4
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1000   .debug_str:0000000000000136 .LASF5
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:992    .debug_str:0000000000000102 .LASF6
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:982    .debug_str:00000000000000b4 .LASF7
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:960    .debug_str:0000000000000034 .LASF11
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:966    .debug_str:0000000000000055 .LASF8
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:952    .debug_str:0000000000000000 .LASF9
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:990    .debug_str:00000000000000eb .LASF10
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:956    .debug_str:000000000000001b .LASF12
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:962    .debug_str:000000000000003f .LASF13
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:978    .debug_str:00000000000000a6 .LASF14
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:958    .debug_str:0000000000000024 .LASF15
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:972    .debug_str:0000000000000083 .LASF16
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:968    .debug_str:0000000000000067 .LASF23
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:988    .debug_str:00000000000000da .LASF19
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:163    .text.DBGMCU_GetCHIPID:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:180    .text.DBGMCU_GetCHIPID:0000000000000020 .LFE45
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:171    .text.DBGMCU_GetCHIPID:0000000000000010 .LVL9
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:964    .debug_str:0000000000000047 .LASF24
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:106    .text.DBGMCU_Config:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:156    .text.DBGMCU_Config:0000000000000012 .LFE44
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:986    .debug_str:00000000000000cc .LASF17
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:843    .debug_loclists:000000000000000c .LLST0
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:970    .debug_str:000000000000007a .LASF18
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:871    .debug_loclists:000000000000003f .LLST1
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:116    .text.DBGMCU_Config:0000000000000002 .LBB8
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:920    .debug_rnglists:000000000000000c .LLRL2
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:131    .text.DBGMCU_Config:0000000000000008 .LBB11
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:143    .text.DBGMCU_Config:000000000000000c .LBE11
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:984    .debug_str:00000000000000bd .LASF25
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:998    .debug_str:0000000000000130 .LASF26
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:996    .debug_str:0000000000000121 .LASF27
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:980    .debug_str:00000000000000ad .LASF28
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:1004   .debug_str:0000000000000225 .LASF20
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:40     .text.DBGMCU_GetDEVID:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:57     .text.DBGMCU_GetDEVID:0000000000000020 .LFE41
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:48     .text.DBGMCU_GetDEVID:0000000000000010 .LVL1
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:974    .debug_str:0000000000000088 .LASF21
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:15     .text.DBGMCU_GetREVID:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:33     .text.DBGMCU_GetREVID:0000000000000020 .LFE40
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:24     .text.DBGMCU_GetREVID:0000000000000010 .LVL0
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:64     .text.__get_DEBUG_CR:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:79     .text.__get_DEBUG_CR:0000000000000006 .LFE42
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:86     .text.__set_DEBUG_CR:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:99     .text.__set_DEBUG_CR:0000000000000006 .LFE43
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:109    .text.DBGMCU_Config:0000000000000000 .LVL4
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:114    .text.DBGMCU_Config:0000000000000002 .LVL5
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:128    .text.DBGMCU_Config:0000000000000008 .LVL6
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:153    .text.DBGMCU_Config:0000000000000010 .LVL8
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:139    .text.DBGMCU_Config:000000000000000c .LVL7
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:189    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:125    .text.DBGMCU_Config:0000000000000006 .LBE8
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:146    .text.DBGMCU_Config:000000000000000c .LBB13
+C:\Users\User\AppData\Local\Temp\ccSpc1Nr.s:150    .text.DBGMCU_Config:000000000000000c .LBE13
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+FLASH_BOOT_GetMode
+__riscv_restore_0

@@ -1,0 +1,2295 @@
+   1              		.file	"system_ch32h417.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.SystemInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	SystemInit
+  14              	SystemInit:
+  15              	.LFB40:
+  16              		.file 1 "../User/system_ch32h417.c"
+   1:../User/system_ch32h417.c **** /********************************** (C) COPYRIGHT *******************************
+   2:../User/system_ch32h417.c **** * File Name          : system_ch32h417.c
+   3:../User/system_ch32h417.c **** * Author             : WCH
+   4:../User/system_ch32h417.c **** * Version            : V1.0.1
+   5:../User/system_ch32h417.c **** * Date               : 2025/10/16
+   6:../User/system_ch32h417.c **** * Description        : CH32H417 Device Peripheral Access Layer System Source File.
+   7:../User/system_ch32h417.c **** *                      For HSE = 25Mhz
+   8:../User/system_ch32h417.c **** *********************************************************************************
+   9:../User/system_ch32h417.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+  10:../User/system_ch32h417.c **** * Attention: This software (modified or not) and binary are used for 
+  11:../User/system_ch32h417.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  12:../User/system_ch32h417.c **** *******************************************************************************/
+  13:../User/system_ch32h417.c **** #include "ch32h417.h" 
+  14:../User/system_ch32h417.c **** 
+  15:../User/system_ch32h417.c **** /* 
+  16:../User/system_ch32h417.c **** * Uncomment the line corresponding to the desired System clock (SYSCLK) frequency (after 
+  17:../User/system_ch32h417.c **** * reset the HSI is used as SYSCLK source).
+  18:../User/system_ch32h417.c **** * If none of the define below is enabled, the HSI is used as System clock source. 
+  19:../User/system_ch32h417.c **** */
+  20:../User/system_ch32h417.c **** #define SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE    400000000
+  21:../User/system_ch32h417.c **** // #define SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE    480000000
+  22:../User/system_ch32h417.c **** // #define SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI    400000000
+  23:../User/system_ch32h417.c **** // #define SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI    480000000
+  24:../User/system_ch32h417.c **** 
+  25:../User/system_ch32h417.c **** /*Only suitable for commercial applications, with a temperature not exceeding 70 ℃ and good heat 
+  26:../User/system_ch32h417.c **** /* // #define SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE    480000000
+  27:../User/system_ch32h417.c **** // #define SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI    480000000 */
+  28:../User/system_ch32h417.c **** 
+  29:../User/system_ch32h417.c **** /* Clock Definitions */
+  30:../User/system_ch32h417.c **** uint32_t HCLKClock;
+  31:../User/system_ch32h417.c **** #ifdef SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE
+  32:../User/system_ch32h417.c **** uint32_t SystemClock = SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE;         /* System Clock Frequency
+  33:../User/system_ch32h417.c **** uint32_t SystemCoreClock = 100000000;
+  34:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE
+  35:../User/system_ch32h417.c **** uint32_t SystemClock = SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE;        /* System Clock Frequency 
+  36:../User/system_ch32h417.c **** uint32_t SystemCoreClock = 120000000;
+  37:../User/system_ch32h417.c **** #elif defined SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI
+  38:../User/system_ch32h417.c **** uint32_t SystemClock = SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI;        /* System Clock Frequency 
+  39:../User/system_ch32h417.c **** uint32_t SystemCoreClock = 100000000;
+  40:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI
+  41:../User/system_ch32h417.c **** uint32_t SystemClock = SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI;       /* System Clock Frequency *
+  42:../User/system_ch32h417.c **** uint32_t SystemCoreClock = 120000000;
+  43:../User/system_ch32h417.c **** 
+  44:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE
+  45:../User/system_ch32h417.c **** uint32_t SystemClock = SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE;         /* System Clock Frequency
+  46:../User/system_ch32h417.c **** uint32_t SystemCoreClock = 120000000;
+  47:../User/system_ch32h417.c **** 
+  48:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI
+  49:../User/system_ch32h417.c **** uint32_t SystemClock = SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI;         /* System Clock Frequency
+  50:../User/system_ch32h417.c **** uint32_t SystemCoreClock = 120000000;
+  51:../User/system_ch32h417.c **** 
+  52:../User/system_ch32h417.c **** 
+  53:../User/system_ch32h417.c **** 
+  54:../User/system_ch32h417.c **** #else
+  55:../User/system_ch32h417.c **** 
+  56:../User/system_ch32h417.c **** uint32_t SystemClock = HSI_VALUE;       /* System Clock Frequency */
+  57:../User/system_ch32h417.c **** uint32_t SystemCoreClock = HSI_VALUE;
+  58:../User/system_ch32h417.c **** #endif
+  59:../User/system_ch32h417.c **** 
+  60:../User/system_ch32h417.c **** static __I uint8_t PLLMULTB[32] = {4,6,7,8,17,9,19,10,21,11,23,12,25,13,14,15,16,17,18,19,20,22,24,
+  61:../User/system_ch32h417.c **** static __I uint8_t HBPrescTB[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+  62:../User/system_ch32h417.c **** static __I uint8_t SERDESPLLMULTB[16] = {25, 28, 30, 32, 35, 38, 40, 45, 50, 56, 60, 64, 70, 76, 80
+  63:../User/system_ch32h417.c **** static __I uint8_t FPRETB[4] = {0, 1, 2, 2};
+  64:../User/system_ch32h417.c **** 
+  65:../User/system_ch32h417.c **** 
+  66:../User/system_ch32h417.c **** 
+  67:../User/system_ch32h417.c **** /* system_private_function_proto_types */
+  68:../User/system_ch32h417.c **** static void SetSysClock(void);
+  69:../User/system_ch32h417.c **** 
+  70:../User/system_ch32h417.c **** #ifdef SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE
+  71:../User/system_ch32h417.c **** static void SetSYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE( void );
+  72:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE
+  73:../User/system_ch32h417.c **** static void SetSYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE( void );
+  74:../User/system_ch32h417.c **** #elif defined SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI
+  75:../User/system_ch32h417.c **** static void SetSYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI( void );
+  76:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI
+  77:../User/system_ch32h417.c **** static void SetSYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI( void );
+  78:../User/system_ch32h417.c **** 
+  79:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE
+  80:../User/system_ch32h417.c **** static void SetSYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE( void );
+  81:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI
+  82:../User/system_ch32h417.c **** static void SetSYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI( void );
+  83:../User/system_ch32h417.c **** 
+  84:../User/system_ch32h417.c **** #endif
+  85:../User/system_ch32h417.c **** 
+  86:../User/system_ch32h417.c **** /*********************************************************************
+  87:../User/system_ch32h417.c ****  * @fn      SystemInit
+  88:../User/system_ch32h417.c ****  *
+  89:../User/system_ch32h417.c ****  * @brief   Setup the microcontroller system Initialize the Embedded Flash Interface,
+  90:../User/system_ch32h417.c ****  *        the PLL and update the SystemCoreClock variable.
+  91:../User/system_ch32h417.c ****  *
+  92:../User/system_ch32h417.c ****  * @return  none
+  93:../User/system_ch32h417.c ****  */
+  94:../User/system_ch32h417.c **** void SystemInit (void)
+  95:../User/system_ch32h417.c **** {
+  17              		.loc 1 95 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_1
+  19      E7020300 
+  20              		.cfi_offset 8, -8
+  21              		.cfi_offset 1, -4
+  22              		.cfi_def_cfa_offset 16
+  96:../User/system_ch32h417.c ****   RCC->CTLR |= (uint32_t)0x00000001;
+  23              		.loc 1 96 3
+  24              		.loc 1 96 6 is_stmt 0
+  25 0008 B7170240 		li	a5,1073876992
+  26 000c 9843     		lw	a4,0(a5)
+  97:../User/system_ch32h417.c ****   RCC->CFGR0 &= (uint32_t)0x305C0000;
+  27              		.loc 1 97 14
+  28 000e B7065C30 		li	a3,811335680
+  95:../User/system_ch32h417.c ****   RCC->CTLR |= (uint32_t)0x00000001;
+  29              		.loc 1 95 1
+  30 0012 4111     		addi	sp,sp,-16
+  31              		.cfi_def_cfa_offset 32
+  96:../User/system_ch32h417.c ****   RCC->CTLR |= (uint32_t)0x00000001;
+  32              		.loc 1 96 13
+  33 0014 13671700 		ori	a4,a4,1
+  34 0018 98C3     		sw	a4,0(a5)
+  35              		.loc 1 97 3 is_stmt 1
+  36              		.loc 1 97 6 is_stmt 0
+  37 001a D843     		lw	a4,4(a5)
+  98:../User/system_ch32h417.c ****   while ((RCC->CFGR0 & (uint32_t)RCC_SWS) != (uint32_t)0x00)
+  38              		.loc 1 98 14
+  39 001c 37140240 		li	s0,1073876992
+  97:../User/system_ch32h417.c ****   RCC->CFGR0 &= (uint32_t)0x305C0000;
+  40              		.loc 1 97 14
+  41 0020 758F     		and	a4,a4,a3
+  42 0022 D8C3     		sw	a4,4(a5)
+  43              		.loc 1 98 3 is_stmt 1
+  44              	.L2:
+  99:../User/system_ch32h417.c ****   {
+ 100:../User/system_ch32h417.c ****   }
+  45              		.loc 1 100 3 discriminator 1
+  98:../User/system_ch32h417.c ****   while ((RCC->CFGR0 & (uint32_t)RCC_SWS) != (uint32_t)0x00)
+  46              		.loc 1 98 43 discriminator 1
+  98:../User/system_ch32h417.c ****   while ((RCC->CFGR0 & (uint32_t)RCC_SWS) != (uint32_t)0x00)
+  47              		.loc 1 98 14 is_stmt 0 discriminator 1
+  48 0024 5C40     		lw	a5,4(s0)
+  98:../User/system_ch32h417.c ****   while ((RCC->CFGR0 & (uint32_t)RCC_SWS) != (uint32_t)0x00)
+  49              		.loc 1 98 22 discriminator 1
+  50 0026 B18B     		andi	a5,a5,12
+  98:../User/system_ch32h417.c ****   while ((RCC->CFGR0 & (uint32_t)RCC_SWS) != (uint32_t)0x00)
+  51              		.loc 1 98 43 discriminator 1
+  52 0028 F5FF     		bne	a5,zero,.L2
+ 101:../User/system_ch32h417.c ****   RCC->CFGR0 &= (uint32_t)0xFFBFFFFF;
+  53              		.loc 1 101 3 is_stmt 1
+  54              		.loc 1 101 6 is_stmt 0
+  55 002a 5C40     		lw	a5,4(s0)
+ 102:../User/system_ch32h417.c **** 
+ 103:../User/system_ch32h417.c ****   RCC->PLLCFGR &= (uint32_t)0x7FFFFFFF;
+ 104:../User/system_ch32h417.c **** 
+ 105:../User/system_ch32h417.c ****   RCC->CTLR &= (uint32_t)0x6AA6FFFF;
+  56              		.loc 1 105 13
+  57 002c 3707A76A 		li	a4,1789329408
+  58 0030 7D17     		addi	a4,a4,-1
+ 101:../User/system_ch32h417.c ****   RCC->CFGR0 &= (uint32_t)0xFFBFFFFF;
+  59              		.loc 1 101 14
+  60 0032 93976749 		bclri	a5,a5,22
+  61 0036 5CC0     		sw	a5,4(s0)
+ 103:../User/system_ch32h417.c **** 
+  62              		.loc 1 103 3 is_stmt 1
+ 103:../User/system_ch32h417.c **** 
+  63              		.loc 1 103 6 is_stmt 0
+  64 0038 1C44     		lw	a5,8(s0)
+ 103:../User/system_ch32h417.c **** 
+  65              		.loc 1 103 16
+  66 003a 9397F749 		bclri	a5,a5,31
+  67 003e 1CC4     		sw	a5,8(s0)
+  68              		.loc 1 105 3 is_stmt 1
+  69              		.loc 1 105 6 is_stmt 0
+  70 0040 1C40     		lw	a5,0(s0)
+  71              		.loc 1 105 13
+  72 0042 F98F     		and	a5,a5,a4
+  73 0044 1CC0     		sw	a5,0(s0)
+ 106:../User/system_ch32h417.c ****   RCC->CTLR &= (uint32_t)0xFFFBFFFF;
+  74              		.loc 1 106 3 is_stmt 1
+  75              		.loc 1 106 6 is_stmt 0
+  76 0046 1C40     		lw	a5,0(s0)
+ 107:../User/system_ch32h417.c **** 
+ 108:../User/system_ch32h417.c ****   RCC->PLLCFGR &= (uint32_t)0x0FFFC000;
+  77              		.loc 1 108 16
+  78 0048 37C7FF0F 		li	a4,268419072
+ 106:../User/system_ch32h417.c ****   RCC->CTLR &= (uint32_t)0xFFFBFFFF;
+  79              		.loc 1 106 13
+  80 004c 93972749 		bclri	a5,a5,18
+  81 0050 1CC0     		sw	a5,0(s0)
+  82              		.loc 1 108 3 is_stmt 1
+  83              		.loc 1 108 6 is_stmt 0
+  84 0052 1C44     		lw	a5,8(s0)
+  85              		.loc 1 108 16
+  86 0054 F98F     		and	a5,a5,a4
+  87 0056 1CC4     		sw	a5,8(s0)
+ 109:../User/system_ch32h417.c ****   RCC->PLLCFGR |= (uint32_t)0x00000004;
+  88              		.loc 1 109 3 is_stmt 1
+  89              		.loc 1 109 6 is_stmt 0
+  90 0058 1C44     		lw	a5,8(s0)
+ 110:../User/system_ch32h417.c **** 
+ 111:../User/system_ch32h417.c ****   RCC->INTR = 0x00FF0000;
+ 112:../User/system_ch32h417.c ****   RCC->CFGR2 &= 0x0C600000;
+  91              		.loc 1 112 14
+  92 005a 3707600C 		li	a4,207618048
+ 109:../User/system_ch32h417.c ****   RCC->PLLCFGR |= (uint32_t)0x00000004;
+  93              		.loc 1 109 16
+  94 005e 93E74700 		ori	a5,a5,4
+  95 0062 1CC4     		sw	a5,8(s0)
+ 111:../User/system_ch32h417.c ****   RCC->CFGR2 &= 0x0C600000;
+  96              		.loc 1 111 3 is_stmt 1
+ 111:../User/system_ch32h417.c ****   RCC->CFGR2 &= 0x0C600000;
+  97              		.loc 1 111 13 is_stmt 0
+  98 0064 B707FF00 		li	a5,16711680
+  99 0068 5CC4     		sw	a5,12(s0)
+ 100              		.loc 1 112 3 is_stmt 1
+ 101              		.loc 1 112 6 is_stmt 0
+ 102 006a 1C58     		lw	a5,48(s0)
+ 103              		.loc 1 112 14
+ 104 006c F98F     		and	a5,a5,a4
+ 105 006e 1CD8     		sw	a5,48(s0)
+ 113:../User/system_ch32h417.c ****   RCC->PLLCFGR2 &= 0xFFF0E080;
+ 106              		.loc 1 113 3 is_stmt 1
+ 107              		.loc 1 113 6 is_stmt 0
+ 108 0070 5C58     		lw	a5,52(s0)
+ 109              		.loc 1 113 17
+ 110 0072 37E7F0FF 		li	a4,-991232
+ 111 0076 13070708 		addi	a4,a4,128
+ 112 007a F98F     		and	a5,a5,a4
+ 113 007c 5CD8     		sw	a5,52(s0)
+ 114:../User/system_ch32h417.c ****   RCC->PLLCFGR2 |= 0x00080020;
+ 114              		.loc 1 114 3 is_stmt 1
+ 115              		.loc 1 114 6 is_stmt 0
+ 116 007e 5C58     		lw	a5,52(s0)
+ 117              		.loc 1 114 17
+ 118 0080 37070800 		li	a4,524288
+ 119 0084 13070702 		addi	a4,a4,32
+ 120 0088 D98F     		or	a5,a5,a4
+ 121 008a 5CD8     		sw	a5,52(s0)
+ 115:../User/system_ch32h417.c ****   
+ 116:../User/system_ch32h417.c ****   SetSysClock();
+ 122              		.loc 1 116 3 is_stmt 1
+ 123              	.LBB8:
+ 124              	.LBB9:
+ 117:../User/system_ch32h417.c **** }
+ 118:../User/system_ch32h417.c **** 
+ 119:../User/system_ch32h417.c **** /*********************************************************************
+ 120:../User/system_ch32h417.c ****  * @fn      SetSysClock
+ 121:../User/system_ch32h417.c ****  *
+ 122:../User/system_ch32h417.c ****  * @brief   Sets System clock frequency.
+ 123:../User/system_ch32h417.c ****  *          Sets V5F Core clock frequency.
+ 124:../User/system_ch32h417.c ****  *          Sets V3F Core clock frequency.
+ 125:../User/system_ch32h417.c ****  *          configure HCLK prescalers.
+ 126:../User/system_ch32h417.c ****  *
+ 127:../User/system_ch32h417.c ****  * @return  none
+ 128:../User/system_ch32h417.c ****  */
+ 129:../User/system_ch32h417.c **** static void SetSysClock(void)
+ 130:../User/system_ch32h417.c **** {
+ 131:../User/system_ch32h417.c ****      GPIO_IPD_Unused();
+ 125              		.loc 1 131 6
+ 126 008c 97000000 		call	GPIO_IPD_Unused
+ 126      E7800000 
+ 127              	.LVL0:
+ 132:../User/system_ch32h417.c **** #ifdef SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE
+ 133:../User/system_ch32h417.c ****     SetSYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE();
+ 128              		.loc 1 133 5
+ 129              	.LBB10:
+ 130              	.LBB11:
+ 134:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE
+ 135:../User/system_ch32h417.c ****     SetSYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSE();
+ 136:../User/system_ch32h417.c **** #elif defined SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI
+ 137:../User/system_ch32h417.c ****     SetSYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSI();
+ 138:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI
+ 139:../User/system_ch32h417.c ****     SetSYSCLK_480M_CoreCLK_V5F_240M_V3F_120M_HSI();
+ 140:../User/system_ch32h417.c **** 
+ 141:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE
+ 142:../User/system_ch32h417.c ****     SetSYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSE();
+ 143:../User/system_ch32h417.c **** #elif defined SYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI
+ 144:../User/system_ch32h417.c ****     SetSYSCLK_480M_CoreCLK_V5F_480M_V3F_120M_HSI();
+ 145:../User/system_ch32h417.c **** 
+ 146:../User/system_ch32h417.c **** #endif
+ 147:../User/system_ch32h417.c ****  
+ 148:../User/system_ch32h417.c ****  /* If none of the define above is enabled, the HSI is used as System clock
+ 149:../User/system_ch32h417.c ****   * source (default after reset) 
+ 150:../User/system_ch32h417.c ****     */
+ 151:../User/system_ch32h417.c **** }
+ 152:../User/system_ch32h417.c **** 
+ 153:../User/system_ch32h417.c **** /*********************************************************************
+ 154:../User/system_ch32h417.c ****  * @fn      SystemAndCoreClockUpdate
+ 155:../User/system_ch32h417.c ****  *
+ 156:../User/system_ch32h417.c ****  * @brief   Update SystemClock and CoreClock variable according to Clock Register Values.
+ 157:../User/system_ch32h417.c ****  *
+ 158:../User/system_ch32h417.c ****  * @return  none
+ 159:../User/system_ch32h417.c ****  */
+ 160:../User/system_ch32h417.c **** void SystemAndCoreClockUpdate (void)
+ 161:../User/system_ch32h417.c **** {
+ 162:../User/system_ch32h417.c ****     uint32_t tmp = 0,tmp1 = 0, tmp2 = 0, tmp3 = 0, pllmull = 0, pllsource = 0, presc = 0, presc1 = 
+ 163:../User/system_ch32h417.c **** 
+ 164:../User/system_ch32h417.c ****     tmp = RCC->CFGR0 & RCC_SWS;
+ 165:../User/system_ch32h417.c ****     tmp2 = RCC->PLLCFGR & RCC_SYSPLL_SEL;
+ 166:../User/system_ch32h417.c **** 
+ 167:../User/system_ch32h417.c ****     switch(tmp)
+ 168:../User/system_ch32h417.c ****     {
+ 169:../User/system_ch32h417.c ****         case 0x00:
+ 170:../User/system_ch32h417.c ****             SystemClock = HSI_VALUE;
+ 171:../User/system_ch32h417.c ****             break;
+ 172:../User/system_ch32h417.c **** 
+ 173:../User/system_ch32h417.c ****         case 0x04:
+ 174:../User/system_ch32h417.c ****             SystemClock = HSE_VALUE;
+ 175:../User/system_ch32h417.c ****             break;
+ 176:../User/system_ch32h417.c **** 
+ 177:../User/system_ch32h417.c ****         case 0x08:
+ 178:../User/system_ch32h417.c ****             switch(tmp2)
+ 179:../User/system_ch32h417.c ****             { 
+ 180:../User/system_ch32h417.c ****                 case RCC_SYSPLL_PLL:
+ 181:../User/system_ch32h417.c ****                     pllmull = RCC->PLLCFGR & RCC_PLLMUL;
+ 182:../User/system_ch32h417.c ****                     pllsource = RCC->PLLCFGR & RCC_PLLSRC;
+ 183:../User/system_ch32h417.c ****                     presc = (((RCC->PLLCFGR & RCC_PLL_SRC_DIV) >> 8) + 1);
+ 184:../User/system_ch32h417.c **** 
+ 185:../User/system_ch32h417.c ****                     if(pllsource == 0xA0)
+ 186:../User/system_ch32h417.c ****                     {
+ 187:../User/system_ch32h417.c ****                         tmp1 = 500000000 / presc;
+ 188:../User/system_ch32h417.c ****                     }
+ 189:../User/system_ch32h417.c ****                     else if(pllsource == 0xE0)
+ 190:../User/system_ch32h417.c ****                     {
+ 191:../User/system_ch32h417.c ****                         tmp1 = HSE_VALUE*SERDESPLLMULTB[RCC->PLLCFGR2>>16]/2/presc;
+ 192:../User/system_ch32h417.c ****                     }
+ 193:../User/system_ch32h417.c **** 
+ 194:../User/system_ch32h417.c ****                     else if(pllsource == 0x80)
+ 195:../User/system_ch32h417.c ****                     {
+ 196:../User/system_ch32h417.c ****                         tmp1 = 480000000 / presc;
+ 197:../User/system_ch32h417.c ****                     }
+ 198:../User/system_ch32h417.c ****                     else if(pllsource == 0xC0)
+ 199:../User/system_ch32h417.c ****                     {
+ 200:../User/system_ch32h417.c ****                         tmp1 = 125000000 / presc;
+ 201:../User/system_ch32h417.c ****                     }
+ 202:../User/system_ch32h417.c ****                     else if(pllsource == 0x20)
+ 203:../User/system_ch32h417.c ****                     {
+ 204:../User/system_ch32h417.c ****                         tmp1 = HSE_VALUE / presc;
+ 205:../User/system_ch32h417.c ****                     }
+ 206:../User/system_ch32h417.c ****                     else
+ 207:../User/system_ch32h417.c ****                     {
+ 208:../User/system_ch32h417.c ****                         tmp1 = HSI_VALUE / presc;
+ 209:../User/system_ch32h417.c ****                     }
+ 210:../User/system_ch32h417.c **** 
+ 211:../User/system_ch32h417.c ****                     if((pllmull == 4) || (pllmull == 6) || (pllmull == 8) || (pllmull == 10) || (pl
+ 212:../User/system_ch32h417.c ****                     {
+ 213:../User/system_ch32h417.c ****                         SystemClock = (tmp1 * PLLMULTB[pllmull]) >> 1;
+ 214:../User/system_ch32h417.c ****                     }
+ 215:../User/system_ch32h417.c ****                     else
+ 216:../User/system_ch32h417.c ****                     {
+ 217:../User/system_ch32h417.c ****                         SystemClock = tmp1 * PLLMULTB[pllmull];
+ 218:../User/system_ch32h417.c ****                     }
+ 219:../User/system_ch32h417.c **** 
+ 220:../User/system_ch32h417.c ****                     break;
+ 221:../User/system_ch32h417.c **** 
+ 222:../User/system_ch32h417.c ****                 case RCC_SYSPLL_USBHS:
+ 223:../User/system_ch32h417.c ****                     SystemClock = 480000000;
+ 224:../User/system_ch32h417.c ****                     break;
+ 225:../User/system_ch32h417.c **** 
+ 226:../User/system_ch32h417.c ****                 case RCC_SYSPLL_ETH:
+ 227:../User/system_ch32h417.c ****                     SystemClock = 500000000;
+ 228:../User/system_ch32h417.c ****                     break;
+ 229:../User/system_ch32h417.c **** 
+ 230:../User/system_ch32h417.c ****                 case RCC_SYSPLL_SERDES:
+ 231:../User/system_ch32h417.c ****                     SystemClock = HSE_VALUE*SERDESPLLMULTB[RCC->PLLCFGR2>>16]/2;
+ 232:../User/system_ch32h417.c ****                     break;
+ 233:../User/system_ch32h417.c **** 
+ 234:../User/system_ch32h417.c ****                 case RCC_SYSPLL_USBSS:
+ 235:../User/system_ch32h417.c ****                     SystemClock = 125000000;
+ 236:../User/system_ch32h417.c ****                     break;
+ 237:../User/system_ch32h417.c **** 
+ 238:../User/system_ch32h417.c ****                 default:
+ 239:../User/system_ch32h417.c ****                     SystemClock = HSI_VALUE;
+ 240:../User/system_ch32h417.c ****                     break;
+ 241:../User/system_ch32h417.c ****             }  
+ 242:../User/system_ch32h417.c ****             break;
+ 243:../User/system_ch32h417.c **** 
+ 244:../User/system_ch32h417.c ****         default:
+ 245:../User/system_ch32h417.c ****             SystemClock = HSI_VALUE;
+ 246:../User/system_ch32h417.c ****             break;
+ 247:../User/system_ch32h417.c ****     }
+ 248:../User/system_ch32h417.c **** 
+ 249:../User/system_ch32h417.c ****     tmp = (RCC->CFGR0 & RCC_HPRE) >> 4;
+ 250:../User/system_ch32h417.c ****     presc1 = HBPrescTB[tmp];
+ 251:../User/system_ch32h417.c **** 
+ 252:../User/system_ch32h417.c ****     tmp3 = SystemClock >> presc1;
+ 253:../User/system_ch32h417.c **** 
+ 254:../User/system_ch32h417.c ****     tmp = (RCC->CFGR0 & RCC_FPRE) >> 16;
+ 255:../User/system_ch32h417.c ****     presc1 = FPRETB[tmp];
+ 256:../User/system_ch32h417.c ****     HCLKClock = tmp3 >> presc1;
+ 257:../User/system_ch32h417.c **** 
+ 258:../User/system_ch32h417.c ****     if(NVIC_GetCurrentCoreID() == 0)//V3F
+ 259:../User/system_ch32h417.c ****     {
+ 260:../User/system_ch32h417.c ****         SystemCoreClock = HCLKClock;
+ 261:../User/system_ch32h417.c ****     }
+ 262:../User/system_ch32h417.c ****     else 
+ 263:../User/system_ch32h417.c ****     {
+ 264:../User/system_ch32h417.c ****          SystemCoreClock = tmp3;
+ 265:../User/system_ch32h417.c ****     }
+ 266:../User/system_ch32h417.c **** }
+ 267:../User/system_ch32h417.c **** 
+ 268:../User/system_ch32h417.c **** #ifdef SYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE
+ 269:../User/system_ch32h417.c **** 
+ 270:../User/system_ch32h417.c **** /*********************************************************************
+ 271:../User/system_ch32h417.c ****  * @fn      SetSYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE
+ 272:../User/system_ch32h417.c ****  *
+ 273:../User/system_ch32h417.c ****  * @brief   Sets System clock frequency to 400MHz.
+ 274:../User/system_ch32h417.c ****  *          Sets V5F Core clock frequency to 400MHz.
+ 275:../User/system_ch32h417.c ****  *          Sets V3F Core clock frequency to 100MHz.
+ 276:../User/system_ch32h417.c ****  *          configure HCLK prescalers.
+ 277:../User/system_ch32h417.c ****  *
+ 278:../User/system_ch32h417.c ****  * @return  none
+ 279:../User/system_ch32h417.c ****  */
+ 280:../User/system_ch32h417.c **** static void SetSYSCLK_400M_CoreCLK_V5F_400M_V3F_100M_HSE(void)
+ 281:../User/system_ch32h417.c **** {
+ 282:../User/system_ch32h417.c ****   __IO uint32_t StartUpCounter = 0, HSEStatus = 0, FLASH_Temp = 0;
+ 131              		.loc 1 282 3
+ 132              		.loc 1 282 17 is_stmt 0
+ 133 0094 02C2     		sw	zero,4(sp)
+ 134              		.loc 1 282 37
+ 135 0096 02C4     		sw	zero,8(sp)
+ 136              		.loc 1 282 52
+ 137 0098 02C6     		sw	zero,12(sp)
+ 283:../User/system_ch32h417.c ****    
+ 284:../User/system_ch32h417.c ****   RCC->CTLR |= ((uint32_t)RCC_HSEON);
+ 138              		.loc 1 284 3 is_stmt 1
+ 139              		.loc 1 284 6 is_stmt 0
+ 140 009a 1C40     		lw	a5,0(s0)
+ 285:../User/system_ch32h417.c ****  
+ 286:../User/system_ch32h417.c ****   /* Wait till HSE is ready and if Time out is reached exit */
+ 287:../User/system_ch32h417.c ****   do
+ 288:../User/system_ch32h417.c ****   {
+ 289:../User/system_ch32h417.c ****     HSEStatus = RCC->CTLR & RCC_HSERDY;
+ 141              		.loc 1 289 20
+ 142 009c B7160240 		li	a3,1073876992
+ 143              		.loc 1 289 27
+ 144 00a0 37060200 		li	a2,131072
+ 284:../User/system_ch32h417.c ****  
+ 145              		.loc 1 284 13
+ 146 00a4 93970729 		bseti	a5,a5,16
+ 290:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 291:../User/system_ch32h417.c ****   } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+ 147              		.loc 1 291 28
+ 148 00a8 37070001 		li	a4,16777216
+ 284:../User/system_ch32h417.c ****  
+ 149              		.loc 1 284 13
+ 150 00ac 1CC0     		sw	a5,0(s0)
+ 151              	.L4:
+ 287:../User/system_ch32h417.c ****   {
+ 152              		.loc 1 287 3 is_stmt 1
+ 289:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 153              		.loc 1 289 5
+ 289:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 154              		.loc 1 289 20 is_stmt 0
+ 155 00ae 9C42     		lw	a5,0(a3)
+ 289:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 156              		.loc 1 289 27
+ 157 00b0 F18F     		and	a5,a5,a2
+ 289:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 158              		.loc 1 289 15
+ 159 00b2 3EC4     		sw	a5,8(sp)
+ 290:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 160              		.loc 1 290 5 is_stmt 1
+ 290:../User/system_ch32h417.c ****     StartUpCounter++;  
+ 161              		.loc 1 290 19 is_stmt 0
+ 162 00b4 9247     		lw	a5,4(sp)
+ 163 00b6 8507     		addi	a5,a5,1
+ 164 00b8 3EC2     		sw	a5,4(sp)
+ 165              		.loc 1 291 28 is_stmt 1
+ 166              		.loc 1 291 22 is_stmt 0
+ 167 00ba A247     		lw	a5,8(sp)
+ 168              		.loc 1 291 28
+ 169 00bc 81E7     		bne	a5,zero,.L3
+ 170              		.loc 1 291 47
+ 171 00be 9247     		lw	a5,4(sp)
+ 172              		.loc 1 291 28
+ 173 00c0 E397E7FE 		bne	a5,a4,.L4
+ 174              	.L3:
+ 292:../User/system_ch32h417.c **** 
+ 293:../User/system_ch32h417.c ****   if ((RCC->CTLR & RCC_HSERDY) != RESET)
+ 175              		.loc 1 293 3 is_stmt 1
+ 176              		.loc 1 293 11 is_stmt 0
+ 177 00c4 B7170240 		li	a5,1073876992
+ 178 00c8 9C43     		lw	a5,0(a5)
+ 179              		.loc 1 293 18
+ 180 00ca 37070200 		li	a4,131072
+ 181 00ce F98F     		and	a5,a5,a4
+ 182              		.loc 1 293 6
+ 183 00d0 FDC7     		beq	a5,zero,.L5
+ 294:../User/system_ch32h417.c ****   {
+ 295:../User/system_ch32h417.c ****     HSEStatus = (uint32_t)0x01;
+ 184              		.loc 1 295 5 is_stmt 1
+ 185              		.loc 1 295 15 is_stmt 0
+ 186 00d2 8547     		li	a5,1
+ 187 00d4 3EC4     		sw	a5,8(sp)
+ 188              	.L6:
+ 296:../User/system_ch32h417.c ****   }
+ 297:../User/system_ch32h417.c ****   else
+ 298:../User/system_ch32h417.c ****   {
+ 299:../User/system_ch32h417.c ****     HSEStatus = (uint32_t)0x00;
+ 300:../User/system_ch32h417.c ****   }  
+ 301:../User/system_ch32h417.c **** 
+ 302:../User/system_ch32h417.c ****   if (HSEStatus == (uint32_t)0x01)
+ 189              		.loc 1 302 3 is_stmt 1
+ 190              		.loc 1 302 17 is_stmt 0
+ 191 00d6 2247     		lw	a4,8(sp)
+ 192              		.loc 1 302 6
+ 193 00d8 8547     		li	a5,1
+ 194 00da 631DF70C 		bne	a4,a5,.L1
+ 303:../User/system_ch32h417.c ****   {
+ 304:../User/system_ch32h417.c ****     /* configure PLL Clock */  
+ 305:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_PLLMUL)); 
+ 195              		.loc 1 305 5 is_stmt 1
+ 196              		.loc 1 305 8 is_stmt 0
+ 197 00de B7170240 		li	a5,1073876992
+ 198 00e2 9847     		lw	a4,8(a5)
+ 306:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLLMUL16;   
+ 307:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_PLL_SRC_DIV)); 
+ 199              		.loc 1 307 18
+ 200 00e4 F176     		li	a3,-16384
+ 201 00e6 9386F60F 		addi	a3,a3,255
+ 305:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLLMUL16;   
+ 202              		.loc 1 305 18
+ 203 00ea 019B     		andi	a4,a4,-32
+ 204 00ec 98C7     		sw	a4,8(a5)
+ 306:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLLMUL16;   
+ 205              		.loc 1 306 5 is_stmt 1
+ 306:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLLMUL16;   
+ 206              		.loc 1 306 8 is_stmt 0
+ 207 00ee 9847     		lw	a4,8(a5)
+ 306:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLLMUL16;   
+ 208              		.loc 1 306 18
+ 209 00f0 13670701 		ori	a4,a4,16
+ 210 00f4 98C7     		sw	a4,8(a5)
+ 211              		.loc 1 307 5 is_stmt 1
+ 212              		.loc 1 307 8 is_stmt 0
+ 213 00f6 9847     		lw	a4,8(a5)
+ 214              		.loc 1 307 18
+ 215 00f8 758F     		and	a4,a4,a3
+ 216 00fa 98C7     		sw	a4,8(a5)
+ 308:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLL_SRC_DIV1;
+ 217              		.loc 1 308 5 is_stmt 1
+ 218              		.loc 1 308 8 is_stmt 0
+ 219 00fc 9847     		lw	a4,8(a5)
+ 309:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_PLLSRC)); 
+ 310:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLLSRC_HSE;
+ 311:../User/system_ch32h417.c **** 
+ 312:../User/system_ch32h417.c ****     /* Wait till HSE clock is used as PLL clock source */
+ 313:../User/system_ch32h417.c ****     while ((RCC->PLLCFGR & (uint32_t)RCC_PLLSRC) != (uint32_t)RCC_PLLSRC_HSE)
+ 220              		.loc 1 313 50
+ 221 00fe 93060002 		li	a3,32
+ 308:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_PLL_SRC_DIV1;
+ 222              		.loc 1 308 18
+ 223 0102 98C7     		sw	a4,8(a5)
+ 309:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_PLLSRC)); 
+ 224              		.loc 1 309 5 is_stmt 1
+ 309:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_PLLSRC)); 
+ 225              		.loc 1 309 8 is_stmt 0
+ 226 0104 9847     		lw	a4,8(a5)
+ 309:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_PLLSRC)); 
+ 227              		.loc 1 309 18
+ 228 0106 1377F7F1 		andi	a4,a4,-225
+ 229 010a 98C7     		sw	a4,8(a5)
+ 310:../User/system_ch32h417.c **** 
+ 230              		.loc 1 310 5 is_stmt 1
+ 310:../User/system_ch32h417.c **** 
+ 231              		.loc 1 310 8 is_stmt 0
+ 232 010c 9847     		lw	a4,8(a5)
+ 310:../User/system_ch32h417.c **** 
+ 233              		.loc 1 310 18
+ 234 010e 13670702 		ori	a4,a4,32
+ 235 0112 98C7     		sw	a4,8(a5)
+ 236              		.loc 1 313 5 is_stmt 1
+ 237              	.L8:
+ 314:../User/system_ch32h417.c ****     {
+ 315:../User/system_ch32h417.c ****     }     
+ 238              		.loc 1 315 5
+ 313:../User/system_ch32h417.c ****     {
+ 239              		.loc 1 313 50
+ 313:../User/system_ch32h417.c ****     {
+ 240              		.loc 1 313 16 is_stmt 0
+ 241 0114 9847     		lw	a4,8(a5)
+ 313:../User/system_ch32h417.c ****     {
+ 242              		.loc 1 313 26
+ 243 0116 1377070E 		andi	a4,a4,224
+ 313:../User/system_ch32h417.c ****     {
+ 244              		.loc 1 313 50
+ 245 011a E31DD7FE 		bne	a4,a3,.L8
+ 316:../User/system_ch32h417.c **** 
+ 317:../User/system_ch32h417.c ****     /* Enable PLL */
+ 318:../User/system_ch32h417.c ****     RCC->CTLR |= RCC_PLLON;
+ 246              		.loc 1 318 5 is_stmt 1
+ 247              		.loc 1 318 8 is_stmt 0
+ 248 011e 9843     		lw	a4,0(a5)
+ 319:../User/system_ch32h417.c **** 
+ 320:../User/system_ch32h417.c ****     /* Wait till PLL is ready */
+ 321:../User/system_ch32h417.c ****     while((RCC->CTLR & RCC_PLLRDY) != (uint32_t)RCC_PLLRDY)
+ 249              		.loc 1 321 22
+ 250 0120 B7060002 		li	a3,33554432
+ 318:../User/system_ch32h417.c **** 
+ 251              		.loc 1 318 15
+ 252 0124 13178729 		bseti	a4,a4,24
+ 253 0128 98C3     		sw	a4,0(a5)
+ 254              		.loc 1 321 5 is_stmt 1
+ 255              		.loc 1 321 15 is_stmt 0
+ 256 012a B7170240 		li	a5,1073876992
+ 257              	.L9:
+ 322:../User/system_ch32h417.c ****     {
+ 323:../User/system_ch32h417.c ****     }
+ 258              		.loc 1 323 5 is_stmt 1
+ 321:../User/system_ch32h417.c ****     {
+ 259              		.loc 1 321 36
+ 321:../User/system_ch32h417.c ****     {
+ 260              		.loc 1 321 15 is_stmt 0
+ 261 012e 9843     		lw	a4,0(a5)
+ 321:../User/system_ch32h417.c ****     {
+ 262              		.loc 1 321 22
+ 263 0130 758F     		and	a4,a4,a3
+ 321:../User/system_ch32h417.c ****     {
+ 264              		.loc 1 321 36
+ 265 0132 75DF     		beq	a4,zero,.L9
+ 324:../User/system_ch32h417.c **** 
+ 325:../User/system_ch32h417.c ****     /* Select PLL Clock as SYSPLL clock source */
+ 326:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_SYSPLL_GATE)); 
+ 266              		.loc 1 326 5 is_stmt 1
+ 267              		.loc 1 326 8 is_stmt 0
+ 268 0134 9847     		lw	a4,8(a5)
+ 327:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_SYSPLL_SEL)); 
+ 269              		.loc 1 327 18
+ 270 0136 B7060090 		li	a3,-1879048192
+ 271 013a FD16     		addi	a3,a3,-1
+ 326:../User/system_ch32h417.c ****     RCC->PLLCFGR &= (uint32_t)((uint32_t)~(RCC_SYSPLL_SEL)); 
+ 272              		.loc 1 326 18
+ 273 013c 1317F749 		bclri	a4,a4,31
+ 274 0140 98C7     		sw	a4,8(a5)
+ 275              		.loc 1 327 5 is_stmt 1
+ 276              		.loc 1 327 8 is_stmt 0
+ 277 0142 9847     		lw	a4,8(a5)
+ 278              		.loc 1 327 18
+ 279 0144 758F     		and	a4,a4,a3
+ 280 0146 98C7     		sw	a4,8(a5)
+ 328:../User/system_ch32h417.c **** 
+ 329:../User/system_ch32h417.c ****     /* Wait till PLL is used as system clock source */
+ 330:../User/system_ch32h417.c ****     while ((RCC->PLLCFGR & (uint32_t)RCC_SYSPLL_SEL) != (uint32_t)0x00)
+ 281              		.loc 1 330 5 is_stmt 1
+ 282              		.loc 1 330 26 is_stmt 0
+ 283 0148 B7060070 		li	a3,1879048192
+ 284              		.loc 1 330 16
+ 285 014c B7170240 		li	a5,1073876992
+ 286              	.L10:
+ 331:../User/system_ch32h417.c ****     {
+ 332:../User/system_ch32h417.c ****     }
+ 287              		.loc 1 332 5 is_stmt 1
+ 330:../User/system_ch32h417.c ****     {
+ 288              		.loc 1 330 54
+ 330:../User/system_ch32h417.c ****     {
+ 289              		.loc 1 330 16 is_stmt 0
+ 290 0150 9847     		lw	a4,8(a5)
+ 330:../User/system_ch32h417.c ****     {
+ 291              		.loc 1 330 26
+ 292 0152 758F     		and	a4,a4,a3
+ 330:../User/system_ch32h417.c ****     {
+ 293              		.loc 1 330 54
+ 294 0154 75FF     		bne	a4,zero,.L10
+ 333:../User/system_ch32h417.c **** 
+ 334:../User/system_ch32h417.c ****     /* V5F core clock = SYSCLK */
+ 335:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_HPRE));
+ 295              		.loc 1 335 5 is_stmt 1
+ 296              		.loc 1 335 8 is_stmt 0
+ 297 0156 D843     		lw	a4,4(a5)
+ 336:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_HPRE_DIV1; 
+ 337:../User/system_ch32h417.c **** 
+ 338:../User/system_ch32h417.c ****     /* V3F core clock = HCLK = SYSCLK/4 */
+ 339:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_FPRE));
+ 298              		.loc 1 339 16
+ 299 0158 B706FDFF 		li	a3,-196608
+ 300 015c FD16     		addi	a3,a3,-1
+ 335:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_HPRE_DIV1; 
+ 301              		.loc 1 335 16
+ 302 015e 1377F7F0 		andi	a4,a4,-241
+ 303 0162 D8C3     		sw	a4,4(a5)
+ 336:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_HPRE_DIV1; 
+ 304              		.loc 1 336 5 is_stmt 1
+ 336:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_HPRE_DIV1; 
+ 305              		.loc 1 336 8 is_stmt 0
+ 306 0164 D843     		lw	a4,4(a5)
+ 336:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_HPRE_DIV1; 
+ 307              		.loc 1 336 16
+ 308 0166 D8C3     		sw	a4,4(a5)
+ 309              		.loc 1 339 5 is_stmt 1
+ 310              		.loc 1 339 8 is_stmt 0
+ 311 0168 D843     		lw	a4,4(a5)
+ 312              		.loc 1 339 16
+ 313 016a 758F     		and	a4,a4,a3
+ 314 016c D8C3     		sw	a4,4(a5)
+ 340:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_FPRE_DIV4;  
+ 315              		.loc 1 340 5 is_stmt 1
+ 316              		.loc 1 340 8 is_stmt 0
+ 317 016e D843     		lw	a4,4(a5)
+ 341:../User/system_ch32h417.c **** 
+ 342:../User/system_ch32h417.c ****     /* Select FLASH clock frequency*/
+ 343:../User/system_ch32h417.c ****     FLASH_Temp = FLASH->ACTLR;
+ 318              		.loc 1 343 23
+ 319 0170 B7260240 		li	a3,1073881088
+ 340:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_FPRE_DIV4;  
+ 320              		.loc 1 340 16
+ 321 0174 13171729 		bseti	a4,a4,17
+ 322 0178 D8C3     		sw	a4,4(a5)
+ 323              		.loc 1 343 5 is_stmt 1
+ 324              		.loc 1 343 23 is_stmt 0
+ 325 017a 9842     		lw	a4,0(a3)
+ 326              		.loc 1 343 16
+ 327 017c 3AC6     		sw	a4,12(sp)
+ 344:../User/system_ch32h417.c ****     FLASH_Temp &= ~((uint32_t)0x3);
+ 328              		.loc 1 344 5 is_stmt 1
+ 329              		.loc 1 344 16 is_stmt 0
+ 330 017e 3247     		lw	a4,12(sp)
+ 331 0180 719B     		andi	a4,a4,-4
+ 332 0182 3AC6     		sw	a4,12(sp)
+ 345:../User/system_ch32h417.c ****     FLASH_Temp |= FLASH_ACTLR_LATENCY_HCLK_DIV2;
+ 333              		.loc 1 345 5 is_stmt 1
+ 334              		.loc 1 345 16 is_stmt 0
+ 335 0184 3247     		lw	a4,12(sp)
+ 336 0186 13671700 		ori	a4,a4,1
+ 337 018a 3AC6     		sw	a4,12(sp)
+ 346:../User/system_ch32h417.c ****     FLASH->ACTLR = FLASH_Temp;
+ 338              		.loc 1 346 5 is_stmt 1
+ 339              		.loc 1 346 18 is_stmt 0
+ 340 018c 3247     		lw	a4,12(sp)
+ 341 018e 98C2     		sw	a4,0(a3)
+ 347:../User/system_ch32h417.c **** 
+ 348:../User/system_ch32h417.c ****     /* Select PLL as system clock source */
+ 349:../User/system_ch32h417.c ****     RCC->PLLCFGR |= (uint32_t)RCC_SYSPLL_GATE; 
+ 342              		.loc 1 349 5 is_stmt 1
+ 343              		.loc 1 349 8 is_stmt 0
+ 344 0190 9847     		lw	a4,8(a5)
+ 350:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_SW));
+ 351:../User/system_ch32h417.c ****     RCC->CFGR0 |= (uint32_t)RCC_SW_PLL;    
+ 352:../User/system_ch32h417.c **** 
+ 353:../User/system_ch32h417.c ****     /* Wait till PLL is used as system clock source */
+ 354:../User/system_ch32h417.c ****     while ((RCC->CFGR0 & (uint32_t)RCC_SWS) != (uint32_t)0x08)
+ 345              		.loc 1 354 16
+ 346 0192 B7160240 		li	a3,1073876992
+ 349:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_SW));
+ 347              		.loc 1 349 18
+ 348 0196 1317F729 		bseti	a4,a4,31
+ 349 019a 98C7     		sw	a4,8(a5)
+ 350:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_SW));
+ 350              		.loc 1 350 5 is_stmt 1
+ 350:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_SW));
+ 351              		.loc 1 350 8 is_stmt 0
+ 352 019c D843     		lw	a4,4(a5)
+ 350:../User/system_ch32h417.c ****     RCC->CFGR0 &= (uint32_t)((uint32_t)~(RCC_SW));
+ 353              		.loc 1 350 16
+ 354 019e 719B     		andi	a4,a4,-4
+ 355 01a0 D8C3     		sw	a4,4(a5)
+ 351:../User/system_ch32h417.c **** 
+ 356              		.loc 1 351 5 is_stmt 1
+ 351:../User/system_ch32h417.c **** 
+ 357              		.loc 1 351 8 is_stmt 0
+ 358 01a2 D843     		lw	a4,4(a5)
+ 351:../User/system_ch32h417.c **** 
+ 359              		.loc 1 351 16
+ 360 01a4 13672700 		ori	a4,a4,2
+ 361 01a8 D8C3     		sw	a4,4(a5)
+ 362              		.loc 1 354 5 is_stmt 1
+ 363              		.loc 1 354 45 is_stmt 0
+ 364 01aa 2147     		li	a4,8
+ 365              	.L11:
+ 355:../User/system_ch32h417.c ****     {
+ 356:../User/system_ch32h417.c ****     }
+ 366              		.loc 1 356 5 is_stmt 1
+ 354:../User/system_ch32h417.c ****     {
+ 367              		.loc 1 354 45
+ 354:../User/system_ch32h417.c ****     {
+ 368              		.loc 1 354 16 is_stmt 0
+ 369 01ac DC42     		lw	a5,4(a3)
+ 354:../User/system_ch32h417.c ****     {
+ 370              		.loc 1 354 24
+ 371 01ae B18B     		andi	a5,a5,12
+ 354:../User/system_ch32h417.c ****     {
+ 372              		.loc 1 354 45
+ 373 01b0 E39EE7FE 		bne	a5,a4,.L11
+ 374              	.L1:
+ 375              	.LBE11:
+ 376              	.LBE10:
+ 377              	.LBE9:
+ 378              	.LBE8:
+ 117:../User/system_ch32h417.c **** 
+ 379              		.loc 1 117 1
+ 380 01b4 4101     		addi	sp,sp,16
+ 381              		.cfi_remember_state
+ 382              		.cfi_def_cfa_offset 0
+ 383 01b6 17030000 		tail	__riscv_restore_1
+ 383      67000300 
+ 384              		.cfi_restore 8
+ 385              		.cfi_restore 1
+ 386              		.cfi_def_cfa_offset -16
+ 387              	.L5:
+ 388              		.cfi_restore_state
+ 389              	.LBB15:
+ 390              	.LBB14:
+ 391              	.LBB13:
+ 392              	.LBB12:
+ 299:../User/system_ch32h417.c ****   }  
+ 393              		.loc 1 299 5 is_stmt 1
+ 299:../User/system_ch32h417.c ****   }  
+ 394              		.loc 1 299 15 is_stmt 0
+ 395 01be 02C4     		sw	zero,8(sp)
+ 396 01c0 19BF     		j	.L6
+ 397              	.LBE12:
+ 398              	.LBE13:
+ 399              	.LBE14:
+ 400              	.LBE15:
+ 401              		.cfi_endproc
+ 402              	.LFE40:
+ 404              		.section	.text.SystemAndCoreClockUpdate,"ax",@progbits
+ 405              		.align	1
+ 406              		.globl	SystemAndCoreClockUpdate
+ 408              	SystemAndCoreClockUpdate:
+ 409              	.LFB42:
+ 161:../User/system_ch32h417.c ****     uint32_t tmp = 0,tmp1 = 0, tmp2 = 0, tmp3 = 0, pllmull = 0, pllsource = 0, presc = 0, presc1 = 
+ 410              		.loc 1 161 1 is_stmt 1
+ 411              		.cfi_startproc
+ 162:../User/system_ch32h417.c **** 
+ 412              		.loc 1 162 5
+ 413              	.LVL1:
+ 164:../User/system_ch32h417.c ****     tmp2 = RCC->PLLCFGR & RCC_SYSPLL_SEL;
+ 414              		.loc 1 164 5
+ 164:../User/system_ch32h417.c ****     tmp2 = RCC->PLLCFGR & RCC_SYSPLL_SEL;
+ 415              		.loc 1 164 14 is_stmt 0
+ 416 0000 B7170240 		li	a5,1073876992
+ 417 0004 D443     		lw	a3,4(a5)
+ 418              	.LVL2:
+ 165:../User/system_ch32h417.c **** 
+ 419              		.loc 1 165 5 is_stmt 1
+ 165:../User/system_ch32h417.c **** 
+ 420              		.loc 1 165 15 is_stmt 0
+ 421 0006 9847     		lw	a4,8(a5)
+ 422              	.LVL3:
+ 167:../User/system_ch32h417.c ****     {
+ 423              		.loc 1 167 5 is_stmt 1
+ 424 0008 2146     		li	a2,8
+ 164:../User/system_ch32h417.c ****     tmp2 = RCC->PLLCFGR & RCC_SYSPLL_SEL;
+ 425              		.loc 1 164 9 is_stmt 0
+ 426 000a B18A     		andi	a3,a3,12
+ 427              	.LVL4:
+ 167:../User/system_ch32h417.c ****     {
+ 428              		.loc 1 167 5
+ 429 000c 6394C602 		bne	a3,a2,.L33
+ 178:../User/system_ch32h417.c ****             { 
+ 430              		.loc 1 178 13 is_stmt 1
+ 165:../User/system_ch32h417.c **** 
+ 431              		.loc 1 165 10 is_stmt 0
+ 432 0010 B7060070 		li	a3,1879048192
+ 433              	.LVL5:
+ 434 0014 758F     		and	a4,a4,a3
+ 435              	.LVL6:
+ 436 0016 37060050 		li	a2,1342177280
+ 437 001a 6309C714 		beq	a4,a2,.L34
+ 438 001e 6360E602 		bgtu	a4,a2,.L22
+ 439 0022 1DC7     		beq	a4,zero,.L23
+ 440 0024 B7479C1C 		li	a5,480002048
+ 441 0028 B7060040 		li	a3,1073741824
+ 442 002c 93870780 		addi	a5,a5,-2048
+ 443              	.L40:
+ 444 0030 6307D706 		beq	a4,a3,.L21
+ 445              	.LVL7:
+ 446              	.L33:
+ 167:../User/system_ch32h417.c ****     {
+ 447              		.loc 1 167 5
+ 448 0034 B7877D01 		li	a5,25001984
+ 449 0038 93870784 		addi	a5,a5,-1984
+ 450 003c 8DA0     		j	.L21
+ 451              	.LVL8:
+ 452              	.L22:
+ 453 003e 37060060 		li	a2,1610612736
+ 454 0042 6306C710 		beq	a4,a2,.L24
+ 455 0046 B7677307 		li	a5,125001728
+ 456 004a 93870794 		addi	a5,a5,-1728
+ 457 004e CDB7     		j	.L40
+ 458              	.L23:
+ 181:../User/system_ch32h417.c ****                     pllsource = RCC->PLLCFGR & RCC_PLLSRC;
+ 459              		.loc 1 181 21 is_stmt 1
+ 181:../User/system_ch32h417.c ****                     pllsource = RCC->PLLCFGR & RCC_PLLSRC;
+ 460              		.loc 1 181 34 is_stmt 0
+ 461 0050 9047     		lw	a2,8(a5)
+ 182:../User/system_ch32h417.c ****                     presc = (((RCC->PLLCFGR & RCC_PLL_SRC_DIV) >> 8) + 1);
+ 462              		.loc 1 182 36
+ 463 0052 9447     		lw	a3,8(a5)
+ 183:../User/system_ch32h417.c **** 
+ 464              		.loc 1 183 35
+ 465 0054 9847     		lw	a4,8(a5)
+ 466              	.LVL9:
+ 185:../User/system_ch32h417.c ****                     {
+ 467              		.loc 1 185 23
+ 468 0056 9305000A 		li	a1,160
+ 182:../User/system_ch32h417.c ****                     presc = (((RCC->PLLCFGR & RCC_PLL_SRC_DIV) >> 8) + 1);
+ 469              		.loc 1 182 31
+ 470 005a 93F6060E 		andi	a3,a3,224
+ 183:../User/system_ch32h417.c **** 
+ 471              		.loc 1 183 64
+ 472 005e 2183     		srli	a4,a4,8
+ 473 0060 1377F703 		andi	a4,a4,63
+ 181:../User/system_ch32h417.c ****                     pllsource = RCC->PLLCFGR & RCC_PLLSRC;
+ 474              		.loc 1 181 29
+ 475 0064 7D8A     		andi	a2,a2,31
+ 476              	.LVL10:
+ 182:../User/system_ch32h417.c ****                     presc = (((RCC->PLLCFGR & RCC_PLL_SRC_DIV) >> 8) + 1);
+ 477              		.loc 1 182 21 is_stmt 1
+ 183:../User/system_ch32h417.c **** 
+ 478              		.loc 1 183 21
+ 183:../User/system_ch32h417.c **** 
+ 479              		.loc 1 183 27 is_stmt 0
+ 480 0066 0507     		addi	a4,a4,1
+ 481              	.LVL11:
+ 185:../User/system_ch32h417.c ****                     {
+ 482              		.loc 1 185 21 is_stmt 1
+ 185:../User/system_ch32h417.c ****                     {
+ 483              		.loc 1 185 23 is_stmt 0
+ 484 0068 6398B608 		bne	a3,a1,.L25
+ 187:../User/system_ch32h417.c ****                     }
+ 485              		.loc 1 187 25 is_stmt 1
+ 187:../User/system_ch32h417.c ****                     }
+ 486              		.loc 1 187 30 is_stmt 0
+ 487 006c B767CD1D 		li	a5,499998720
+ 488 0070 93870750 		addi	a5,a5,1280
+ 489              	.LVL12:
+ 490              	.L37:
+ 204:../User/system_ch32h417.c ****                     }
+ 491              		.loc 1 204 30
+ 492 0074 33D7E702 		divu	a4,a5,a4
+ 493              	.LVL13:
+ 211:../User/system_ch32h417.c ****                     {
+ 494              		.loc 1 211 21 is_stmt 1
+ 495 0078 B7070000 		lui	a5,%hi(PLLMULTB)
+ 496 007c 93870700 		addi	a5,a5,%lo(PLLMULTB)
+ 217:../User/system_ch32h417.c ****                     }
+ 497              		.loc 1 217 54 is_stmt 0
+ 498 0080 B297     		add	a5,a5,a2
+ 499 0082 9C23     		lbu	a5,0(a5)
+ 211:../User/system_ch32h417.c ****                     {
+ 500              		.loc 1 211 23
+ 501 0084 9146     		li	a3,4
+ 217:../User/system_ch32h417.c ****                     }
+ 502              		.loc 1 217 44
+ 503 0086 B387E702 		mul	a5,a5,a4
+ 211:../User/system_ch32h417.c ****                     {
+ 504              		.loc 1 211 23
+ 505 008a 6309D600 		beq	a2,a3,.L38
+ 506 008e 8566     		li	a3,4096
+ 507 0090 93860654 		addi	a3,a3,1344
+ 508 0094 B3D6C600 		srl	a3,a3,a2
+ 509 0098 858A     		andi	a3,a3,1
+ 510 009a 91C2     		beq	a3,zero,.L21
+ 511              	.LVL14:
+ 512              	.L38:
+ 231:../User/system_ch32h417.c ****                     break;
+ 513              		.loc 1 231 78
+ 514 009c 8583     		srli	a5,a5,1
+ 232:../User/system_ch32h417.c **** 
+ 515              		.loc 1 232 21 is_stmt 1
+ 516              	.L21:
+ 170:../User/system_ch32h417.c ****             break;
+ 517              		.loc 1 170 25 is_stmt 0
+ 518 009e 37070000 		lui	a4,%hi(SystemClock)
+ 519 00a2 2320F700 		sw	a5,%lo(SystemClock)(a4)
+ 249:../User/system_ch32h417.c ****     presc1 = HBPrescTB[tmp];
+ 520              		.loc 1 249 5 is_stmt 1
+ 249:../User/system_ch32h417.c ****     presc1 = HBPrescTB[tmp];
+ 521              		.loc 1 249 15 is_stmt 0
+ 522 00a6 37160240 		li	a2,1073876992
+ 523 00aa 5442     		lw	a3,4(a2)
+ 250:../User/system_ch32h417.c **** 
+ 524              		.loc 1 250 23
+ 525 00ac 37070000 		lui	a4,%hi(HBPrescTB)
+ 526 00b0 13070700 		addi	a4,a4,%lo(HBPrescTB)
+ 249:../User/system_ch32h417.c ****     presc1 = HBPrescTB[tmp];
+ 527              		.loc 1 249 35
+ 528 00b4 9182     		srli	a3,a3,4
+ 249:../User/system_ch32h417.c ****     presc1 = HBPrescTB[tmp];
+ 529              		.loc 1 249 9
+ 530 00b6 BD8A     		andi	a3,a3,15
+ 531              	.LVL15:
+ 250:../User/system_ch32h417.c **** 
+ 532              		.loc 1 250 5 is_stmt 1
+ 250:../User/system_ch32h417.c **** 
+ 533              		.loc 1 250 23 is_stmt 0
+ 534 00b8 3697     		add	a4,a4,a3
+ 535 00ba 1823     		lbu	a4,0(a4)
+ 536              	.LVL16:
+ 252:../User/system_ch32h417.c **** 
+ 537              		.loc 1 252 5 is_stmt 1
+ 255:../User/system_ch32h417.c ****     HCLKClock = tmp3 >> presc1;
+ 538              		.loc 1 255 20 is_stmt 0
+ 539 00bc B7060000 		lui	a3,%hi(FPRETB)
+ 540              	.LVL17:
+ 541 00c0 93860600 		addi	a3,a3,%lo(FPRETB)
+ 252:../User/system_ch32h417.c **** 
+ 542              		.loc 1 252 10
+ 543 00c4 B3D7E700 		srl	a5,a5,a4
+ 544              	.LVL18:
+ 254:../User/system_ch32h417.c ****     presc1 = FPRETB[tmp];
+ 545              		.loc 1 254 5 is_stmt 1
+ 254:../User/system_ch32h417.c ****     presc1 = FPRETB[tmp];
+ 546              		.loc 1 254 15 is_stmt 0
+ 547 00c8 5842     		lw	a4,4(a2)
+ 548              	.LVL19:
+ 549              	.LBB16:
+ 550              	.LBB17:
+ 551              		.file 2 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * File Name          : core_riscv.h
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Version            : V1.0.2
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Date               : 2026/03/18
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Description        : RISC-V V3F_V5F Core Peripheral Access Layer Header File for CH32H417_416_415
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifndef __CORE_RISCV_H__
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define __CORE_RISCV_H__
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  extern "C" {
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* IO definitions */
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile                /* defines 'read only' permissions    */
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #else
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile const          /* defines 'read only' permissions    */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __O     volatile                /* defines 'write only' permissions   */
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __IO    volatile                /* defines 'read / write' permissions */
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Standard Peripheral Library old types (maintained for legacy purpose) */
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint64_t vuc64;  /* Read Only */
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint32_t vuc32;  /* Read Only */
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint16_t vuc16;  /* Read Only */
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint8_t  vuc8;   /* Read Only */
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint64_t uc64;  /* Read Only */
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint32_t uc32;  /* Read Only */
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint16_t uc16;  /* Read Only */
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint8_t  uc8;   /* Read Only */
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int64_t vsc64;  /* Read Only */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int32_t vsc32;  /* Read Only */
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int16_t vsc16;  /* Read Only */
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int8_t  vsc8;   /* Read Only */
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int64_t sc64;  /* Read Only */
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int32_t sc32;  /* Read Only */
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int16_t sc16;  /* Read Only */
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int8_t  sc8;   /* Read Only */
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint64_t  vu64;
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint32_t  vu32;
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint16_t  vu16;
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint8_t   vu8;
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint64_t  u64;
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint32_t  u32;
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint16_t  u16;
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint8_t   u8;
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int64_t  vs64;
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int32_t  vs32;
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int16_t  vs16;
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int8_t   vs8;
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int64_t  s64;
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int32_t  s32;
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int16_t  s16;
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int8_t   s8;
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {NoREADY = 0, READY = !NoREADY} ErrorStatus;
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define RV_STATIC_INLINE  static inline
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for HSEM */
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t RX[32];
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[0x80];
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t RLRX[32]; 
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x80];
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t LSE;
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[4];
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CLR;
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t KEY;
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0xF0];
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IER;
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[4];
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVE5[4];
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[4];
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t LSM;
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }HSEM_Type;
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for IPC */
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR;
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ENA;
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t STS;
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t SET;
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t CLR;
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t MSG[4];
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }IPC_Type;
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for Program Fast Interrupt Controller (PFIC) */
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct{
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR[8];
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IPR[8];
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ITHRESDR;
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED;
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CFGR;
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t GISR;
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t VTFIDR[4];
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[12];
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t VTFADDR[4];
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x90];
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IENR[8];
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[0x60];
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IRER[8];
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0x60];
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPSR[8];
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[0x60];
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPRR[8];
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED5[0x60];
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IACTR[8];
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[0xE0];
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IPRIOR[256];
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED7[0x100]; 
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IALLOCR[256];
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IAUTR[8];
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t WAKEIP[2];
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED8[0x58]; 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t CSTAR[2];
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED9[0x4F8]; 
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EENR;
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EPR;
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EWUPR;
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED10[0x84]; 
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t SCTLR;
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }PFIC_Type;
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for SysTick */
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;  //only for SysTick0
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CNT;
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CMP;
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }SysTick_Type;
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define HSEM          ((HSEM_Type *) 0xE000C000 )
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define IPC           ((IPC_Type *) 0xE000D000 )
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define PFIC          ((PFIC_Type *) 0xE000E000 )
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define NVIC          PFIC
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define	NVIC_KEY3		  ((uint32_t)0xBEEF0000)
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick0      ((SysTick_Type *) 0xE000F000)
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick1      ((SysTick_Type *) 0xE000F080)
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Core_ID */
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V3F   ((uint8_t)0x00)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V5F   ((uint8_t)0x01)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_MASK;
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_WkupSource;
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __enable_irq
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Global Interrupt
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __enable_irq()
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrs 0x800, %0" : : "r" (0x88) );
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __disable_irq
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Global Interrupt
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __disable_irq()
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrc 0x800, %0" : : "r" (0x88) );
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __NOP
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   nop
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __NOP()
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("nop");
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_EnableIRQ
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Interrupt
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn)
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_DisableIRQ
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Interrupt
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn)
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IRER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetStatusIRQ
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Enable State
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Enable
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Disable
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_Type IRQn)
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->ISR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetPendingIRQ
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Pending State
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Pending Enable
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Pending Disable
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPendingIRQ
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Pending
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPSR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_ClearPendingIRQ
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Clear Interrupt Pending
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetActive
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Active State
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Active
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt No Active
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn)
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IACTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPriority
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Priority
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V5F:
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 5~8 Level(CSR-0x804 bit1 = 1 bit[3:2] = 3)
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:5] - Preemption Priority
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[4] - Sub priority
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 3~4 Level(CSR-0x804 bit1 = 1 bit[3:2] = 2)
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:6] - Preemption Priority
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[5:4] - Sub priority
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *             priority - bit[7:4] - Sub priority
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V3F:
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:4] - Sub priority
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint8_t p
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRIOR[(uint32_t)(IRQn)] = priority;
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetAllocateIRQ
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Allocate 
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to V5F
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Allocate to V3F
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetAllocateIRQ(IRQn_Type IRQn)
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IALLOCR[(uint32_t)(IRQn)] & (1 << 0))?1:0));
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetAllocateIRQ
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Allocate
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers ( >31 )
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          Core_ID - Core ID
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V5F - V5F
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V3F - V3F
+ 376:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 378:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 379:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetAllocateIRQ(IRQn_Type IRQn, uint8_
+ 380:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 381:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(IRQn > 31)
+ 382:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IALLOCR[(uint32_t)(IRQn)] = Core_ID;
+ 383:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 384:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 385:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 386:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_OwnCoreGetAllocateIRQ
+ 387:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 388:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Own Core Get Interrupt Allocate 
+ 389:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 390:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 391:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 392:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to own core
+ 393:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - No allocate to own core
+ 394:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 395:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_OwnCoreGetAllocateIRQ(IRQn_Type I
+ 396:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 397:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IAUTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 398:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 399:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 400:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 401:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFI
+ 402:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 403:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Interrupt
+ 404:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 405:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 406:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 407:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFI(void)
+ 408:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 409:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR &= ~(1<<3);	// wfi
+ 410:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 411:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 412:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 413:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 414:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      _SEV
+ 415:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 416:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Event
+ 417:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 418:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 419:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 420:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void _SEV(void)
+ 421:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 422:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t t;
+ 423:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 424:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   t = NVIC->SCTLR;
+ 425:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3)|(1<<5);
+ 426:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR = (NVIC->SCTLR & ~(1<<5)) | ( t & (1<<5));
+ 427:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 428:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 429:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 430:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE_IDSET
+ 431:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 432:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Events ID
+ 433:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 434:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 435:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 436:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE_IDSET(uint32_t LINE_ID)
+ 437:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 438:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_MASK |= LINE_ID;
+ 439:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 440:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 441:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 442:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE
+ 443:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 444:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Events
+ 445:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 446:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 447:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 448:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE(void)
+ 449:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 450:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __attribute__((unused)) uint32_t t=0;
+ 451:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 452:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 |= WFE_MASK;
+ 453:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 454:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = 0;
+ 455:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->EPR = 0xFFFFFFFF;
+ 456:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3);
+ 457:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 458:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   for(;;)
+ 460:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     t = *(__IO uint32_t*)0x40010414;
+ 462:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     if((t & WFE_MASK) || (WFE_MASK == 0))
+ 463:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     {
+ 464:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****       break;
+ 465:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     } else{
+ 466:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****      asm volatile ("wfi");
+ 467:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     }
+ 468:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }  
+ 469:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = *(__IO uint32_t*)0x40010414;
+ 470:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 &= ~WFE_MASK;
+ 471:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010414 |= WFE_MASK;
+ 472:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 473:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 474:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 475:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      SetVTFIRQ
+ 476:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 477:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set VTF Interrupt
+ 478:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 479:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - VTF interrupt service function base address.
+ 480:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          IRQn -Interrupt Numbers
+ 481:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          num - VTF Interrupt Numbers
+ 482:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          NewState - DISABLE or ENABLE
+ 483:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 484:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 485:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 486:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void SetVTFIRQ(uint32_t addr, IRQn_Type IRQn, u
+ 487:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 488:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(num > 3)  return ;
+ 489:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 490:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if (NewState != DISABLE)
+ 491:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 492:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFIDR[num] = IRQn;
+ 493:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFADDR[num] = ((addr&0xFFFFFFFE)|0x1);
+ 494:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }
+ 495:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   else
+ 496:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 497:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFIDR[num] = IRQn;
+ 498:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     NVIC->VTFADDR[num] = ((addr&0xFFFFFFFE)&(~0x1));
+ 499:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }
+ 500:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 501:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 502:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 503:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SystemReset
+ 504:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 505:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Initiate a system reset request
+ 506:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 507:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 508:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 509:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SystemReset(void)
+ 510:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 511:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->CFGR = NVIC_KEY3|(1<<7);
+ 512:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 513:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 514:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 515:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_WakeUp_V3F
+ 516:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 517:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wake up V3F and set address for PC
+ 518:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 519:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - V3F wake up address for PC(addr%1024 == 0).
+ 520:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 521:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 522:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 523:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_WakeUp_V3F(uint32_t addr)
+ 524:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 525:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   addr &= ~0x3FF; 
+ 526:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->WAKEIP[0] = addr;
+ 527:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<5);
+ 528:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 529:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 530:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 531:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_WakeUp_V5F
+ 532:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 533:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wake up V5F and set address for PC
+ 534:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 535:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   addr - V5F wake up address for PC(addr%1024 == 0).
+ 536:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 537:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 538:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 539:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_WakeUp_V5F(uint32_t addr)
+ 540:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 541:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   addr &= ~0x3FF; 
+ 542:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->WAKEIP[1] = addr;
+ 543:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<5);
+ 544:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 545:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 546:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 547:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetCurrentCoreID
+ 548:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 549:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Current Core ID
+ 550:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 551:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - V5F
+ 552:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - V3F
+ 553:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 554:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetCurrentCoreID(void)
+ 555:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 556:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)(NVIC->SCTLR & (1<<16))?1:0);
+ 552              		.loc 2 556 10
+ 553 00ca 4166     		li	a2,65536
+ 554              	.LBE17:
+ 555              	.LBE16:
+ 254:../User/system_ch32h417.c ****     presc1 = FPRETB[tmp];
+ 556              		.loc 1 254 35
+ 557 00cc 4183     		srli	a4,a4,16
+ 254:../User/system_ch32h417.c ****     presc1 = FPRETB[tmp];
+ 558              		.loc 1 254 9
+ 559 00ce 0D8B     		andi	a4,a4,3
+ 560              	.LVL20:
+ 255:../User/system_ch32h417.c ****     HCLKClock = tmp3 >> presc1;
+ 561              		.loc 1 255 5 is_stmt 1
+ 255:../User/system_ch32h417.c ****     HCLKClock = tmp3 >> presc1;
+ 562              		.loc 1 255 20 is_stmt 0
+ 563 00d0 3697     		add	a4,a4,a3
+ 564              	.LVL21:
+ 565 00d2 1823     		lbu	a4,0(a4)
+ 566              	.LVL22:
+ 256:../User/system_ch32h417.c **** 
+ 567              		.loc 1 256 5 is_stmt 1
+ 256:../User/system_ch32h417.c **** 
+ 568              		.loc 1 256 15 is_stmt 0
+ 569 00d4 B7060000 		lui	a3,%hi(HCLKClock)
+ 256:../User/system_ch32h417.c **** 
+ 570              		.loc 1 256 22
+ 571 00d8 33D7E700 		srl	a4,a5,a4
+ 572              	.LVL23:
+ 256:../User/system_ch32h417.c **** 
+ 573              		.loc 1 256 15
+ 574 00dc 23A0E600 		sw	a4,%lo(HCLKClock)(a3)
+ 258:../User/system_ch32h417.c ****     {
+ 575              		.loc 1 258 5 is_stmt 1
+ 576              	.LBB19:
+ 577              	.LBB18:
+ 578              		.loc 2 556 3
+ 579              		.loc 2 556 25 is_stmt 0
+ 580 00e0 B7F600E0 		li	a3,-536809472
+ 581 00e4 83A606D1 		lw	a3,-752(a3)
+ 582              		.loc 2 556 10
+ 583 00e8 F18E     		and	a3,a3,a2
+ 584              	.LBE18:
+ 585              	.LBE19:
+ 258:../User/system_ch32h417.c ****     {
+ 586              		.loc 1 258 7
+ 587 00ea 91E2     		bne	a3,zero,.L32
+ 260:../User/system_ch32h417.c ****     }
+ 588              		.loc 1 260 25
+ 589 00ec BA87     		mv	a5,a4
+ 590              	.LVL24:
+ 591              	.L32:
+ 592 00ee 37070000 		lui	a4,%hi(SystemCoreClock)
+ 593 00f2 2320F700 		sw	a5,%lo(SystemCoreClock)(a4)
+ 266:../User/system_ch32h417.c **** 
+ 594              		.loc 1 266 1
+ 595 00f6 8280     		ret
+ 596              	.LVL25:
+ 597              	.L25:
+ 189:../User/system_ch32h417.c ****                     {
+ 598              		.loc 1 189 26 is_stmt 1
+ 189:../User/system_ch32h417.c ****                     {
+ 599              		.loc 1 189 28 is_stmt 0
+ 600 00f8 9305000E 		li	a1,224
+ 601 00fc 6392B602 		bne	a3,a1,.L27
+ 191:../User/system_ch32h417.c ****                     }
+ 602              		.loc 1 191 25 is_stmt 1
+ 191:../User/system_ch32h417.c ****                     }
+ 603              		.loc 1 191 60 is_stmt 0
+ 604 0100 D45B     		lw	a3,52(a5)
+ 605              	.LVL26:
+ 191:../User/system_ch32h417.c ****                     }
+ 606              		.loc 1 191 56
+ 607 0102 B7070000 		lui	a5,%hi(SERDESPLLMULTB)
+ 608 0106 93870700 		addi	a5,a5,%lo(SERDESPLLMULTB)
+ 191:../User/system_ch32h417.c ****                     }
+ 609              		.loc 1 191 70
+ 610 010a C182     		srli	a3,a3,16
+ 191:../User/system_ch32h417.c ****                     }
+ 611              		.loc 1 191 56
+ 612 010c B697     		add	a5,a5,a3
+ 613 010e 9C23     		lbu	a5,0(a5)
+ 191:../User/system_ch32h417.c ****                     }
+ 614              		.loc 1 191 41
+ 615 0110 B7867D01 		li	a3,25001984
+ 616 0114 93860684 		addi	a3,a3,-1984
+ 617 0118 B387D702 		mul	a5,a5,a3
+ 191:../User/system_ch32h417.c ****                     }
+ 618              		.loc 1 191 75
+ 619 011c 8583     		srli	a5,a5,1
+ 620 011e 99BF     		j	.L37
+ 621              	.LVL27:
+ 622              	.L27:
+ 194:../User/system_ch32h417.c ****                     {
+ 623              		.loc 1 194 26 is_stmt 1
+ 194:../User/system_ch32h417.c ****                     {
+ 624              		.loc 1 194 28 is_stmt 0
+ 625 0120 93070008 		li	a5,128
+ 626 0124 6397F600 		bne	a3,a5,.L28
+ 196:../User/system_ch32h417.c ****                     }
+ 627              		.loc 1 196 25 is_stmt 1
+ 196:../User/system_ch32h417.c ****                     }
+ 628              		.loc 1 196 30 is_stmt 0
+ 629 0128 B7479C1C 		li	a5,480002048
+ 630 012c 93870780 		addi	a5,a5,-2048
+ 631 0130 91B7     		j	.L37
+ 632              	.L28:
+ 198:../User/system_ch32h417.c ****                     {
+ 633              		.loc 1 198 26 is_stmt 1
+ 198:../User/system_ch32h417.c ****                     {
+ 634              		.loc 1 198 28 is_stmt 0
+ 635 0132 9307000C 		li	a5,192
+ 636 0136 6397F600 		bne	a3,a5,.L29
+ 200:../User/system_ch32h417.c ****                     }
+ 637              		.loc 1 200 25 is_stmt 1
+ 200:../User/system_ch32h417.c ****                     }
+ 638              		.loc 1 200 30 is_stmt 0
+ 639 013a B7677307 		li	a5,125001728
+ 640 013e 93870794 		addi	a5,a5,-1728
+ 641 0142 0DBF     		j	.L37
+ 642              	.L29:
+ 202:../User/system_ch32h417.c ****                     {
+ 643              		.loc 1 202 26 is_stmt 1
+ 204:../User/system_ch32h417.c ****                     }
+ 644              		.loc 1 204 30 is_stmt 0
+ 645 0144 B7877D01 		li	a5,25001984
+ 646 0148 93870784 		addi	a5,a5,-1984
+ 647 014c 25B7     		j	.L37
+ 648              	.LVL28:
+ 649              	.L24:
+ 231:../User/system_ch32h417.c ****                     break;
+ 650              		.loc 1 231 21 is_stmt 1
+ 231:../User/system_ch32h417.c ****                     break;
+ 651              		.loc 1 231 63 is_stmt 0
+ 652 014e D85B     		lw	a4,52(a5)
+ 653              	.LVL29:
+ 231:../User/system_ch32h417.c ****                     break;
+ 654              		.loc 1 231 59
+ 655 0150 B7070000 		lui	a5,%hi(SERDESPLLMULTB)
+ 656 0154 93870700 		addi	a5,a5,%lo(SERDESPLLMULTB)
+ 231:../User/system_ch32h417.c ****                     break;
+ 657              		.loc 1 231 73
+ 658 0158 4183     		srli	a4,a4,16
+ 231:../User/system_ch32h417.c ****                     break;
+ 659              		.loc 1 231 59
+ 660 015a BA97     		add	a5,a5,a4
+ 661 015c 9C23     		lbu	a5,0(a5)
+ 231:../User/system_ch32h417.c ****                     break;
+ 662              		.loc 1 231 44
+ 663 015e 37877D01 		li	a4,25001984
+ 664 0162 13070784 		addi	a4,a4,-1984
+ 665 0166 B387E702 		mul	a5,a5,a4
+ 666 016a 0DBF     		j	.L38
+ 667              	.LVL30:
+ 668              	.L34:
+ 669 016c B767CD1D 		li	a5,499998720
+ 670 0170 93870750 		addi	a5,a5,1280
+ 671 0174 2DB7     		j	.L21
+ 672              		.cfi_endproc
+ 673              	.LFE42:
+ 675              		.section	.sdata.FPRETB,"aw"
+ 676              		.align	2
+ 679              	FPRETB:
+ 680 0000 00       		.string	""
+ 681 0001 010202   		.ascii	"\001\002\002"
+ 682              		.section	.data.SERDESPLLMULTB,"aw"
+ 683              		.align	2
+ 686              	SERDESPLLMULTB:
+ 687 0000 191C1E20 		.ascii	"\031\034\036 #&(-28<@FLPZ"
+ 687      2326282D 
+ 687      32383C40 
+ 687      464C505A 
+ 688              		.section	.data.HBPrescTB,"aw"
+ 689              		.align	2
+ 692              	HBPrescTB:
+ 693 0000 00       		.string	""
+ 694 0001 00       		.string	""
+ 695 0002 00       		.string	""
+ 696 0003 00       		.string	""
+ 697 0004 00       		.string	""
+ 698 0005 00       		.string	""
+ 699 0006 00       		.string	""
+ 700 0007 00       		.string	""
+ 701 0008 01020304 		.ascii	"\001\002\003\004\006\007\b\t"
+ 701      06070809 
+ 702              		.section	.data.PLLMULTB,"aw"
+ 703              		.align	2
+ 706              	PLLMULTB:
+ 707 0000 04060708 		.ascii	"\004\006\007\b\021\t\023\n\025\013\027\f\031\r\016\017\020\021"
+ 707      1109130A 
+ 707      150B170C 
+ 707      190D0E0F 
+ 707      1011
+ 708 0012 12131416 		.ascii	"\022\023\024\026\030\032\034\036 \"$&(;"
+ 708      181A1C1E 
+ 708      20222426 
+ 708      283B
+ 709              		.globl	SystemCoreClock
+ 710              		.section	.sdata.SystemCoreClock,"aw"
+ 711              		.align	2
+ 714              	SystemCoreClock:
+ 715 0000 00E1F505 		.word	100000000
+ 716              		.globl	SystemClock
+ 717              		.section	.sdata.SystemClock,"aw"
+ 718              		.align	2
+ 721              	SystemClock:
+ 722 0000 0084D717 		.word	400000000
+ 723              		.globl	HCLKClock
+ 724              		.section	.sbss.HCLKClock,"aw",@nobits
+ 725              		.align	2
+ 728              	HCLKClock:
+ 729 0000 00000000 		.zero	4
+ 730              		.text
+ 731              	.Letext0:
+ 732              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 733              		.file 4 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 734              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/USBFS/DEVICE/SimulateCDC/V3F/User/system
+ 735              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 736              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_gpio.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 system_ch32h417.c
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:14     .text.SystemInit:0000000000000000 SystemInit
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:18     .text.SystemInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:19     .text.SystemInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:19     .text.SystemInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:20     .text.SystemInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:21     .text.SystemInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:22     .text.SystemInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:24     .text.SystemInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:25     .text.SystemInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:28     .text.SystemInit:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:30     .text.SystemInit:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:31     .text.SystemInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:33     .text.SystemInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:36     .text.SystemInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:37     .text.SystemInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:39     .text.SystemInit:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:41     .text.SystemInit:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:45     .text.SystemInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:46     .text.SystemInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:47     .text.SystemInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:48     .text.SystemInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:50     .text.SystemInit:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:52     .text.SystemInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:54     .text.SystemInit:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:55     .text.SystemInit:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:57     .text.SystemInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:60     .text.SystemInit:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:63     .text.SystemInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:64     .text.SystemInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:66     .text.SystemInit:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:69     .text.SystemInit:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:70     .text.SystemInit:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:72     .text.SystemInit:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:75     .text.SystemInit:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:76     .text.SystemInit:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:78     .text.SystemInit:0000000000000048 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:80     .text.SystemInit:000000000000004c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:83     .text.SystemInit:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:84     .text.SystemInit:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:86     .text.SystemInit:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:89     .text.SystemInit:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:90     .text.SystemInit:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:92     .text.SystemInit:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:94     .text.SystemInit:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:97     .text.SystemInit:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:98     .text.SystemInit:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:101    .text.SystemInit:000000000000006a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:102    .text.SystemInit:000000000000006a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:104    .text.SystemInit:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:107    .text.SystemInit:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:108    .text.SystemInit:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:110    .text.SystemInit:0000000000000072 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:115    .text.SystemInit:000000000000007e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:116    .text.SystemInit:000000000000007e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:118    .text.SystemInit:0000000000000080 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:125    .text.SystemInit:000000000000008c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:126    .text.SystemInit:000000000000008c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:131    .text.SystemInit:0000000000000094 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:132    .text.SystemInit:0000000000000094 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:133    .text.SystemInit:0000000000000094 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:135    .text.SystemInit:0000000000000096 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:137    .text.SystemInit:0000000000000098 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:139    .text.SystemInit:000000000000009a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:140    .text.SystemInit:000000000000009a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:142    .text.SystemInit:000000000000009c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:144    .text.SystemInit:00000000000000a0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:146    .text.SystemInit:00000000000000a4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:148    .text.SystemInit:00000000000000a8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:150    .text.SystemInit:00000000000000ac .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:153    .text.SystemInit:00000000000000ae .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:154    .text.SystemInit:00000000000000ae .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:155    .text.SystemInit:00000000000000ae .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:157    .text.SystemInit:00000000000000b0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:159    .text.SystemInit:00000000000000b2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:161    .text.SystemInit:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:162    .text.SystemInit:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:166    .text.SystemInit:00000000000000ba .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:167    .text.SystemInit:00000000000000ba .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:169    .text.SystemInit:00000000000000bc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:171    .text.SystemInit:00000000000000be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:173    .text.SystemInit:00000000000000c0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:176    .text.SystemInit:00000000000000c4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:177    .text.SystemInit:00000000000000c4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:180    .text.SystemInit:00000000000000ca .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:183    .text.SystemInit:00000000000000d0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:185    .text.SystemInit:00000000000000d2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:186    .text.SystemInit:00000000000000d2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:190    .text.SystemInit:00000000000000d6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:191    .text.SystemInit:00000000000000d6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:193    .text.SystemInit:00000000000000d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:196    .text.SystemInit:00000000000000de .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:197    .text.SystemInit:00000000000000de .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:200    .text.SystemInit:00000000000000e4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:203    .text.SystemInit:00000000000000ea .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:206    .text.SystemInit:00000000000000ee .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:207    .text.SystemInit:00000000000000ee .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:209    .text.SystemInit:00000000000000f0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:212    .text.SystemInit:00000000000000f6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:213    .text.SystemInit:00000000000000f6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:215    .text.SystemInit:00000000000000f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:218    .text.SystemInit:00000000000000fc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:219    .text.SystemInit:00000000000000fc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:221    .text.SystemInit:00000000000000fe .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:223    .text.SystemInit:0000000000000102 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:225    .text.SystemInit:0000000000000104 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:226    .text.SystemInit:0000000000000104 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:228    .text.SystemInit:0000000000000106 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:231    .text.SystemInit:000000000000010c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:232    .text.SystemInit:000000000000010c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:234    .text.SystemInit:000000000000010e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:238    .text.SystemInit:0000000000000114 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:239    .text.SystemInit:0000000000000114 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:240    .text.SystemInit:0000000000000114 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:241    .text.SystemInit:0000000000000114 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:243    .text.SystemInit:0000000000000116 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:245    .text.SystemInit:000000000000011a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:247    .text.SystemInit:000000000000011e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:248    .text.SystemInit:000000000000011e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:250    .text.SystemInit:0000000000000120 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:252    .text.SystemInit:0000000000000124 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:255    .text.SystemInit:000000000000012a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:256    .text.SystemInit:000000000000012a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:259    .text.SystemInit:000000000000012e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:260    .text.SystemInit:000000000000012e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:261    .text.SystemInit:000000000000012e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:263    .text.SystemInit:0000000000000130 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:265    .text.SystemInit:0000000000000132 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:267    .text.SystemInit:0000000000000134 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:268    .text.SystemInit:0000000000000134 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:270    .text.SystemInit:0000000000000136 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:273    .text.SystemInit:000000000000013c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:276    .text.SystemInit:0000000000000142 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:277    .text.SystemInit:0000000000000142 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:279    .text.SystemInit:0000000000000144 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:282    .text.SystemInit:0000000000000148 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:283    .text.SystemInit:0000000000000148 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:285    .text.SystemInit:000000000000014c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:288    .text.SystemInit:0000000000000150 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:289    .text.SystemInit:0000000000000150 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:290    .text.SystemInit:0000000000000150 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:292    .text.SystemInit:0000000000000152 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:294    .text.SystemInit:0000000000000154 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:296    .text.SystemInit:0000000000000156 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:297    .text.SystemInit:0000000000000156 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:299    .text.SystemInit:0000000000000158 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:302    .text.SystemInit:000000000000015e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:305    .text.SystemInit:0000000000000164 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:306    .text.SystemInit:0000000000000164 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:308    .text.SystemInit:0000000000000166 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:310    .text.SystemInit:0000000000000168 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:311    .text.SystemInit:0000000000000168 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:313    .text.SystemInit:000000000000016a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:316    .text.SystemInit:000000000000016e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:317    .text.SystemInit:000000000000016e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:319    .text.SystemInit:0000000000000170 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:321    .text.SystemInit:0000000000000174 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:324    .text.SystemInit:000000000000017a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:325    .text.SystemInit:000000000000017a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:327    .text.SystemInit:000000000000017c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:329    .text.SystemInit:000000000000017e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:330    .text.SystemInit:000000000000017e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:334    .text.SystemInit:0000000000000184 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:335    .text.SystemInit:0000000000000184 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:339    .text.SystemInit:000000000000018c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:340    .text.SystemInit:000000000000018c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:343    .text.SystemInit:0000000000000190 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:344    .text.SystemInit:0000000000000190 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:346    .text.SystemInit:0000000000000192 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:348    .text.SystemInit:0000000000000196 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:351    .text.SystemInit:000000000000019c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:352    .text.SystemInit:000000000000019c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:354    .text.SystemInit:000000000000019e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:357    .text.SystemInit:00000000000001a2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:358    .text.SystemInit:00000000000001a2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:360    .text.SystemInit:00000000000001a4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:363    .text.SystemInit:00000000000001aa .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:364    .text.SystemInit:00000000000001aa .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:367    .text.SystemInit:00000000000001ac .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:368    .text.SystemInit:00000000000001ac .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:369    .text.SystemInit:00000000000001ac .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:371    .text.SystemInit:00000000000001ae .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:373    .text.SystemInit:00000000000001b0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:380    .text.SystemInit:00000000000001b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:381    .text.SystemInit:00000000000001b6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:382    .text.SystemInit:00000000000001b6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:384    .text.SystemInit:00000000000001be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:385    .text.SystemInit:00000000000001be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:386    .text.SystemInit:00000000000001be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:388    .text.SystemInit:00000000000001be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:394    .text.SystemInit:00000000000001be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:395    .text.SystemInit:00000000000001be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:401    .text.SystemInit:00000000000001c2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:408    .text.SystemAndCoreClockUpdate:0000000000000000 SystemAndCoreClockUpdate
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:411    .text.SystemAndCoreClockUpdate:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:412    .text.SystemAndCoreClockUpdate:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:414    .text.SystemAndCoreClockUpdate:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:415    .text.SystemAndCoreClockUpdate:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:416    .text.SystemAndCoreClockUpdate:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:416    .text.SystemAndCoreClockUpdate:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:420    .text.SystemAndCoreClockUpdate:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:421    .text.SystemAndCoreClockUpdate:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:424    .text.SystemAndCoreClockUpdate:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:426    .text.SystemAndCoreClockUpdate:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:429    .text.SystemAndCoreClockUpdate:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:431    .text.SystemAndCoreClockUpdate:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:432    .text.SystemAndCoreClockUpdate:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:448    .text.SystemAndCoreClockUpdate:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:460    .text.SystemAndCoreClockUpdate:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:461    .text.SystemAndCoreClockUpdate:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:463    .text.SystemAndCoreClockUpdate:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:465    .text.SystemAndCoreClockUpdate:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:468    .text.SystemAndCoreClockUpdate:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:470    .text.SystemAndCoreClockUpdate:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:472    .text.SystemAndCoreClockUpdate:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:475    .text.SystemAndCoreClockUpdate:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:478    .text.SystemAndCoreClockUpdate:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:479    .text.SystemAndCoreClockUpdate:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:480    .text.SystemAndCoreClockUpdate:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:483    .text.SystemAndCoreClockUpdate:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:484    .text.SystemAndCoreClockUpdate:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:486    .text.SystemAndCoreClockUpdate:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:487    .text.SystemAndCoreClockUpdate:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:492    .text.SystemAndCoreClockUpdate:0000000000000074 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:706    .data.PLLMULTB:0000000000000000 PLLMULTB
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:495    .text.SystemAndCoreClockUpdate:0000000000000078 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:498    .text.SystemAndCoreClockUpdate:0000000000000080 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:501    .text.SystemAndCoreClockUpdate:0000000000000084 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:503    .text.SystemAndCoreClockUpdate:0000000000000086 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:505    .text.SystemAndCoreClockUpdate:000000000000008a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:514    .text.SystemAndCoreClockUpdate:000000000000009c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:517    .text.SystemAndCoreClockUpdate:000000000000009e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:721    .sdata.SystemClock:0000000000000000 SystemClock
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:518    .text.SystemAndCoreClockUpdate:000000000000009e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:521    .text.SystemAndCoreClockUpdate:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:522    .text.SystemAndCoreClockUpdate:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:692    .data.HBPrescTB:0000000000000000 HBPrescTB
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:525    .text.SystemAndCoreClockUpdate:00000000000000ac .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:528    .text.SystemAndCoreClockUpdate:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:530    .text.SystemAndCoreClockUpdate:00000000000000b6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:533    .text.SystemAndCoreClockUpdate:00000000000000b8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:534    .text.SystemAndCoreClockUpdate:00000000000000b8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:538    .text.SystemAndCoreClockUpdate:00000000000000bc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:679    .sdata.FPRETB:0000000000000000 FPRETB
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:539    .text.SystemAndCoreClockUpdate:00000000000000bc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:543    .text.SystemAndCoreClockUpdate:00000000000000c4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:546    .text.SystemAndCoreClockUpdate:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:547    .text.SystemAndCoreClockUpdate:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:553    .text.SystemAndCoreClockUpdate:00000000000000ca .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:557    .text.SystemAndCoreClockUpdate:00000000000000cc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:559    .text.SystemAndCoreClockUpdate:00000000000000ce .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:562    .text.SystemAndCoreClockUpdate:00000000000000d0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:563    .text.SystemAndCoreClockUpdate:00000000000000d0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:568    .text.SystemAndCoreClockUpdate:00000000000000d4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:728    .sbss.HCLKClock:0000000000000000 HCLKClock
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:569    .text.SystemAndCoreClockUpdate:00000000000000d4 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:571    .text.SystemAndCoreClockUpdate:00000000000000d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:574    .text.SystemAndCoreClockUpdate:00000000000000dc .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:578    .text.SystemAndCoreClockUpdate:00000000000000e0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:579    .text.SystemAndCoreClockUpdate:00000000000000e0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:580    .text.SystemAndCoreClockUpdate:00000000000000e0 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:583    .text.SystemAndCoreClockUpdate:00000000000000e8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:587    .text.SystemAndCoreClockUpdate:00000000000000ea .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:589    .text.SystemAndCoreClockUpdate:00000000000000ec .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:714    .sdata.SystemCoreClock:0000000000000000 SystemCoreClock
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:595    .text.SystemAndCoreClockUpdate:00000000000000f6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:599    .text.SystemAndCoreClockUpdate:00000000000000f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:600    .text.SystemAndCoreClockUpdate:00000000000000f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:603    .text.SystemAndCoreClockUpdate:0000000000000100 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:604    .text.SystemAndCoreClockUpdate:0000000000000100 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:686    .data.SERDESPLLMULTB:0000000000000000 SERDESPLLMULTB
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:607    .text.SystemAndCoreClockUpdate:0000000000000102 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:610    .text.SystemAndCoreClockUpdate:000000000000010a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:612    .text.SystemAndCoreClockUpdate:000000000000010c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:615    .text.SystemAndCoreClockUpdate:0000000000000110 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:619    .text.SystemAndCoreClockUpdate:000000000000011c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:624    .text.SystemAndCoreClockUpdate:0000000000000120 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:625    .text.SystemAndCoreClockUpdate:0000000000000120 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:628    .text.SystemAndCoreClockUpdate:0000000000000128 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:629    .text.SystemAndCoreClockUpdate:0000000000000128 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:634    .text.SystemAndCoreClockUpdate:0000000000000132 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:635    .text.SystemAndCoreClockUpdate:0000000000000132 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:638    .text.SystemAndCoreClockUpdate:000000000000013a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:639    .text.SystemAndCoreClockUpdate:000000000000013a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:644    .text.SystemAndCoreClockUpdate:0000000000000144 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:645    .text.SystemAndCoreClockUpdate:0000000000000144 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:651    .text.SystemAndCoreClockUpdate:000000000000014e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:652    .text.SystemAndCoreClockUpdate:000000000000014e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:655    .text.SystemAndCoreClockUpdate:0000000000000150 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:658    .text.SystemAndCoreClockUpdate:0000000000000158 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:660    .text.SystemAndCoreClockUpdate:000000000000015a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:663    .text.SystemAndCoreClockUpdate:000000000000015e .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:672    .text.SystemAndCoreClockUpdate:0000000000000176 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000000be .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000000c6 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:0000000000000100 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:000000000000018a .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:0000000000000210 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:0000000000000263 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000002a7 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000002b9 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000002cb .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000002d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000002e9 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:00000000000002f3 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:0000000000000305 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2651   .debug_line_str:0000000000000310 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:404    .text.SystemInit:00000000000001c2 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:675    .text.SystemAndCoreClockUpdate:0000000000000176 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:44     .text.SystemInit:0000000000000024 .L2
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:174    .text.SystemInit:00000000000000c4 .L3
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:151    .text.SystemInit:00000000000000ae .L4
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:387    .text.SystemInit:00000000000001be .L5
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:374    .text.SystemInit:00000000000001b4 .L1
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:237    .text.SystemInit:0000000000000114 .L8
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:257    .text.SystemInit:000000000000012e .L9
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:286    .text.SystemInit:0000000000000150 .L10
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:365    .text.SystemInit:00000000000001ac .L11
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:188    .text.SystemInit:00000000000000d6 .L6
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:446    .text.SystemAndCoreClockUpdate:0000000000000034 .L33
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:668    .text.SystemAndCoreClockUpdate:000000000000016c .L34
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:452    .text.SystemAndCoreClockUpdate:000000000000003e .L22
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:458    .text.SystemAndCoreClockUpdate:0000000000000050 .L23
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:516    .text.SystemAndCoreClockUpdate:000000000000009e .L21
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:649    .text.SystemAndCoreClockUpdate:000000000000014e .L24
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:443    .text.SystemAndCoreClockUpdate:0000000000000030 .L40
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:597    .text.SystemAndCoreClockUpdate:00000000000000f8 .L25
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:512    .text.SystemAndCoreClockUpdate:000000000000009c .L38
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:591    .text.SystemAndCoreClockUpdate:00000000000000ee .L32
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:622    .text.SystemAndCoreClockUpdate:0000000000000120 .L27
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:490    .text.SystemAndCoreClockUpdate:0000000000000074 .L37
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:632    .text.SystemAndCoreClockUpdate:0000000000000132 .L28
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:642    .text.SystemAndCoreClockUpdate:0000000000000144 .L29
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:1588   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2544   .debug_str:0000000000000186 .LASF90
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2649   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2647   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2448   .debug_rnglists:0000000000000045 .LLRL11
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2458   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2566   .debug_str:00000000000002de .LASF2
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2556   .debug_str:00000000000002a6 .LASF3
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2536   .debug_str:0000000000000168 .LASF8
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2550   .debug_str:000000000000027e .LASF4
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2492   .debug_str:0000000000000082 .LASF5
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2574   .debug_str:0000000000000303 .LASF6
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2530   .debug_str:000000000000014b .LASF7
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2486   .debug_str:0000000000000067 .LASF9
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2608   .debug_str:00000000000003a5 .LASF10
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2520   .debug_str:000000000000011d .LASF11
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2558   .debug_str:00000000000002b2 .LASF12
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2502   .debug_str:00000000000000b0 .LASF13
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2560   .debug_str:00000000000002c9 .LASF14
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2624   .debug_str:0000000000000405 .LASF15
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2526   .debug_str:000000000000013b .LASF16
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2632   .debug_str:0000000000000420 .LASF17
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2496   .debug_str:0000000000000091 .LASF18
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2476   .debug_str:0000000000000046 .LASF19
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2528   .debug_str:0000000000000144 .LASF20
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2596   .debug_str:000000000000036c .LASF21
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2478   .debug_str:000000000000004b .LASF22
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2598   .debug_str:0000000000000376 .LASF23
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2606   .debug_str:00000000000003a0 .LASF24
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2600   .debug_str:0000000000000380 .LASF25
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2626   .debug_str:000000000000040b .LASF26
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2500   .debug_str:00000000000000a6 .LASF27
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2622   .debug_str:0000000000000400 .LASF28
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2604   .debug_str:0000000000000396 .LASF29
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2564   .debug_str:00000000000002d9 .LASF30
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2504   .debug_str:00000000000000b8 .LASF31
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2576   .debug_str:0000000000000316 .LASF32
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2506   .debug_str:00000000000000c2 .LASF33
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2570   .debug_str:00000000000002f1 .LASF34
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2610   .debug_str:00000000000003b7 .LASF35
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2532   .debug_str:0000000000000154 .LASF36
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2538   .debug_str:0000000000000172 .LASF37
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2512   .debug_str:00000000000000ff .LASF38
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2612   .debug_str:00000000000003c1 .LASF39
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2460   .debug_str:0000000000000000 .LASF40
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2614   .debug_str:00000000000003cb .LASF41
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2588   .debug_str:0000000000000358 .LASF42
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2578   .debug_str:000000000000031c .LASF43
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2552   .debug_str:000000000000028c .LASF44
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2540   .debug_str:0000000000000178 .LASF45
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2468   .debug_str:0000000000000020 .LASF46
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2638   .debug_str:000000000000043c .LASF47
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2618   .debug_str:00000000000003de .LASF48
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2584   .debug_str:0000000000000340 .LASF49
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2474   .debug_str:0000000000000040 .LASF50
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2494   .debug_str:000000000000008c .LASF51
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2642   .debug_str:0000000000000450 .LASF52
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2482   .debug_str:0000000000000058 .LASF53
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2636   .debug_str:0000000000000437 .LASF54
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2480   .debug_str:0000000000000053 .LASF55
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2616   .debug_str:00000000000003d5 .LASF56
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2470   .debug_str:000000000000002a .LASF57
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2634   .debug_str:0000000000000429 .LASF58
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2488   .debug_str:0000000000000072 .LASF59
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2464   .debug_str:000000000000000d .LASF60
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2518   .debug_str:0000000000000118 .LASF61
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2522   .debug_str:000000000000012b .LASF62
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2514   .debug_str:0000000000000106 .LASF63
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2586   .debug_str:0000000000000350 .LASF64
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2548   .debug_str:0000000000000275 .LASF65
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2484   .debug_str:000000000000005e .LASF66
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2562   .debug_str:00000000000002d2 .LASF67
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2542   .debug_str:000000000000017e .LASF68
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2628   .debug_str:0000000000000410 .LASF69
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2568   .debug_str:00000000000002eb .LASF70
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2630   .debug_str:0000000000000417 .LASF71
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2534   .debug_str:000000000000015c .LASF72
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2580   .debug_str:0000000000000322 .LASF73
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2516   .debug_str:000000000000010f .LASF74
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2640   .debug_str:0000000000000446 .LASF75
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2644   .debug_str:0000000000000457 .LASF76
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2524   .debug_str:0000000000000134 .LASF77
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2498   .debug_str:0000000000000096 .LASF91
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2510   .debug_str:00000000000000d2 .LASF92
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2554   .debug_str:0000000000000297 .LASF78
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2490   .debug_str:0000000000000078 .LASF79
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2466   .debug_str:0000000000000015 .LASF80
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2582   .debug_str:0000000000000327 .LASF88
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:409    .text.SystemAndCoreClockUpdate:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:673    .text.SystemAndCoreClockUpdate:0000000000000176 .LFE42
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2181   .debug_loclists:000000000000000c .LLST2
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2590   .debug_str:000000000000035d .LASF81
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2223   .debug_loclists:000000000000005c .LLST3
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2592   .debug_str:0000000000000362 .LASF82
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2242   .debug_loclists:0000000000000080 .LLST4
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2594   .debug_str:0000000000000367 .LASF83
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2281   .debug_loclists:00000000000000ca .LLST5
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2472   .debug_str:0000000000000038 .LASF84
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2300   .debug_loclists:00000000000000ee .LLST6
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2546   .debug_str:000000000000026b .LASF85
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2324   .debug_loclists:000000000000011d .LLST7
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2508   .debug_str:00000000000000cc .LASF86
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2353   .debug_loclists:0000000000000157 .LLST8
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2462   .debug_str:0000000000000006 .LASF87
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2377   .debug_loclists:0000000000000186 .LLST9
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:549    .text.SystemAndCoreClockUpdate:00000000000000ca .LBB16
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2440   .debug_rnglists:0000000000000032 .LLRL10
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2602   .debug_str:000000000000038a .LASF93
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2572   .debug_str:00000000000002f8 .LASF89
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:15     .text.SystemInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:402    .text.SystemInit:00000000000001c2 .LFE40
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:123    .text.SystemInit:000000000000008c .LBB8
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2424   .debug_rnglists:000000000000000c .LLRL0
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:129    .text.SystemInit:0000000000000094 .LBB10
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2432   .debug_rnglists:000000000000001f .LLRL1
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:127    .text.SystemInit:0000000000000094 .LVL0
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:2620   .debug_str:00000000000003ea .LASF94
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:413    .text.SystemAndCoreClockUpdate:0000000000000000 .LVL1
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:418    .text.SystemAndCoreClockUpdate:0000000000000006 .LVL2
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:427    .text.SystemAndCoreClockUpdate:000000000000000c .LVL4
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:433    .text.SystemAndCoreClockUpdate:0000000000000014 .LVL5
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:531    .text.SystemAndCoreClockUpdate:00000000000000b8 .LVL15
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:540    .text.SystemAndCoreClockUpdate:00000000000000c0 .LVL17
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:560    .text.SystemAndCoreClockUpdate:00000000000000d0 .LVL20
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:564    .text.SystemAndCoreClockUpdate:00000000000000d2 .LVL21
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:566    .text.SystemAndCoreClockUpdate:00000000000000d4 .LVL22
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:493    .text.SystemAndCoreClockUpdate:0000000000000078 .LVL13
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:511    .text.SystemAndCoreClockUpdate:000000000000009c .LVL14
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:596    .text.SystemAndCoreClockUpdate:00000000000000f8 .LVL25
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:422    .text.SystemAndCoreClockUpdate:0000000000000008 .LVL3
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:435    .text.SystemAndCoreClockUpdate:0000000000000016 .LVL6
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:445    .text.SystemAndCoreClockUpdate:0000000000000034 .LVL7
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:451    .text.SystemAndCoreClockUpdate:000000000000003e .LVL8
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:466    .text.SystemAndCoreClockUpdate:0000000000000056 .LVL9
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:648    .text.SystemAndCoreClockUpdate:000000000000014e .LVL28
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:653    .text.SystemAndCoreClockUpdate:0000000000000150 .LVL29
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:667    .text.SystemAndCoreClockUpdate:000000000000016c .LVL30
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:544    .text.SystemAndCoreClockUpdate:00000000000000c8 .LVL18
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:590    .text.SystemAndCoreClockUpdate:00000000000000ee .LVL24
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:476    .text.SystemAndCoreClockUpdate:0000000000000066 .LVL10
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:489    .text.SystemAndCoreClockUpdate:0000000000000074 .LVL12
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:605    .text.SystemAndCoreClockUpdate:0000000000000102 .LVL26
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:621    .text.SystemAndCoreClockUpdate:0000000000000120 .LVL27
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:481    .text.SystemAndCoreClockUpdate:0000000000000068 .LVL11
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:536    .text.SystemAndCoreClockUpdate:00000000000000bc .LVL16
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:548    .text.SystemAndCoreClockUpdate:00000000000000ca .LVL19
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:572    .text.SystemAndCoreClockUpdate:00000000000000dc .LVL23
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:738    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:378    .text.SystemInit:00000000000001b4 .LBE8
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:389    .text.SystemInit:00000000000001be .LBB15
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:400    .text.SystemInit:00000000000001c2 .LBE15
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:376    .text.SystemInit:00000000000001b4 .LBE10
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:391    .text.SystemInit:00000000000001be .LBB13
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:398    .text.SystemInit:00000000000001c2 .LBE13
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:555    .text.SystemAndCoreClockUpdate:00000000000000cc .LBE16
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:576    .text.SystemAndCoreClockUpdate:00000000000000e0 .LBB19
+C:\Users\User\AppData\Local\Temp\ccIiZ4mn.s:585    .text.SystemAndCoreClockUpdate:00000000000000ea .LBE19
+
+UNDEFINED SYMBOLS
+__riscv_save_1
+GPIO_IPD_Unused
+__riscv_restore_1

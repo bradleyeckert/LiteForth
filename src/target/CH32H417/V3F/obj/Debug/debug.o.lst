@@ -1,0 +1,1052 @@
+   1              		.file	"debug.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.Delay_Init,"ax",@progbits
+  11              		.align	1
+  12              		.globl	Delay_Init
+  14              	Delay_Init:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug/debug.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * File Name          : debug.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * Version            : V1.0.1
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * Date               : 2025/07/16
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * Description        : This file contains all the functions prototypes for UART
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** *                      Printf , Delay functions.
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** *********************************************************************************
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * Attention: This software (modified or not) and binary are used for 
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** *******************************************************************************/
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #include "debug.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** static uint16_t  p_us = 0;
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** static uint32_t p_ms = 0;
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /*********************************************************************
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @fn      Delay_Init
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @brief   Initializes Delay Funcation.
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @return  none
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  */
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** void Delay_Init(void)
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** {
+  17              		.loc 1 26 1
+  18              		.cfi_startproc
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     p_us = HCLKClock / 1000000;
+  19              		.loc 1 27 5
+  20              		.loc 1 27 22 is_stmt 0
+  21 0000 B7070000 		lui	a5,%hi(HCLKClock)
+  22 0004 83A70700 		lw	a5,%lo(HCLKClock)(a5)
+  23 0008 37470F00 		li	a4,999424
+  24 000c 13070724 		addi	a4,a4,576
+  25 0010 B3D7E702 		divu	a5,a5,a4
+  26              		.loc 1 27 10
+  27 0014 37070000 		lui	a4,%hi(p_us)
+  28 0018 2310F700 		sh	a5,%lo(p_us)(a4)
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     p_ms = (uint16_t)p_us * 1000;
+  29              		.loc 1 28 5 is_stmt 1
+  30              		.loc 1 28 27 is_stmt 0
+  31 001c 1307803E 		li	a4,1000
+  32 0020 B387E702 		mul	a5,a5,a4
+  33              		.loc 1 28 10
+  34 0024 37070000 		lui	a4,%hi(p_ms)
+  35 0028 2320F700 		sw	a5,%lo(p_ms)(a4)
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** }
+  36              		.loc 1 29 1
+  37 002c 8280     		ret
+  38              		.cfi_endproc
+  39              	.LFE40:
+  41              		.section	.text.Delay_Us,"ax",@progbits
+  42              		.align	1
+  43              		.globl	Delay_Us
+  45              	Delay_Us:
+  46              	.LFB41:
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /*********************************************************************
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @fn      Delay_Us
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @brief   Microsecond Delay Time.
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @param   n - Microsecond number.
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @return  none
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** void Delay_Us(uint32_t n)
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** {
+  47              		.loc 1 41 1 is_stmt 1
+  48              		.cfi_startproc
+  49              	.LVL0:
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     uint32_t i;
+  50              		.loc 1 42 5
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #ifdef Core_V3F
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->ISR &= ~(1 << 0);
+  51              		.loc 1 44 5
+  52              		.loc 1 44 13 is_stmt 0
+  53 0000 B7F700E0 		li	a5,-536809472
+  54 0004 D843     		lw	a4,4(a5)
+  55              		.loc 1 44 19
+  56 0006 799B     		andi	a4,a4,-2
+  57 0008 D8C3     		sw	a4,4(a5)
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     i = (uint32_t)n * p_us;
+  58              		.loc 1 45 5 is_stmt 1
+  59              		.loc 1 45 21 is_stmt 0
+  60 000a 37070000 		lui	a4,%hi(p_us)
+  61 000e 03570700 		lhu	a4,%lo(p_us)(a4)
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CNT = 0;
+  62              		.loc 1 47 19
+  63 0012 23A40700 		sw	zero,8(a5)
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     i = (uint32_t)n * p_us;
+  64              		.loc 1 45 7
+  65 0016 3307A702 		mul	a4,a4,a0
+  66              	.LVL1:
+  67              		.loc 1 47 5 is_stmt 1
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CMP = i;
+  68              		.loc 1 48 5
+  69              		.loc 1 48 19 is_stmt 0
+  70 001a 98CB     		sw	a4,16(a5)
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CTLR = (1 << 2);
+  71              		.loc 1 49 5 is_stmt 1
+  72              		.loc 1 49 20 is_stmt 0
+  73 001c 1147     		li	a4,4
+  74              	.LVL2:
+  75 001e 98C3     		sw	a4,0(a5)
+  76              	.LVL3:
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CTLR |= (1 << 0);
+  77              		.loc 1 50 5 is_stmt 1
+  78              		.loc 1 50 13 is_stmt 0
+  79 0020 9843     		lw	a4,0(a5)
+  80              		.loc 1 50 20
+  81 0022 13671700 		ori	a4,a4,1
+  82 0026 98C3     		sw	a4,0(a5)
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     while((SysTick0->ISR & (1 << 0)) != (1 << 0))
+  83              		.loc 1 52 5 is_stmt 1
+  84              	.L3:
+  85              		.loc 1 52 38 discriminator 1
+  86              		.loc 1 52 20 is_stmt 0 discriminator 1
+  87 0028 D843     		lw	a4,4(a5)
+  88              		.loc 1 52 26 discriminator 1
+  89 002a 058B     		andi	a4,a4,1
+  90              		.loc 1 52 38 discriminator 1
+  91 002c 75DF     		beq	a4,zero,.L3
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         ;
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CTLR &= ~(1 << 0);
+  92              		.loc 1 54 5 is_stmt 1
+  93              		.loc 1 54 13 is_stmt 0
+  94 002e 9843     		lw	a4,0(a5)
+  95              		.loc 1 54 20
+  96 0030 799B     		andi	a4,a4,-2
+  97 0032 98C3     		sw	a4,0(a5)
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif defined(Core_V5F)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->ISR &= ~(1 << 1);
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     i = (uint32_t)n * p_us;
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CNT = 0;
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CMP = i;
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CTLR = (1 << 2);
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CTLR |= (1 << 0);
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     while((SysTick0->ISR & (1 << 1)) != (1 << 1))
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         ;
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CTLR &= ~(1 << 0);
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #endif
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** }
+  98              		.loc 1 69 1
+  99 0034 8280     		ret
+ 100              		.cfi_endproc
+ 101              	.LFE41:
+ 103              		.section	.text.Delay_Ms,"ax",@progbits
+ 104              		.align	1
+ 105              		.globl	Delay_Ms
+ 107              	Delay_Ms:
+ 108              	.LFB42:
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /*********************************************************************
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @fn      Delay_Ms
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @brief   Millisecond Delay Time.
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @param   n - Millisecond number.
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @return  none
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  */
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** void Delay_Ms(uint32_t n)
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** {
+ 109              		.loc 1 81 1 is_stmt 1
+ 110              		.cfi_startproc
+ 111              	.LVL4:
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     uint32_t i;
+ 112              		.loc 1 82 5
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #ifdef Core_V3F
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->ISR &= ~(1 << 0);
+ 113              		.loc 1 84 5
+ 114              		.loc 1 84 13 is_stmt 0
+ 115 0000 B7F700E0 		li	a5,-536809472
+ 116 0004 D843     		lw	a4,4(a5)
+ 117              		.loc 1 84 19
+ 118 0006 799B     		andi	a4,a4,-2
+ 119 0008 D8C3     		sw	a4,4(a5)
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     i = (uint32_t)n * p_ms;
+ 120              		.loc 1 85 5 is_stmt 1
+ 121              		.loc 1 85 21 is_stmt 0
+ 122 000a 37070000 		lui	a4,%hi(p_ms)
+ 123              		.loc 1 85 7
+ 124 000e 03270700 		lw	a4,%lo(p_ms)(a4)
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CNT = 0;
+ 125              		.loc 1 87 19
+ 126 0012 23A40700 		sw	zero,8(a5)
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     i = (uint32_t)n * p_ms;
+ 127              		.loc 1 85 7
+ 128 0016 3305E502 		mul	a0,a0,a4
+ 129              	.LVL5:
+ 130              		.loc 1 87 5 is_stmt 1
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CMP = i;
+ 131              		.loc 1 88 5
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CTLR = (1 << 2);
+ 132              		.loc 1 89 20 is_stmt 0
+ 133 001a 1147     		li	a4,4
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CMP = i;
+ 134              		.loc 1 88 19
+ 135 001c 88CB     		sw	a0,16(a5)
+ 136              		.loc 1 89 5 is_stmt 1
+ 137              		.loc 1 89 20 is_stmt 0
+ 138 001e 98C3     		sw	a4,0(a5)
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CTLR |= (1 << 0);
+ 139              		.loc 1 90 5 is_stmt 1
+ 140              		.loc 1 90 13 is_stmt 0
+ 141 0020 9843     		lw	a4,0(a5)
+ 142              		.loc 1 90 20
+ 143 0022 13671700 		ori	a4,a4,1
+ 144 0026 98C3     		sw	a4,0(a5)
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     while((SysTick0->ISR & (1 << 0)) != (1 << 0))
+ 145              		.loc 1 92 5 is_stmt 1
+ 146              	.L7:
+ 147              		.loc 1 92 38 discriminator 1
+ 148              		.loc 1 92 20 is_stmt 0 discriminator 1
+ 149 0028 D843     		lw	a4,4(a5)
+ 150              		.loc 1 92 26 discriminator 1
+ 151 002a 058B     		andi	a4,a4,1
+ 152              		.loc 1 92 38 discriminator 1
+ 153 002c 75DF     		beq	a4,zero,.L7
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         ;
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->CTLR &= ~(1 << 0);
+ 154              		.loc 1 94 5 is_stmt 1
+ 155              		.loc 1 94 13 is_stmt 0
+ 156 002e 9843     		lw	a4,0(a5)
+ 157              		.loc 1 94 20
+ 158 0030 799B     		andi	a4,a4,-2
+ 159 0032 98C3     		sw	a4,0(a5)
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif defined(Core_V5F)
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick0->ISR &= ~(1 << 1);
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     i = (uint32_t)n * p_ms;
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CNT = 0;
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CMP = i;
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CTLR = (1 << 2);
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CTLR |= (1 << 0);
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     while((SysTick0->ISR & (1 << 1)) != (1 << 1))
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         ;
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     SysTick1->CTLR &= ~(1 << 0);
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #endif
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** }
+ 160              		.loc 1 108 1
+ 161 0034 8280     		ret
+ 162              		.cfi_endproc
+ 163              	.LFE42:
+ 165              		.section	.text.USART_Printf_Init,"ax",@progbits
+ 166              		.align	1
+ 167              		.globl	USART_Printf_Init
+ 169              	USART_Printf_Init:
+ 170              	.LFB43:
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /*********************************************************************
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @fn      USART_Printf_Init
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @brief   Initializes the USARTx peripheral.
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @param   baudrate - USART communication baud rate.
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @return  none
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  */
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** void USART_Printf_Init(uint32_t baudrate)
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** {
+ 171              		.loc 1 120 1 is_stmt 1
+ 172              		.cfi_startproc
+ 173              	.LVL6:
+ 174 0000 17030000 		call	t0,__riscv_save_2
+ 174      E7020300 
+ 175              		.cfi_offset 9, -12
+ 176              		.cfi_offset 8, -8
+ 177              		.cfi_offset 1, -4
+ 178              		.cfi_def_cfa_offset 16
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitTypeDef  GPIO_InitStructure = {0};
+ 179              		.loc 1 121 5
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitTypeDef  GPIO_InitStructure = {0};
+ 180              		.loc 1 120 1 is_stmt 0
+ 181 0008 2A84     		mv	s0,a0
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitTypeDef USART_InitStructure = {0};
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #if(DEBUG == DEBUG_UART1)  
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     RCC_HB2PeriphClockCmd(RCC_HB2Periph_AFIO | RCC_HB2Periph_USART1 | RCC_HB2Periph_GPIOA, ENABLE);
+ 182              		.loc 1 125 5
+ 183 000a 1165     		li	a0,16384
+ 184              	.LVL7:
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitTypeDef  GPIO_InitStructure = {0};
+ 185              		.loc 1 120 1
+ 186 000c 0111     		addi	sp,sp,-32
+ 187              		.cfi_def_cfa_offset 48
+ 188              		.loc 1 125 5
+ 189 000e 8545     		li	a1,1
+ 190 0010 1505     		addi	a0,a0,5
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF7);
+ 191              		.loc 1 126 5
+ 192 0012 B7140140 		li	s1,1073811456
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitTypeDef USART_InitStructure = {0};
+ 193              		.loc 1 121 23
+ 194 0016 02C2     		sw	zero,4(sp)
+ 195 0018 02C4     		sw	zero,8(sp)
+ 196 001a 02C6     		sw	zero,12(sp)
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitTypeDef USART_InitStructure = {0};
+ 197              		.loc 1 122 5 is_stmt 1
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitTypeDef USART_InitStructure = {0};
+ 198              		.loc 1 122 23 is_stmt 0
+ 199 001c 02C8     		sw	zero,16(sp)
+ 200 001e 02CA     		sw	zero,20(sp)
+ 201 0020 02CC     		sw	zero,24(sp)
+ 202 0022 02CE     		sw	zero,28(sp)
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF7);
+ 203              		.loc 1 125 5 is_stmt 1
+ 204 0024 97000000 		call	RCC_HB2PeriphClockCmd
+ 204      E7800000 
+ 205              	.LVL8:
+ 206              		.loc 1 126 5
+ 207 002c 1D46     		li	a2,7
+ 208 002e 13850480 		addi	a0,s1,-2048
+ 209 0032 A545     		li	a1,9
+ 210 0034 97000000 		call	GPIO_PinAFConfig
+ 210      E7800000 
+ 211              	.LVL9:
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+ 212              		.loc 1 128 5
+ 213              		.loc 1 128 33 is_stmt 0
+ 214 003c 93070020 		li	a5,512
+ 215 0040 7C82     		sh	a5,4(sp)
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Very_High;
+ 216              		.loc 1 129 5 is_stmt 1
+ 217              		.loc 1 129 35 is_stmt 0
+ 218 0042 8D47     		li	a5,3
+ 219 0044 3EC4     		sw	a5,8(sp)
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ 220              		.loc 1 130 5 is_stmt 1
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_Init(GPIOA, &GPIO_InitStructure);
+ 221              		.loc 1 131 5 is_stmt 0
+ 222 0046 4C00     		addi	a1,sp,4
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ 223              		.loc 1 130 34
+ 224 0048 E147     		li	a5,24
+ 225              		.loc 1 131 5
+ 226 004a 13850480 		addi	a0,s1,-2048
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ 227              		.loc 1 130 34
+ 228 004e 3EC6     		sw	a5,12(sp)
+ 229              		.loc 1 131 5 is_stmt 1
+ 230 0050 97000000 		call	GPIO_Init
+ 230      E7800000 
+ 231              	.LVL10:
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART8)
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     RCC_HB2PeriphClockCmd(RCC_HB2Periph_AFIO | RCC_HB2Periph_GPIOB, ENABLE);
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     RCC_HB1PeriphClockCmd(RCC_HB1Periph_USART8, ENABLE);
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF11);
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Very_High;
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART6)
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     RCC_HB2PeriphClockCmd(RCC_HB2Periph_AFIO | RCC_HB2Periph_GPIOB, ENABLE);
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     RCC_HB1PeriphClockCmd(RCC_HB1Periph_USART6, ENABLE);
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF8);
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Very_High;
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #endif
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_BaudRate = baudrate;
+ 232              		.loc 1 155 5
+ 233              		.loc 1 155 40 is_stmt 0
+ 234 0058 22C8     		sw	s0,16(sp)
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+ 235              		.loc 1 156 5 is_stmt 1
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_StopBits = USART_StopBits_1;
+ 236              		.loc 1 157 5
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_Parity = USART_Parity_No;
+ 237              		.loc 1 158 5
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 238              		.loc 1 159 5
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_Mode = USART_Mode_Tx;
+ 239              		.loc 1 160 5
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #if(DEBUG == DEBUG_UART1)
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_Init(USART1, &USART_InitStructure);
+ 240              		.loc 1 163 5 is_stmt 0
+ 241 005a 37440140 		li	s0,1073823744
+ 242              	.LVL11:
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 243              		.loc 1 158 38
+ 244 005e B7070800 		li	a5,524288
+ 245              		.loc 1 163 5
+ 246 0062 0C08     		addi	a1,sp,16
+ 247              	.LVL12:
+ 248 0064 13050480 		addi	a0,s0,-2048
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 249              		.loc 1 158 38
+ 250 0068 3ECC     		sw	a5,24(sp)
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_StopBits = USART_StopBits_1;
+ 251              		.loc 1 156 42
+ 252 006a 02CA     		sw	zero,20(sp)
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_InitStructure.USART_Mode = USART_Mode_Tx;
+ 253              		.loc 1 159 51
+ 254 006c 231E0100 		sh	zero,28(sp)
+ 255              		.loc 1 163 5 is_stmt 1
+ 256 0070 97000000 		call	USART_Init
+ 256      E7800000 
+ 257              	.LVL13:
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_Cmd(USART1, ENABLE);
+ 258              		.loc 1 164 5
+ 259 0078 8545     		li	a1,1
+ 260 007a 13050480 		addi	a0,s0,-2048
+ 261 007e 97000000 		call	USART_Cmd
+ 261      E7800000 
+ 262              	.LVL14:
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART8)
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_Init(USART8, &USART_InitStructure);
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_Cmd(USART8, ENABLE);
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART6)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_Init(USART6, &USART_InitStructure);
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     USART_Cmd(USART6, ENABLE);
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #endif
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** }
+ 263              		.loc 1 175 1 is_stmt 0
+ 264 0086 0561     		addi	sp,sp,32
+ 265              		.cfi_def_cfa_offset 0
+ 266 0088 17030000 		tail	__riscv_restore_2
+ 266      67000300 
+ 267              		.cfi_restore 9
+ 268              		.cfi_restore 8
+ 269              		.cfi_restore 1
+ 270              		.cfi_def_cfa_offset -16
+ 271              		.cfi_endproc
+ 272              	.LFE43:
+ 274              		.section	.text._write,"ax",@progbits
+ 275              		.align	1
+ 276              		.globl	_write
+ 278              	_write:
+ 279              	.LFB44:
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /*********************************************************************
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @fn      _write
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @brief   Support Printf Function
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @param   *buf - UART send Data.
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *          size - Data length
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @return  size: Data length
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  */
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** __attribute__((used)) int _write(int fd, char *buf, int size)
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** {
+ 280              		.loc 1 188 1 is_stmt 1
+ 281              		.cfi_startproc
+ 282              	.LVL15:
+ 283 0000 17030000 		call	t0,__riscv_save_4
+ 283      E7020300 
+ 284              		.cfi_offset 19, -20
+ 285              		.cfi_offset 18, -16
+ 286              		.cfi_offset 9, -12
+ 287              		.cfi_offset 8, -8
+ 288              		.cfi_offset 1, -4
+ 289              		.cfi_def_cfa_offset 32
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     int i = 0;
+ 290              		.loc 1 189 5
+ 291              	.LVL16:
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     for(i = 0; i < size; i++)
+ 292              		.loc 1 191 5
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     {
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #if(DEBUG == DEBUG_UART1)
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
+ 293              		.loc 1 194 15 is_stmt 0
+ 294 0008 37490140 		li	s2,1073823744
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     int i = 0;
+ 295              		.loc 1 188 1
+ 296 000c AE89     		mv	s3,a1
+ 297 000e 3284     		mv	s0,a2
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     {
+ 298              		.loc 1 191 11
+ 299 0010 8144     		li	s1,0
+ 300              		.loc 1 194 15
+ 301 0012 13090980 		addi	s2,s2,-2048
+ 302              	.LVL17:
+ 303              	.L13:
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     {
+ 304              		.loc 1 191 18 is_stmt 1 discriminator 1
+ 305 0016 63C78400 		blt	s1,s0,.L14
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART8)
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         while(USART_GetFlagStatus(USART8, USART_FLAG_TC) == RESET);
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART8, *buf++);
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART6)
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         while(USART_GetFlagStatus(USART6, USART_FLAG_TC) == RESET);
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART6, *buf++);
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #endif
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     }
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     return size;
+ 306              		.loc 1 205 5
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** }
+ 307              		.loc 1 206 1 is_stmt 0
+ 308 001a 2285     		mv	a0,s0
+ 309 001c 17030000 		tail	__riscv_restore_4
+ 309      67000300 
+ 310              		.cfi_remember_state
+ 311              		.cfi_restore 19
+ 312              		.cfi_restore 18
+ 313              		.cfi_restore 9
+ 314              		.cfi_restore 8
+ 315              		.cfi_restore 1
+ 316              		.cfi_def_cfa_offset 0
+ 317              	.L14:
+ 318              		.cfi_restore_state
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 319              		.loc 1 194 58 is_stmt 1 discriminator 1
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 320              		.loc 1 194 15 is_stmt 0 discriminator 1
+ 321 0024 93050004 		li	a1,64
+ 322 0028 4A85     		mv	a0,s2
+ 323 002a 97000000 		call	USART_GetFlagStatus
+ 323      E7800000 
+ 324              	.LVL18:
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 325              		.loc 1 194 58 discriminator 1
+ 326 0032 6DD9     		beq	a0,zero,.L14
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 327              		.loc 1 195 9 is_stmt 1 discriminator 2
+ 328              	.LVL19:
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 329              		.loc 1 195 32 is_stmt 0 discriminator 2
+ 330 0034 B3879900 		add	a5,s3,s1
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****         USART_SendData(USART1, *buf++);
+ 331              		.loc 1 195 9 discriminator 2
+ 332 0038 83850700 		lb	a1,0(a5)
+ 333 003c 4A85     		mv	a0,s2
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     {
+ 334              		.loc 1 191 27 discriminator 2
+ 335 003e 8504     		addi	s1,s1,1
+ 336              	.LVL20:
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** #elif(DEBUG == DEBUG_UART8)
+ 337              		.loc 1 195 9 discriminator 2
+ 338 0040 B3C50508 		zext.h	a1,a1
+ 339 0044 97000000 		call	USART_SendData
+ 339      E7800000 
+ 340              	.LVL21:
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     {
+ 341              		.loc 1 191 27 is_stmt 1 discriminator 2
+ 342 004c E9B7     		j	.L13
+ 343              		.cfi_endproc
+ 344              	.LFE44:
+ 346              		.section	.text._sbrk,"ax",@progbits
+ 347              		.align	1
+ 348              		.globl	_sbrk
+ 350              	_sbrk:
+ 351              	.LFB45:
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** /*********************************************************************
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @fn      _sbrk
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @brief   Change the spatial position of data segment.
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  *
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  * @return  size: Data length
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****  */
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** __attribute__((used)) void *_sbrk(ptrdiff_t incr)
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** {
+ 352              		.loc 1 216 1
+ 353              		.cfi_startproc
+ 354              	.LVL22:
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     extern char _end[];
+ 355              		.loc 1 217 5
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     extern char _heap_end[];
+ 356              		.loc 1 218 5
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     static char *curbrk = _end;
+ 357              		.loc 1 219 5
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     if ((curbrk + incr < _end) || (curbrk + incr > _heap_end))
+ 358              		.loc 1 221 5
+ 359              		.loc 1 221 17 is_stmt 0
+ 360 0000 B7060000 		lui	a3,%hi(curbrk.0)
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     extern char _end[];
+ 361              		.loc 1 216 1
+ 362 0004 AA87     		mv	a5,a0
+ 363              		.loc 1 221 17
+ 364 0006 03A50600 		lw	a0,%lo(curbrk.0)(a3)
+ 365              	.LVL23:
+ 366              		.loc 1 221 8
+ 367 000a 37070000 		lui	a4,%hi(_end)
+ 368 000e 13070700 		addi	a4,a4,%lo(_end)
+ 369              		.loc 1 221 17
+ 370 0012 AA97     		add	a5,a0,a5
+ 371              	.LVL24:
+ 372              		.loc 1 221 8
+ 373 0014 63EBE700 		bltu	a5,a4,.L22
+ 374              		.loc 1 221 32 discriminator 1
+ 375 0018 37070000 		lui	a4,%hi(_heap_end)
+ 376 001c 13070700 		addi	a4,a4,%lo(_heap_end)
+ 377 0020 6365F700 		bgtu	a5,a4,.L22
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     return NULL - 1;
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** 
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     curbrk += incr;
+ 378              		.loc 1 224 5 is_stmt 1
+ 379              		.loc 1 224 12 is_stmt 0
+ 380 0024 23A0F600 		sw	a5,%lo(curbrk.0)(a3)
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     return curbrk - incr;
+ 381              		.loc 1 225 5 is_stmt 1
+ 382              		.loc 1 225 19 is_stmt 0
+ 383 0028 8280     		ret
+ 384              	.L22:
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c ****     return NULL - 1;
+ 385              		.loc 1 222 17
+ 386 002a 7D55     		li	a0,-1
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Debug\debug.c **** }
+ 387              		.loc 1 226 1
+ 388 002c 8280     		ret
+ 389              		.cfi_endproc
+ 390              	.LFE45:
+ 392              		.section	.sdata.curbrk.0,"aw"
+ 393              		.align	2
+ 396              	curbrk.0:
+ 397 0000 00000000 		.word	_end
+ 398              		.section	.sbss.p_ms,"aw",@nobits
+ 399              		.align	2
+ 402              	p_ms:
+ 403 0000 00000000 		.zero	4
+ 404              		.section	.sbss.p_us,"aw",@nobits
+ 405              		.align	1
+ 408              	p_us:
+ 409 0000 0000     		.zero	2
+ 410              		.text
+ 411              	.Letext0:
+ 412              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 413              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 414              		.file 4 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 415              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 416              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 417              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_gpio.h"
+ 418              		.file 8 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_usart.h"
+ 419              		.file 9 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+ 420              		.file 10 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/USBFS/DEVICE/SimulateCDC/V3F/User/syste
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 debug.c
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:14     .text.Delay_Init:0000000000000000 Delay_Init
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:18     .text.Delay_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:19     .text.Delay_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:20     .text.Delay_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:21     .text.Delay_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:21     .text.Delay_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:408    .sbss.p_us:0000000000000000 p_us
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:27     .text.Delay_Init:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:30     .text.Delay_Init:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:31     .text.Delay_Init:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:402    .sbss.p_ms:0000000000000000 p_ms
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:34     .text.Delay_Init:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:37     .text.Delay_Init:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:38     .text.Delay_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:45     .text.Delay_Us:0000000000000000 Delay_Us
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:48     .text.Delay_Us:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:50     .text.Delay_Us:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:51     .text.Delay_Us:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:52     .text.Delay_Us:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:53     .text.Delay_Us:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:53     .text.Delay_Us:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:56     .text.Delay_Us:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:59     .text.Delay_Us:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:60     .text.Delay_Us:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:63     .text.Delay_Us:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:65     .text.Delay_Us:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:68     .text.Delay_Us:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:69     .text.Delay_Us:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:70     .text.Delay_Us:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:72     .text.Delay_Us:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:73     .text.Delay_Us:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:78     .text.Delay_Us:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:79     .text.Delay_Us:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:81     .text.Delay_Us:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:85     .text.Delay_Us:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:86     .text.Delay_Us:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:87     .text.Delay_Us:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:89     .text.Delay_Us:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:91     .text.Delay_Us:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:93     .text.Delay_Us:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:94     .text.Delay_Us:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:96     .text.Delay_Us:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:99     .text.Delay_Us:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:100    .text.Delay_Us:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:107    .text.Delay_Ms:0000000000000000 Delay_Ms
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:110    .text.Delay_Ms:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:112    .text.Delay_Ms:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:113    .text.Delay_Ms:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:114    .text.Delay_Ms:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:115    .text.Delay_Ms:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:115    .text.Delay_Ms:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:118    .text.Delay_Ms:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:121    .text.Delay_Ms:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:122    .text.Delay_Ms:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:124    .text.Delay_Ms:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:126    .text.Delay_Ms:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:128    .text.Delay_Ms:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:131    .text.Delay_Ms:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:132    .text.Delay_Ms:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:133    .text.Delay_Ms:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:135    .text.Delay_Ms:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:137    .text.Delay_Ms:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:138    .text.Delay_Ms:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:140    .text.Delay_Ms:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:141    .text.Delay_Ms:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:143    .text.Delay_Ms:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:147    .text.Delay_Ms:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:148    .text.Delay_Ms:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:149    .text.Delay_Ms:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:151    .text.Delay_Ms:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:153    .text.Delay_Ms:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:155    .text.Delay_Ms:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:156    .text.Delay_Ms:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:158    .text.Delay_Ms:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:161    .text.Delay_Ms:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:162    .text.Delay_Ms:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:169    .text.USART_Printf_Init:0000000000000000 USART_Printf_Init
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:172    .text.USART_Printf_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:174    .text.USART_Printf_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:174    .text.USART_Printf_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:175    .text.USART_Printf_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:176    .text.USART_Printf_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:177    .text.USART_Printf_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:178    .text.USART_Printf_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:180    .text.USART_Printf_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:181    .text.USART_Printf_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:183    .text.USART_Printf_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:186    .text.USART_Printf_Init:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:187    .text.USART_Printf_Init:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:189    .text.USART_Printf_Init:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:192    .text.USART_Printf_Init:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:194    .text.USART_Printf_Init:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:198    .text.USART_Printf_Init:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:199    .text.USART_Printf_Init:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:204    .text.USART_Printf_Init:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:207    .text.USART_Printf_Init:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:213    .text.USART_Printf_Init:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:214    .text.USART_Printf_Init:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:217    .text.USART_Printf_Init:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:218    .text.USART_Printf_Init:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:221    .text.USART_Printf_Init:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:222    .text.USART_Printf_Init:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:224    .text.USART_Printf_Init:0000000000000048 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:226    .text.USART_Printf_Init:000000000000004a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:228    .text.USART_Printf_Init:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:230    .text.USART_Printf_Init:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:233    .text.USART_Printf_Init:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:234    .text.USART_Printf_Init:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:236    .text.USART_Printf_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:237    .text.USART_Printf_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:238    .text.USART_Printf_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:239    .text.USART_Printf_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:240    .text.USART_Printf_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:241    .text.USART_Printf_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:244    .text.USART_Printf_Init:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:246    .text.USART_Printf_Init:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:250    .text.USART_Printf_Init:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:252    .text.USART_Printf_Init:000000000000006a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:254    .text.USART_Printf_Init:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:256    .text.USART_Printf_Init:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:259    .text.USART_Printf_Init:0000000000000078 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:264    .text.USART_Printf_Init:0000000000000086 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:265    .text.USART_Printf_Init:0000000000000088 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:267    .text.USART_Printf_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:268    .text.USART_Printf_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:269    .text.USART_Printf_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:270    .text.USART_Printf_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:271    .text.USART_Printf_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:278    .text._write:0000000000000000 _write
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:281    .text._write:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:283    .text._write:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:283    .text._write:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:284    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:285    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:286    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:287    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:288    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:289    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:292    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:293    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:294    .text._write:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:296    .text._write:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:299    .text._write:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:301    .text._write:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:305    .text._write:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:307    .text._write:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:308    .text._write:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:310    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:311    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:312    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:313    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:314    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:315    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:316    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:318    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:320    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:321    .text._write:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:326    .text._write:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:329    .text._write:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:330    .text._write:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:332    .text._write:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:335    .text._write:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:338    .text._write:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:342    .text._write:000000000000004c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:343    .text._write:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:350    .text._sbrk:0000000000000000 _sbrk
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:353    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:355    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:356    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:357    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:358    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:359    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:360    .text._sbrk:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:396    .sdata.curbrk.0:0000000000000000 curbrk.0
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:360    .text._sbrk:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:362    .text._sbrk:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:364    .text._sbrk:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:367    .text._sbrk:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:370    .text._sbrk:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:373    .text._sbrk:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:375    .text._sbrk:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:379    .text._sbrk:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:380    .text._sbrk:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:382    .text._sbrk:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:383    .text._sbrk:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:386    .text._sbrk:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:388    .text._sbrk:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:389    .text._sbrk:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:0000000000000095 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000000e7 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:0000000000000122 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000001ac .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:000000000000023d .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000002c3 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000002fd .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:0000000000000341 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:0000000000000394 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:000000000000039c .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003a4 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003b5 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003be .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003d5 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003e0 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:00000000000003f0 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:0000000000000401 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2299   .debug_line_str:0000000000000410 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:41     .text.Delay_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:103    .text.Delay_Us:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:165    .text.Delay_Ms:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:274    .text.USART_Printf_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:346    .text._write:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:392    .text._sbrk:000000000000002e .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:84     .text.Delay_Us:0000000000000028 .L3
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:146    .text.Delay_Ms:0000000000000028 .L7
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:317    .text._write:0000000000000024 .L14
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:303    .text._write:0000000000000016 .L13
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:384    .text._sbrk:000000000000002a .L22
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1295   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2176   .debug_str:0000000000000192 .LASF96
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2297   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2295   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2076   .debug_rnglists:000000000000000c .LLRL8
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2098   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2154   .debug_str:000000000000011c .LASF2
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2172   .debug_str:000000000000017d .LASF5
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2182   .debug_str:000000000000028d .LASF3
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2126   .debug_str:0000000000000088 .LASF4
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2120   .debug_str:0000000000000060 .LASF6
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2222   .debug_str:0000000000000374 .LASF7
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2168   .debug_str:000000000000016f .LASF8
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2174   .debug_str:0000000000000187 .LASF9
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2244   .debug_str:00000000000003e6 .LASF10
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2162   .debug_str:0000000000000151 .LASF11
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2188   .debug_str:00000000000002b9 .LASF12
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2196   .debug_str:00000000000002f0 .LASF13
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2146   .debug_str:00000000000000f5 .LASF14
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2220   .debug_str:000000000000036f .LASF15
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2136   .debug_str:00000000000000bc .LASF16
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2198   .debug_str:00000000000002fd .LASF17
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2192   .debug_str:00000000000002d6 .LASF18
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2152   .debug_str:0000000000000114 .LASF19
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2288   .debug_str:000000000000051f .LASF20
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2252   .debug_str:0000000000000422 .LASF21
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2266   .debug_str:0000000000000490 .LASF22
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2286   .debug_str:0000000000000514 .LASF23
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2280   .debug_str:0000000000000500 .LASF24
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2232   .debug_str:00000000000003a6 .LASF25
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2254   .debug_str:0000000000000432 .LASF26
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2282   .debug_str:0000000000000505 .LASF82
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2110   .debug_str:0000000000000032 .LASF27
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2148   .debug_str:00000000000000ff .LASF28
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2108   .debug_str:000000000000002d .LASF29
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2190   .debug_str:00000000000002d0 .LASF30
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2230   .debug_str:00000000000003a1 .LASF31
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2284   .debug_str:000000000000050f .LASF32
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2200   .debug_str:0000000000000306 .LASF33
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2100   .debug_str:0000000000000000 .LASF34
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2114   .debug_str:0000000000000043 .LASF35
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2226   .debug_str:000000000000038d .LASF36
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2234   .debug_str:00000000000003b0 .LASF37
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2132   .debug_str:00000000000000ab .LASF38
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2206   .debug_str:0000000000000329 .LASF39
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2238   .debug_str:00000000000003c8 .LASF40
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2208   .debug_str:000000000000032f .LASF41
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2240   .debug_str:00000000000003d2 .LASF42
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2210   .debug_str:0000000000000335 .LASF43
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2242   .debug_str:00000000000003dc .LASF44
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2140   .debug_str:00000000000000c9 .LASF45
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2212   .debug_str:000000000000033b .LASF46
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2246   .debug_str:00000000000003f8 .LASF47
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2122   .debug_str:000000000000006b .LASF48
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2128   .debug_str:0000000000000092 .LASF49
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2268   .debug_str:0000000000000496 .LASF50
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2118   .debug_str:0000000000000050 .LASF51
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2186   .debug_str:00000000000002a4 .LASF52
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2250   .debug_str:0000000000000410 .LASF53
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2248   .debug_str:0000000000000402 .LASF54
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2278   .debug_str:00000000000004ea .LASF55
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2236   .debug_str:00000000000003ba .LASF56
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2228   .debug_str:0000000000000393 .LASF57
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2144   .debug_str:00000000000000e4 .LASF58
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2258   .debug_str:0000000000000444 .LASF59
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2290   .debug_str:0000000000000526 .LASF60
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2156   .debug_str:0000000000000128 .LASF61
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2272   .debug_str:00000000000004b2 .LASF62
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2104   .debug_str:000000000000001f .LASF63
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2164   .debug_str:000000000000015f .LASF64
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2292   .debug_str:0000000000000536 .LASF65
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2194   .debug_str:00000000000002df .LASF66
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2158   .debug_str:0000000000000138 .LASF67
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2142   .debug_str:00000000000000d3 .LASF68
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2124   .debug_str:0000000000000079 .LASF69
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2180   .debug_str:0000000000000280 .LASF70
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2218   .debug_str:0000000000000364 .LASF71
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2214   .debug_str:0000000000000341 .LASF72
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2202   .debug_str:000000000000030c .LASF73
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2170   .debug_str:0000000000000178 .LASF74
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2138   .debug_str:00000000000000c4 .LASF75
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2150   .debug_str:0000000000000105 .LASF76
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2260   .debug_str:0000000000000455 .LASF97
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2130   .debug_str:00000000000000a1 .LASF77
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2112   .debug_str:0000000000000038 .LASF78
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2160   .debug_str:0000000000000147 .LASF79
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2276   .debug_str:00000000000004d9 .LASF80
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2274   .debug_str:00000000000004c3 .LASF81
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2224   .debug_str:0000000000000387 .LASF86
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:351    .text._sbrk:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:390    .text._sbrk:000000000000002e .LFE45
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2106   .debug_str:0000000000000028 .LASF88
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1874   .debug_loclists:000000000000000c .LLST7
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2166   .debug_str:000000000000016a .LASF83
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2270   .debug_str:00000000000004a8 .LASF84
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2134   .debug_str:00000000000000b5 .LASF85
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2116   .debug_str:0000000000000049 .LASF87
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:279    .text._write:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:344    .text._write:000000000000004e .LFE44
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1894   .debug_loclists:0000000000000031 .LLST3
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1909   .debug_loclists:000000000000004b .LLST4
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2256   .debug_str:000000000000043f .LASF89
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1948   .debug_loclists:0000000000000089 .LLST5
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1960   .debug_loclists:00000000000000a0 .LLST6
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:324    .text._write:0000000000000032 .LVL18
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:340    .text._write:000000000000004c .LVL21
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2102   .debug_str:000000000000000d .LASF93
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:170    .text.USART_Printf_Init:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:272    .text.USART_Printf_Init:0000000000000090 .LFE43
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2178   .debug_str:0000000000000277 .LASF90
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:1985   .debug_loclists:00000000000000d0 .LLST2
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2262   .debug_str:0000000000000469 .LASF91
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2264   .debug_str:000000000000047c .LASF92
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:205    .text.USART_Printf_Init:000000000000002c .LVL8
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:211    .text.USART_Printf_Init:000000000000003c .LVL9
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:231    .text.USART_Printf_Init:0000000000000058 .LVL10
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:257    .text.USART_Printf_Init:0000000000000078 .LVL13
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:262    .text.USART_Printf_Init:0000000000000086 .LVL14
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2184   .debug_str:000000000000029b .LASF94
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:108    .text.Delay_Ms:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:163    .text.Delay_Ms:0000000000000036 .LFE42
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2017   .debug_loclists:000000000000010d .LLST1
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2216   .debug_str:000000000000035b .LASF95
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:46     .text.Delay_Us:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:101    .text.Delay_Us:0000000000000036 .LFE41
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2032   .debug_loclists:0000000000000127 .LLST0
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:2204   .debug_str:000000000000031e .LASF98
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:15     .text.Delay_Init:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:39     .text.Delay_Init:000000000000002e .LFE40
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:354    .text._sbrk:0000000000000000 .LVL22
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:365    .text._sbrk:000000000000000a .LVL23
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:371    .text._sbrk:0000000000000014 .LVL24
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:282    .text._write:0000000000000000 .LVL15
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:302    .text._write:0000000000000016 .LVL17
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:328    .text._write:0000000000000034 .LVL19
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:336    .text._write:0000000000000040 .LVL20
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:291    .text._write:0000000000000008 .LVL16
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:173    .text.USART_Printf_Init:0000000000000000 .LVL6
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:184    .text.USART_Printf_Init:000000000000000c .LVL7
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:242    .text.USART_Printf_Init:000000000000005e .LVL11
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:247    .text.USART_Printf_Init:0000000000000064 .LVL12
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:111    .text.Delay_Ms:0000000000000000 .LVL4
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:129    .text.Delay_Ms:000000000000001a .LVL5
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:66     .text.Delay_Us:000000000000001a .LVL1
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:74     .text.Delay_Us:000000000000001e .LVL2
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:76     .text.Delay_Us:0000000000000020 .LVL3
+C:\Users\User\AppData\Local\Temp\ccmxYgb5.s:422    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+HCLKClock
+__riscv_save_2
+RCC_HB2PeriphClockCmd
+GPIO_PinAFConfig
+GPIO_Init
+USART_Init
+USART_Cmd
+__riscv_restore_2
+__riscv_save_4
+__riscv_restore_4
+USART_GetFlagStatus
+USART_SendData
+_end
+_heap_end

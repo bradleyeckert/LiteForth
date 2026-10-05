@@ -1,0 +1,1390 @@
+   1              		.file	"ch32h417_lptim.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.LPTIM_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	LPTIM_DeInit
+  14              	LPTIM_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_lptim.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /********************************** (C) COPYRIGHT *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * File Name          : ch32h417_lptim.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * Version            : V1.0.1
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * Date               : 2025/10/21
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * Description        : This file provides all the LPTIM firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * Attention: This software (modified or not) and binary are used for
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** #include "ch32h417_lptim.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_DeInit
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Deinitializes the LPTIM peripheral registers to their default
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *        reset values.
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_DeInit(LPTIM_TypeDef *LPTIMx)
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+  17              		.loc 1 25 1
+  18              		.cfi_startproc
+  19              	.LVL0:
+  20 0000 17030000 		call	t0,__riscv_save_0
+  20      E7020300 
+  21              		.cfi_offset 1, -4
+  22              		.cfi_def_cfa_offset 16
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(LPTIMx == LPTIM1)
+  23              		.loc 1 26 5
+  24              		.loc 1 26 7 is_stmt 0
+  25 0008 B7270040 		li	a5,1073750016
+  26 000c 93870740 		addi	a5,a5,1024
+  27 0010 6314F502 		bne	a0,a5,.L2
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         RCC_HB1PeriphResetCmd(RCC_HB1Periph_LPTIM1, ENABLE);
+  28              		.loc 1 28 9 is_stmt 1
+  29 0014 8545     		li	a1,1
+  30 0016 13050020 		li	a0,512
+  31              	.LVL1:
+  32 001a 97000000 		call	RCC_HB1PeriphResetCmd
+  32      E7800000 
+  33              	.LVL2:
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         RCC_HB1PeriphResetCmd(RCC_HB1Periph_LPTIM1, DISABLE);
+  34              		.loc 1 29 9
+  35 0022 8145     		li	a1,0
+  36 0024 13050020 		li	a0,512
+  37              	.L5:
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else if(LPTIMx == LPTIM2)
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         RCC_HB1PeriphResetCmd(RCC_HB1Periph_LPTIM2, ENABLE);
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         RCC_HB1PeriphResetCmd(RCC_HB1Periph_LPTIM2, DISABLE);
+  38              		.loc 1 34 9 is_stmt 0
+  39 0028 97000000 		call	RCC_HB1PeriphResetCmd
+  39      E7800000 
+  40              	.LVL3:
+  41              	.L1:
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+  42              		.loc 1 36 1
+  43 0030 17030000 		tail	__riscv_restore_0
+  43      67000300 
+  44              		.cfi_remember_state
+  45              		.cfi_restore 1
+  46              		.cfi_def_cfa_offset 0
+  47              	.LVL4:
+  48              	.L2:
+  49              		.cfi_restore_state
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  50              		.loc 1 31 10 is_stmt 1
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  51              		.loc 1 31 12 is_stmt 0
+  52 0038 B7370040 		li	a5,1073754112
+  53 003c 93870740 		addi	a5,a5,1024
+  54 0040 E318F5FE 		bne	a0,a5,.L1
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         RCC_HB1PeriphResetCmd(RCC_HB1Periph_LPTIM2, DISABLE);
+  55              		.loc 1 33 9 is_stmt 1
+  56 0044 8545     		li	a1,1
+  57 0046 13050040 		li	a0,1024
+  58              	.LVL5:
+  59 004a 97000000 		call	RCC_HB1PeriphResetCmd
+  59      E7800000 
+  60              	.LVL6:
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+  61              		.loc 1 34 9
+  62 0052 8145     		li	a1,0
+  63 0054 13050040 		li	a0,1024
+  64 0058 C1BF     		j	.L5
+  65              		.cfi_endproc
+  66              	.LFE40:
+  68              		.section	.text.LPTIM_TimeBaseInit,"ax",@progbits
+  69              		.align	1
+  70              		.globl	LPTIM_TimeBaseInit
+  72              	LPTIM_TimeBaseInit:
+  73              	.LFB41:
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_TimeBaseInit
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Initializes the LPTIM Time Base Unit peripheral according to
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *        the specified parameters in the LPTIM_TimeBaseInitStruct.
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          LPTIM_TimeBaseInitStruct - pointer to a LPTIM_TimeBaseInitTypeDef
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *        structure.         
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_TimeBaseInit(LPTIM_TypeDef *LPTIMx, LPTIM_TimeBaseInitTypeDef *LPTIM_TimeBaseInitStruct)
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+  74              		.loc 1 51 1
+  75              		.cfi_startproc
+  76              	.LVL7:
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     uint32_t temp1 = 0, temp2 = 0;
+  77              		.loc 1 52 5
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     temp2 = (LPTIMx->CR & 0x00000001);
+  78              		.loc 1 54 5
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(LPTIM_TimeBaseInitStruct->LPTIM_Encoder == ENABLE)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         temp1 |= LPTIM_TimeBaseInitStruct->LPTIM_EncoderMode;
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         temp1 |= LPTIM_TimeBaseInitStruct->LPTIM_ClockPolarity;
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     temp1 |= LPTIM_TimeBaseInitStruct->LPTIM_ClockSource | LPTIM_TimeBaseInitStruct->LPTIM_ClockSam
+  79              		.loc 1 65 11 is_stmt 0
+  80 0000 D841     		lw	a4,4(a1)
+  81 0002 9C41     		lw	a5,0(a1)
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSource | LPTIM_TimeBaseInitStruct->LPTIM_ExTr
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_OutputPolarity | LPTIM_TimeBaseInitStruct->LPTIM_Upd
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_CountSource | LPTIM_TimeBaseInitStruct->LPTIM_InCloc
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | (LPTIM_TimeBaseInitStruct->LPTIM_TimeOut << 19) | (LPTIM_TimeBaseInitStruct->LPTIM_O
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | (LPTIM_TimeBaseInitStruct->LPTIM_Encoder << 24) | (LPTIM_TimeBaseInitStruct->LPTIM_F
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     temp2 |= (LPTIM_TimeBaseInitStruct->LPTIM_SingleMode << 1) | (LPTIM_TimeBaseInitStruct->LPTIM_C
+  82              		.loc 1 73 114
+  83 0004 B041     		lw	a2,64(a1)
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  84              		.loc 1 54 20
+  85 0006 1449     		lw	a3,16(a0)
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+  86              		.loc 1 65 11
+  87 0008 D98F     		or	a5,a5,a4
+  88 000a 9845     		lw	a4,8(a1)
+  89              		.loc 1 73 114
+  90 000c 0A06     		slli	a2,a2,2
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  91              		.loc 1 54 11
+  92 000e 858A     		andi	a3,a3,1
+  93              	.LVL8:
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+  94              		.loc 1 56 5 is_stmt 1
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+  95              		.loc 1 65 5
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+  96              		.loc 1 65 11 is_stmt 0
+  97 0010 D98F     		or	a5,a5,a4
+  98 0012 D845     		lw	a4,12(a1)
+  99 0014 D98F     		or	a5,a5,a4
+ 100 0016 9849     		lw	a4,16(a1)
+ 101 0018 D98F     		or	a5,a5,a4
+ 102 001a D849     		lw	a4,20(a1)
+ 103 001c D98F     		or	a5,a5,a4
+ 104 001e 984D     		lw	a4,24(a1)
+ 105 0020 D98F     		or	a5,a5,a4
+ 106 0022 D851     		lw	a4,36(a1)
+ 107 0024 D98F     		or	a5,a5,a4
+ 108 0026 9855     		lw	a4,40(a1)
+ 109 0028 D98F     		or	a5,a5,a4
+ 110 002a D855     		lw	a4,44(a1)
+ 111 002c D98F     		or	a5,a5,a4
+ 112 002e D859     		lw	a4,52(a1)
+ 113 0030 D98F     		or	a5,a5,a4
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | (LPTIM_TimeBaseInitStruct->LPTIM_Encoder << 24) | (LPTIM_TimeBaseInitStruct->LPTIM_F
+ 114              		.loc 1 70 57
+ 115 0032 D84D     		lw	a4,28(a1)
+ 116 0034 4E07     		slli	a4,a4,19
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+ 117              		.loc 1 65 11
+ 118 0036 D98F     		or	a5,a5,a4
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | (LPTIM_TimeBaseInitStruct->LPTIM_Encoder << 24) | (LPTIM_TimeBaseInitStruct->LPTIM_F
+ 119              		.loc 1 70 112
+ 120 0038 9851     		lw	a4,32(a1)
+ 121 003a 5207     		slli	a4,a4,20
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+ 122              		.loc 1 65 11
+ 123 003c D98F     		or	a5,a5,a4
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 124              		.loc 1 71 57
+ 125 003e 9859     		lw	a4,48(a1)
+ 126 0040 6207     		slli	a4,a4,24
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+ 127              		.loc 1 65 11
+ 128 0042 D98F     		or	a5,a5,a4
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 129              		.loc 1 71 112
+ 130 0044 985D     		lw	a4,56(a1)
+ 131 0046 6E07     		slli	a4,a4,27
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime | LPTIM_TimeBaseInitStruct->LPTIM_
+ 132              		.loc 1 65 11
+ 133 0048 D98F     		or	a5,a5,a4
+ 134              	.LVL9:
+ 135              		.loc 1 73 5 is_stmt 1
+ 136              		.loc 1 73 58 is_stmt 0
+ 137 004a D85D     		lw	a4,60(a1)
+ 138 004c 0607     		slli	a4,a4,1
+ 139              		.loc 1 73 64
+ 140 004e 518F     		or	a4,a4,a2
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | (LPTIM_TimeBaseInitStruct->LPTIM_PWMOut << 3) | (LPTIM_TimeBaseInitStruct->LPTIM_Cou
+ 141              		.loc 1 74 56
+ 142 0050 F041     		lw	a2,68(a1)
+ 143 0052 0E06     		slli	a2,a2,3
+ 144              		.loc 1 74 14
+ 145 0054 518F     		or	a4,a4,a2
+ 146              		.loc 1 74 115
+ 147 0056 B045     		lw	a2,72(a1)
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CFGR = temp1;
+ 148              		.loc 1 76 18
+ 149 0058 5CC5     		sw	a5,12(a0)
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CR = temp2;
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CMP = LPTIM_TimeBaseInitStruct->LPTIM_Pulse;
+ 150              		.loc 1 78 43
+ 151 005a 83D7C504 		lhu	a5,76(a1)
+ 152              	.LVL10:
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 153              		.loc 1 74 115
+ 154 005e 1206     		slli	a2,a2,4
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 155              		.loc 1 74 62
+ 156 0060 518F     		or	a4,a4,a2
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****              | (LPTIM_TimeBaseInitStruct->LPTIM_PWMOut << 3) | (LPTIM_TimeBaseInitStruct->LPTIM_Cou
+ 157              		.loc 1 73 11
+ 158 0062 558F     		or	a4,a4,a3
+ 159              	.LVL11:
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CR = temp2;
+ 160              		.loc 1 76 5 is_stmt 1
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CMP = LPTIM_TimeBaseInitStruct->LPTIM_Pulse;
+ 161              		.loc 1 77 5
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CMP = LPTIM_TimeBaseInitStruct->LPTIM_Pulse;
+ 162              		.loc 1 77 16 is_stmt 0
+ 163 0064 18C9     		sw	a4,16(a0)
+ 164              	.LVL12:
+ 165              		.loc 1 78 5 is_stmt 1
+ 166              		.loc 1 78 17 is_stmt 0
+ 167 0066 5EA9     		sh	a5,20(a0)
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->ARR = LPTIM_TimeBaseInitStruct->LPTIM_Period;
+ 168              		.loc 1 79 5 is_stmt 1
+ 169              		.loc 1 79 43 is_stmt 0
+ 170 0068 83D7E504 		lhu	a5,78(a1)
+ 171              		.loc 1 79 17
+ 172 006c 1EAD     		sh	a5,24(a0)
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 173              		.loc 1 80 1
+ 174 006e 8280     		ret
+ 175              		.cfi_endproc
+ 176              	.LFE41:
+ 178              		.section	.text.LPTIM_TimeBaseStructInit,"ax",@progbits
+ 179              		.align	1
+ 180              		.globl	LPTIM_TimeBaseStructInit
+ 182              	LPTIM_TimeBaseStructInit:
+ 183              	.LFB42:
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_TimeBaseStructInit
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Fills each LPTIM_TimeBaseInitStruct member with its default value.
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIM_TimeBaseInitStruct - pointer to a LPTIM_TimeBaseInitTypeDef structure.
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_TimeBaseStructInit(LPTIM_TimeBaseInitTypeDef *LPTIM_TimeBaseInitStruct)
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 184              		.loc 1 92 1 is_stmt 1
+ 185              		.cfi_startproc
+ 186              	.LVL13:
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockSource = LPTIM_ClockSource_In;
+ 187              		.loc 1 93 5
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockPolarity = LPTIM_ClockPolarity_Rising;
+ 188              		.loc 1 94 5
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockSampleTime = LPTIM_ClockSampleTime_0T;
+ 189              		.loc 1 95 5
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime = LPTIM_TriggerSampleTime_0T;
+ 190              		.loc 1 96 5
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockPrescaler = LPTIM_TClockPrescaler_DIV1;
+ 191              		.loc 1 97 5
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_TriggerSource = LPTIM_TriggerSource_ETR;
+ 192              		.loc 1 98 5
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ExTriggerPolarity = LPTIM_ExTriggerPolarity_Disable;
+ 193              		.loc 1 99 5
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_TimeOut = DISABLE;
+ 194              		.loc 1 100 5
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_OnePulseMode = DISABLE;
+ 195              		.loc 1 101 5
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_OutputPolarity = LPTIM_OutputPolarity_High;
+ 196              		.loc 1 102 5
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_UpdateMode = LPTIM_UpdateMode0;
+ 197              		.loc 1 103 5
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_CountSource = LPTIM_CountSource_Internal;
+ 198              		.loc 1 104 5
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Encoder = DISABLE;
+ 199              		.loc 1 105 5
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_InClockSource = LPTIM_InClockSource_PCLK1;
+ 200              		.loc 1 106 5
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ForceOutHigh = DISABLE;
+ 201              		.loc 1 107 5
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_SingleMode = DISABLE;
+ 202              		.loc 1 108 5
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ContinuousMode = DISABLE;
+ 203              		.loc 1 109 5
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_PWMOut = DISABLE;
+ 204              		.loc 1 110 5
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_CounterDirIndicat = DISABLE;
+ 205              		.loc 1 111 5
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Pulse = 0;
+ 206              		.loc 1 112 5
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Period = 0xFFFF;
+ 207              		.loc 1 113 5
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Pulse = 0;
+ 208              		.loc 1 112 43 is_stmt 0
+ 209 0000 C177     		li	a5,-65536
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockPolarity = LPTIM_ClockPolarity_Rising;
+ 210              		.loc 1 93 49
+ 211 0002 23200500 		sw	zero,0(a0)
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockSampleTime = LPTIM_ClockSampleTime_0T;
+ 212              		.loc 1 94 51
+ 213 0006 23220500 		sw	zero,4(a0)
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_TriggerSampleTime = LPTIM_TriggerSampleTime_0T;
+ 214              		.loc 1 95 53
+ 215 000a 23240500 		sw	zero,8(a0)
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ClockPrescaler = LPTIM_TClockPrescaler_DIV1;
+ 216              		.loc 1 96 55
+ 217 000e 23260500 		sw	zero,12(a0)
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_TriggerSource = LPTIM_TriggerSource_ETR;
+ 218              		.loc 1 97 52
+ 219 0012 23280500 		sw	zero,16(a0)
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ExTriggerPolarity = LPTIM_ExTriggerPolarity_Disable;
+ 220              		.loc 1 98 51
+ 221 0016 232A0500 		sw	zero,20(a0)
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_TimeOut = DISABLE;
+ 222              		.loc 1 99 55
+ 223 001a 232C0500 		sw	zero,24(a0)
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_OnePulseMode = DISABLE;
+ 224              		.loc 1 100 45
+ 225 001e 232E0500 		sw	zero,28(a0)
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_OutputPolarity = LPTIM_OutputPolarity_High;
+ 226              		.loc 1 101 50
+ 227 0022 23200502 		sw	zero,32(a0)
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_UpdateMode = LPTIM_UpdateMode0;
+ 228              		.loc 1 102 52
+ 229 0026 23220502 		sw	zero,36(a0)
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_CountSource = LPTIM_CountSource_Internal;
+ 230              		.loc 1 103 48
+ 231 002a 23240502 		sw	zero,40(a0)
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Encoder = DISABLE;
+ 232              		.loc 1 104 49
+ 233 002e 23260502 		sw	zero,44(a0)
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_InClockSource = LPTIM_InClockSource_PCLK1;
+ 234              		.loc 1 105 45
+ 235 0032 23280502 		sw	zero,48(a0)
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ForceOutHigh = DISABLE;
+ 236              		.loc 1 106 51
+ 237 0036 232A0502 		sw	zero,52(a0)
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_SingleMode = DISABLE;
+ 238              		.loc 1 107 50
+ 239 003a 232C0502 		sw	zero,56(a0)
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_ContinuousMode = DISABLE;
+ 240              		.loc 1 108 48
+ 241 003e 232E0502 		sw	zero,60(a0)
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_PWMOut = DISABLE;
+ 242              		.loc 1 109 52
+ 243 0042 23200504 		sw	zero,64(a0)
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_CounterDirIndicat = DISABLE;
+ 244              		.loc 1 110 44
+ 245 0046 23220504 		sw	zero,68(a0)
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Pulse = 0;
+ 246              		.loc 1 111 55
+ 247 004a 23240504 		sw	zero,72(a0)
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIM_TimeBaseInitStruct->LPTIM_Period = 0xFFFF;
+ 248              		.loc 1 112 43
+ 249 004e 7CC5     		sw	a5,76(a0)
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 250              		.loc 1 114 1
+ 251 0050 8280     		ret
+ 252              		.cfi_endproc
+ 253              	.LFE42:
+ 255              		.section	.text.LPTIM_CounterDirIndicat_Cmd,"ax",@progbits
+ 256              		.align	1
+ 257              		.globl	LPTIM_CounterDirIndicat_Cmd
+ 259              	LPTIM_CounterDirIndicat_Cmd:
+ 260              	.LFB43:
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_CounterDirIndicat_Cmd
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Enable or Disable counter direction indicate function.
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          NewState - ENABLE or DISABLE.
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_CounterDirIndicat_Cmd(LPTIM_TypeDef *LPTIMx, FunctionalState NewState)
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 261              		.loc 1 127 1 is_stmt 1
+ 262              		.cfi_startproc
+ 263              	.LVL14:
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState)
+ 264              		.loc 1 128 5
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->CR |= LPTIM_CR_DIR_EXTEN;
+ 265              		.loc 1 130 15 is_stmt 0
+ 266 0000 1C49     		lw	a5,16(a0)
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState)
+ 267              		.loc 1 128 7
+ 268 0002 89C5     		beq	a1,zero,.L9
+ 269              		.loc 1 130 9 is_stmt 1
+ 270              		.loc 1 130 20 is_stmt 0
+ 271 0004 93E70701 		ori	a5,a5,16
+ 272              	.L11:
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else{
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->CR &= ~LPTIM_CR_DIR_EXTEN;
+ 273              		.loc 1 133 20
+ 274 0008 1CC9     		sw	a5,16(a0)
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 275              		.loc 1 135 1
+ 276 000a 8280     		ret
+ 277              	.L9:
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 278              		.loc 1 133 9 is_stmt 1
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 279              		.loc 1 133 20 is_stmt 0
+ 280 000c BD9B     		andi	a5,a5,-17
+ 281 000e EDBF     		j	.L11
+ 282              		.cfi_endproc
+ 283              	.LFE43:
+ 285              		.section	.text.LPTIM_OutCmd,"ax",@progbits
+ 286              		.align	1
+ 287              		.globl	LPTIM_OutCmd
+ 289              	LPTIM_OutCmd:
+ 290              	.LFB44:
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_OutCmd
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Enable or Disable PWM out function.
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          NewState - ENABLE or DISABLE.
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_OutCmd(LPTIM_TypeDef *LPTIMx, FunctionalState NewState)
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 291              		.loc 1 148 1 is_stmt 1
+ 292              		.cfi_startproc
+ 293              	.LVL15:
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState)
+ 294              		.loc 1 149 5
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->CR |= LPTIM_CR_OUTEN;
+ 295              		.loc 1 151 15 is_stmt 0
+ 296 0000 1C49     		lw	a5,16(a0)
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState)
+ 297              		.loc 1 149 7
+ 298 0002 89C5     		beq	a1,zero,.L13
+ 299              		.loc 1 151 9 is_stmt 1
+ 300              		.loc 1 151 20 is_stmt 0
+ 301 0004 93E78700 		ori	a5,a5,8
+ 302              	.L15:
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else{
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->CR &= ~LPTIM_CR_OUTEN;
+ 303              		.loc 1 154 20
+ 304 0008 1CC9     		sw	a5,16(a0)
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 305              		.loc 1 156 1
+ 306 000a 8280     		ret
+ 307              	.L13:
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 308              		.loc 1 154 9 is_stmt 1
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 309              		.loc 1 154 20 is_stmt 0
+ 310 000c DD9B     		andi	a5,a5,-9
+ 311 000e EDBF     		j	.L15
+ 312              		.cfi_endproc
+ 313              	.LFE44:
+ 315              		.section	.text.LPTIM_Cmd,"ax",@progbits
+ 316              		.align	1
+ 317              		.globl	LPTIM_Cmd
+ 319              	LPTIM_Cmd:
+ 320              	.LFB45:
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_Cmd
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Enable or Disable LPTIM.
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          NewState - ENABLE or DISABLE.
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_Cmd(LPTIM_TypeDef *LPTIMx, FunctionalState NewState)
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 321              		.loc 1 169 1 is_stmt 1
+ 322              		.cfi_startproc
+ 323              	.LVL16:
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState)
+ 324              		.loc 1 170 5
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->CR |= LPTIM_CR_ENABLE;
+ 325              		.loc 1 172 15 is_stmt 0
+ 326 0000 1C49     		lw	a5,16(a0)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState)
+ 327              		.loc 1 170 7
+ 328 0002 89C5     		beq	a1,zero,.L17
+ 329              		.loc 1 172 9 is_stmt 1
+ 330              		.loc 1 172 20 is_stmt 0
+ 331 0004 93E71700 		ori	a5,a5,1
+ 332              	.L19:
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->CR &= ~LPTIM_CR_ENABLE;
+ 333              		.loc 1 176 20
+ 334 0008 1CC9     		sw	a5,16(a0)
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 335              		.loc 1 178 1
+ 336 000a 8280     		ret
+ 337              	.L17:
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 338              		.loc 1 176 9 is_stmt 1
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 339              		.loc 1 176 20 is_stmt 0
+ 340 000c F99B     		andi	a5,a5,-2
+ 341 000e EDBF     		j	.L19
+ 342              		.cfi_endproc
+ 343              	.LFE45:
+ 345              		.section	.text.LPTIM_GetCounter,"ax",@progbits
+ 346              		.align	1
+ 347              		.globl	LPTIM_GetCounter
+ 349              	LPTIM_GetCounter:
+ 350              	.LFB46:
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_GetCounter
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Gets the LPTIM Counter value.
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  LPTIM->CNT - Counter Register value.
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** uint16_t LPTIM_GetCounter(LPTIM_TypeDef *LPTIMx)
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 351              		.loc 1 190 1 is_stmt 1
+ 352              		.cfi_startproc
+ 353              	.LVL17:
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     return (uint16_t)LPTIMx->CNT;
+ 354              		.loc 1 191 5
+ 355              		.loc 1 191 12 is_stmt 0
+ 356 0000 4A2D     		lhu	a0,28(a0)
+ 357              	.LVL18:
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 358              		.loc 1 192 1
+ 359 0002 8280     		ret
+ 360              		.cfi_endproc
+ 361              	.LFE46:
+ 363              		.section	.text.LPTIM_SetAutoreload,"ax",@progbits
+ 364              		.align	1
+ 365              		.globl	LPTIM_SetAutoreload
+ 367              	LPTIM_SetAutoreload:
+ 368              	.LFB47:
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_SetAutoreload
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Sets the LPTIM Autoreload Register value.
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   Autoreload - specifies the Autoreload register new value.
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_SetAutoreload(LPTIM_TypeDef *LPTIMx, uint16_t Autoreload)
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 369              		.loc 1 205 1 is_stmt 1
+ 370              		.cfi_startproc
+ 371              	.LVL19:
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->ARR = Autoreload;
+ 372              		.loc 1 206 5
+ 373              		.loc 1 206 17 is_stmt 0
+ 374 0000 0EAD     		sh	a1,24(a0)
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 375              		.loc 1 207 1
+ 376 0002 8280     		ret
+ 377              		.cfi_endproc
+ 378              	.LFE47:
+ 380              		.section	.text.LPTIM_SetCompare,"ax",@progbits
+ 381              		.align	1
+ 382              		.globl	LPTIM_SetCompare
+ 384              	LPTIM_SetCompare:
+ 385              	.LFB48:
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_SetCompare
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Sets the LPTIM Capture Compare Register value.
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   Compare - specifies the Capture Compare1 register new value.
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_SetCompare(LPTIM_TypeDef *LPTIMx, uint16_t Compare)
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 386              		.loc 1 220 1 is_stmt 1
+ 387              		.cfi_startproc
+ 388              	.LVL20:
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->CMP = Compare;
+ 389              		.loc 1 221 5
+ 390              		.loc 1 221 17 is_stmt 0
+ 391 0000 4EA9     		sh	a1,20(a0)
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 392              		.loc 1 222 1
+ 393 0002 8280     		ret
+ 394              		.cfi_endproc
+ 395              	.LFE48:
+ 397              		.section	.text.LPTIM_GetCapture,"ax",@progbits
+ 398              		.align	1
+ 399              		.globl	LPTIM_GetCapture
+ 401              	LPTIM_GetCapture:
+ 402              	.LFB49:
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_GetCapture
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Gets the LPTIM Input Capture value.
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  LPTIM->CMP - Capture Compare Register value.
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** uint16_t LPTIM_GetCapture(LPTIM_TypeDef *LPTIMx)
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 403              		.loc 1 234 1 is_stmt 1
+ 404              		.cfi_startproc
+ 405              	.LVL21:
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     return (uint16_t)LPTIMx->CMP;
+ 406              		.loc 1 235 5
+ 407              		.loc 1 235 12 is_stmt 0
+ 408 0000 4A29     		lhu	a0,20(a0)
+ 409              	.LVL22:
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 410              		.loc 1 236 1
+ 411 0002 8280     		ret
+ 412              		.cfi_endproc
+ 413              	.LFE49:
+ 415              		.section	.text.LPTIM_ITConfig,"ax",@progbits
+ 416              		.align	1
+ 417              		.globl	LPTIM_ITConfig
+ 419              	LPTIM_ITConfig:
+ 420              	.LFB50:
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_ITConfig
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Enables or disables the specified LPTIM interrupts.
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT - specifies the LPTIM interrupts sources to be enabled or disabled.
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_DOWN - LPTIM counter down Interrupt source.
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_UP - LPTIM counter up Interrupt source.
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_ARROK - LPTIM be loaded success Interrupt source.
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_CMPOK - LPTIM Capture Compare success Interrupt source.
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_EXTTRIG - TIM Trigger Interrupt source.
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_ARRM - TIM counter Count to ARR register Interrupt source.
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_CMPM - TIM counter Count to CMP register Interrupt source.
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          NewState - ENABLE or DISABLE.
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_ITConfig(LPTIM_TypeDef *LPTIMx, uint32_t LPTIM_IT, FunctionalState NewState)
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 421              		.loc 1 257 1 is_stmt 1
+ 422              		.cfi_startproc
+ 423              	.LVL23:
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState != DISABLE)
+ 424              		.loc 1 258 5
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->IER |= LPTIM_IT;
+ 425              		.loc 1 260 15 is_stmt 0
+ 426 0000 1C45     		lw	a5,8(a0)
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(NewState != DISABLE)
+ 427              		.loc 1 258 7
+ 428 0002 01C6     		beq	a2,zero,.L25
+ 429              		.loc 1 260 9 is_stmt 1
+ 430              		.loc 1 260 21 is_stmt 0
+ 431 0004 CD8F     		or	a5,a5,a1
+ 432 0006 1CC5     		sw	a5,8(a0)
+ 433 0008 8280     		ret
+ 434              	.L25:
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         LPTIMx->IER &= (uint32_t)~LPTIM_IT;
+ 435              		.loc 1 264 9 is_stmt 1
+ 436              		.loc 1 264 21 is_stmt 0
+ 437 000a B3F5B740 		andn	a1,a5,a1
+ 438              	.LVL24:
+ 439 000e 0CC5     		sw	a1,8(a0)
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 440              		.loc 1 266 1
+ 441 0010 8280     		ret
+ 442              		.cfi_endproc
+ 443              	.LFE50:
+ 445              		.section	.text.LPTIM_GetFlagStatus,"ax",@progbits
+ 446              		.align	1
+ 447              		.globl	LPTIM_GetFlagStatus
+ 449              	LPTIM_GetFlagStatus:
+ 450              	.LFB51:
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_GetFlagStatus
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Checks whether the specified LPTIM flag is set or not.
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG - specifies the flag to check.
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_DIR_SYNC - LPTIM counter direction indicate Flag.
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_DOWN - LPTIM counter down Flag.
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_UP - LPTIM counter up Flag.
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_ARROK - LPTIM be loaded success Flag.
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_CMPOK - LPTIM Capture Compare success Flag.
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_EXTTRIG - TIM Trigger Flag.
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_ARRM - TIM counter Count to ARR register Flag.
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_CMPM - TIM counter Count to CMP register Flag.
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** FlagStatus LPTIM_GetFlagStatus(LPTIM_TypeDef *LPTIMx,uint32_t LPTIM_FLAG)
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 451              		.loc 1 287 1 is_stmt 1
+ 452              		.cfi_startproc
+ 453              	.LVL25:
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     FlagStatus bitstatus = RESET;
+ 454              		.loc 1 288 5
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if((LPTIMx->ISR & LPTIM_FLAG) != (uint32_t)RESET)
+ 455              		.loc 1 290 5
+ 456              		.loc 1 290 15 is_stmt 0
+ 457 0000 0841     		lw	a0,0(a0)
+ 458              	.LVL26:
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         bitstatus = SET;
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         bitstatus = RESET;
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     return bitstatus;
+ 459              		.loc 1 299 5 is_stmt 1
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 460              		.loc 1 290 21 is_stmt 0
+ 461 0002 6D8D     		and	a0,a0,a1
+ 462              	.LVL27:
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 463              		.loc 1 300 1
+ 464 0004 3335A000 		snez	a0,a0
+ 465 0008 8280     		ret
+ 466              		.cfi_endproc
+ 467              	.LFE51:
+ 469              		.section	.text.LPTIM_ClearFlag,"ax",@progbits
+ 470              		.align	1
+ 471              		.globl	LPTIM_ClearFlag
+ 473              	LPTIM_ClearFlag:
+ 474              	.LFB52:
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_ClearFlag
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Clears the LPTIM's pending flags.
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *          LPTIM_FLAG - specifies the flag to check.
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_DOWN - LPTIM counter down Flag.
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_UP - LPTIM counter up Flag.
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_ARROK - LPTIM be loaded success Flag.
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_CMPOK - LPTIM Capture Compare success Flag.
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_EXTTRIG - TIM Trigger Flag.
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_ARRM - TIM counter Count to ARR register Flag.
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_FLAG_CMPM - TIM counter Count to CMP register Flag.
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_ClearFlag(LPTIM_TypeDef *LPTIMx, uint32_t LPTIM_FLAG)
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 475              		.loc 1 320 1 is_stmt 1
+ 476              		.cfi_startproc
+ 477              	.LVL28:
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     LPTIMx->ICR |= (uint32_t)LPTIM_FLAG;
+ 478              		.loc 1 321 5
+ 479              		.loc 1 321 11 is_stmt 0
+ 480 0000 5C41     		lw	a5,4(a0)
+ 481              		.loc 1 321 17
+ 482 0002 CD8F     		or	a5,a5,a1
+ 483 0004 5CC1     		sw	a5,4(a0)
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 484              		.loc 1 322 1
+ 485 0006 8280     		ret
+ 486              		.cfi_endproc
+ 487              	.LFE52:
+ 489              		.section	.text.LPTIM_GetITStatus,"ax",@progbits
+ 490              		.align	1
+ 491              		.globl	LPTIM_GetITStatus
+ 493              	LPTIM_GetITStatus:
+ 494              	.LFB53:
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_GetITStatus
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Checks whether the LPTIM interrupt has occurred or not.
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT - specifies the LPTIM interrupt source to check.
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_DOWN - LPTIM counter down Interrupt source.
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_UP - LPTIM counter up Interrupt source.
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_ARROK - LPTIM be loaded success Interrupt source.
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_CMPOK - LPTIM Capture Compare success Interrupt source.
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_EXTTRIG - TIM Trigger Interrupt source.
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_ARRM - TIM counter Count to ARR register Interrupt source.
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_CMPM - TIM counter Count to CMP register Interrupt source.
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** ITStatus LPTIM_GetITStatus(LPTIM_TypeDef *LPTIMx, uint32_t LPTIM_IT)
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** {
+ 495              		.loc 1 342 1 is_stmt 1
+ 496              		.cfi_startproc
+ 497              	.LVL29:
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     ITStatus bitstatus = RESET;
+ 498              		.loc 1 343 5
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     uint32_t enablestatus = 0;
+ 499              		.loc 1 344 5
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     enablestatus = LPTIMx->IER;
+ 500              		.loc 1 346 5
+ 501              		.loc 1 346 18 is_stmt 0
+ 502 0000 1C45     		lw	a5,8(a0)
+ 503              	.LVL30:
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     if(((LPTIMx->ISR & LPTIM_IT) != (uint32_t)RESET) && enablestatus)
+ 504              		.loc 1 348 5 is_stmt 1
+ 505              		.loc 1 348 16 is_stmt 0
+ 506 0002 0841     		lw	a0,0(a0)
+ 507              	.LVL31:
+ 508              		.loc 1 348 22
+ 509 0004 6D8D     		and	a0,a0,a1
+ 510              		.loc 1 348 7
+ 511 0006 19C1     		beq	a0,zero,.L29
+ 512              		.loc 1 348 54 discriminator 1
+ 513 0008 3335F000 		snez	a0,a5
+ 514              	.LVL32:
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         bitstatus = SET;
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     else
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     {
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****         bitstatus = RESET;
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     }
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****     return bitstatus;
+ 515              		.loc 1 357 5 is_stmt 1 discriminator 1
+ 516              	.L29:
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** }
+ 517              		.loc 1 358 1 is_stmt 0
+ 518 000c 8280     		ret
+ 519              		.cfi_endproc
+ 520              	.LFE53:
+ 522              		.section	.text.LPTIM_ClearITPendingBit,"ax",@progbits
+ 523              		.align	1
+ 524              		.globl	LPTIM_ClearITPendingBit
+ 526              	LPTIM_ClearITPendingBit:
+ 527              	.LFB56:
+ 528              		.cfi_startproc
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** 
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** /*********************************************************************
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @fn      LPTIM_ClearITPendingBit
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @brief   Clears the LPTIM's interrupt pending bits.
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @param   LPTIMx - where x can be 1 to 2 to select the LPTIM peripheral.
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT - specifies the LPTIM interrupt source to check.
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_DOWN - LPTIM counter down Interrupt source.
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_UP - LPTIM counter up Interrupt source.
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_ARROK - LPTIM be loaded success Interrupt source.
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_CMPOK - LPTIM Capture Compare success Interrupt source.
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_EXTTRIG - TIM Trigger Interrupt source.
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_ARRM - TIM counter Count to ARR register Interrupt source.
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *            LPTIM_IT_CMPM - TIM counter Count to CMP register Interrupt source.
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  *
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  * @return  none
+ 376:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c ****  */
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_lptim.c **** void LPTIM_ClearITPendingBit(LPTIM_TypeDef *LPTIMx, uint32_t LPTIM_IT)
+ 529              		.loc 1 377 6 is_stmt 1
+ 530 0000 5C41     		lw	a5,4(a0)
+ 531 0002 DD8D     		or	a1,a1,a5
+ 532 0004 4CC1     		sw	a1,4(a0)
+ 533 0006 8280     		ret
+ 534              		.cfi_endproc
+ 535              	.LFE56:
+ 537              		.text
+ 538              	.Letext0:
+ 539              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 540              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 541              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 542              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 543              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_lptim.h"
+ 544              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_lptim.c
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:14     .text.LPTIM_DeInit:0000000000000000 LPTIM_DeInit
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:18     .text.LPTIM_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:20     .text.LPTIM_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:20     .text.LPTIM_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:21     .text.LPTIM_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:22     .text.LPTIM_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:24     .text.LPTIM_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:25     .text.LPTIM_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:29     .text.LPTIM_DeInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:35     .text.LPTIM_DeInit:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:39     .text.LPTIM_DeInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:43     .text.LPTIM_DeInit:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:44     .text.LPTIM_DeInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:45     .text.LPTIM_DeInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:46     .text.LPTIM_DeInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:49     .text.LPTIM_DeInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:51     .text.LPTIM_DeInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:52     .text.LPTIM_DeInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:56     .text.LPTIM_DeInit:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:62     .text.LPTIM_DeInit:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:65     .text.LPTIM_DeInit:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:72     .text.LPTIM_TimeBaseInit:0000000000000000 LPTIM_TimeBaseInit
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:75     .text.LPTIM_TimeBaseInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:77     .text.LPTIM_TimeBaseInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:78     .text.LPTIM_TimeBaseInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:79     .text.LPTIM_TimeBaseInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:80     .text.LPTIM_TimeBaseInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:80     .text.LPTIM_TimeBaseInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:83     .text.LPTIM_TimeBaseInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:85     .text.LPTIM_TimeBaseInit:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:87     .text.LPTIM_TimeBaseInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:90     .text.LPTIM_TimeBaseInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:92     .text.LPTIM_TimeBaseInit:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:95     .text.LPTIM_TimeBaseInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:96     .text.LPTIM_TimeBaseInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:97     .text.LPTIM_TimeBaseInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:115    .text.LPTIM_TimeBaseInit:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:118    .text.LPTIM_TimeBaseInit:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:120    .text.LPTIM_TimeBaseInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:123    .text.LPTIM_TimeBaseInit:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:125    .text.LPTIM_TimeBaseInit:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:128    .text.LPTIM_TimeBaseInit:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:130    .text.LPTIM_TimeBaseInit:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:133    .text.LPTIM_TimeBaseInit:0000000000000048 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:136    .text.LPTIM_TimeBaseInit:000000000000004a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:137    .text.LPTIM_TimeBaseInit:000000000000004a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:140    .text.LPTIM_TimeBaseInit:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:142    .text.LPTIM_TimeBaseInit:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:145    .text.LPTIM_TimeBaseInit:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:147    .text.LPTIM_TimeBaseInit:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:149    .text.LPTIM_TimeBaseInit:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:151    .text.LPTIM_TimeBaseInit:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:154    .text.LPTIM_TimeBaseInit:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:156    .text.LPTIM_TimeBaseInit:0000000000000060 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:158    .text.LPTIM_TimeBaseInit:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:161    .text.LPTIM_TimeBaseInit:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:162    .text.LPTIM_TimeBaseInit:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:163    .text.LPTIM_TimeBaseInit:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:166    .text.LPTIM_TimeBaseInit:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:167    .text.LPTIM_TimeBaseInit:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:169    .text.LPTIM_TimeBaseInit:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:170    .text.LPTIM_TimeBaseInit:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:172    .text.LPTIM_TimeBaseInit:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:174    .text.LPTIM_TimeBaseInit:000000000000006e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:175    .text.LPTIM_TimeBaseInit:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:182    .text.LPTIM_TimeBaseStructInit:0000000000000000 LPTIM_TimeBaseStructInit
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:185    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:187    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:188    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:189    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:190    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:191    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:192    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:193    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:194    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:195    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:196    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:197    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:198    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:199    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:200    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:201    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:202    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:203    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:204    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:205    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:206    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:207    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:208    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:209    .text.LPTIM_TimeBaseStructInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:209    .text.LPTIM_TimeBaseStructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:211    .text.LPTIM_TimeBaseStructInit:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:213    .text.LPTIM_TimeBaseStructInit:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:215    .text.LPTIM_TimeBaseStructInit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:217    .text.LPTIM_TimeBaseStructInit:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:219    .text.LPTIM_TimeBaseStructInit:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:221    .text.LPTIM_TimeBaseStructInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:223    .text.LPTIM_TimeBaseStructInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:225    .text.LPTIM_TimeBaseStructInit:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:227    .text.LPTIM_TimeBaseStructInit:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:229    .text.LPTIM_TimeBaseStructInit:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:231    .text.LPTIM_TimeBaseStructInit:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:233    .text.LPTIM_TimeBaseStructInit:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:235    .text.LPTIM_TimeBaseStructInit:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:237    .text.LPTIM_TimeBaseStructInit:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:239    .text.LPTIM_TimeBaseStructInit:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:241    .text.LPTIM_TimeBaseStructInit:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:243    .text.LPTIM_TimeBaseStructInit:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:245    .text.LPTIM_TimeBaseStructInit:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:247    .text.LPTIM_TimeBaseStructInit:000000000000004a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:249    .text.LPTIM_TimeBaseStructInit:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:251    .text.LPTIM_TimeBaseStructInit:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:252    .text.LPTIM_TimeBaseStructInit:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:259    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 LPTIM_CounterDirIndicat_Cmd
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:262    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:264    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:265    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:266    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:266    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:268    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:270    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:271    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:274    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:276    .text.LPTIM_CounterDirIndicat_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:279    .text.LPTIM_CounterDirIndicat_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:280    .text.LPTIM_CounterDirIndicat_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:282    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:289    .text.LPTIM_OutCmd:0000000000000000 LPTIM_OutCmd
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:292    .text.LPTIM_OutCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:294    .text.LPTIM_OutCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:295    .text.LPTIM_OutCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:296    .text.LPTIM_OutCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:296    .text.LPTIM_OutCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:298    .text.LPTIM_OutCmd:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:300    .text.LPTIM_OutCmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:301    .text.LPTIM_OutCmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:304    .text.LPTIM_OutCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:306    .text.LPTIM_OutCmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:309    .text.LPTIM_OutCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:310    .text.LPTIM_OutCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:312    .text.LPTIM_OutCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:319    .text.LPTIM_Cmd:0000000000000000 LPTIM_Cmd
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:322    .text.LPTIM_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:324    .text.LPTIM_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:325    .text.LPTIM_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:326    .text.LPTIM_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:326    .text.LPTIM_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:328    .text.LPTIM_Cmd:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:330    .text.LPTIM_Cmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:331    .text.LPTIM_Cmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:334    .text.LPTIM_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:336    .text.LPTIM_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:339    .text.LPTIM_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:340    .text.LPTIM_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:342    .text.LPTIM_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:349    .text.LPTIM_GetCounter:0000000000000000 LPTIM_GetCounter
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:352    .text.LPTIM_GetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:354    .text.LPTIM_GetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:355    .text.LPTIM_GetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:356    .text.LPTIM_GetCounter:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:356    .text.LPTIM_GetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:359    .text.LPTIM_GetCounter:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:360    .text.LPTIM_GetCounter:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:367    .text.LPTIM_SetAutoreload:0000000000000000 LPTIM_SetAutoreload
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:370    .text.LPTIM_SetAutoreload:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:372    .text.LPTIM_SetAutoreload:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:373    .text.LPTIM_SetAutoreload:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:374    .text.LPTIM_SetAutoreload:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:374    .text.LPTIM_SetAutoreload:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:376    .text.LPTIM_SetAutoreload:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:377    .text.LPTIM_SetAutoreload:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:384    .text.LPTIM_SetCompare:0000000000000000 LPTIM_SetCompare
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:387    .text.LPTIM_SetCompare:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:389    .text.LPTIM_SetCompare:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:390    .text.LPTIM_SetCompare:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:391    .text.LPTIM_SetCompare:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:391    .text.LPTIM_SetCompare:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:393    .text.LPTIM_SetCompare:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:394    .text.LPTIM_SetCompare:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:401    .text.LPTIM_GetCapture:0000000000000000 LPTIM_GetCapture
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:404    .text.LPTIM_GetCapture:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:406    .text.LPTIM_GetCapture:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:407    .text.LPTIM_GetCapture:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:408    .text.LPTIM_GetCapture:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:408    .text.LPTIM_GetCapture:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:411    .text.LPTIM_GetCapture:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:412    .text.LPTIM_GetCapture:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:419    .text.LPTIM_ITConfig:0000000000000000 LPTIM_ITConfig
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:422    .text.LPTIM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:424    .text.LPTIM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:425    .text.LPTIM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:426    .text.LPTIM_ITConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:426    .text.LPTIM_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:428    .text.LPTIM_ITConfig:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:430    .text.LPTIM_ITConfig:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:431    .text.LPTIM_ITConfig:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:436    .text.LPTIM_ITConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:437    .text.LPTIM_ITConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:441    .text.LPTIM_ITConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:442    .text.LPTIM_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:449    .text.LPTIM_GetFlagStatus:0000000000000000 LPTIM_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:452    .text.LPTIM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:454    .text.LPTIM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:455    .text.LPTIM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:456    .text.LPTIM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:457    .text.LPTIM_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:457    .text.LPTIM_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:460    .text.LPTIM_GetFlagStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:461    .text.LPTIM_GetFlagStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:464    .text.LPTIM_GetFlagStatus:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:466    .text.LPTIM_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:473    .text.LPTIM_ClearFlag:0000000000000000 LPTIM_ClearFlag
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:476    .text.LPTIM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:478    .text.LPTIM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:479    .text.LPTIM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:480    .text.LPTIM_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:480    .text.LPTIM_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:482    .text.LPTIM_ClearFlag:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:485    .text.LPTIM_ClearFlag:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:486    .text.LPTIM_ClearFlag:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:493    .text.LPTIM_GetITStatus:0000000000000000 LPTIM_GetITStatus
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:496    .text.LPTIM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:498    .text.LPTIM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:499    .text.LPTIM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:500    .text.LPTIM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:501    .text.LPTIM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:502    .text.LPTIM_GetITStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:502    .text.LPTIM_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:505    .text.LPTIM_GetITStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:506    .text.LPTIM_GetITStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:509    .text.LPTIM_GetITStatus:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:511    .text.LPTIM_GetITStatus:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:513    .text.LPTIM_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:517    .text.LPTIM_GetITStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:518    .text.LPTIM_GetITStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:519    .text.LPTIM_GetITStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:526    .text.LPTIM_ClearITPendingBit:0000000000000000 LPTIM_ClearITPendingBit
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:528    .text.LPTIM_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:530    .text.LPTIM_ClearITPendingBit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:530    .text.LPTIM_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:534    .text.LPTIM_ClearITPendingBit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000000a7 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000000f9 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:000000000000013d .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000001c7 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:000000000000024d .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:0000000000000287 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000002cb .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000002dc .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000002ed .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:00000000000002fe .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:0000000000000308 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:0000000000000315 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:0000000000000320 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2388   .debug_line_str:0000000000000331 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:68     .text.LPTIM_DeInit:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:178    .text.LPTIM_TimeBaseInit:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:255    .text.LPTIM_TimeBaseStructInit:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:285    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:315    .text.LPTIM_OutCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:345    .text.LPTIM_Cmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:363    .text.LPTIM_GetCounter:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:380    .text.LPTIM_SetAutoreload:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:397    .text.LPTIM_SetCompare:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:415    .text.LPTIM_GetCapture:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:445    .text.LPTIM_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:469    .text.LPTIM_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:489    .text.LPTIM_ClearFlag:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:522    .text.LPTIM_GetITStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:537    .text.LPTIM_ClearITPendingBit:0000000000000008 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:48     .text.LPTIM_DeInit:0000000000000038 .L2
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:41     .text.LPTIM_DeInit:0000000000000030 .L1
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:37     .text.LPTIM_DeInit:0000000000000028 .L5
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:277    .text.LPTIM_CounterDirIndicat_Cmd:000000000000000c .L9
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:272    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000008 .L11
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:307    .text.LPTIM_OutCmd:000000000000000c .L13
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:302    .text.LPTIM_OutCmd:0000000000000008 .L15
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:337    .text.LPTIM_Cmd:000000000000000c .L17
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:332    .text.LPTIM_Cmd:0000000000000008 .L19
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:434    .text.LPTIM_ITConfig:000000000000000a .L25
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:516    .text.LPTIM_GetITStatus:000000000000000c .L29
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:1304   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2299   .debug_str:00000000000001f3 .LASF76
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2386   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2384   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2180   .debug_rnglists:000000000000000c .LLRL11
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2229   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2279   .debug_str:0000000000000164 .LASF2
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2315   .debug_str:0000000000000346 .LASF3
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2305   .debug_str:00000000000002ea .LASF4
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2271   .debug_str:0000000000000133 .LASF5
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2245   .debug_str:0000000000000079 .LASF8
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2331   .debug_str:00000000000003c8 .LASF6
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2291   .debug_str:00000000000001b0 .LASF7
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2357   .debug_str:0000000000000498 .LASF9
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2351   .debug_str:000000000000046c .LASF10
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2281   .debug_str:0000000000000171 .LASF11
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2317   .debug_str:0000000000000352 .LASF12
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2325   .debug_str:0000000000000397 .LASF13
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2319   .debug_str:0000000000000369 .LASF14
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2267   .debug_str:0000000000000116 .LASF15
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2379   .debug_str:0000000000000537 .LASF16
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2353   .debug_str:000000000000047e .LASF17
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2363   .debug_str:00000000000004c3 .LASF18
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2377   .debug_str:000000000000052c .LASF19
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2289   .debug_str:00000000000001a7 .LASF20
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2253   .debug_str:00000000000000c5 .LASF21
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2255   .debug_str:00000000000000ca .LASF22
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2261   .debug_str:00000000000000f9 .LASF23
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2355   .debug_str:000000000000048e .LASF24
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2381   .debug_str:000000000000053e .LASF25
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2287   .debug_str:00000000000001a2 .LASF26
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2323   .debug_str:0000000000000383 .LASF27
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2257   .debug_str:00000000000000d4 .LASF28
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2233   .debug_str:0000000000000009 .LASF29
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2283   .debug_str:000000000000017f .LASF30
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2313   .debug_str:000000000000032e .LASF31
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2339   .debug_str:0000000000000406 .LASF32
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2369   .debug_str:00000000000004f3 .LASF33
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2235   .debug_str:000000000000001b .LASF34
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2329   .debug_str:00000000000003ba .LASF35
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2309   .debug_str:0000000000000305 .LASF36
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2297   .debug_str:00000000000001de .LASF37
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2321   .debug_str:0000000000000372 .LASF38
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2239   .debug_str:0000000000000046 .LASF39
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2359   .debug_str:00000000000004a3 .LASF40
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2293   .debug_str:00000000000001b9 .LASF41
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2259   .debug_str:00000000000000e6 .LASF42
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2349   .debug_str:000000000000045b .LASF43
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2269   .debug_str:000000000000011e .LASF44
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2307   .debug_str:00000000000002f8 .LASF45
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2343   .debug_str:0000000000000426 .LASF46
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2333   .debug_str:00000000000003db .LASF47
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2345   .debug_str:000000000000043e .LASF48
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2327   .debug_str:00000000000003a0 .LASF49
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2311   .debug_str:0000000000000318 .LASF54
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2335   .debug_str:00000000000003e7 .LASF77
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2337   .debug_str:00000000000003ff .LASF50
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2231   .debug_str:0000000000000000 .LASF51
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2361   .debug_str:00000000000004b1 .LASF57
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:494    .text.LPTIM_GetITStatus:0000000000000000 .LFB53
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:520    .text.LPTIM_GetITStatus:000000000000000e .LFE53
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:1941   .debug_loclists:000000000000000c .LLST8
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2301   .debug_str:00000000000002d8 .LASF52
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:1956   .debug_loclists:0000000000000026 .LLST9
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2275   .debug_str:000000000000014c .LASF53
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:1964   .debug_loclists:0000000000000033 .LLST10
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2347   .debug_str:000000000000044b .LASF55
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2277   .debug_str:0000000000000159 .LASF56
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2247   .debug_str:0000000000000084 .LASF58
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:450    .text.LPTIM_GetFlagStatus:0000000000000000 .LFB51
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:467    .text.LPTIM_GetFlagStatus:000000000000000a .LFE51
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:1977   .debug_loclists:000000000000004b .LLST6
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:1992   .debug_loclists:0000000000000065 .LLST7
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2273   .debug_str:000000000000013d .LASF61
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:420    .text.LPTIM_ITConfig:0000000000000000 .LFB50
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:443    .text.LPTIM_ITConfig:0000000000000012 .LFE50
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2015   .debug_loclists:0000000000000087 .LLST5
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2263   .debug_str:0000000000000103 .LASF59
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2295   .debug_str:00000000000001cd .LASF60
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:402    .text.LPTIM_GetCapture:0000000000000000 .LFB49
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:413    .text.LPTIM_GetCapture:0000000000000004 .LFE49
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2030   .debug_loclists:00000000000000a1 .LLST4
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2365   .debug_str:00000000000004c9 .LASF62
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:385    .text.LPTIM_SetCompare:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:395    .text.LPTIM_SetCompare:0000000000000004 .LFE48
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2303   .debug_str:00000000000002e2 .LASF63
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2241   .debug_str:0000000000000058 .LASF64
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:368    .text.LPTIM_SetAutoreload:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:378    .text.LPTIM_SetAutoreload:0000000000000004 .LFE47
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2341   .debug_str:000000000000041b .LASF65
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2249   .debug_str:0000000000000098 .LASF66
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:350    .text.LPTIM_GetCounter:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:361    .text.LPTIM_GetCounter:0000000000000004 .LFE46
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2045   .debug_loclists:00000000000000bb .LLST3
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2265   .debug_str:000000000000010c .LASF67
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:320    .text.LPTIM_Cmd:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:343    .text.LPTIM_Cmd:0000000000000010 .LFE45
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2285   .debug_str:0000000000000195 .LASF68
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:290    .text.LPTIM_OutCmd:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:313    .text.LPTIM_OutCmd:0000000000000010 .LFE44
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2251   .debug_str:00000000000000a9 .LASF69
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:260    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:283    .text.LPTIM_CounterDirIndicat_Cmd:0000000000000010 .LFE43
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2375   .debug_str:0000000000000513 .LASF70
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:183    .text.LPTIM_TimeBaseStructInit:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:253    .text.LPTIM_TimeBaseStructInit:0000000000000052 .LFE42
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2367   .debug_str:00000000000004da .LASF71
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2237   .debug_str:0000000000000033 .LASF72
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:73     .text.LPTIM_TimeBaseInit:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:176    .text.LPTIM_TimeBaseInit:0000000000000070 .LFE41
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2371   .debug_str:0000000000000507 .LASF73
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2060   .debug_loclists:00000000000000d5 .LLST1
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2373   .debug_str:000000000000050d .LASF74
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2085   .debug_loclists:0000000000000105 .LLST2
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2243   .debug_str:000000000000006c .LASF75
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:15     .text.LPTIM_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:66     .text.LPTIM_DeInit:000000000000005a .LFE40
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:2103   .debug_loclists:0000000000000128 .LLST0
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:33     .text.LPTIM_DeInit:0000000000000022 .LVL2
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:40     .text.LPTIM_DeInit:0000000000000030 .LVL3
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:60     .text.LPTIM_DeInit:0000000000000052 .LVL6
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:474    .text.LPTIM_ClearFlag:0000000000000000 .LFB52
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:487    .text.LPTIM_ClearFlag:0000000000000008 .LFE52
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:497    .text.LPTIM_GetITStatus:0000000000000000 .LVL29
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:507    .text.LPTIM_GetITStatus:0000000000000004 .LVL31
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:514    .text.LPTIM_GetITStatus:000000000000000c .LVL32
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:503    .text.LPTIM_GetITStatus:0000000000000002 .LVL30
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:453    .text.LPTIM_GetFlagStatus:0000000000000000 .LVL25
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:458    .text.LPTIM_GetFlagStatus:0000000000000002 .LVL26
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:462    .text.LPTIM_GetFlagStatus:0000000000000004 .LVL27
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:423    .text.LPTIM_ITConfig:0000000000000000 .LVL23
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:438    .text.LPTIM_ITConfig:000000000000000e .LVL24
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:405    .text.LPTIM_GetCapture:0000000000000000 .LVL21
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:409    .text.LPTIM_GetCapture:0000000000000002 .LVL22
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:353    .text.LPTIM_GetCounter:0000000000000000 .LVL17
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:357    .text.LPTIM_GetCounter:0000000000000002 .LVL18
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:76     .text.LPTIM_TimeBaseInit:0000000000000000 .LVL7
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:93     .text.LPTIM_TimeBaseInit:0000000000000010 .LVL8
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:134    .text.LPTIM_TimeBaseInit:000000000000004a .LVL9
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:152    .text.LPTIM_TimeBaseInit:000000000000005e .LVL10
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:164    .text.LPTIM_TimeBaseInit:0000000000000066 .LVL12
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:159    .text.LPTIM_TimeBaseInit:0000000000000064 .LVL11
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:19     .text.LPTIM_DeInit:0000000000000000 .LVL0
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:31     .text.LPTIM_DeInit:000000000000001a .LVL1
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:47     .text.LPTIM_DeInit:0000000000000038 .LVL4
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:58     .text.LPTIM_DeInit:000000000000004a .LVL5
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:546    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:527    .text.LPTIM_ClearITPendingBit:0000000000000000 .LFB56
+C:\Users\User\AppData\Local\Temp\cc03wF8J.s:535    .text.LPTIM_ClearITPendingBit:0000000000000008 .LFE56
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+RCC_HB1PeriphResetCmd
+__riscv_restore_0

@@ -1,0 +1,546 @@
+   1              		.file	"ch32h417_wwdg.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.WWDG_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	WWDG_DeInit
+  14              	WWDG_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_wwdg.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /********************************** (C) COPYRIGHT *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * File Name          : ch32h417_wwdg.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * Version            : V1.0.0
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * Date               : 2025/03/01
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * Description        : This file provides all the WWDG firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** #include "ch32h417_wwdg.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** #include "ch32h417_rcc.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /* CTLR register bit mask */
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** #define CTLR_WDGA_Set      ((uint32_t)0x00000080)
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /* CFGR register bit mask */
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** #define CFGR_WDGTB_Mask    ((uint32_t)0xFFFFFE7F)
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** #define CFGR_W_Mask        ((uint32_t)0xFFFFFF80)
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** #define BIT_Mask           ((uint8_t)0x7F)
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_DeInit
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Deinitializes the WWDG peripheral registers to their default reset values
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_DeInit(void)
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+  17              		.loc 1 31 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_0
+  19      E7020300 
+  20              		.cfi_offset 1, -4
+  21              		.cfi_def_cfa_offset 16
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     RCC_HB1PeriphResetCmd(RCC_HB1Periph_WWDG,ENABLE);
+  22              		.loc 1 32 5
+  23 0008 8545     		li	a1,1
+  24 000a 1315B028 		bseti	a0,zero,11
+  25 000e 97000000 		call	RCC_HB1PeriphResetCmd
+  25      E7800000 
+  26              	.LVL0:
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     RCC_HB1PeriphResetCmd(RCC_HB1Periph_WWDG,DISABLE);
+  27              		.loc 1 33 5
+  28 0016 8145     		li	a1,0
+  29 0018 1315B028 		bseti	a0,zero,11
+  30 001c 97000000 		call	RCC_HB1PeriphResetCmd
+  30      E7800000 
+  31              	.LVL1:
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+  32              		.loc 1 34 1 is_stmt 0
+  33 0024 17030000 		tail	__riscv_restore_0
+  33      67000300 
+  34              		.cfi_restore 1
+  35              		.cfi_def_cfa_offset 0
+  36              		.cfi_endproc
+  37              	.LFE40:
+  39              		.section	.text.WWDG_SetPrescaler,"ax",@progbits
+  40              		.align	1
+  41              		.globl	WWDG_SetPrescaler
+  43              	WWDG_SetPrescaler:
+  44              	.LFB41:
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_SetPrescaler
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Sets the WWDG Prescaler
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @param   WWDG_Prescaler - specifies the WWDG Prescaler
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *            WWDG_Prescaler_1 - WWDG counter clock = (PCLK1/4096)/1
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *            WWDG_Prescaler_2 - WWDG counter clock = (PCLK1/4096)/2
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *            WWDG_Prescaler_4 - WWDG counter clock = (PCLK1/4096)/4
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *            WWDG_Prescaler_8 - WWDG counter clock = (PCLK1/4096)/8
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_SetPrescaler(uint32_t WWDG_Prescaler)
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+  45              		.loc 1 50 1 is_stmt 1
+  46              		.cfi_startproc
+  47              	.LVL2:
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     uint32_t tmpreg = 0;
+  48              		.loc 1 51 5
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     tmpreg = WWDG->CFGR & CFGR_WDGTB_Mask;
+  49              		.loc 1 52 5
+  50              		.loc 1 52 18 is_stmt 0
+  51 0000 37370040 		li	a4,1073754112
+  52 0004 130707C0 		addi	a4,a4,-1024
+  53 0008 5C43     		lw	a5,4(a4)
+  54              		.loc 1 52 12
+  55 000a 93F7F7E7 		andi	a5,a5,-385
+  56              	.LVL3:
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     tmpreg |= WWDG_Prescaler;
+  57              		.loc 1 53 5 is_stmt 1
+  58              		.loc 1 53 12 is_stmt 0
+  59 000e C98F     		or	a5,a5,a0
+  60              	.LVL4:
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     WWDG->CFGR = tmpreg;
+  61              		.loc 1 54 5 is_stmt 1
+  62              		.loc 1 54 16 is_stmt 0
+  63 0010 5CC3     		sw	a5,4(a4)
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+  64              		.loc 1 55 1
+  65 0012 8280     		ret
+  66              		.cfi_endproc
+  67              	.LFE41:
+  69              		.section	.text.WWDG_SetWindowValue,"ax",@progbits
+  70              		.align	1
+  71              		.globl	WWDG_SetWindowValue
+  73              	WWDG_SetWindowValue:
+  74              	.LFB42:
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_SetWindowValue
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Sets the WWDG window value
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @param   WindowValue - specifies the window value to be compared to the
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *        downcounter,which must be lower than 0x80
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_SetWindowValue(uint8_t WindowValue)
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+  75              		.loc 1 68 1 is_stmt 1
+  76              		.cfi_startproc
+  77              	.LVL5:
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     __IO uint32_t tmpreg = 0;
+  78              		.loc 1 69 5
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     __IO uint32_t tmpreg = 0;
+  79              		.loc 1 68 1 is_stmt 0
+  80 0000 4111     		addi	sp,sp,-16
+  81              		.cfi_def_cfa_offset 16
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     tmpreg = WWDG->CFGR & CFGR_W_Mask;
+  82              		.loc 1 71 18
+  83 0002 B7370040 		li	a5,1073754112
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  84              		.loc 1 69 19
+  85 0006 02C6     		sw	zero,12(sp)
+  86              		.loc 1 71 5 is_stmt 1
+  87              		.loc 1 71 18 is_stmt 0
+  88 0008 938707C0 		addi	a5,a5,-1024
+  89 000c D843     		lw	a4,4(a5)
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     tmpreg |= WindowValue & (uint32_t)BIT_Mask;
+  90              		.loc 1 73 27
+  91 000e 1375F507 		andi	a0,a0,127
+  92              	.LVL6:
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  93              		.loc 1 71 25
+  94 0012 137707F8 		andi	a4,a4,-128
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  95              		.loc 1 71 12
+  96 0016 3AC6     		sw	a4,12(sp)
+  97              		.loc 1 73 5 is_stmt 1
+  98              		.loc 1 73 12 is_stmt 0
+  99 0018 3247     		lw	a4,12(sp)
+ 100 001a 598D     		or	a0,a0,a4
+ 101 001c 2AC6     		sw	a0,12(sp)
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     WWDG->CFGR = tmpreg;
+ 102              		.loc 1 75 5 is_stmt 1
+ 103              		.loc 1 75 16 is_stmt 0
+ 104 001e 3247     		lw	a4,12(sp)
+ 105 0020 D8C3     		sw	a4,4(a5)
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+ 106              		.loc 1 76 1
+ 107 0022 4101     		addi	sp,sp,16
+ 108              		.cfi_def_cfa_offset 0
+ 109 0024 8280     		jr	ra
+ 110              		.cfi_endproc
+ 111              	.LFE42:
+ 113              		.section	.text.WWDG_EnableIT,"ax",@progbits
+ 114              		.align	1
+ 115              		.globl	WWDG_EnableIT
+ 117              	WWDG_EnableIT:
+ 118              	.LFB43:
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_EnableIT
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Enables the WWDG Early Wakeup interrupt(EWI)
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_EnableIT(void)
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+ 119              		.loc 1 86 1 is_stmt 1
+ 120              		.cfi_startproc
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     WWDG->CFGR |= WWDG_CFGR_EWI;
+ 121              		.loc 1 87 5
+ 122              		.loc 1 87 9 is_stmt 0
+ 123 0000 B7370040 		li	a5,1073754112
+ 124 0004 938707C0 		addi	a5,a5,-1024
+ 125 0008 D843     		lw	a4,4(a5)
+ 126              		.loc 1 87 16
+ 127 000a 13670720 		ori	a4,a4,512
+ 128 000e D8C3     		sw	a4,4(a5)
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+ 129              		.loc 1 88 1
+ 130 0010 8280     		ret
+ 131              		.cfi_endproc
+ 132              	.LFE43:
+ 134              		.section	.text.WWDG_SetCounter,"ax",@progbits
+ 135              		.align	1
+ 136              		.globl	WWDG_SetCounter
+ 138              	WWDG_SetCounter:
+ 139              	.LFB44:
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_SetCounter
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Sets the WWDG counter value
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @param   Counter - specifies the watchdog counter value,which must be a
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *        number between 0x40 and 0x7F
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_SetCounter(uint8_t Counter)
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+ 140              		.loc 1 101 1 is_stmt 1
+ 141              		.cfi_startproc
+ 142              	.LVL7:
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     WWDG->CTLR = Counter & BIT_Mask;
+ 143              		.loc 1 102 5
+ 144              		.loc 1 102 26 is_stmt 0
+ 145 0000 1375F507 		andi	a0,a0,127
+ 146              	.LVL8:
+ 147              		.loc 1 102 16
+ 148 0004 B7370040 		li	a5,1073754112
+ 149 0008 23A0A7C0 		sw	a0,-1024(a5)
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+ 150              		.loc 1 103 1
+ 151 000c 8280     		ret
+ 152              		.cfi_endproc
+ 153              	.LFE44:
+ 155              		.section	.text.WWDG_Enable,"ax",@progbits
+ 156              		.align	1
+ 157              		.globl	WWDG_Enable
+ 159              	WWDG_Enable:
+ 160              	.LFB45:
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_Enable
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Enables WWDG and load the counter value
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @param   Counter - specifies the watchdog counter value,which must be a
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *        number between 0x40 and 0x7F
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_Enable(uint8_t Counter)
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+ 161              		.loc 1 116 1 is_stmt 1
+ 162              		.cfi_startproc
+ 163              	.LVL9:
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     WWDG->CTLR = CTLR_WDGA_Set | Counter;
+ 164              		.loc 1 117 5
+ 165              		.loc 1 117 32 is_stmt 0
+ 166 0000 13650508 		ori	a0,a0,128
+ 167              	.LVL10:
+ 168              		.loc 1 117 16
+ 169 0004 B7370040 		li	a5,1073754112
+ 170 0008 23A0A7C0 		sw	a0,-1024(a5)
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+ 171              		.loc 1 118 1
+ 172 000c 8280     		ret
+ 173              		.cfi_endproc
+ 174              	.LFE45:
+ 176              		.section	.text.WWDG_GetFlagStatus,"ax",@progbits
+ 177              		.align	1
+ 178              		.globl	WWDG_GetFlagStatus
+ 180              	WWDG_GetFlagStatus:
+ 181              	.LFB46:
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_GetFlagStatus
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Checks whether the Early Wakeup interrupt flag is set or not
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  The new state of the Early Wakeup interrupt flag (SET or RESET)
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** FlagStatus WWDG_GetFlagStatus(void)
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+ 182              		.loc 1 128 1 is_stmt 1
+ 183              		.cfi_startproc
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     return (FlagStatus)(WWDG->STATR);
+ 184              		.loc 1 129 5
+ 185              		.loc 1 129 12 is_stmt 0
+ 186 0000 B7370040 		li	a5,1073754112
+ 187 0004 938707C0 		addi	a5,a5,-1024
+ 188 0008 8847     		lw	a0,8(a5)
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+ 189              		.loc 1 130 1
+ 190 000a 8280     		ret
+ 191              		.cfi_endproc
+ 192              	.LFE46:
+ 194              		.section	.text.WWDG_ClearFlag,"ax",@progbits
+ 195              		.align	1
+ 196              		.globl	WWDG_ClearFlag
+ 198              	WWDG_ClearFlag:
+ 199              	.LFB47:
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** 
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** /*********************************************************************
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @fn      WWDG_ClearFlag
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @brief   Clears Early Wakeup interrupt flag
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  *
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  * @return  none
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****  */
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** void WWDG_ClearFlag(void)
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** {
+ 200              		.loc 1 140 1 is_stmt 1
+ 201              		.cfi_startproc
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c ****     WWDG->STATR = (uint32_t)RESET;
+ 202              		.loc 1 141 5
+ 203              		.loc 1 141 17 is_stmt 0
+ 204 0000 B7370040 		li	a5,1073754112
+ 205 0004 938707C0 		addi	a5,a5,-1024
+ 206 0008 23A40700 		sw	zero,8(a5)
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_wwdg.c **** }
+ 207              		.loc 1 142 1
+ 208 000c 8280     		ret
+ 209              		.cfi_endproc
+ 210              	.LFE47:
+ 212              		.text
+ 213              	.Letext0:
+ 214              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 215              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 216              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 217              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 218              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_wwdg.c
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:14     .text.WWDG_DeInit:0000000000000000 WWDG_DeInit
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:18     .text.WWDG_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:19     .text.WWDG_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:19     .text.WWDG_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:20     .text.WWDG_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:21     .text.WWDG_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:23     .text.WWDG_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:28     .text.WWDG_DeInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:33     .text.WWDG_DeInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:34     .text.WWDG_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:35     .text.WWDG_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:36     .text.WWDG_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:43     .text.WWDG_SetPrescaler:0000000000000000 WWDG_SetPrescaler
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:46     .text.WWDG_SetPrescaler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:48     .text.WWDG_SetPrescaler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:49     .text.WWDG_SetPrescaler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:50     .text.WWDG_SetPrescaler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:51     .text.WWDG_SetPrescaler:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:51     .text.WWDG_SetPrescaler:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:55     .text.WWDG_SetPrescaler:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:58     .text.WWDG_SetPrescaler:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:59     .text.WWDG_SetPrescaler:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:62     .text.WWDG_SetPrescaler:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:63     .text.WWDG_SetPrescaler:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:65     .text.WWDG_SetPrescaler:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:66     .text.WWDG_SetPrescaler:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:73     .text.WWDG_SetWindowValue:0000000000000000 WWDG_SetWindowValue
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:76     .text.WWDG_SetWindowValue:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:78     .text.WWDG_SetWindowValue:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:79     .text.WWDG_SetWindowValue:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:80     .text.WWDG_SetWindowValue:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:80     .text.WWDG_SetWindowValue:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:81     .text.WWDG_SetWindowValue:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:83     .text.WWDG_SetWindowValue:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:85     .text.WWDG_SetWindowValue:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:87     .text.WWDG_SetWindowValue:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:88     .text.WWDG_SetWindowValue:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:91     .text.WWDG_SetWindowValue:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:94     .text.WWDG_SetWindowValue:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:96     .text.WWDG_SetWindowValue:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:98     .text.WWDG_SetWindowValue:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:99     .text.WWDG_SetWindowValue:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:103    .text.WWDG_SetWindowValue:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:104    .text.WWDG_SetWindowValue:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:107    .text.WWDG_SetWindowValue:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:108    .text.WWDG_SetWindowValue:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:110    .text.WWDG_SetWindowValue:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:117    .text.WWDG_EnableIT:0000000000000000 WWDG_EnableIT
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:120    .text.WWDG_EnableIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:121    .text.WWDG_EnableIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:122    .text.WWDG_EnableIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:123    .text.WWDG_EnableIT:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:123    .text.WWDG_EnableIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:127    .text.WWDG_EnableIT:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:130    .text.WWDG_EnableIT:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:131    .text.WWDG_EnableIT:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:138    .text.WWDG_SetCounter:0000000000000000 WWDG_SetCounter
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:141    .text.WWDG_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:143    .text.WWDG_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:144    .text.WWDG_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:145    .text.WWDG_SetCounter:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:145    .text.WWDG_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:148    .text.WWDG_SetCounter:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:151    .text.WWDG_SetCounter:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:152    .text.WWDG_SetCounter:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:159    .text.WWDG_Enable:0000000000000000 WWDG_Enable
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:162    .text.WWDG_Enable:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:164    .text.WWDG_Enable:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:165    .text.WWDG_Enable:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:166    .text.WWDG_Enable:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:166    .text.WWDG_Enable:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:169    .text.WWDG_Enable:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:172    .text.WWDG_Enable:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:173    .text.WWDG_Enable:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:180    .text.WWDG_GetFlagStatus:0000000000000000 WWDG_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:183    .text.WWDG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:184    .text.WWDG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:185    .text.WWDG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:186    .text.WWDG_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:186    .text.WWDG_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:190    .text.WWDG_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:191    .text.WWDG_GetFlagStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:198    .text.WWDG_ClearFlag:0000000000000000 WWDG_ClearFlag
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:201    .text.WWDG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:202    .text.WWDG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:203    .text.WWDG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:204    .text.WWDG_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:204    .text.WWDG_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:208    .text.WWDG_ClearFlag:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:209    .text.WWDG_ClearFlag:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000000f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:000000000000013c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000001c6 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:000000000000024c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:0000000000000286 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000002ca .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000002da .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000002ea .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:00000000000002fb .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:0000000000000305 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:0000000000000312 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1137   .debug_line_str:000000000000031d .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:39     .text.WWDG_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:69     .text.WWDG_SetPrescaler:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:113    .text.WWDG_SetWindowValue:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:134    .text.WWDG_EnableIT:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:155    .text.WWDG_SetCounter:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:176    .text.WWDG_Enable:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:194    .text.WWDG_GetFlagStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:212    .text.WWDG_ClearFlag:000000000000000e .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:534    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1120   .debug_str:0000000000000191 .LASF37
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1135   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1133   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1024   .debug_rnglists:000000000000000c .LLRL4
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1052   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1096   .debug_str:00000000000000fb .LASF2
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1070   .debug_str:0000000000000066 .LASF3
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1056   .debug_str:000000000000000e .LASF6
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1072   .debug_str:0000000000000072 .LASF4
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1110   .debug_str:0000000000000152 .LASF5
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1086   .debug_str:00000000000000d1 .LASF7
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1062   .debug_str:000000000000002b .LASF8
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1126   .debug_str:000000000000028b .LASF9
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1082   .debug_str:00000000000000b6 .LASF10
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1078   .debug_str:000000000000009e .LASF11
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1054   .debug_str:0000000000000000 .LASF12
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1130   .debug_str:000000000000029c .LASF13
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1100   .debug_str:000000000000010d .LASF14
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1116   .debug_str:0000000000000172 .LASF15
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1124   .debug_str:0000000000000282 .LASF16
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1128   .debug_str:0000000000000294 .LASF17
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1068   .debug_str:000000000000005f .LASF18
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1084   .debug_str:00000000000000c1 .LASF19
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1080   .debug_str:00000000000000b0 .LASF20
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1074   .debug_str:0000000000000080 .LASF21
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1094   .debug_str:00000000000000f6 .LASF22
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1058   .debug_str:0000000000000018 .LASF23
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1088   .debug_str:00000000000000dc .LASF24
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1064   .debug_str:000000000000003e .LASF25
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1098   .debug_str:0000000000000108 .LASF26
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1118   .debug_str:000000000000017b .LASF38
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1114   .debug_str:0000000000000163 .LASF30
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:199    .text.WWDG_ClearFlag:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:210    .text.WWDG_ClearFlag:000000000000000e .LFE47
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1076   .debug_str:000000000000008b .LASF39
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:181    .text.WWDG_GetFlagStatus:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:192    .text.WWDG_GetFlagStatus:000000000000000c .LFE46
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1104   .debug_str:0000000000000127 .LASF27
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:160    .text.WWDG_Enable:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:174    .text.WWDG_Enable:000000000000000e .LFE45
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1092   .debug_str:00000000000000ee .LASF29
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:931    .debug_loclists:000000000000000c .LLST3
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1108   .debug_str:0000000000000142 .LASF28
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:139    .text.WWDG_SetCounter:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:153    .text.WWDG_SetCounter:000000000000000e .LFE44
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:946    .debug_loclists:0000000000000026 .LLST2
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1060   .debug_str:000000000000001d .LASF31
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:118    .text.WWDG_EnableIT:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:132    .text.WWDG_EnableIT:0000000000000012 .LFE43
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1066   .debug_str:000000000000004b .LASF32
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:74     .text.WWDG_SetWindowValue:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:111    .text.WWDG_SetWindowValue:0000000000000026 .LFE42
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1090   .debug_str:00000000000000e2 .LASF33
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:961    .debug_loclists:0000000000000040 .LLST1
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1112   .debug_str:000000000000015c .LASF36
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1102   .debug_str:0000000000000115 .LASF34
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:44     .text.WWDG_SetPrescaler:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:67     .text.WWDG_SetPrescaler:0000000000000014 .LFE41
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1106   .debug_str:0000000000000133 .LASF35
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:976    .debug_loclists:000000000000005a .LLST0
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:1122   .debug_str:0000000000000276 .LASF40
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:15     .text.WWDG_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:37     .text.WWDG_DeInit:000000000000002c .LFE40
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:26     .text.WWDG_DeInit:0000000000000016 .LVL0
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:31     .text.WWDG_DeInit:0000000000000024 .LVL1
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:163    .text.WWDG_Enable:0000000000000000 .LVL9
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:167    .text.WWDG_Enable:0000000000000004 .LVL10
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:142    .text.WWDG_SetCounter:0000000000000000 .LVL7
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:146    .text.WWDG_SetCounter:0000000000000004 .LVL8
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:77     .text.WWDG_SetWindowValue:0000000000000000 .LVL5
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:92     .text.WWDG_SetWindowValue:0000000000000012 .LVL6
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:47     .text.WWDG_SetPrescaler:0000000000000000 .LVL2
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:56     .text.WWDG_SetPrescaler:000000000000000e .LVL3
+C:\Users\User\AppData\Local\Temp\ccYMk154.s:220    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+RCC_HB1PeriphResetCmd
+__riscv_restore_0

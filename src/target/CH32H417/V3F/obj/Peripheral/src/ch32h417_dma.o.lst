@@ -1,0 +1,1860 @@
+   1              		.file	"ch32h417_dma.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.DMA_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	DMA_DeInit
+  14              	DMA_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dma.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * File Name          : ch32h417_dma.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * Version            : V1.0.0
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * Date               : 2025/03/01
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * Description        : This file provides all the DMA firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #include "ch32h417_dma.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #include "ch32h417_rcc.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /* DMA1 Channelx interrupt pending bit masks */
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel1_IT_Mask     ((uint32_t)(DMA_GIF1 | DMA_TCIF1 | DMA_HTIF1 | DMA_TEIF1))
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel2_IT_Mask     ((uint32_t)(DMA_GIF2 | DMA_TCIF2 | DMA_HTIF2 | DMA_TEIF2))
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel3_IT_Mask     ((uint32_t)(DMA_GIF3 | DMA_TCIF3 | DMA_HTIF3 | DMA_TEIF3))
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel4_IT_Mask     ((uint32_t)(DMA_GIF4 | DMA_TCIF4 | DMA_HTIF4 | DMA_TEIF4))
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel5_IT_Mask     ((uint32_t)(DMA_GIF5 | DMA_TCIF5 | DMA_HTIF5 | DMA_TEIF5))
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel6_IT_Mask     ((uint32_t)(DMA_GIF6 | DMA_TCIF6 | DMA_HTIF6 | DMA_TEIF6))
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel7_IT_Mask     ((uint32_t)(DMA_GIF7 | DMA_TCIF7 | DMA_HTIF7 | DMA_TEIF7))
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA1_Channel8_IT_Mask     ((uint32_t)(DMA_GIF8 | DMA_TCIF8 | DMA_HTIF8 | DMA_TEIF8))
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /* DMA2 Channelx interrupt pending bit masks */
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel1_IT_Mask     ((uint32_t)(DMA_GIF1 | DMA_TCIF1 | DMA_HTIF1 | DMA_TEIF1))
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel2_IT_Mask     ((uint32_t)(DMA_GIF2 | DMA_TCIF2 | DMA_HTIF2 | DMA_TEIF2))
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel3_IT_Mask     ((uint32_t)(DMA_GIF3 | DMA_TCIF3 | DMA_HTIF3 | DMA_TEIF3))
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel4_IT_Mask     ((uint32_t)(DMA_GIF4 | DMA_TCIF4 | DMA_HTIF4 | DMA_TEIF4))
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel5_IT_Mask     ((uint32_t)(DMA_GIF5 | DMA_TCIF5 | DMA_HTIF5 | DMA_TEIF5))
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel6_IT_Mask     ((uint32_t)(DMA_GIF6 | DMA_TCIF6 | DMA_HTIF6 | DMA_TEIF6))
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel7_IT_Mask     ((uint32_t)(DMA_GIF7 | DMA_TCIF7 | DMA_HTIF7 | DMA_TEIF7))
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define DMA2_Channel8_IT_Mask     ((uint32_t)(DMA_GIF8 | DMA_TCIF8 | DMA_HTIF8 | DMA_TEIF8))
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /* DMA registers Masks */
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** #define CFGR_CLEAR_Mask           ((uint32_t)0xFFFE000F)
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_DeInit
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Deinitializes the DMAy Channelx registers to their default
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        reset values.
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 for DMA to select the DMA Channel.
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_DeInit(DMA_Channel_TypeDef *DMAy_Channelx)
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+  17              		.loc 1 50 1
+  18              		.cfi_startproc
+  19              	.LVL0:
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->CFGR &= (uint16_t)(~DMA_CFGR1_EN);
+  20              		.loc 1 51 5
+  21              		.loc 1 51 18 is_stmt 0
+  22 0000 1C41     		lw	a5,0(a0)
+  23              		.loc 1 51 25
+  24 0002 4167     		li	a4,65536
+  25 0004 7917     		addi	a4,a4,-2
+  26 0006 F98F     		and	a5,a5,a4
+  27 0008 1CC1     		sw	a5,0(a0)
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->CFGR = 0;
+  28              		.loc 1 52 5 is_stmt 1
+  29              		.loc 1 52 25 is_stmt 0
+  30 000a 23200500 		sw	zero,0(a0)
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->CNTR = 0;
+  31              		.loc 1 53 5 is_stmt 1
+  32              		.loc 1 53 25 is_stmt 0
+  33 000e 23220500 		sw	zero,4(a0)
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->PADDR = 0;
+  34              		.loc 1 54 5 is_stmt 1
+  35              		.loc 1 54 26 is_stmt 0
+  36 0012 23240500 		sw	zero,8(a0)
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->MADDR = 0;
+  37              		.loc 1 55 5 is_stmt 1
+  38              		.loc 1 55 26 is_stmt 0
+  39 0016 23260500 		sw	zero,12(a0)
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->M1ADDR = 0;
+  40              		.loc 1 56 5 is_stmt 1
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if(DMAy_Channelx == DMA1_Channel1)
+  41              		.loc 1 57 7 is_stmt 0
+  42 001a B7070240 		li	a5,1073872896
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->M1ADDR = 0;
+  43              		.loc 1 56 27
+  44 001e 23280500 		sw	zero,16(a0)
+  45              		.loc 1 57 5 is_stmt 1
+  46              		.loc 1 57 7 is_stmt 0
+  47 0022 13878700 		addi	a4,a5,8
+  48 0026 6317E500 		bne	a0,a4,.L2
+  49              	.L26:
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel1_IT_Mask;
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel2)
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel2_IT_Mask;
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel3)
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel3_IT_Mask;
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel4)
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel4_IT_Mask;
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel5)
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel5_IT_Mask;
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel6)
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel6_IT_Mask;
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel7)
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel7_IT_Mask;
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA1_Channel8)
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA1->INTFCR |= DMA1_Channel8_IT_Mask;
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel1)
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel1_IT_Mask;
+  50              		.loc 1 91 13
+  51 002a D843     		lw	a4,4(a5)
+  52              		.loc 1 91 22
+  53 002c 1367F700 		ori	a4,a4,15
+  54              	.L18:
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel2)
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel2_IT_Mask;
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel3)
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel3_IT_Mask;
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel4)
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel4_IT_Mask;
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel5)
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel5_IT_Mask;
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel6)
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel6_IT_Mask;
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel7)
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel7_IT_Mask;
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if(DMAy_Channelx == DMA2_Channel8)
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMA2->INTFCR |= DMA2_Channel8_IT_Mask;
+  55              		.loc 1 119 22
+  56 0030 D8C3     		sw	a4,4(a5)
+  57              	.L1:
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+  58              		.loc 1 121 1
+  59 0032 8280     		ret
+  60              	.L2:
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  61              		.loc 1 61 10 is_stmt 1
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  62              		.loc 1 61 12 is_stmt 0
+  63 0034 1387C701 		addi	a4,a5,28
+  64 0038 6316E500 		bne	a0,a4,.L4
+  65              	.L27:
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  66              		.loc 1 95 13
+  67 003c D843     		lw	a4,4(a5)
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  68              		.loc 1 95 22
+  69 003e 1367070F 		ori	a4,a4,240
+  70 0042 FDB7     		j	.L18
+  71              	.L4:
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  72              		.loc 1 65 10 is_stmt 1
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  73              		.loc 1 65 12 is_stmt 0
+  74 0044 13870703 		addi	a4,a5,48
+  75 0048 6318E500 		bne	a0,a4,.L5
+  76              	.L22:
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  77              		.loc 1 99 13
+  78 004c D843     		lw	a4,4(a5)
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  79              		.loc 1 99 22
+  80 004e 8566     		li	a3,4096
+  81 0050 938606F0 		addi	a3,a3,-256
+  82              	.L19:
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  83              		.loc 1 119 22
+  84 0054 558F     		or	a4,a4,a3
+  85 0056 E9BF     		j	.L18
+  86              	.L5:
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  87              		.loc 1 69 10 is_stmt 1
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  88              		.loc 1 69 12 is_stmt 0
+  89 0058 13874704 		addi	a4,a5,68
+  90 005c 6315E500 		bne	a0,a4,.L6
+  91              	.L23:
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  92              		.loc 1 103 13
+  93 0060 D843     		lw	a4,4(a5)
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+  94              		.loc 1 103 22
+  95 0062 BD66     		li	a3,61440
+  96 0064 C5BF     		j	.L19
+  97              	.L6:
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  98              		.loc 1 73 10 is_stmt 1
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+  99              		.loc 1 73 12 is_stmt 0
+ 100 0066 13878705 		addi	a4,a5,88
+ 101 006a 6316E500 		bne	a0,a4,.L7
+ 102              	.L24:
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 103              		.loc 1 107 13
+ 104 006e D843     		lw	a4,4(a5)
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 105              		.loc 1 107 22
+ 106 0070 B7060F00 		li	a3,983040
+ 107 0074 C5B7     		j	.L19
+ 108              	.L7:
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 109              		.loc 1 77 10 is_stmt 1
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 110              		.loc 1 77 12 is_stmt 0
+ 111 0076 1387C706 		addi	a4,a5,108
+ 112 007a 6316E500 		bne	a0,a4,.L8
+ 113              	.L25:
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 114              		.loc 1 111 13
+ 115 007e D843     		lw	a4,4(a5)
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 116              		.loc 1 111 22
+ 117 0080 B706F000 		li	a3,15728640
+ 118 0084 C1BF     		j	.L19
+ 119              	.L8:
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 120              		.loc 1 81 10 is_stmt 1
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 121              		.loc 1 81 12 is_stmt 0
+ 122 0086 13870708 		addi	a4,a5,128
+ 123 008a 6316E500 		bne	a0,a4,.L9
+ 124              	.L21:
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 125              		.loc 1 115 13
+ 126 008e D843     		lw	a4,4(a5)
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 127              		.loc 1 115 22
+ 128 0090 B706000F 		li	a3,251658240
+ 129 0094 C1B7     		j	.L19
+ 130              	.L9:
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 131              		.loc 1 85 10 is_stmt 1
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 132              		.loc 1 85 12 is_stmt 0
+ 133 0096 13874709 		addi	a4,a5,148
+ 134 009a 6316E500 		bne	a0,a4,.L10
+ 135              	.L20:
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 136              		.loc 1 119 13
+ 137 009e D843     		lw	a4,4(a5)
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 138              		.loc 1 119 22
+ 139 00a0 B70600F0 		li	a3,-268435456
+ 140 00a4 45BF     		j	.L19
+ 141              	.L10:
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 142              		.loc 1 89 10 is_stmt 1
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 143              		.loc 1 89 12 is_stmt 0
+ 144 00a6 13878740 		addi	a4,a5,1032
+ 145 00aa 6315E500 		bne	a0,a4,.L11
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 146              		.loc 1 91 9 is_stmt 1
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 147              		.loc 1 91 13 is_stmt 0
+ 148 00ae 93870740 		addi	a5,a5,1024
+ 149 00b2 A5BF     		j	.L26
+ 150              	.L11:
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 151              		.loc 1 93 10 is_stmt 1
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 152              		.loc 1 93 12 is_stmt 0
+ 153 00b4 9387C741 		addi	a5,a5,1052
+ 154 00b8 6317F500 		bne	a0,a5,.L12
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 155              		.loc 1 95 9 is_stmt 1
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 156              		.loc 1 95 13 is_stmt 0
+ 157 00bc B7070240 		li	a5,1073872896
+ 158 00c0 93870740 		addi	a5,a5,1024
+ 159 00c4 A5BF     		j	.L27
+ 160              	.L12:
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 161              		.loc 1 97 10 is_stmt 1
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 162              		.loc 1 97 12 is_stmt 0
+ 163 00c6 B7070240 		li	a5,1073872896
+ 164 00ca 13870743 		addi	a4,a5,1072
+ 165 00ce 6315E500 		bne	a0,a4,.L13
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 166              		.loc 1 99 9 is_stmt 1
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 167              		.loc 1 99 13 is_stmt 0
+ 168 00d2 93870740 		addi	a5,a5,1024
+ 169 00d6 9DBF     		j	.L22
+ 170              	.L13:
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 171              		.loc 1 101 10 is_stmt 1
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 172              		.loc 1 101 12 is_stmt 0
+ 173 00d8 13874744 		addi	a4,a5,1092
+ 174 00dc 6315E500 		bne	a0,a4,.L14
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 175              		.loc 1 103 9 is_stmt 1
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 176              		.loc 1 103 13 is_stmt 0
+ 177 00e0 93870740 		addi	a5,a5,1024
+ 178 00e4 B5BF     		j	.L23
+ 179              	.L14:
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 180              		.loc 1 105 10 is_stmt 1
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 181              		.loc 1 105 12 is_stmt 0
+ 182 00e6 13878745 		addi	a4,a5,1112
+ 183 00ea 6315E500 		bne	a0,a4,.L15
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 184              		.loc 1 107 9 is_stmt 1
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 185              		.loc 1 107 13 is_stmt 0
+ 186 00ee 93870740 		addi	a5,a5,1024
+ 187 00f2 B5BF     		j	.L24
+ 188              	.L15:
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 189              		.loc 1 109 10 is_stmt 1
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 190              		.loc 1 109 12 is_stmt 0
+ 191 00f4 1387C746 		addi	a4,a5,1132
+ 192 00f8 6315E500 		bne	a0,a4,.L16
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 193              		.loc 1 111 9 is_stmt 1
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 194              		.loc 1 111 13 is_stmt 0
+ 195 00fc 93870740 		addi	a5,a5,1024
+ 196 0100 BDBF     		j	.L25
+ 197              	.L16:
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 198              		.loc 1 113 10 is_stmt 1
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 199              		.loc 1 113 12 is_stmt 0
+ 200 0102 13870748 		addi	a4,a5,1152
+ 201 0106 6315E500 		bne	a0,a4,.L17
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 202              		.loc 1 115 9 is_stmt 1
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 203              		.loc 1 115 13 is_stmt 0
+ 204 010a 93870740 		addi	a5,a5,1024
+ 205 010e 41B7     		j	.L21
+ 206              	.L17:
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 207              		.loc 1 117 10 is_stmt 1
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 208              		.loc 1 117 12 is_stmt 0
+ 209 0110 13874749 		addi	a4,a5,1172
+ 210 0114 E31FE5F0 		bne	a0,a4,.L1
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 211              		.loc 1 119 9 is_stmt 1
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 212              		.loc 1 119 13 is_stmt 0
+ 213 0118 93870740 		addi	a5,a5,1024
+ 214 011c 49B7     		j	.L20
+ 215              		.cfi_endproc
+ 216              	.LFE40:
+ 218              		.section	.text.DMA_Init,"ax",@progbits
+ 219              		.align	1
+ 220              		.globl	DMA_Init
+ 222              	DMA_Init:
+ 223              	.LFB41:
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_Init
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Initializes the DMAy Channelx according to the specified
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        parameters in the DMA_InitStruct.
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 for DMA to select the DMA Channel.
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          DMA_InitStruct - pointer to a DMA_InitTypeDef structure that contains
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        contains the configuration information for the specified DMA Channel.
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_Init(DMA_Channel_TypeDef *DMAy_Channelx, DMA_InitTypeDef *DMA_InitStruct)
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 224              		.loc 1 137 1 is_stmt 1
+ 225              		.cfi_startproc
+ 226              	.LVL1:
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     uint32_t tmpreg = 0;
+ 227              		.loc 1 138 5
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     tmpreg = DMAy_Channelx->CFGR;
+ 228              		.loc 1 140 5
+ 229              		.loc 1 140 12 is_stmt 0
+ 230 0000 1841     		lw	a4,0(a0)
+ 231              	.LVL2:
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     tmpreg &= CFGR_CLEAR_Mask;
+ 232              		.loc 1 141 5 is_stmt 1
+ 233              		.loc 1 141 12 is_stmt 0
+ 234 0002 8177     		li	a5,-131072
+ 235 0004 BD07     		addi	a5,a5,15
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     tmpreg |= DMA_InitStruct->DMA_DIR | DMA_InitStruct->DMA_Mode |
+ 236              		.loc 1 142 39
+ 237 0006 9451     		lw	a3,32(a1)
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     tmpreg &= CFGR_CLEAR_Mask;
+ 238              		.loc 1 141 12
+ 239 0008 7D8F     		and	a4,a4,a5
+ 240              	.LVL3:
+ 241              		.loc 1 142 5 is_stmt 1
+ 242              		.loc 1 142 39 is_stmt 0
+ 243 000a 9C45     		lw	a5,8(a1)
+ 244 000c D58F     		or	a5,a5,a3
+ 245              		.loc 1 142 66
+ 246 000e 9449     		lw	a3,16(a1)
+ 247 0010 D58F     		or	a5,a5,a3
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****               DMA_InitStruct->DMA_PeripheralInc | DMA_InitStruct->DMA_MemoryInc |
+ 248              		.loc 1 143 49
+ 249 0012 D449     		lw	a3,20(a1)
+ 250 0014 D58F     		or	a5,a5,a3
+ 251              		.loc 1 143 81
+ 252 0016 944D     		lw	a3,24(a1)
+ 253 0018 D58F     		or	a5,a5,a3
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****               DMA_InitStruct->DMA_PeripheralDataSize | DMA_InitStruct->DMA_MemoryDataSize |
+ 254              		.loc 1 144 54
+ 255 001a D44D     		lw	a3,28(a1)
+ 256 001c D58F     		or	a5,a5,a3
+ 257              		.loc 1 144 91
+ 258 001e D451     		lw	a3,36(a1)
+ 259 0020 D58F     		or	a5,a5,a3
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****               DMA_InitStruct->DMA_Priority | DMA_InitStruct->DMA_M2M | 
+ 260              		.loc 1 145 44
+ 261 0022 9455     		lw	a3,40(a1)
+ 262 0024 D58F     		or	a5,a5,a3
+ 263              		.loc 1 145 70
+ 264 0026 D455     		lw	a3,44(a1)
+ 265 0028 D58F     		or	a5,a5,a3
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****               DMA_InitStruct->DMA_BufferMode | DMA_InitStruct->DMA_DoubleBuffer_StartMemory;
+ 266              		.loc 1 146 46
+ 267 002a D459     		lw	a3,52(a1)
+ 268 002c D58F     		or	a5,a5,a3
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****               DMA_InitStruct->DMA_PeripheralInc | DMA_InitStruct->DMA_MemoryInc |
+ 269              		.loc 1 142 12
+ 270 002e D98F     		or	a5,a5,a4
+ 271              	.LVL4:
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->CFGR = tmpreg;
+ 272              		.loc 1 148 5 is_stmt 1
+ 273              		.loc 1 148 25 is_stmt 0
+ 274 0030 1CC1     		sw	a5,0(a0)
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->CNTR = DMA_InitStruct->DMA_BufferSize;
+ 275              		.loc 1 149 5 is_stmt 1
+ 276              		.loc 1 149 41 is_stmt 0
+ 277 0032 DC45     		lw	a5,12(a1)
+ 278              	.LVL5:
+ 279              		.loc 1 149 25
+ 280 0034 5CC1     		sw	a5,4(a0)
+ 281              	.LVL6:
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->PADDR = DMA_InitStruct->DMA_PeripheralBaseAddr;
+ 282              		.loc 1 150 5 is_stmt 1
+ 283              		.loc 1 150 42 is_stmt 0
+ 284 0036 9C41     		lw	a5,0(a1)
+ 285              		.loc 1 150 26
+ 286 0038 1CC5     		sw	a5,8(a0)
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->MADDR = DMA_InitStruct->DMA_Memory0BaseAddr;
+ 287              		.loc 1 151 5 is_stmt 1
+ 288              		.loc 1 151 42 is_stmt 0
+ 289 003a DC41     		lw	a5,4(a1)
+ 290              		.loc 1 151 26
+ 291 003c 5CC5     		sw	a5,12(a0)
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->M1ADDR = DMA_InitStruct->DMA_Memory1BaseAddr;
+ 292              		.loc 1 152 5 is_stmt 1
+ 293              		.loc 1 152 43 is_stmt 0
+ 294 003e 9C59     		lw	a5,48(a1)
+ 295              		.loc 1 152 27
+ 296 0040 1CC9     		sw	a5,16(a0)
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 297              		.loc 1 153 1
+ 298 0042 8280     		ret
+ 299              		.cfi_endproc
+ 300              	.LFE41:
+ 302              		.section	.text.DMA_StructInit,"ax",@progbits
+ 303              		.align	1
+ 304              		.globl	DMA_StructInit
+ 306              	DMA_StructInit:
+ 307              	.LFB42:
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_StructInit
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Fills each DMA_InitStruct member with its default value.
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 to select the DMA Channel.
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          DMA_InitStruct - pointer to a DMA_InitTypeDef structure that contains
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        contains the configuration information for the specified DMA Channel.
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_StructInit(DMA_InitTypeDef *DMA_InitStruct)
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 308              		.loc 1 168 1 is_stmt 1
+ 309              		.cfi_startproc
+ 310              	.LVL7:
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_PeripheralBaseAddr = 0;
+ 311              		.loc 1 169 5
+ 312              		.loc 1 169 44 is_stmt 0
+ 313 0000 23200500 		sw	zero,0(a0)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_Memory0BaseAddr = 0;
+ 314              		.loc 1 170 5 is_stmt 1
+ 315              		.loc 1 170 41 is_stmt 0
+ 316 0004 23220500 		sw	zero,4(a0)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_DIR = DMA_DIR_PeripheralSRC;
+ 317              		.loc 1 171 5 is_stmt 1
+ 318              		.loc 1 171 29 is_stmt 0
+ 319 0008 23240500 		sw	zero,8(a0)
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_BufferSize = 0;
+ 320              		.loc 1 172 5 is_stmt 1
+ 321              		.loc 1 172 36 is_stmt 0
+ 322 000c 23260500 		sw	zero,12(a0)
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+ 323              		.loc 1 173 5 is_stmt 1
+ 324              		.loc 1 173 39 is_stmt 0
+ 325 0010 23280500 		sw	zero,16(a0)
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_MemoryInc = DMA_MemoryInc_Disable;
+ 326              		.loc 1 174 5 is_stmt 1
+ 327              		.loc 1 174 35 is_stmt 0
+ 328 0014 232A0500 		sw	zero,20(a0)
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+ 329              		.loc 1 175 5 is_stmt 1
+ 330              		.loc 1 175 44 is_stmt 0
+ 331 0018 232C0500 		sw	zero,24(a0)
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+ 332              		.loc 1 176 5 is_stmt 1
+ 333              		.loc 1 176 40 is_stmt 0
+ 334 001c 232E0500 		sw	zero,28(a0)
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_Mode = DMA_Mode_Normal;
+ 335              		.loc 1 177 5 is_stmt 1
+ 336              		.loc 1 177 30 is_stmt 0
+ 337 0020 23200502 		sw	zero,32(a0)
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_Priority = DMA_Priority_Low;
+ 338              		.loc 1 178 5 is_stmt 1
+ 339              		.loc 1 178 34 is_stmt 0
+ 340 0024 23220502 		sw	zero,36(a0)
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_M2M = DMA_M2M_Disable;
+ 341              		.loc 1 179 5 is_stmt 1
+ 342              		.loc 1 179 29 is_stmt 0
+ 343 0028 23240502 		sw	zero,40(a0)
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_BufferMode = DMA_SingleBufferMode;
+ 344              		.loc 1 180 5 is_stmt 1
+ 345              		.loc 1 180 36 is_stmt 0
+ 346 002c 23260502 		sw	zero,44(a0)
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_Memory1BaseAddr = 0;
+ 347              		.loc 1 181 5 is_stmt 1
+ 348              		.loc 1 181 41 is_stmt 0
+ 349 0030 23280502 		sw	zero,48(a0)
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMA_InitStruct->DMA_DoubleBuffer_StartMemory = DMA_DoubleBufferMode_Memory_0;
+ 350              		.loc 1 182 5 is_stmt 1
+ 351              		.loc 1 182 50 is_stmt 0
+ 352 0034 232A0502 		sw	zero,52(a0)
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 353              		.loc 1 183 1
+ 354 0038 8280     		ret
+ 355              		.cfi_endproc
+ 356              	.LFE42:
+ 358              		.section	.text.DMA_Cmd,"ax",@progbits
+ 359              		.align	1
+ 360              		.globl	DMA_Cmd
+ 362              	DMA_Cmd:
+ 363              	.LFB43:
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_Cmd
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Enables or disables the specified DMAy Channelx.
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 to select the DMA Channel.
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          NewState - new state of the DMAy Channelx(ENABLE or DISABLE).
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_Cmd(DMA_Channel_TypeDef *DMAy_Channelx, FunctionalState NewState)
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 364              		.loc 1 197 1 is_stmt 1
+ 365              		.cfi_startproc
+ 366              	.LVL8:
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if(NewState != DISABLE)
+ 367              		.loc 1 198 5
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAy_Channelx->CFGR |= DMA_CFGR1_EN;
+ 368              		.loc 1 200 22 is_stmt 0
+ 369 0000 1C41     		lw	a5,0(a0)
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if(NewState != DISABLE)
+ 370              		.loc 1 198 7
+ 371 0002 89C5     		beq	a1,zero,.L31
+ 372              		.loc 1 200 9 is_stmt 1
+ 373              		.loc 1 200 29 is_stmt 0
+ 374 0004 93E71700 		ori	a5,a5,1
+ 375              	.L33:
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAy_Channelx->CFGR &= (uint16_t)(~DMA_CFGR1_EN);
+ 376              		.loc 1 204 29
+ 377 0008 1CC1     		sw	a5,0(a0)
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 378              		.loc 1 206 1
+ 379 000a 8280     		ret
+ 380              	.L31:
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 381              		.loc 1 204 9 is_stmt 1
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 382              		.loc 1 204 29 is_stmt 0
+ 383 000c 4167     		li	a4,65536
+ 384 000e 7917     		addi	a4,a4,-2
+ 385 0010 F98F     		and	a5,a5,a4
+ 386 0012 DDBF     		j	.L33
+ 387              		.cfi_endproc
+ 388              	.LFE43:
+ 390              		.section	.text.DMA_ITConfig,"ax",@progbits
+ 391              		.align	1
+ 392              		.globl	DMA_ITConfig
+ 394              	DMA_ITConfig:
+ 395              	.LFB44:
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_ITConfig
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Enables or disables the specified DMAy Channelx interrupts.
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 for DMA2 to select the DMA Channel.
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          DMA_IT - specifies the DMA interrupts sources to be enabled
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        or disabled.
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA_IT_TC - Transfer complete interrupt mask
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA_IT_HT - Half transfer interrupt mask
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA_IT_TE -  Transfer error interrupt mask
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          NewState - new state of the DMAy Channelx(ENABLE or DISABLE).
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_ITConfig(DMA_Channel_TypeDef *DMAy_Channelx, uint32_t DMA_IT, FunctionalState NewState)
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 396              		.loc 1 225 1 is_stmt 1
+ 397              		.cfi_startproc
+ 398              	.LVL9:
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if(NewState != DISABLE)
+ 399              		.loc 1 226 5
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAy_Channelx->CFGR |= DMA_IT;
+ 400              		.loc 1 228 22 is_stmt 0
+ 401 0000 1C41     		lw	a5,0(a0)
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if(NewState != DISABLE)
+ 402              		.loc 1 226 7
+ 403 0002 01C6     		beq	a2,zero,.L35
+ 404              		.loc 1 228 9 is_stmt 1
+ 405              		.loc 1 228 29 is_stmt 0
+ 406 0004 CD8F     		or	a5,a5,a1
+ 407 0006 1CC1     		sw	a5,0(a0)
+ 408 0008 8280     		ret
+ 409              	.L35:
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAy_Channelx->CFGR &= ~DMA_IT;
+ 410              		.loc 1 232 9 is_stmt 1
+ 411              		.loc 1 232 29 is_stmt 0
+ 412 000a B3F5B740 		andn	a1,a5,a1
+ 413              	.LVL10:
+ 414 000e 0CC1     		sw	a1,0(a0)
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 415              		.loc 1 234 1
+ 416 0010 8280     		ret
+ 417              		.cfi_endproc
+ 418              	.LFE44:
+ 420              		.section	.text.DMA_SetCurrDataCounter,"ax",@progbits
+ 421              		.align	1
+ 422              		.globl	DMA_SetCurrDataCounter
+ 424              	DMA_SetCurrDataCounter:
+ 425              	.LFB45:
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_SetCurrDataCounter
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Sets the number of data units in the current DMAy Channelx transfer.
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 to select the DMA Channel.
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          DataNumber - The number of data units in the current DMAy Channelx
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        transfer.
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_SetCurrDataCounter(DMA_Channel_TypeDef *DMAy_Channelx, uint16_t DataNumber)
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 426              		.loc 1 249 1 is_stmt 1
+ 427              		.cfi_startproc
+ 428              	.LVL11:
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAy_Channelx->CNTR = DataNumber;
+ 429              		.loc 1 250 5
+ 430              		.loc 1 250 25 is_stmt 0
+ 431 0000 4CC1     		sw	a1,4(a0)
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 432              		.loc 1 251 1
+ 433 0002 8280     		ret
+ 434              		.cfi_endproc
+ 435              	.LFE45:
+ 437              		.section	.text.DMA_GetCurrDataCounter,"ax",@progbits
+ 438              		.align	1
+ 439              		.globl	DMA_GetCurrDataCounter
+ 441              	DMA_GetCurrDataCounter:
+ 442              	.LFB46:
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_GetCurrDataCounter
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Returns the number of remaining data units in the current
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        DMAy Channelx transfer.
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_Channelx - here y can be 1 or 2 to select the DMA and x can be
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        1 to 8 to select the DMA Channel.
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  DataNumber - The number of remaining data units in the current
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        DMAy Channelx transfer.
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** uint16_t DMA_GetCurrDataCounter(DMA_Channel_TypeDef *DMAy_Channelx)
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 443              		.loc 1 266 1 is_stmt 1
+ 444              		.cfi_startproc
+ 445              	.LVL12:
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     return ((uint16_t)(DMAy_Channelx->CNTR));
+ 446              		.loc 1 267 5
+ 447              		.loc 1 267 37 is_stmt 0
+ 448 0000 4841     		lw	a0,4(a0)
+ 449              	.LVL13:
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 450              		.loc 1 268 1
+ 451 0002 33450508 		zext.h	a0,a0
+ 452 0006 8280     		ret
+ 453              		.cfi_endproc
+ 454              	.LFE46:
+ 456              		.section	.text.DMA_GetFlagStatus,"ax",@progbits
+ 457              		.align	1
+ 458              		.globl	DMA_GetFlagStatus
+ 460              	DMA_GetFlagStatus:
+ 461              	.LFB47:
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_GetFlagStatus
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Checks whether the specified DMAy Channelx flag is set or not.
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_FLAG - specifies the flag to check.
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL1 - DMA1 Channel1 global flag.
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC1 - DMA1 Channel1 transfer complete flag.
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT1 - DMA1 Channel1 half transfer flag.
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE1 - DMA1 Channel1 transfer error flag.
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL2 - DMA1 Channel2 global flag.
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC2 - DMA1 Channel2 transfer complete flag.
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT2 - DMA1 Channel2 half transfer flag.
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE2 - DMA1 Channel2 transfer error flag.
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL3 - DMA1 Channel3 global flag.
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC3 - DMA1 Channel3 transfer complete flag.
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT3 - DMA1 Channel3 half transfer flag.
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE3 - DMA1 Channel3 transfer error flag.
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL4 - DMA1 Channel4 global flag.
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC4 - DMA1 Channel4 transfer complete flag.
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT4 - DMA1 Channel4 half transfer flag.
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE4 - DMA1 Channel4 transfer error flag.
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL5 - DMA1 Channel5 global flag.
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC5 - DMA1 Channel5 transfer complete flag.
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT5 - DMA1 Channel5 half transfer flag.
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE5 - DMA1 Channel5 transfer error flag.
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL6 - DMA1 Channel6 global flag.
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC6 - DMA1 Channel6 transfer complete flag.
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT6 - DMA1 Channel6 half transfer flag.
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE6 - DMA1 Channel6 transfer error flag.
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL7 - DMA1 Channel7 global flag.
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC7 - DMA1 Channel7 transfer complete flag.
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT7 - DMA1 Channel7 half transfer flag.
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE7 - DMA1 Channel7 transfer error flag.
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL8 - DMA1 Channel8 global flag.
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC8 - DMA1 Channel8 transfer complete flag.
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT8 - DMA1 Channel8 half transfer flag.
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE8 - DMA1 Channel8 transfer error flag.
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL1 - DMA2 Channel1 global flag.
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC1 - DMA2 Channel1 transfer complete flag.
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT1 - DMA2 Channel1 half transfer flag.
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE1 - DMA2 Channel1 transfer error flag.
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL2 - DMA2 Channel2 global flag.
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC2 - DMA2 Channel2 transfer complete flag.
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT2 - DMA2 Channel2 half transfer flag.
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE2 - DMA2 Channel2 transfer error flag.
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL3 - DMA2 Channel3 global flag.
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC3 - DMA2 Channel3 transfer complete flag.
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT3 - DMA2 Channel3 half transfer flag.
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE3 - DMA2 Channel3 transfer error flag.
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL4 - DMA2 Channel4 global flag.
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC4 - DMA2 Channel4 transfer complete flag.
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT4 - DMA2 Channel4 half transfer flag.
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE4 - DMA2 Channel4 transfer error flag.
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL5 - DMA2 Channel5 global flag.
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC5 - DMA2 Channel5 transfer complete flag.
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT5 - DMA2 Channel5 half transfer flag.
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE5 - DMA2 Channel5 transfer error flag.
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL6 - DMA2 Channel6 global flag.
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC6 - DMA2 Channel6 transfer complete flag.
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT6 - DMA2 Channel6 half transfer flag.
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE6 - DMA2 Channel6 transfer error flag.
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL7 - DMA2 Channel7 global flag.
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC7 - DMA2 Channel7 transfer complete flag.
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT7 - DMA2 Channel7 half transfer flag.
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE7 - DMA2 Channel7 transfer error flag.
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL8 - DMA2 Channel8 global flag.
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC8 - DMA2 Channel8 transfer complete flag.
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT8 - DMA2 Channel8 half transfer flag.
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE8 - DMA2 Channel8 transfer error flag.
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  The new state of DMAy_FLAG (SET or RESET).
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** FlagStatus DMA_GetFlagStatus(DMA_TypeDef* DMAx, uint32_t DMAy_FLAG)
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 462              		.loc 1 344 1 is_stmt 1
+ 463              		.cfi_startproc
+ 464              	.LVL14:
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     FlagStatus bitstatus = RESET;
+ 465              		.loc 1 345 5
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     uint32_t   tmpreg = 0;
+ 466              		.loc 1 346 5
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     tmpreg = DMAx->INTFR;
+ 467              		.loc 1 347 5
+ 468              		.loc 1 347 12 is_stmt 0
+ 469 0000 0841     		lw	a0,0(a0)
+ 470              	.LVL15:
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if((tmpreg & DMAy_FLAG) == DMAy_FLAG)
+ 471              		.loc 1 349 5 is_stmt 1
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         bitstatus = SET;
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         bitstatus = RESET;
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     return bitstatus;
+ 472              		.loc 1 358 5
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 473              		.loc 1 349 7 is_stmt 0
+ 474 0002 33F5A540 		andn	a0,a1,a0
+ 475              	.LVL16:
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 476              		.loc 1 359 1
+ 477 0006 13351500 		seqz	a0,a0
+ 478 000a 8280     		ret
+ 479              		.cfi_endproc
+ 480              	.LFE47:
+ 482              		.section	.text.DMA_ClearFlag,"ax",@progbits
+ 483              		.align	1
+ 484              		.globl	DMA_ClearFlag
+ 486              	DMA_ClearFlag:
+ 487              	.LFB48:
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_ClearFlag
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Clears the DMAy Channelx's pending flags.
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_FLAG - specifies the flag to check.
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL1 - DMA1 Channel1 global flag.
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC1 - DMA1 Channel1 transfer complete flag.
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT1 - DMA1 Channel1 half transfer flag.
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE1 - DMA1 Channel1 transfer error flag.
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL2 - DMA1 Channel2 global flag.
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC2 - DMA1 Channel2 transfer complete flag.
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT2 - DMA1 Channel2 half transfer flag.
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE2 - DMA1 Channel2 transfer error flag.
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL3 - DMA1 Channel3 global flag.
+ 376:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC3 - DMA1 Channel3 transfer complete flag.
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT3 - DMA1 Channel3 half transfer flag.
+ 378:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE3 - DMA1 Channel3 transfer error flag.
+ 379:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL4 - DMA1 Channel4 global flag.
+ 380:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC4 - DMA1 Channel4 transfer complete flag.
+ 381:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT4 - DMA1 Channel4 half transfer flag.
+ 382:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE4 - DMA1 Channel4 transfer error flag.
+ 383:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL5 - DMA1 Channel5 global flag.
+ 384:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC5 - DMA1 Channel5 transfer complete flag.
+ 385:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT5 - DMA1 Channel5 half transfer flag.
+ 386:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE5 - DMA1 Channel5 transfer error flag.
+ 387:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL6 - DMA1 Channel6 global flag.
+ 388:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC6 - DMA1 Channel6 transfer complete flag.
+ 389:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT6 - DMA1 Channel6 half transfer flag.
+ 390:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE6 - DMA1 Channel6 transfer error flag.
+ 391:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL7 - DMA1 Channel7 global flag.
+ 392:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC7 - DMA1 Channel7 transfer complete flag.
+ 393:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT7 - DMA1 Channel7 half transfer flag.
+ 394:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE7 - DMA1 Channel7 transfer error flag.
+ 395:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_GL8 - DMA1 Channel8 global flag.
+ 396:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TC8 - DMA1 Channel8 transfer complete flag.
+ 397:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_HT8 - DMA1 Channel8 half transfer flag.
+ 398:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_FLAG_TE8 - DMA1 Channel8 transfer error flag.
+ 399:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL1 - DMA2 Channel1 global flag.
+ 400:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC1 - DMA2 Channel1 transfer complete flag.
+ 401:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT1 - DMA2 Channel1 half transfer flag.
+ 402:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE1 - DMA2 Channel1 transfer error flag.
+ 403:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL2 - DMA2 Channel2 global flag.
+ 404:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC2 - DMA2 Channel2 transfer complete flag.
+ 405:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT2 - DMA2 Channel2 half transfer flag.
+ 406:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE2 - DMA2 Channel2 transfer error flag.
+ 407:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL3 - DMA2 Channel3 global flag.
+ 408:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC3 - DMA2 Channel3 transfer complete flag.
+ 409:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT3 - DMA2 Channel3 half transfer flag.
+ 410:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE3 - DMA2 Channel3 transfer error flag.
+ 411:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL4 - DMA2 Channel4 global flag.
+ 412:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC4 - DMA2 Channel4 transfer complete flag.
+ 413:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT4 - DMA2 Channel4 half transfer flag.
+ 414:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE4 - DMA2 Channel4 transfer error flag.
+ 415:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL5 - DMA2 Channel5 global flag.
+ 416:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC5 - DMA2 Channel5 transfer complete flag.
+ 417:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT5 - DMA2 Channel5 half transfer flag.
+ 418:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE5 - DMA2 Channel5 transfer error flag.
+ 419:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL6 - DMA2 Channel6 global flag.
+ 420:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC6 - DMA2 Channel6 transfer complete flag.
+ 421:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT6 - DMA2 Channel6 half transfer flag.
+ 422:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE6 - DMA2 Channel6 transfer error flag.
+ 423:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL7 - DMA2 Channel7 global flag.
+ 424:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC7 - DMA2 Channel7 transfer complete flag.
+ 425:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT7 - DMA2 Channel7 half transfer flag.
+ 426:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE7 - DMA2 Channel7 transfer error flag.
+ 427:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_GL8 - DMA2 Channel8 global flag.
+ 428:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TC8 - DMA2 Channel8 transfer complete flag.
+ 429:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_HT8 - DMA2 Channel8 half transfer flag.
+ 430:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_FLAG_TE8 - DMA2 Channel8 transfer error flag.
+ 431:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 432:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 433:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 434:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_ClearFlag(DMA_TypeDef* DMAx, uint32_t DMAy_FLAG)
+ 435:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 488              		.loc 1 435 1 is_stmt 1
+ 489              		.cfi_startproc
+ 490              	.LVL17:
+ 436:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAx->INTFCR = DMAy_FLAG;
+ 491              		.loc 1 436 5
+ 492              		.loc 1 436 18 is_stmt 0
+ 493 0000 4CC1     		sw	a1,4(a0)
+ 437:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 494              		.loc 1 437 1
+ 495 0002 8280     		ret
+ 496              		.cfi_endproc
+ 497              	.LFE48:
+ 499              		.section	.text.DMA_GetITStatus,"ax",@progbits
+ 500              		.align	1
+ 501              		.globl	DMA_GetITStatus
+ 503              	DMA_GetITStatus:
+ 504              	.LFB53:
+ 505              		.cfi_startproc
+ 438:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 439:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 440:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_GetITStatus
+ 441:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 442:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Checks whether the specified DMAy Channelx interrupt has
+ 443:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *        occurred or not.
+ 444:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 445:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_IT - specifies the DMAy interrupt source to check.
+ 446:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL1 - DMA1 Channel1 global flag.
+ 447:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC1 - DMA1 Channel1 transfer complete flag.
+ 448:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT1 - DMA1 Channel1 half transfer flag.
+ 449:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE1 - DMA1 Channel1 transfer error flag.
+ 450:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL2 - DMA1 Channel2 global flag.
+ 451:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC2 - DMA1 Channel2 transfer complete flag.
+ 452:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT2 - DMA1 Channel2 half transfer flag.
+ 453:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE2 - DMA1 Channel2 transfer error flag.
+ 454:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL3 - DMA1 Channel3 global flag.
+ 455:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC3 - DMA1 Channel3 transfer complete flag.
+ 456:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT3 - DMA1 Channel3 half transfer flag.
+ 457:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE3 - DMA1 Channel3 transfer error flag.
+ 458:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL4 - DMA1 Channel4 global flag.
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC4 - DMA1 Channel4 transfer complete flag.
+ 460:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT4 - DMA1 Channel4 half transfer flag.
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE4 - DMA1 Channel4 transfer error flag.
+ 462:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL5 - DMA1 Channel5 global flag.
+ 463:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC5 - DMA1 Channel5 transfer complete flag.
+ 464:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT5 - DMA1 Channel5 half transfer flag.
+ 465:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE5 - DMA1 Channel5 transfer error flag.
+ 466:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL6 - DMA1 Channel6 global flag.
+ 467:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC6 - DMA1 Channel6 transfer complete flag.
+ 468:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT6 - DMA1 Channel6 half transfer flag.
+ 469:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE6 - DMA1 Channel6 transfer error flag.
+ 470:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL7 - DMA1 Channel7 global flag.
+ 471:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC7 - DMA1 Channel7 transfer complete flag.
+ 472:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT7 - DMA1 Channel7 half transfer flag.
+ 473:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE7 - DMA1 Channel7 transfer error flag.
+ 474:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL8 - DMA1 Channel8 global flag.
+ 475:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC8 - DMA1 Channel8 transfer complete flag.
+ 476:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT8 - DMA1 Channel8 half transfer flag.
+ 477:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE8 - DMA1 Channel8 transfer error flag.
+ 478:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL1 - DMA2 Channel1 global flag.
+ 479:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC1 - DMA2 Channel1 transfer complete flag.
+ 480:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT1 - DMA2 Channel1 half transfer flag.
+ 481:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE1 - DMA2 Channel1 transfer error flag.
+ 482:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL2 - DMA2 Channel2 global flag.
+ 483:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC2 - DMA2 Channel2 transfer complete flag.
+ 484:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT2 - DMA2 Channel2 half transfer flag.
+ 485:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE2 - DMA2 Channel2 transfer error flag.
+ 486:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL3 - DMA2 Channel3 global flag.
+ 487:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC3 - DMA2 Channel3 transfer complete flag.
+ 488:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT3 - DMA2 Channel3 half transfer flag.
+ 489:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE3 - DMA2 Channel3 transfer error flag.
+ 490:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL4 - DMA2 Channel4 global flag.
+ 491:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC4 - DMA2 Channel4 transfer complete flag.
+ 492:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT4 - DMA2 Channel4 half transfer flag.
+ 493:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE4 - DMA2 Channel4 transfer error flag.
+ 494:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL5 - DMA2 Channel5 global flag.
+ 495:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC5 - DMA2 Channel5 transfer complete flag.
+ 496:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT5 - DMA2 Channel5 half transfer flag.
+ 497:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE5 - DMA2 Channel5 transfer error flag.
+ 498:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL6 - DMA2 Channel6 global flag.
+ 499:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC6 - DMA2 Channel6 transfer complete flag.
+ 500:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT6 - DMA2 Channel6 half transfer flag.
+ 501:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE6 - DMA2 Channel6 transfer error flag.
+ 502:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL7 - DMA2 Channel7 global flag.
+ 503:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC7 - DMA2 Channel7 transfer complete flag.
+ 504:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT7 - DMA2 Channel7 half transfer flag.
+ 505:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE7 - DMA2 Channel7 transfer error flag.
+ 506:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL8 - DMA2 Channel8 global flag.
+ 507:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC8 - DMA2 Channel8 transfer complete flag.
+ 508:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT8 - DMA2 Channel8 half transfer flag.
+ 509:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE8 - DMA2 Channel8 transfer error flag.
+ 510:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 511:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  The new state of DMAy_IT (SET or RESET).
+ 512:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 513:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** ITStatus DMA_GetITStatus(DMA_TypeDef* DMAx, uint32_t DMAy_IT)
+ 506              		.loc 1 513 10 is_stmt 1
+ 507 0000 0841     		lw	a0,0(a0)
+ 508 0002 33F5A540 		andn	a0,a1,a0
+ 509 0006 13351500 		seqz	a0,a0
+ 510 000a 8280     		ret
+ 511              		.cfi_endproc
+ 512              	.LFE53:
+ 514              		.section	.text.DMA_ClearITPendingBit,"ax",@progbits
+ 515              		.align	1
+ 516              		.globl	DMA_ClearITPendingBit
+ 518              	DMA_ClearITPendingBit:
+ 519              	.LFB55:
+ 520              		.cfi_startproc
+ 514:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 515:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     ITStatus bitstatus = RESET;
+ 516:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     uint32_t   tmpreg = 0;
+ 517:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     tmpreg = DMAx->INTFR;
+ 518:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 519:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if((tmpreg & DMAy_IT) == DMAy_IT)
+ 520:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 521:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         bitstatus = SET;
+ 522:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 523:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else
+ 524:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 525:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         bitstatus = RESET;
+ 526:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 527:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 528:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     return bitstatus;
+ 529:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 530:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 531:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 532:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_ClearITPendingBit
+ 533:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 534:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Clears the DMAy Channelx's interrupt pending bits.
+ 535:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 536:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMAy_IT - specifies the DMAy interrupt source to check.
+ 537:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL1 - DMA1 Channel1 global flag.
+ 538:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC1 - DMA1 Channel1 transfer complete flag.
+ 539:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT1 - DMA1 Channel1 half transfer flag.
+ 540:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE1 - DMA1 Channel1 transfer error flag.
+ 541:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL2 - DMA1 Channel2 global flag.
+ 542:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC2 - DMA1 Channel2 transfer complete flag.
+ 543:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT2 - DMA1 Channel2 half transfer flag.
+ 544:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE2 - DMA1 Channel2 transfer error flag.
+ 545:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL3 - DMA1 Channel3 global flag.
+ 546:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC3 - DMA1 Channel3 transfer complete flag.
+ 547:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT3 - DMA1 Channel3 half transfer flag.
+ 548:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE3 - DMA1 Channel3 transfer error flag.
+ 549:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL4 - DMA1 Channel4 global flag.
+ 550:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC4 - DMA1 Channel4 transfer complete flag.
+ 551:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT4 - DMA1 Channel4 half transfer flag.
+ 552:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE4 - DMA1 Channel4 transfer error flag.
+ 553:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL5 - DMA1 Channel5 global flag.
+ 554:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC5 - DMA1 Channel5 transfer complete flag.
+ 555:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT5 - DMA1 Channel5 half transfer flag.
+ 556:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE5 - DMA1 Channel5 transfer error flag.
+ 557:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL6 - DMA1 Channel6 global flag.
+ 558:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC6 - DMA1 Channel6 transfer complete flag.
+ 559:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT6 - DMA1 Channel6 half transfer flag.
+ 560:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE6 - DMA1 Channel6 transfer error flag.
+ 561:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL7 - DMA1 Channel7 global flag.
+ 562:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC7 - DMA1 Channel7 transfer complete flag.
+ 563:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT7 - DMA1 Channel7 half transfer flag.
+ 564:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE7 - DMA1 Channel7 transfer error flag.
+ 565:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_GL8 - DMA1 Channel8 global flag.
+ 566:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TC8 - DMA1 Channel8 transfer complete flag.
+ 567:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_HT8 - DMA1 Channel8 half transfer flag.
+ 568:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA1_IT_TE8 - DMA1 Channel8 transfer error flag.
+ 569:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL1 - DMA2 Channel1 global flag.
+ 570:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC1 - DMA2 Channel1 transfer complete flag.
+ 571:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT1 - DMA2 Channel1 half transfer flag.
+ 572:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE1 - DMA2 Channel1 transfer error flag.
+ 573:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL2 - DMA2 Channel2 global flag.
+ 574:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC2 - DMA2 Channel2 transfer complete flag.
+ 575:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT2 - DMA2 Channel2 half transfer flag.
+ 576:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE2 - DMA2 Channel2 transfer error flag.
+ 577:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL3 - DMA2 Channel3 global flag.
+ 578:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC3 - DMA2 Channel3 transfer complete flag.
+ 579:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT3 - DMA2 Channel3 half transfer flag.
+ 580:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE3 - DMA2 Channel3 transfer error flag.
+ 581:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL4 - DMA2 Channel4 global flag.
+ 582:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC4 - DMA2 Channel4 transfer complete flag.
+ 583:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT4 - DMA2 Channel4 half transfer flag.
+ 584:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE4 - DMA2 Channel4 transfer error flag.
+ 585:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL5 - DMA2 Channel5 global flag.
+ 586:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC5 - DMA2 Channel5 transfer complete flag.
+ 587:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT5 - DMA2 Channel5 half transfer flag.
+ 588:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE5 - DMA2 Channel5 transfer error flag.
+ 589:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL6 - DMA2 Channel6 global flag.
+ 590:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC6 - DMA2 Channel6 transfer complete flag.
+ 591:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT6 - DMA2 Channel6 half transfer flag.
+ 592:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE6 - DMA2 Channel6 transfer error flag.
+ 593:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL7 - DMA2 Channel7 global flag.
+ 594:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC7 - DMA2 Channel7 transfer complete flag.
+ 595:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT7 - DMA2 Channel7 half transfer flag.
+ 596:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE7 - DMA2 Channel7 transfer error flag.
+ 597:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_GL8 - DMA2 Channel8 global flag.
+ 598:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TC8 - DMA2 Channel8 transfer complete flag.
+ 599:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_HT8 - DMA2 Channel8 half transfer flag.
+ 600:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *            DMA2_IT_TE8 - DMA2 Channel8 transfer error flag.
+ 601:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 602:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none
+ 603:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 604:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_ClearITPendingBit(DMA_TypeDef* DMAx, uint32_t DMAy_IT)
+ 521              		.loc 1 604 6
+ 522 0000 4CC1     		sw	a1,4(a0)
+ 523 0002 8280     		ret
+ 524              		.cfi_endproc
+ 525              	.LFE55:
+ 527              		.section	.text.DMA_MuxChannelConfig,"ax",@progbits
+ 528              		.align	1
+ 529              		.globl	DMA_MuxChannelConfig
+ 531              	DMA_MuxChannelConfig:
+ 532              	.LFB51:
+ 605:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 606:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     DMAx->INTFCR = DMAy_IT;
+ 607:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** }
+ 608:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** 
+ 609:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** /*********************************************************************
+ 610:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @fn      DMA_MuxChannelConfig
+ 611:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 612:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @brief   Configures the DMA input channel.
+ 613:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 614:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @param   DMA_MuxChannelx - where x from 1 to 16 to select the Mux Channel.
+ 615:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *          DMA_Requestx -  DMA request input.
+ 616:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *                    This parameter must be a number between 1 and 0x7B.
+ 617:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  *
+ 618:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  * @return  none.
+ 619:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****  */
+ 620:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** void DMA_MuxChannelConfig(uint8_t DMA_MuxChannelx, uint32_t DMA_Requestx)
+ 621:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** {
+ 533              		.loc 1 621 1
+ 534              		.cfi_startproc
+ 535              	.LVL18:
+ 622:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     if(DMA_MuxChannelx <= 3)
+ 536              		.loc 1 622 5
+ 537              		.loc 1 622 7 is_stmt 0
+ 538 0000 8D47     		li	a5,3
+ 539 0002 63E6A702 		bgtu	a0,a5,.L44
+ 623:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 624:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR0_3 &= ~(0x7F << (DMA_MuxChannelx * 8));
+ 540              		.loc 1 624 9 is_stmt 1
+ 541              		.loc 1 624 15 is_stmt 0
+ 542 0006 B7170240 		li	a5,1073876992
+ 543 000a 93870780 		addi	a5,a5,-2048
+ 544 000e 9443     		lw	a3,0(a5)
+ 545              		.loc 1 624 55
+ 546 0010 0E05     		slli	a0,a0,3
+ 547              	.LVL19:
+ 548              		.loc 1 624 35
+ 549 0012 1307F007 		li	a4,127
+ 550 0016 3317A700 		sll	a4,a4,a0
+ 551              		.loc 1 624 25
+ 552 001a 33F7E640 		andn	a4,a3,a4
+ 553 001e 98C3     		sw	a4,0(a5)
+ 625:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR0_3 |= ((DMA_Requestx-1) << (DMA_MuxChannelx * 8));
+ 554              		.loc 1 625 9 is_stmt 1
+ 555              		.loc 1 625 15 is_stmt 0
+ 556 0020 9843     		lw	a4,0(a5)
+ 557              		.loc 1 625 42
+ 558 0022 FD15     		addi	a1,a1,-1
+ 559              	.LVL20:
+ 560              		.loc 1 625 46
+ 561 0024 B395A500 		sll	a1,a1,a0
+ 562              	.LVL21:
+ 563              		.loc 1 625 25
+ 564 0028 D98D     		or	a1,a1,a4
+ 565 002a 8CC3     		sw	a1,0(a5)
+ 566 002c 8280     		ret
+ 567              	.LVL22:
+ 568              	.L44:
+ 626:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 627:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if((DMA_MuxChannelx >= 4) && (DMA_MuxChannelx <= 7))
+ 569              		.loc 1 627 10 is_stmt 1
+ 570              		.loc 1 627 36 is_stmt 0
+ 571 002e 1307C5FF 		addi	a4,a0,-4
+ 572              		.loc 1 627 12
+ 573 0032 9376F70F 		andi	a3,a4,0xff
+ 574 0036 63E6D702 		bgtu	a3,a5,.L46
+ 628:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 629:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR4_7 &= ~(0x7F << ((DMA_MuxChannelx - 4) * 8));
+ 575              		.loc 1 629 9 is_stmt 1
+ 576              		.loc 1 629 15 is_stmt 0
+ 577 003a B7170240 		li	a5,1073876992
+ 578 003e 93870780 		addi	a5,a5,-2048
+ 579 0042 D043     		lw	a2,4(a5)
+ 580              		.loc 1 629 61
+ 581 0044 0E07     		slli	a4,a4,3
+ 582              		.loc 1 629 35
+ 583 0046 9306F007 		li	a3,127
+ 584 004a B396E600 		sll	a3,a3,a4
+ 585              		.loc 1 629 25
+ 586 004e B376D640 		andn	a3,a2,a3
+ 587 0052 D4C3     		sw	a3,4(a5)
+ 630:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR4_7 |= ((DMA_Requestx-1) << ((DMA_MuxChannelx - 4) * 8));
+ 588              		.loc 1 630 9 is_stmt 1
+ 589              		.loc 1 630 15 is_stmt 0
+ 590 0054 D443     		lw	a3,4(a5)
+ 591              		.loc 1 630 42
+ 592 0056 FD15     		addi	a1,a1,-1
+ 593              	.LVL23:
+ 594              		.loc 1 630 46
+ 595 0058 B395E500 		sll	a1,a1,a4
+ 596              	.LVL24:
+ 597              		.loc 1 630 25
+ 598 005c D58D     		or	a1,a1,a3
+ 599 005e CCC3     		sw	a1,4(a5)
+ 600 0060 8280     		ret
+ 601              	.LVL25:
+ 602              	.L46:
+ 631:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 632:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if((DMA_MuxChannelx >= 8) && (DMA_MuxChannelx <= 11))
+ 603              		.loc 1 632 10 is_stmt 1
+ 604              		.loc 1 632 36 is_stmt 0
+ 605 0062 130785FF 		addi	a4,a0,-8
+ 606              		.loc 1 632 12
+ 607 0066 9376F70F 		andi	a3,a4,0xff
+ 608 006a 63E6D702 		bgtu	a3,a5,.L47
+ 633:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 634:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR8_11 &= ~(0x7F << ((DMA_MuxChannelx - 8) * 8));        
+ 609              		.loc 1 634 9 is_stmt 1
+ 610              		.loc 1 634 15 is_stmt 0
+ 611 006e B7170240 		li	a5,1073876992
+ 612 0072 93870780 		addi	a5,a5,-2048
+ 613 0076 9047     		lw	a2,8(a5)
+ 614              		.loc 1 634 62
+ 615 0078 0E07     		slli	a4,a4,3
+ 616              		.loc 1 634 36
+ 617 007a 9306F007 		li	a3,127
+ 618 007e B396E600 		sll	a3,a3,a4
+ 619              		.loc 1 634 26
+ 620 0082 B376D640 		andn	a3,a2,a3
+ 621 0086 94C7     		sw	a3,8(a5)
+ 635:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR8_11 |= ((DMA_Requestx-1) << ((DMA_MuxChannelx - 8) * 8));
+ 622              		.loc 1 635 9 is_stmt 1
+ 623              		.loc 1 635 15 is_stmt 0
+ 624 0088 9447     		lw	a3,8(a5)
+ 625              		.loc 1 635 43
+ 626 008a FD15     		addi	a1,a1,-1
+ 627              	.LVL26:
+ 628              		.loc 1 635 47
+ 629 008c B395E500 		sll	a1,a1,a4
+ 630              	.LVL27:
+ 631              		.loc 1 635 26
+ 632 0090 D58D     		or	a1,a1,a3
+ 633 0092 8CC7     		sw	a1,8(a5)
+ 634 0094 8280     		ret
+ 635              	.LVL28:
+ 636              	.L47:
+ 636:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 637:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     else if((DMA_MuxChannelx >= 12) && (DMA_MuxChannelx <= 15))
+ 637              		.loc 1 637 10 is_stmt 1
+ 638              		.loc 1 637 37 is_stmt 0
+ 639 0096 5115     		addi	a0,a0,-12
+ 640              	.LVL29:
+ 641              		.loc 1 637 12
+ 642 0098 1377F50F 		andi	a4,a0,0xff
+ 643 009c 63E5E702 		bgtu	a4,a5,.L43
+ 638:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     {
+ 639:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR12_15 &= ~(0x7F << ((DMA_MuxChannelx - 12) * 8));
+ 644              		.loc 1 639 9 is_stmt 1
+ 645              		.loc 1 639 15 is_stmt 0
+ 646 00a0 B7170240 		li	a5,1073876992
+ 647 00a4 93870780 		addi	a5,a5,-2048
+ 648 00a8 D447     		lw	a3,12(a5)
+ 649              		.loc 1 639 64
+ 650 00aa 0E05     		slli	a0,a0,3
+ 651              		.loc 1 639 37
+ 652 00ac 1307F007 		li	a4,127
+ 653 00b0 3317A700 		sll	a4,a4,a0
+ 654              		.loc 1 639 27
+ 655 00b4 33F7E640 		andn	a4,a3,a4
+ 656 00b8 D8C7     		sw	a4,12(a5)
+ 640:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****         DMAMUX->CFGR12_15 |= ((DMA_Requestx-1) << ((DMA_MuxChannelx - 12) * 8));
+ 657              		.loc 1 640 9 is_stmt 1
+ 658              		.loc 1 640 15 is_stmt 0
+ 659 00ba D847     		lw	a4,12(a5)
+ 660              		.loc 1 640 44
+ 661 00bc FD15     		addi	a1,a1,-1
+ 662              	.LVL30:
+ 663              		.loc 1 640 48
+ 664 00be B395A500 		sll	a1,a1,a0
+ 665              	.LVL31:
+ 666              		.loc 1 640 27
+ 667 00c2 D98D     		or	a1,a1,a4
+ 668 00c4 CCC7     		sw	a1,12(a5)
+ 669              	.L43:
+ 641:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c ****     }
+ 642:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dma.c **** } 
+ 670              		.loc 1 642 1
+ 671 00c6 8280     		ret
+ 672              		.cfi_endproc
+ 673              	.LFE51:
+ 675              		.text
+ 676              	.Letext0:
+ 677              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 678              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 679              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 680              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 681              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_dma.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_dma.c
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:14     .text.DMA_DeInit:0000000000000000 DMA_DeInit
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:18     .text.DMA_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:20     .text.DMA_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:21     .text.DMA_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:22     .text.DMA_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:22     .text.DMA_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:24     .text.DMA_DeInit:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:29     .text.DMA_DeInit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:30     .text.DMA_DeInit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:32     .text.DMA_DeInit:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:33     .text.DMA_DeInit:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:35     .text.DMA_DeInit:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:36     .text.DMA_DeInit:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:38     .text.DMA_DeInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:39     .text.DMA_DeInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:41     .text.DMA_DeInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:42     .text.DMA_DeInit:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:44     .text.DMA_DeInit:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:46     .text.DMA_DeInit:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:47     .text.DMA_DeInit:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:51     .text.DMA_DeInit:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:53     .text.DMA_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:56     .text.DMA_DeInit:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:59     .text.DMA_DeInit:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:62     .text.DMA_DeInit:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:63     .text.DMA_DeInit:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:67     .text.DMA_DeInit:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:69     .text.DMA_DeInit:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:73     .text.DMA_DeInit:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:74     .text.DMA_DeInit:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:78     .text.DMA_DeInit:000000000000004c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:80     .text.DMA_DeInit:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:84     .text.DMA_DeInit:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:88     .text.DMA_DeInit:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:89     .text.DMA_DeInit:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:93     .text.DMA_DeInit:0000000000000060 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:95     .text.DMA_DeInit:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:99     .text.DMA_DeInit:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:100    .text.DMA_DeInit:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:104    .text.DMA_DeInit:000000000000006e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:106    .text.DMA_DeInit:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:110    .text.DMA_DeInit:0000000000000076 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:111    .text.DMA_DeInit:0000000000000076 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:115    .text.DMA_DeInit:000000000000007e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:117    .text.DMA_DeInit:0000000000000080 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:121    .text.DMA_DeInit:0000000000000086 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:122    .text.DMA_DeInit:0000000000000086 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:126    .text.DMA_DeInit:000000000000008e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:128    .text.DMA_DeInit:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:132    .text.DMA_DeInit:0000000000000096 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:133    .text.DMA_DeInit:0000000000000096 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:137    .text.DMA_DeInit:000000000000009e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:139    .text.DMA_DeInit:00000000000000a0 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:143    .text.DMA_DeInit:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:144    .text.DMA_DeInit:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:147    .text.DMA_DeInit:00000000000000ae .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:148    .text.DMA_DeInit:00000000000000ae .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:152    .text.DMA_DeInit:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:153    .text.DMA_DeInit:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:156    .text.DMA_DeInit:00000000000000bc .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:157    .text.DMA_DeInit:00000000000000bc .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:162    .text.DMA_DeInit:00000000000000c6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:163    .text.DMA_DeInit:00000000000000c6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:167    .text.DMA_DeInit:00000000000000d2 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:168    .text.DMA_DeInit:00000000000000d2 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:172    .text.DMA_DeInit:00000000000000d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:173    .text.DMA_DeInit:00000000000000d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:176    .text.DMA_DeInit:00000000000000e0 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:177    .text.DMA_DeInit:00000000000000e0 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:181    .text.DMA_DeInit:00000000000000e6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:182    .text.DMA_DeInit:00000000000000e6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:185    .text.DMA_DeInit:00000000000000ee .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:186    .text.DMA_DeInit:00000000000000ee .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:190    .text.DMA_DeInit:00000000000000f4 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:191    .text.DMA_DeInit:00000000000000f4 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:194    .text.DMA_DeInit:00000000000000fc .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:195    .text.DMA_DeInit:00000000000000fc .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:199    .text.DMA_DeInit:0000000000000102 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:200    .text.DMA_DeInit:0000000000000102 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:203    .text.DMA_DeInit:000000000000010a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:204    .text.DMA_DeInit:000000000000010a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:208    .text.DMA_DeInit:0000000000000110 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:209    .text.DMA_DeInit:0000000000000110 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:212    .text.DMA_DeInit:0000000000000118 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:213    .text.DMA_DeInit:0000000000000118 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:215    .text.DMA_DeInit:000000000000011e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:222    .text.DMA_Init:0000000000000000 DMA_Init
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:225    .text.DMA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:227    .text.DMA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:228    .text.DMA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:229    .text.DMA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:230    .text.DMA_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:230    .text.DMA_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:233    .text.DMA_Init:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:234    .text.DMA_Init:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:237    .text.DMA_Init:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:239    .text.DMA_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:242    .text.DMA_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:243    .text.DMA_Init:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:246    .text.DMA_Init:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:249    .text.DMA_Init:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:252    .text.DMA_Init:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:255    .text.DMA_Init:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:258    .text.DMA_Init:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:261    .text.DMA_Init:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:264    .text.DMA_Init:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:267    .text.DMA_Init:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:270    .text.DMA_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:273    .text.DMA_Init:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:274    .text.DMA_Init:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:276    .text.DMA_Init:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:277    .text.DMA_Init:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:280    .text.DMA_Init:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:283    .text.DMA_Init:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:284    .text.DMA_Init:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:286    .text.DMA_Init:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:288    .text.DMA_Init:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:289    .text.DMA_Init:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:291    .text.DMA_Init:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:293    .text.DMA_Init:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:294    .text.DMA_Init:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:296    .text.DMA_Init:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:298    .text.DMA_Init:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:299    .text.DMA_Init:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:306    .text.DMA_StructInit:0000000000000000 DMA_StructInit
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:309    .text.DMA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:311    .text.DMA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:312    .text.DMA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:313    .text.DMA_StructInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:313    .text.DMA_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:315    .text.DMA_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:316    .text.DMA_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:318    .text.DMA_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:319    .text.DMA_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:321    .text.DMA_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:322    .text.DMA_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:324    .text.DMA_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:325    .text.DMA_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:327    .text.DMA_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:328    .text.DMA_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:330    .text.DMA_StructInit:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:331    .text.DMA_StructInit:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:333    .text.DMA_StructInit:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:334    .text.DMA_StructInit:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:336    .text.DMA_StructInit:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:337    .text.DMA_StructInit:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:339    .text.DMA_StructInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:340    .text.DMA_StructInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:342    .text.DMA_StructInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:343    .text.DMA_StructInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:345    .text.DMA_StructInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:346    .text.DMA_StructInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:348    .text.DMA_StructInit:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:349    .text.DMA_StructInit:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:351    .text.DMA_StructInit:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:352    .text.DMA_StructInit:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:354    .text.DMA_StructInit:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:355    .text.DMA_StructInit:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:362    .text.DMA_Cmd:0000000000000000 DMA_Cmd
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:365    .text.DMA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:367    .text.DMA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:368    .text.DMA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:369    .text.DMA_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:369    .text.DMA_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:371    .text.DMA_Cmd:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:373    .text.DMA_Cmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:374    .text.DMA_Cmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:377    .text.DMA_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:379    .text.DMA_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:382    .text.DMA_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:383    .text.DMA_Cmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:387    .text.DMA_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:394    .text.DMA_ITConfig:0000000000000000 DMA_ITConfig
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:397    .text.DMA_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:399    .text.DMA_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:400    .text.DMA_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:401    .text.DMA_ITConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:401    .text.DMA_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:403    .text.DMA_ITConfig:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:405    .text.DMA_ITConfig:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:406    .text.DMA_ITConfig:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:411    .text.DMA_ITConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:412    .text.DMA_ITConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:416    .text.DMA_ITConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:417    .text.DMA_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:424    .text.DMA_SetCurrDataCounter:0000000000000000 DMA_SetCurrDataCounter
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:427    .text.DMA_SetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:429    .text.DMA_SetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:430    .text.DMA_SetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:431    .text.DMA_SetCurrDataCounter:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:431    .text.DMA_SetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:433    .text.DMA_SetCurrDataCounter:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:434    .text.DMA_SetCurrDataCounter:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:441    .text.DMA_GetCurrDataCounter:0000000000000000 DMA_GetCurrDataCounter
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:444    .text.DMA_GetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:446    .text.DMA_GetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:447    .text.DMA_GetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:448    .text.DMA_GetCurrDataCounter:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:448    .text.DMA_GetCurrDataCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:451    .text.DMA_GetCurrDataCounter:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:453    .text.DMA_GetCurrDataCounter:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:460    .text.DMA_GetFlagStatus:0000000000000000 DMA_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:463    .text.DMA_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:465    .text.DMA_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:466    .text.DMA_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:467    .text.DMA_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:468    .text.DMA_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:469    .text.DMA_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:469    .text.DMA_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:472    .text.DMA_GetFlagStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:473    .text.DMA_GetFlagStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:474    .text.DMA_GetFlagStatus:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:477    .text.DMA_GetFlagStatus:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:479    .text.DMA_GetFlagStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:486    .text.DMA_ClearFlag:0000000000000000 DMA_ClearFlag
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:489    .text.DMA_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:491    .text.DMA_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:492    .text.DMA_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:493    .text.DMA_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:493    .text.DMA_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:495    .text.DMA_ClearFlag:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:496    .text.DMA_ClearFlag:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:503    .text.DMA_GetITStatus:0000000000000000 DMA_GetITStatus
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:505    .text.DMA_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:507    .text.DMA_GetITStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:507    .text.DMA_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:511    .text.DMA_GetITStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:518    .text.DMA_ClearITPendingBit:0000000000000000 DMA_ClearITPendingBit
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:520    .text.DMA_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:522    .text.DMA_ClearITPendingBit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:522    .text.DMA_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:524    .text.DMA_ClearITPendingBit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:531    .text.DMA_MuxChannelConfig:0000000000000000 DMA_MuxChannelConfig
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:534    .text.DMA_MuxChannelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:536    .text.DMA_MuxChannelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:537    .text.DMA_MuxChannelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:538    .text.DMA_MuxChannelConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:538    .text.DMA_MuxChannelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:541    .text.DMA_MuxChannelConfig:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:542    .text.DMA_MuxChannelConfig:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:546    .text.DMA_MuxChannelConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:549    .text.DMA_MuxChannelConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:552    .text.DMA_MuxChannelConfig:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:555    .text.DMA_MuxChannelConfig:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:556    .text.DMA_MuxChannelConfig:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:558    .text.DMA_MuxChannelConfig:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:561    .text.DMA_MuxChannelConfig:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:564    .text.DMA_MuxChannelConfig:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:570    .text.DMA_MuxChannelConfig:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:571    .text.DMA_MuxChannelConfig:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:573    .text.DMA_MuxChannelConfig:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:576    .text.DMA_MuxChannelConfig:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:577    .text.DMA_MuxChannelConfig:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:581    .text.DMA_MuxChannelConfig:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:583    .text.DMA_MuxChannelConfig:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:586    .text.DMA_MuxChannelConfig:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:589    .text.DMA_MuxChannelConfig:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:590    .text.DMA_MuxChannelConfig:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:592    .text.DMA_MuxChannelConfig:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:595    .text.DMA_MuxChannelConfig:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:598    .text.DMA_MuxChannelConfig:000000000000005c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:604    .text.DMA_MuxChannelConfig:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:605    .text.DMA_MuxChannelConfig:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:607    .text.DMA_MuxChannelConfig:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:610    .text.DMA_MuxChannelConfig:000000000000006e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:611    .text.DMA_MuxChannelConfig:000000000000006e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:615    .text.DMA_MuxChannelConfig:0000000000000078 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:617    .text.DMA_MuxChannelConfig:000000000000007a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:620    .text.DMA_MuxChannelConfig:0000000000000082 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:623    .text.DMA_MuxChannelConfig:0000000000000088 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:624    .text.DMA_MuxChannelConfig:0000000000000088 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:626    .text.DMA_MuxChannelConfig:000000000000008a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:629    .text.DMA_MuxChannelConfig:000000000000008c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:632    .text.DMA_MuxChannelConfig:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:638    .text.DMA_MuxChannelConfig:0000000000000096 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:639    .text.DMA_MuxChannelConfig:0000000000000096 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:642    .text.DMA_MuxChannelConfig:0000000000000098 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:645    .text.DMA_MuxChannelConfig:00000000000000a0 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:646    .text.DMA_MuxChannelConfig:00000000000000a0 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:650    .text.DMA_MuxChannelConfig:00000000000000aa .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:652    .text.DMA_MuxChannelConfig:00000000000000ac .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:655    .text.DMA_MuxChannelConfig:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:658    .text.DMA_MuxChannelConfig:00000000000000ba .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:659    .text.DMA_MuxChannelConfig:00000000000000ba .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:661    .text.DMA_MuxChannelConfig:00000000000000bc .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:664    .text.DMA_MuxChannelConfig:00000000000000be .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:667    .text.DMA_MuxChannelConfig:00000000000000c2 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:671    .text.DMA_MuxChannelConfig:00000000000000c6 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:672    .text.DMA_MuxChannelConfig:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000000a5 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000000f7 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:000000000000013b .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000001c5 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:000000000000024b .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:0000000000000285 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000002c9 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000002d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000002e7 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:00000000000002f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:0000000000000302 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:000000000000030f .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2344   .debug_line_str:000000000000031a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:218    .text.DMA_DeInit:000000000000011e .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:302    .text.DMA_Init:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:358    .text.DMA_StructInit:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:390    .text.DMA_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:420    .text.DMA_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:437    .text.DMA_SetCurrDataCounter:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:456    .text.DMA_GetCurrDataCounter:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:482    .text.DMA_GetFlagStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:499    .text.DMA_ClearFlag:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:514    .text.DMA_GetITStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:527    .text.DMA_ClearITPendingBit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:675    .text.DMA_MuxChannelConfig:00000000000000c8 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:60     .text.DMA_DeInit:0000000000000034 .L2
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:71     .text.DMA_DeInit:0000000000000044 .L4
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:54     .text.DMA_DeInit:0000000000000030 .L18
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:86     .text.DMA_DeInit:0000000000000058 .L5
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:97     .text.DMA_DeInit:0000000000000066 .L6
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:82     .text.DMA_DeInit:0000000000000054 .L19
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:108    .text.DMA_DeInit:0000000000000076 .L7
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:119    .text.DMA_DeInit:0000000000000086 .L8
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:130    .text.DMA_DeInit:0000000000000096 .L9
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:141    .text.DMA_DeInit:00000000000000a6 .L10
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:150    .text.DMA_DeInit:00000000000000b4 .L11
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:49     .text.DMA_DeInit:000000000000002a .L26
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:160    .text.DMA_DeInit:00000000000000c6 .L12
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:65     .text.DMA_DeInit:000000000000003c .L27
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:170    .text.DMA_DeInit:00000000000000d8 .L13
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:76     .text.DMA_DeInit:000000000000004c .L22
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:179    .text.DMA_DeInit:00000000000000e6 .L14
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:91     .text.DMA_DeInit:0000000000000060 .L23
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:188    .text.DMA_DeInit:00000000000000f4 .L15
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:102    .text.DMA_DeInit:000000000000006e .L24
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:197    .text.DMA_DeInit:0000000000000102 .L16
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:113    .text.DMA_DeInit:000000000000007e .L25
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:206    .text.DMA_DeInit:0000000000000110 .L17
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:124    .text.DMA_DeInit:000000000000008e .L21
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:57     .text.DMA_DeInit:0000000000000032 .L1
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:135    .text.DMA_DeInit:000000000000009e .L20
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:380    .text.DMA_Cmd:000000000000000c .L31
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:375    .text.DMA_Cmd:0000000000000008 .L33
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:409    .text.DMA_ITConfig:000000000000000a .L35
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:568    .text.DMA_MuxChannelConfig:000000000000002e .L44
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:602    .text.DMA_MuxChannelConfig:0000000000000062 .L46
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:636    .text.DMA_MuxChannelConfig:0000000000000096 .L47
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:669    .text.DMA_MuxChannelConfig:00000000000000c6 .L43
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:1299   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2243   .debug_str:000000000000014a .LASF74
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2342   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2340   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2145   .debug_rnglists:000000000000000c .LLRL8
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2185   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2273   .debug_str:00000000000002da .LASF2
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2263   .debug_str:0000000000000292 .LASF3
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2241   .debug_str:0000000000000140 .LASF6
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2255   .debug_str:000000000000026e .LASF4
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2207   .debug_str:0000000000000071 .LASF5
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2203   .debug_str:0000000000000061 .LASF7
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2283   .debug_str:0000000000000304 .LASF8
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2235   .debug_str:0000000000000125 .LASF9
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2201   .debug_str:0000000000000056 .LASF10
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2301   .debug_str:0000000000000392 .LASF11
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2227   .debug_str:00000000000000f3 .LASF12
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2265   .debug_str:000000000000029e .LASF13
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2213   .debug_str:0000000000000095 .LASF14
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2277   .debug_str:00000000000002ee .LASF15
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2269   .debug_str:00000000000002bc .LASF16
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2223   .debug_str:00000000000000d4 .LASF17
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2335   .debug_str:000000000000047f .LASF18
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2193   .debug_str:0000000000000018 .LASF19
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2313   .debug_str:00000000000003ea .LASF20
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2333   .debug_str:0000000000000474 .LASF21
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2233   .debug_str:000000000000011c .LASF22
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2279   .debug_str:00000000000002f7 .LASF23
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2303   .debug_str:00000000000003a4 .LASF24
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2309   .debug_str:00000000000003d9 .LASF25
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2261   .debug_str:000000000000028c .LASF26
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2245   .debug_str:000000000000022f .LASF27
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2285   .debug_str:0000000000000317 .LASF28
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2257   .debug_str:000000000000027c .LASF29
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2275   .debug_str:00000000000002e7 .LASF30
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2209   .debug_str:000000000000007b .LASF31
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2191   .debug_str:0000000000000010 .LASF32
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2281   .debug_str:00000000000002fc .LASF33
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2237   .debug_str:000000000000012e .LASF34
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2259   .debug_str:0000000000000282 .LASF35
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2291   .debug_str:000000000000033e .LASF36
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2287   .debug_str:000000000000032b .LASF37
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2221   .debug_str:00000000000000bd .LASF38
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2315   .debug_str:00000000000003f0 .LASF39
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2331   .debug_str:000000000000046c .LASF40
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2317   .debug_str:0000000000000404 .LASF41
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2197   .debug_str:0000000000000035 .LASF42
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2299   .debug_str:0000000000000384 .LASF43
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2251   .debug_str:0000000000000247 .LASF44
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2307   .debug_str:00000000000003c6 .LASF45
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2323   .debug_str:000000000000042f .LASF46
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2195   .debug_str:0000000000000028 .LASF47
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2189   .debug_str:0000000000000008 .LASF48
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2293   .debug_str:000000000000034d .LASF49
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2321   .debug_str:000000000000041b .LASF50
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2305   .debug_str:00000000000003a9 .LASF51
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2253   .debug_str:000000000000025e .LASF52
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2271   .debug_str:00000000000002c5 .LASF63
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:532    .text.DMA_MuxChannelConfig:0000000000000000 .LFB51
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:673    .text.DMA_MuxChannelConfig:00000000000000c8 .LFE51
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2229   .debug_str:0000000000000101 .LASF53
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:1840   .debug_loclists:000000000000000c .LLST6
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2215   .debug_str:000000000000009d .LASF54
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:1868   .debug_loclists:000000000000003f .LLST7
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2295   .debug_str:000000000000035c .LASF75
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2205   .debug_str:000000000000006c .LASF55
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2319   .debug_str:0000000000000413 .LASF56
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2329   .debug_str:000000000000045c .LASF59
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2249   .debug_str:000000000000023d .LASF57
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2247   .debug_str:0000000000000236 .LASF58
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2211   .debug_str:0000000000000087 .LASF60
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2217   .debug_str:00000000000000aa .LASF61
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2297   .debug_str:0000000000000372 .LASF76
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2325   .debug_str:0000000000000438 .LASF77
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:442    .text.DMA_GetCurrDataCounter:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:454    .text.DMA_GetCurrDataCounter:0000000000000008 .LFE46
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2289   .debug_str:0000000000000330 .LASF62
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:1950   .debug_loclists:00000000000000d8 .LLST2
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2225   .debug_str:00000000000000dc .LASF64
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:425    .text.DMA_SetCurrDataCounter:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:435    .text.DMA_SetCurrDataCounter:0000000000000004 .LFE45
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2231   .debug_str:0000000000000111 .LASF65
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2327   .debug_str:000000000000044f .LASF66
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:395    .text.DMA_ITConfig:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:418    .text.DMA_ITConfig:0000000000000012 .LFE44
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2267   .debug_str:00000000000002b5 .LASF67
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:1965   .debug_loclists:00000000000000f2 .LLST1
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2219   .debug_str:00000000000000b4 .LASF68
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2187   .debug_str:0000000000000000 .LASF69
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:363    .text.DMA_Cmd:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:388    .text.DMA_Cmd:0000000000000014 .LFE43
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2199   .debug_str:0000000000000047 .LASF70
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:307    .text.DMA_StructInit:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:356    .text.DMA_StructInit:000000000000003a .LFE42
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2337   .debug_str:0000000000000486 .LASF71
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2239   .debug_str:0000000000000137 .LASF72
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:223    .text.DMA_Init:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:300    .text.DMA_Init:0000000000000044 .LFE41
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:1980   .debug_loclists:000000000000010c .LLST0
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2311   .debug_str:00000000000003df .LASF73
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:15     .text.DMA_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:216    .text.DMA_DeInit:000000000000011e .LFE40
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:461    .text.DMA_GetFlagStatus:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:480    .text.DMA_GetFlagStatus:000000000000000c .LFE47
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2050   .debug_loclists:000000000000016f .LLST3
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2065   .debug_loclists:0000000000000189 .LLST4
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:2089   .debug_loclists:00000000000001ac .LLST5
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:487    .text.DMA_ClearFlag:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:497    .text.DMA_ClearFlag:0000000000000004 .LFE48
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:535    .text.DMA_MuxChannelConfig:0000000000000000 .LVL18
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:547    .text.DMA_MuxChannelConfig:0000000000000012 .LVL19
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:567    .text.DMA_MuxChannelConfig:000000000000002e .LVL22
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:640    .text.DMA_MuxChannelConfig:0000000000000098 .LVL29
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:559    .text.DMA_MuxChannelConfig:0000000000000024 .LVL20
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:562    .text.DMA_MuxChannelConfig:0000000000000028 .LVL21
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:593    .text.DMA_MuxChannelConfig:0000000000000058 .LVL23
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:596    .text.DMA_MuxChannelConfig:000000000000005c .LVL24
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:601    .text.DMA_MuxChannelConfig:0000000000000062 .LVL25
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:627    .text.DMA_MuxChannelConfig:000000000000008c .LVL26
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:630    .text.DMA_MuxChannelConfig:0000000000000090 .LVL27
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:635    .text.DMA_MuxChannelConfig:0000000000000096 .LVL28
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:662    .text.DMA_MuxChannelConfig:00000000000000be .LVL30
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:665    .text.DMA_MuxChannelConfig:00000000000000c2 .LVL31
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:445    .text.DMA_GetCurrDataCounter:0000000000000000 .LVL12
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:449    .text.DMA_GetCurrDataCounter:0000000000000002 .LVL13
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:398    .text.DMA_ITConfig:0000000000000000 .LVL9
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:413    .text.DMA_ITConfig:000000000000000e .LVL10
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:226    .text.DMA_Init:0000000000000000 .LVL1
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:231    .text.DMA_Init:0000000000000002 .LVL2
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:271    .text.DMA_Init:0000000000000030 .LVL4
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:278    .text.DMA_Init:0000000000000034 .LVL5
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:281    .text.DMA_Init:0000000000000036 .LVL6
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:464    .text.DMA_GetFlagStatus:0000000000000000 .LVL14
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:470    .text.DMA_GetFlagStatus:0000000000000002 .LVL15
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:475    .text.DMA_GetFlagStatus:0000000000000006 .LVL16
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:683    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:504    .text.DMA_GetITStatus:0000000000000000 .LFB53
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:512    .text.DMA_GetITStatus:000000000000000c .LFE53
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:519    .text.DMA_ClearITPendingBit:0000000000000000 .LFB55
+C:\Users\User\AppData\Local\Temp\ccKVaA4u.s:525    .text.DMA_ClearITPendingBit:0000000000000004 .LFE55
+
+NO UNDEFINED SYMBOLS

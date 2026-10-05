@@ -1,0 +1,1706 @@
+   1              		.file	"ch32h417_ecdc.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.ECDC_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	ECDC_DeInit
+  14              	ECDC_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_ecdc.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * File Name          : ch32h417_ecdc.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * Version            : V1.0.1
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * Date               : 2025/10/22
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * Description        : This file provides all the ECDC firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * Attention: This software (modified or not) and binary are used for
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** #include "ch32h417_ecdc.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** #include "ch32h417_rcc.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_DeInit
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Deinitializes the ECDC peripheral registers to their default
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *        reset values.
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   none
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_DeInit(void)
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+  17              		.loc 1 26 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_0
+  19      E7020300 
+  20              		.cfi_offset 1, -4
+  21              		.cfi_def_cfa_offset 16
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     RCC_HB2PeriphResetCmd(RCC_HB2Periph_ECDC, ENABLE);
+  22              		.loc 1 27 5
+  23 0008 8545     		li	a1,1
+  24 000a 37050004 		li	a0,67108864
+  25 000e 97000000 		call	RCC_HB2PeriphResetCmd
+  25      E7800000 
+  26              	.LVL0:
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     RCC_HB2PeriphResetCmd(RCC_HB2Periph_ECDC, DISABLE);
+  27              		.loc 1 28 5
+  28 0016 8145     		li	a1,0
+  29 0018 37050004 		li	a0,67108864
+  30 001c 97000000 		call	RCC_HB2PeriphResetCmd
+  30      E7800000 
+  31              	.LVL1:
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+  32              		.loc 1 29 1 is_stmt 0
+  33 0024 17030000 		tail	__riscv_restore_0
+  33      67000300 
+  34              		.cfi_restore 1
+  35              		.cfi_def_cfa_offset 0
+  36              		.cfi_endproc
+  37              	.LFE40:
+  39              		.section	.text.ECDC_StructInit,"ax",@progbits
+  40              		.align	1
+  41              		.globl	ECDC_StructInit
+  43              	ECDC_StructInit:
+  44              	.LFB42:
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_Init
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Function to initialize the ECDC (Encryption Controller) with the given parameters.
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_InitStruct - Parameters to initialize the ECDC.
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_Init(ECDC_InitTypeDef *ECDC_InitStruct)
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->INT_FG = 0xff;
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->CTRL &= ~(ECDC_WRSRAM_EN | ECDC_ALGRM_MOD | ECDC_CIPHER_MOD | ECDC_KLEN_MASK | ECDC_DAT_M
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                     ECDC_MODE_SEL | ECDC_NORMAL_EN);
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->CTRL |= ((uint32_t)ECDC_InitStruct->Algorithm << 8) | ((uint32_t)ECDC_InitStruct->BlockCi
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_SetKey(ECDC_InitStruct->Key);
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (ECDC_InitStruct->BlockCipherMode == ECDCBlockCipherMode_CTR && ECDC_InitStruct->IV != NULL)
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC_CTR_SetCounter(ECDC_InitStruct->IV);
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_KeyExCmd(ENABLE);
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     for(int i = 0; i < (HCLKClock / SystemClock + 1) * 64 * (((ECDC->CTRL >> 4) & 0x7) == 0 ? (1) :
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         __asm volatile ("\tnop");
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_KeyExCmd(DISABLE);
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->CTRL |= ECDC_InitStruct->ExcuteMode | ((uint32_t)ECDC_InitStruct->ExcuteEndian << 13);
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_StructInit
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Fills each ECDC_InitStruct member with its default value.
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_InitStruct - pointer to an ECDC_InitTypeDef structure that
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *        contains the configuration information for the specified ECDC
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *        peripheral.
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_StructInit(ECDC_InitTypeDef *ECDC_InitStruct)
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+  45              		.loc 1 78 1 is_stmt 1
+  46              		.cfi_startproc
+  47              	.LVL2:
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_InitStruct->ExcuteMode = 0;
+  48              		.loc 1 79 5
+  49              		.loc 1 79 33 is_stmt 0
+  50 0000 23200500 		sw	zero,0(a0)
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_InitStruct->Algorithm = ECDCAlgorithm_SM4;
+  51              		.loc 1 80 5 is_stmt 1
+  52              		.loc 1 80 32 is_stmt 0
+  53 0004 23220500 		sw	zero,4(a0)
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_InitStruct->BlockCipherMode = ECDCBlockCipherMode_CTR;
+  54              		.loc 1 81 5 is_stmt 1
+  55              		.loc 1 81 38 is_stmt 0
+  56 0008 23240500 		sw	zero,8(a0)
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_InitStruct->KeyLen = ECDCKeyLen_128b;
+  57              		.loc 1 82 5 is_stmt 1
+  58              		.loc 1 82 29 is_stmt 0
+  59 000c 23260500 		sw	zero,12(a0)
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_InitStruct->ExcuteEndian = ECDCExcuteEndian_Little;
+  60              		.loc 1 83 5 is_stmt 1
+  61              		.loc 1 83 35 is_stmt 0
+  62 0010 23280500 		sw	zero,16(a0)
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+  63              		.loc 1 84 1
+  64 0014 8280     		ret
+  65              		.cfi_endproc
+  66              	.LFE42:
+  68              		.section	.text.ECDC_CTR_SetCounter,"ax",@progbits
+  69              		.align	1
+  70              		.globl	ECDC_CTR_SetCounter
+  72              	ECDC_CTR_SetCounter:
+  73              	.LFB43:
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_CTR_SetCounter
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   This function sets the counter of the ECDC module for CTR mode.
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_IvStruct - pointer to an ECDC_IV_TypeDef structure.
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_CTR_SetCounter(ECDC_IV_TypeDef *ECDC_IvStruct)
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+  74              		.loc 1 96 1 is_stmt 1
+  75              		.cfi_startproc
+  76              	.LVL3:
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->IV_31T0 = ECDC_IvStruct->IV_31T0;
+  77              		.loc 1 97 5
+  78              		.loc 1 97 34 is_stmt 0
+  79 0000 1841     		lw	a4,0(a0)
+  80              		.loc 1 97 19
+  81 0002 B7770140 		li	a5,1073836032
+  82 0006 938707C0 		addi	a5,a5,-1024
+  83 000a D8DB     		sw	a4,52(a5)
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->IV_63T32 = ECDC_IvStruct->IV_63T32;
+  84              		.loc 1 98 5 is_stmt 1
+  85              		.loc 1 98 35 is_stmt 0
+  86 000c 5841     		lw	a4,4(a0)
+  87              		.loc 1 98 20
+  88 000e 98DB     		sw	a4,48(a5)
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->IV_95T64 = ECDC_IvStruct->IV_95T64;
+  89              		.loc 1 99 5 is_stmt 1
+  90              		.loc 1 99 35 is_stmt 0
+  91 0010 1845     		lw	a4,8(a0)
+  92              		.loc 1 99 20
+  93 0012 D8D7     		sw	a4,44(a5)
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->IV_127T96 = ECDC_IvStruct->IV_127T96;
+  94              		.loc 1 100 5 is_stmt 1
+  95              		.loc 1 100 36 is_stmt 0
+  96 0014 5845     		lw	a4,12(a0)
+  97              		.loc 1 100 21
+  98 0016 98D7     		sw	a4,40(a5)
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+  99              		.loc 1 101 1
+ 100 0018 8280     		ret
+ 101              		.cfi_endproc
+ 102              	.LFE43:
+ 104              		.section	.text.ECDC_SetKey,"ax",@progbits
+ 105              		.align	1
+ 106              		.globl	ECDC_SetKey
+ 108              	ECDC_SetKey:
+ 109              	.LFB44:
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_SetKey
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   This function sets the key of the ECDC module.
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_IV - pointer to an ECDC_IV_TypeDef structure.
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_SetKey(ECDC_KEY_TypeDef *ECDC_KeyStruct)
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 110              		.loc 1 113 1 is_stmt 1
+ 111              		.cfi_startproc
+ 112              	.LVL4:
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->KEY_31T0 = ECDC_KeyStruct->KEY_31T0;
+ 113              		.loc 1 114 5
+ 114              		.loc 1 114 36 is_stmt 0
+ 115 0000 1841     		lw	a4,0(a0)
+ 116              		.loc 1 114 20
+ 117 0002 B7770140 		li	a5,1073836032
+ 118 0006 938707C0 		addi	a5,a5,-1024
+ 119 000a D8D3     		sw	a4,36(a5)
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->KEY_63T32 = ECDC_KeyStruct->KEY_63T32;
+ 120              		.loc 1 115 5 is_stmt 1
+ 121              		.loc 1 115 37 is_stmt 0
+ 122 000c 5841     		lw	a4,4(a0)
+ 123              		.loc 1 115 21
+ 124 000e 98D3     		sw	a4,32(a5)
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->KEY_95T64 = ECDC_KeyStruct->KEY_95T64;
+ 125              		.loc 1 116 5 is_stmt 1
+ 126              		.loc 1 116 37 is_stmt 0
+ 127 0010 1845     		lw	a4,8(a0)
+ 128              		.loc 1 116 21
+ 129 0012 D8CF     		sw	a4,28(a5)
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->KEY_127T96 = ECDC_KeyStruct->KEY_127T96;
+ 130              		.loc 1 117 5 is_stmt 1
+ 131              		.loc 1 117 38 is_stmt 0
+ 132 0014 5845     		lw	a4,12(a0)
+ 133              		.loc 1 117 22
+ 134 0016 98CF     		sw	a4,24(a5)
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (((ECDC->CTRL >> 10) & 0x3) >= ECDCKeyLen_192b)
+ 135              		.loc 1 118 5 is_stmt 1
+ 136              		.loc 1 118 15 is_stmt 0
+ 137 0018 9843     		lw	a4,0(a5)
+ 138              		.loc 1 118 22
+ 139 001a 2983     		srli	a4,a4,10
+ 140              		.loc 1 118 29
+ 141 001c 0D8B     		andi	a4,a4,3
+ 142              		.loc 1 118 8
+ 143 001e 09C7     		beq	a4,zero,.L6
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->KEY_159T128 = ECDC_KeyStruct->KEY_159T128;
+ 144              		.loc 1 120 9 is_stmt 1
+ 145              		.loc 1 120 43 is_stmt 0
+ 146 0020 1849     		lw	a4,16(a0)
+ 147              		.loc 1 120 27
+ 148 0022 D8CB     		sw	a4,20(a5)
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->KEY_191T160 = ECDC_KeyStruct->KEY_191T160;
+ 149              		.loc 1 121 9 is_stmt 1
+ 150              		.loc 1 121 43 is_stmt 0
+ 151 0024 5849     		lw	a4,20(a0)
+ 152              		.loc 1 121 27
+ 153 0026 98CB     		sw	a4,16(a5)
+ 154              	.L6:
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (((ECDC->CTRL >> 10) & 0x3) >= ECDCKeyLen_256b)
+ 155              		.loc 1 123 5 is_stmt 1
+ 156              		.loc 1 123 15 is_stmt 0
+ 157 0028 B7770140 		li	a5,1073836032
+ 158 002c 938707C0 		addi	a5,a5,-1024
+ 159 0030 9843     		lw	a4,0(a5)
+ 160              		.loc 1 123 36
+ 161 0032 9316B028 		bseti	a3,zero,11
+ 162 0036 758F     		and	a4,a4,a3
+ 163              		.loc 1 123 8
+ 164 0038 09C7     		beq	a4,zero,.L5
+ 165              	.LVL5:
+ 166              	.LBB7:
+ 167              	.LBB8:
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->KEY_223T192 = ECDC_KeyStruct->KEY_223T192;
+ 168              		.loc 1 125 9 is_stmt 1
+ 169              		.loc 1 125 43 is_stmt 0
+ 170 003a 184D     		lw	a4,24(a0)
+ 171              		.loc 1 125 27
+ 172 003c D8C7     		sw	a4,12(a5)
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->KEY_255T224 = ECDC_KeyStruct->KEY_255T224;
+ 173              		.loc 1 126 9 is_stmt 1
+ 174              		.loc 1 126 43 is_stmt 0
+ 175 003e 584D     		lw	a4,28(a0)
+ 176              		.loc 1 126 27
+ 177 0040 98C7     		sw	a4,8(a5)
+ 178              	.LVL6:
+ 179              	.L5:
+ 180              	.LBE8:
+ 181              	.LBE7:
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 182              		.loc 1 128 1
+ 183 0042 8280     		ret
+ 184              		.cfi_endproc
+ 185              	.LFE44:
+ 187              		.section	.text.ECDC_SingleWR_RawData,"ax",@progbits
+ 188              		.align	1
+ 189              		.globl	ECDC_SingleWR_RawData
+ 191              	ECDC_SingleWR_RawData:
+ 192              	.LFB45:
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_SingleWR_RawData
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Function to write raw data for a single encrypt or decrypt
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   WriteDataPointer - Pointer to the data to be written.
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_SingleWR_RawData(uint32_t *WriteDataPointer)
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 193              		.loc 1 140 1 is_stmt 1
+ 194              		.cfi_startproc
+ 195              	.LVL7:
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->SGSD_127T96 = WriteDataPointer[3];
+ 196              		.loc 1 141 5
+ 197              		.loc 1 141 23 is_stmt 0
+ 198 0000 5845     		lw	a4,12(a0)
+ 199 0002 B7770140 		li	a5,1073836032
+ 200 0006 938707C0 		addi	a5,a5,-1024
+ 201 000a B8C3     		sw	a4,64(a5)
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->SGSD_95T64 = WriteDataPointer[2];
+ 202              		.loc 1 142 5 is_stmt 1
+ 203              		.loc 1 142 22 is_stmt 0
+ 204 000c 1845     		lw	a4,8(a0)
+ 205 000e F8C3     		sw	a4,68(a5)
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->SGSD_63T32 = WriteDataPointer[1];
+ 206              		.loc 1 143 5 is_stmt 1
+ 207              		.loc 1 143 22 is_stmt 0
+ 208 0010 5841     		lw	a4,4(a0)
+ 209 0012 B8C7     		sw	a4,72(a5)
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->SGSD_31T0 = WriteDataPointer[0];
+ 210              		.loc 1 144 5 is_stmt 1
+ 211              		.loc 1 144 39 is_stmt 0
+ 212 0014 1841     		lw	a4,0(a0)
+ 213              		.loc 1 144 21
+ 214 0016 F8C7     		sw	a4,76(a5)
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 215              		.loc 1 145 1
+ 216 0018 8280     		ret
+ 217              		.cfi_endproc
+ 218              	.LFE45:
+ 220              		.section	.text.ECDC_SingleRD_EcdcData,"ax",@progbits
+ 221              		.align	1
+ 222              		.globl	ECDC_SingleRD_EcdcData
+ 224              	ECDC_SingleRD_EcdcData:
+ 225              	.LFB46:
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_SingleRD_EcdcData
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Function to read  data after encrypt or decrypt for a single encrypt or decrypt
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ReadDataPointer - Pointer to the data to be read.
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_SingleRD_EcdcData(uint32_t *ReadDataPointer)
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 226              		.loc 1 157 1 is_stmt 1
+ 227              		.cfi_startproc
+ 228              	.LVL8:
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     *ReadDataPointer++ = ECDC->SGRT_31T0;
+ 229              		.loc 1 158 5
+ 230              		.loc 1 158 30 is_stmt 0
+ 231 0000 B7770140 		li	a5,1073836032
+ 232 0004 938707C0 		addi	a5,a5,-1024
+ 233 0008 F84F     		lw	a4,92(a5)
+ 234              		.loc 1 158 24
+ 235 000a 18C1     		sw	a4,0(a0)
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     *ReadDataPointer++ = ECDC->SGRT_63T32;
+ 236              		.loc 1 159 5 is_stmt 1
+ 237              	.LVL9:
+ 238              		.loc 1 159 30 is_stmt 0
+ 239 000c B84F     		lw	a4,88(a5)
+ 240              		.loc 1 159 24
+ 241 000e 58C1     		sw	a4,4(a0)
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     *ReadDataPointer++ = ECDC->SGRT_95T64;
+ 242              		.loc 1 160 5 is_stmt 1
+ 243              	.LVL10:
+ 244              		.loc 1 160 30 is_stmt 0
+ 245 0010 F84B     		lw	a4,84(a5)
+ 246              		.loc 1 160 24
+ 247 0012 18C5     		sw	a4,8(a0)
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     *ReadDataPointer++ = ECDC->SGRT_127T96;
+ 248              		.loc 1 161 5 is_stmt 1
+ 249              	.LVL11:
+ 250              		.loc 1 161 30 is_stmt 0
+ 251 0014 BC4B     		lw	a5,80(a5)
+ 252              		.loc 1 161 24
+ 253 0016 5CC5     		sw	a5,12(a0)
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 254              		.loc 1 162 1
+ 255 0018 8280     		ret
+ 256              		.cfi_endproc
+ 257              	.LFE46:
+ 259              		.section	.text.ECDC_SetSRC_BaseAddr,"ax",@progbits
+ 260              		.align	1
+ 261              		.globl	ECDC_SetSRC_BaseAddr
+ 263              	ECDC_SetSRC_BaseAddr:
+ 264              	.LFB47:
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_SetSRC_BaseAddr
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Set source base address in RAM
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   Address - source base address in RAM.(Address%32 == 0)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *          Len - Encrypt or decrypt data length.(Len%32 == 0)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_SetSRC_BaseAddr(uint32_t Address, uint32_t Len)
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 265              		.loc 1 175 1 is_stmt 1
+ 266              		.cfi_startproc
+ 267              	.LVL12:
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->SRC_ADDR = Address;
+ 268              		.loc 1 176 5
+ 269              		.loc 1 176 20 is_stmt 0
+ 270 0000 B7770140 		li	a5,1073836032
+ 271 0004 938707C0 		addi	a5,a5,-1024
+ 272 0008 A8D3     		sw	a0,96(a5)
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->SRAM_LEN = Len;
+ 273              		.loc 1 177 5 is_stmt 1
+ 274              		.loc 1 177 20 is_stmt 0
+ 275 000a ACD7     		sw	a1,104(a5)
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 276              		.loc 1 178 1
+ 277 000c 8280     		ret
+ 278              		.cfi_endproc
+ 279              	.LFE47:
+ 281              		.section	.text.ECDC_SetDST_BaseAddr,"ax",@progbits
+ 282              		.align	1
+ 283              		.globl	ECDC_SetDST_BaseAddr
+ 285              	ECDC_SetDST_BaseAddr:
+ 286              	.LFB48:
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_SetDST_BaseAddr
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Set destination  base address in RAM
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   Address - source base address in RAM.(Address%32 == 0)
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_SetDST_BaseAddr(uint32_t Address)
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 287              		.loc 1 190 1 is_stmt 1
+ 288              		.cfi_startproc
+ 289              	.LVL13:
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->DST_ADDR = Address;
+ 290              		.loc 1 191 5
+ 291              		.loc 1 191 20 is_stmt 0
+ 292 0000 B7770140 		li	a5,1073836032
+ 293 0004 938707C0 		addi	a5,a5,-1024
+ 294 0008 E8D3     		sw	a0,100(a5)
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 295              		.loc 1 192 1
+ 296 000a 8280     		ret
+ 297              		.cfi_endproc
+ 298              	.LFE48:
+ 300              		.section	.text.ECDC_HardwareClockCmd,"ax",@progbits
+ 301              		.align	1
+ 302              		.globl	ECDC_HardwareClockCmd
+ 304              	ECDC_HardwareClockCmd:
+ 305              	.LFB49:
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_HardwareClockCmd
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Enables or disables hardware clock for the ECDC .
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   NewState - ENABLE or DISABLE.
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_HardwareClockCmd(FunctionalState NewState)
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 306              		.loc 1 204 1 is_stmt 1
+ 307              		.cfi_startproc
+ 308              	.LVL14:
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (NewState)
+ 309              		.loc 1 205 5
+ 310 0000 B7770140 		li	a5,1073836032
+ 311 0004 938707C0 		addi	a5,a5,-1024
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL |= ECDC_ECDC_SM4_CLOCK_EN;
+ 312              		.loc 1 207 13 is_stmt 0
+ 313 0008 9843     		lw	a4,0(a5)
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (NewState)
+ 314              		.loc 1 205 8
+ 315 000a 09C5     		beq	a0,zero,.L19
+ 316              		.loc 1 207 9 is_stmt 1
+ 317              		.loc 1 207 20 is_stmt 0
+ 318 000c 13179729 		bseti	a4,a4,25
+ 319              	.L21:
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     else
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL &= ~ECDC_ECDC_SM4_CLOCK_EN;
+ 320              		.loc 1 211 20
+ 321 0010 98C3     		sw	a4,0(a5)
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 322              		.loc 1 213 1
+ 323 0012 8280     		ret
+ 324              	.L19:
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 325              		.loc 1 211 9 is_stmt 1
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 326              		.loc 1 211 20 is_stmt 0
+ 327 0014 13179749 		bclri	a4,a4,25
+ 328 0018 E5BF     		j	.L21
+ 329              		.cfi_endproc
+ 330              	.LFE49:
+ 332              		.section	.text.ECDC_ClockConfig,"ax",@progbits
+ 333              		.align	1
+ 334              		.globl	ECDC_ClockConfig
+ 336              	ECDC_ClockConfig:
+ 337              	.LFB50:
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_ClockConfig
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Configures the ECDC clock source and divider factor.
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   RCC_PLLDiv - specifies the PLL Division factor.
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *        ECDC_CLK should be greater than or equal to HCLK.
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_ClockConfig(uint8_t ECDC_PLLDiv)
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 338              		.loc 1 226 1 is_stmt 1
+ 339              		.cfi_startproc
+ 340              	.LVL15:
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->CTRL &= ~ECDC_CLKDIV_MASK;
+ 341              		.loc 1 227 5
+ 342              		.loc 1 227 9 is_stmt 0
+ 343 0000 B7770140 		li	a5,1073836032
+ 344 0004 938707C0 		addi	a5,a5,-1024
+ 345 0008 9843     		lw	a4,0(a5)
+ 346              		.loc 1 227 16
+ 347 000a 1377F7F8 		andi	a4,a4,-113
+ 348 000e 98C3     		sw	a4,0(a5)
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->CTRL &= ~ECDC_CLOCK_SELECT;
+ 349              		.loc 1 228 5 is_stmt 1
+ 350              		.loc 1 228 9 is_stmt 0
+ 351 0010 9843     		lw	a4,0(a5)
+ 352              		.loc 1 228 16
+ 353 0012 13178749 		bclri	a4,a4,24
+ 354 0016 98C3     		sw	a4,0(a5)
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (ECDC_PLLDiv == ECDC_ClockSource_PLLCLK_Div1)
+ 355              		.loc 1 229 5 is_stmt 1
+ 356              		.loc 1 229 8 is_stmt 0
+ 357 0018 0547     		li	a4,1
+ 358 001a 6317E500 		bne	a0,a4,.L23
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL |= ECDC_CLOCK_SELECT;
+ 359              		.loc 1 231 9 is_stmt 1
+ 360              		.loc 1 231 13 is_stmt 0
+ 361 001e 9843     		lw	a4,0(a5)
+ 362              		.loc 1 231 20
+ 363 0020 13178729 		bseti	a4,a4,24
+ 364 0024 98C3     		sw	a4,0(a5)
+ 365 0026 8280     		ret
+ 366              	.L23:
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     else
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL |= (uint16_t)ECDC_PLLDiv;
+ 367              		.loc 1 235 9 is_stmt 1
+ 368              		.loc 1 235 13 is_stmt 0
+ 369 0028 9843     		lw	a4,0(a5)
+ 370              		.loc 1 235 20
+ 371 002a 598D     		or	a0,a0,a4
+ 372              	.LVL16:
+ 373 002c 88C3     		sw	a0,0(a5)
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 374              		.loc 1 237 1
+ 375 002e 8280     		ret
+ 376              		.cfi_endproc
+ 377              	.LFE50:
+ 379              		.section	.text.ECDC_KeyExCmd,"ax",@progbits
+ 380              		.align	1
+ 381              		.globl	ECDC_KeyExCmd
+ 383              	ECDC_KeyExCmd:
+ 384              	.LFB51:
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_KeyExCmd
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Enables or disables key extend for the ECDC .
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   NewState - ENABLE or DISABLE.
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_KeyExCmd(FunctionalState NewState)
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 385              		.loc 1 249 1 is_stmt 1
+ 386              		.cfi_startproc
+ 387              	.LVL17:
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (NewState)
+ 388              		.loc 1 250 5
+ 389 0000 B7770140 		li	a5,1073836032
+ 390 0004 938707C0 		addi	a5,a5,-1024
+ 391              	.LBB11:
+ 392              	.LBB12:
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL |= ECDC_KEYEX_EN;
+ 393              		.loc 1 252 13 is_stmt 0
+ 394 0008 9843     		lw	a4,0(a5)
+ 395              	.LBE12:
+ 396              	.LBE11:
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (NewState)
+ 397              		.loc 1 250 8
+ 398 000a 09C5     		beq	a0,zero,.L26
+ 399              	.LVL18:
+ 400              	.LBB14:
+ 401              	.LBB13:
+ 402              		.loc 1 252 9 is_stmt 1
+ 403              		.loc 1 252 20 is_stmt 0
+ 404 000c 13671700 		ori	a4,a4,1
+ 405              	.LVL19:
+ 406              	.L28:
+ 407              	.LBE13:
+ 408              	.LBE14:
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     else
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL &= ~ECDC_KEYEX_EN;
+ 409              		.loc 1 256 20
+ 410 0010 98C3     		sw	a4,0(a5)
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 411              		.loc 1 258 1
+ 412 0012 8280     		ret
+ 413              	.L26:
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 414              		.loc 1 256 9 is_stmt 1
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 415              		.loc 1 256 20 is_stmt 0
+ 416 0014 799B     		andi	a4,a4,-2
+ 417 0016 EDBF     		j	.L28
+ 418              		.cfi_endproc
+ 419              	.LFE51:
+ 421              		.section	.text.ECDC_Init,"ax",@progbits
+ 422              		.align	1
+ 423              		.globl	ECDC_Init
+ 425              	ECDC_Init:
+ 426              	.LFB41:
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->INT_FG = 0xff;
+ 427              		.loc 1 41 1 is_stmt 1
+ 428              		.cfi_startproc
+ 429              	.LVL20:
+ 430 0000 17030000 		call	t0,__riscv_save_3
+ 430      E7020300 
+ 431              		.cfi_offset 18, -16
+ 432              		.cfi_offset 9, -12
+ 433              		.cfi_offset 8, -8
+ 434              		.cfi_offset 1, -4
+ 435              		.cfi_def_cfa_offset 16
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 436              		.loc 1 42 5
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 437              		.loc 1 42 18 is_stmt 0
+ 438 0008 B7740140 		li	s1,1073836032
+ 439 000c 938404C0 		addi	s1,s1,-1024
+ 440 0010 9307F00F 		li	a5,255
+ 441 0014 DCC0     		sw	a5,4(s1)
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                     ECDC_MODE_SEL | ECDC_NORMAL_EN);
+ 442              		.loc 1 44 5 is_stmt 1
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                     ECDC_MODE_SEL | ECDC_NORMAL_EN);
+ 443              		.loc 1 44 9 is_stmt 0
+ 444 0016 9C40     		lw	a5,0(s1)
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                     ECDC_MODE_SEL | ECDC_NORMAL_EN);
+ 445              		.loc 1 44 16
+ 446 0018 7577     		li	a4,-12288
+ 447 001a 13074707 		addi	a4,a4,116
+ 448 001e F98F     		and	a5,a5,a4
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 449              		.loc 1 47 91
+ 450 0020 03298500 		lw	s2,8(a0)
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                     ECDC_MODE_SEL | ECDC_NORMAL_EN);
+ 451              		.loc 1 44 16
+ 452 0024 9CC0     		sw	a5,0(s1)
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 453              		.loc 1 47 5 is_stmt 1
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 454              		.loc 1 47 57 is_stmt 0
+ 455 0026 5C41     		lw	a5,4(a0)
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 456              		.loc 1 47 9
+ 457 0028 9840     		lw	a4,0(s1)
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 458              		.loc 1 47 109
+ 459 002a 93169900 		slli	a3,s2,9
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 460              		.loc 1 47 57
+ 461 002e A207     		slli	a5,a5,8
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 462              		.loc 1 47 63
+ 463 0030 D58F     		or	a5,a5,a3
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 464              		.loc 1 47 16
+ 465 0032 D98F     		or	a5,a5,a4
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_SetKey(ECDC_InitStruct->Key);
+ 466              		.loc 1 48 54
+ 467 0034 5845     		lw	a4,12(a0)
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->INT_FG = 0xff;
+ 468              		.loc 1 41 1
+ 469 0036 2A84     		mv	s0,a0
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_SetKey(ECDC_InitStruct->Key);
+ 470              		.loc 1 48 54
+ 471 0038 2A07     		slli	a4,a4,10
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 472              		.loc 1 47 16
+ 473 003a D98F     		or	a5,a5,a4
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_SetKey(ECDC_InitStruct->Key);
+ 474              		.loc 1 48 104
+ 475 003c 1849     		lw	a4,16(a0)
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 476              		.loc 1 49 5
+ 477 003e 4849     		lw	a0,20(a0)
+ 478              	.LVL21:
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC_SetKey(ECDC_InitStruct->Key);
+ 479              		.loc 1 48 104
+ 480 0040 3607     		slli	a4,a4,13
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****                   ((uint32_t)ECDC_InitStruct->KeyLen << 10) | ((uint32_t)ECDC_InitStruct->ExcuteEnd
+ 481              		.loc 1 47 16
+ 482 0042 D98F     		or	a5,a5,a4
+ 483 0044 9CC0     		sw	a5,0(s1)
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 484              		.loc 1 49 5 is_stmt 1
+ 485 0046 97000000 		call	ECDC_SetKey
+ 485      E7800000 
+ 486              	.LVL22:
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 487              		.loc 1 51 5
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 488              		.loc 1 51 8 is_stmt 0
+ 489 004e 63180900 		bne	s2,zero,.L30
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 490              		.loc 1 51 87 discriminator 1
+ 491 0052 084C     		lw	a0,24(s0)
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 492              		.loc 1 51 69 discriminator 1
+ 493 0054 09C5     		beq	a0,zero,.L30
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 494              		.loc 1 53 9 is_stmt 1
+ 495 0056 97000000 		call	ECDC_CTR_SetCounter
+ 495      E7800000 
+ 496              	.LVL23:
+ 497              	.L30:
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     for(int i = 0; i < (HCLKClock / SystemClock + 1) * 64 * (((ECDC->CTRL >> 4) & 0x7) == 0 ? (1) :
+ 498              		.loc 1 56 5
+ 499              	.LBB20:
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 500              		.loc 1 250 5
+ 501              	.LBB21:
+ 502              	.LBB22:
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 503              		.loc 1 252 9
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 504              		.loc 1 252 13 is_stmt 0
+ 505 005e 9C40     		lw	a5,0(s1)
+ 506              	.LBE22:
+ 507              	.LBE21:
+ 508              	.LBE20:
+ 509              	.LBB25:
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 510              		.loc 1 57 13
+ 511 0060 0146     		li	a2,0
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 512              		.loc 1 57 35
+ 513 0062 37050000 		lui	a0,%hi(HCLKClock)
+ 514              	.LBE25:
+ 515              	.LBB26:
+ 516              	.LBB24:
+ 517              	.LBB23:
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 518              		.loc 1 252 20
+ 519 0066 93E71700 		ori	a5,a5,1
+ 520 006a 9CC0     		sw	a5,0(s1)
+ 521              	.LBE23:
+ 522              	.LBE24:
+ 523              	.LBE26:
+ 524              	.LBB27:
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 525              		.loc 1 57 35
+ 526 006c 37080000 		lui	a6,%hi(SystemClock)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 527              		.loc 1 57 68
+ 528 0070 B7780140 		li	a7,1073836032
+ 529              	.LVL24:
+ 530              	.L31:
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 531              		.loc 1 57 22 is_stmt 1 discriminator 1
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 532              		.loc 1 57 35 is_stmt 0 discriminator 1
+ 533 0074 03270800 		lw	a4,%lo(SystemClock)(a6)
+ 534 0078 83270500 		lw	a5,%lo(HCLKClock)(a0)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 535              		.loc 1 57 68 discriminator 1
+ 536 007c 938508C0 		addi	a1,a7,-1024
+ 537 0080 9441     		lw	a3,0(a1)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 538              		.loc 1 57 35 discriminator 1
+ 539 0082 B3D7E702 		divu	a5,a5,a4
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 540              		.loc 1 57 99 discriminator 1
+ 541 0086 0547     		li	a4,1
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 542              		.loc 1 57 75 discriminator 1
+ 543 0088 9182     		srli	a3,a3,4
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 544              		.loc 1 57 81 discriminator 1
+ 545 008a 9D8A     		andi	a3,a3,7
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 546              		.loc 1 57 49 discriminator 1
+ 547 008c 8507     		addi	a5,a5,1
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 548              		.loc 1 57 99 discriminator 1
+ 549 008e 81C6     		beq	a3,zero,.L32
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 550              		.loc 1 57 108 discriminator 3
+ 551 0090 9841     		lw	a4,0(a1)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 552              		.loc 1 57 115 discriminator 3
+ 553 0092 1183     		srli	a4,a4,4
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 554              		.loc 1 57 99 discriminator 3
+ 555 0094 1D8B     		andi	a4,a4,7
+ 556              	.L32:
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 557              		.loc 1 57 59 discriminator 6
+ 558 0096 B387E702 		mul	a5,a5,a4
+ 559 009a 9A07     		slli	a5,a5,6
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 560              		.loc 1 57 22 discriminator 6
+ 561 009c 6366F602 		bgtu	a5,a2,.L33
+ 562              	.LBE27:
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 563              		.loc 1 61 5 is_stmt 1
+ 564 00a0 0145     		li	a0,0
+ 565 00a2 97000000 		call	ECDC_KeyExCmd
+ 565      E7800000 
+ 566              	.LVL25:
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 567              		.loc 1 63 5
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 568              		.loc 1 63 9 is_stmt 0
+ 569 00aa 37770140 		li	a4,1073836032
+ 570 00ae 130707C0 		addi	a4,a4,-1024
+ 571 00b2 1443     		lw	a3,0(a4)
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 572              		.loc 1 63 90
+ 573 00b4 1C48     		lw	a5,16(s0)
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 574              		.loc 1 63 16
+ 575 00b6 1040     		lw	a2,0(s0)
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 576              		.loc 1 63 90
+ 577 00b8 B607     		slli	a5,a5,13
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 578              		.loc 1 63 16
+ 579 00ba D18E     		or	a3,a3,a2
+ 580 00bc D58F     		or	a5,a5,a3
+ 581 00be 1CC3     		sw	a5,0(a4)
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 582              		.loc 1 64 1
+ 583 00c0 17030000 		tail	__riscv_restore_3
+ 583      67000300 
+ 584              		.cfi_remember_state
+ 585              		.cfi_restore 18
+ 586              		.cfi_restore 9
+ 587              		.cfi_restore 8
+ 588              		.cfi_restore 1
+ 589              		.cfi_def_cfa_offset 0
+ 590              	.LVL26:
+ 591              	.L33:
+ 592              		.cfi_restore_state
+ 593              	.LBB28:
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 594              		.loc 1 59 9 is_stmt 1 discriminator 7
+ 595              	 #APP
+ 596              	# 59 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_ecdc.c" 1
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 597              			nop
+ 598              	# 0 "" 2
+ 599              		.loc 1 57 132 discriminator 7
+ 600              	 #NO_APP
+ 601 00ca 0506     		addi	a2,a2,1
+ 602              	.LVL27:
+ 603 00cc 65B7     		j	.L31
+ 604              	.LBE28:
+ 605              		.cfi_endproc
+ 606              	.LFE41:
+ 608              		.section	.text.ECDC_ITConfig,"ax",@progbits
+ 609              		.align	1
+ 610              		.globl	ECDC_ITConfig
+ 612              	ECDC_ITConfig:
+ 613              	.LFB52:
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_ITConfig
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Enables or disables the specified ECDC interrupts.
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_IT - specifies the ECDC interrupts sources to be enabled or disabled.
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_KeyEx_END - key extend end Interrupt source.
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_Single_END - Single end Interrupt source.
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_RAM2RAM_END - RAM to RAM end Interrupt source.
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *          NewState - ENABLE or DISABLE.
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_ITConfig(uint32_t ECDC_IT, FunctionalState NewState)
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 614              		.loc 1 274 1
+ 615              		.cfi_startproc
+ 616              	.LVL28:
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (NewState != DISABLE)
+ 617              		.loc 1 275 5
+ 618 0000 B7770140 		li	a5,1073836032
+ 619 0004 938707C0 		addi	a5,a5,-1024
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL |= ECDC_IT;
+ 620              		.loc 1 277 13 is_stmt 0
+ 621 0008 9843     		lw	a4,0(a5)
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (NewState != DISABLE)
+ 622              		.loc 1 275 8
+ 623 000a 81C5     		beq	a1,zero,.L41
+ 624              		.loc 1 277 9 is_stmt 1
+ 625              		.loc 1 277 20 is_stmt 0
+ 626 000c 498F     		or	a4,a4,a0
+ 627 000e 98C3     		sw	a4,0(a5)
+ 628 0010 8280     		ret
+ 629              	.L41:
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     else
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         ECDC->CTRL &= (uint8_t)~ECDC_IT;
+ 630              		.loc 1 281 9 is_stmt 1
+ 631              		.loc 1 281 23 is_stmt 0
+ 632 0012 1345F5FF 		not	a0,a0
+ 633              	.LVL29:
+ 634 0016 1375F50F 		andi	a0,a0,0xff
+ 635              	.LVL30:
+ 636              		.loc 1 281 20
+ 637 001a 798D     		and	a0,a0,a4
+ 638 001c 88C3     		sw	a0,0(a5)
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 639              		.loc 1 283 1
+ 640 001e 8280     		ret
+ 641              		.cfi_endproc
+ 642              	.LFE52:
+ 644              		.section	.text.ECDC_GetFlagStatus,"ax",@progbits
+ 645              		.align	1
+ 646              		.globl	ECDC_GetFlagStatus
+ 648              	ECDC_GetFlagStatus:
+ 649              	.LFB53:
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_GetFlagStatus
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Checks whether the specified ECDC flag is set or not.
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_FLAG - specifies the ECDC interrupt source to check..
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_FLAG_KeyEx_END - key extend end flag.
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_FLAG_Single_END - Single end flag.
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_FLAG_RAM2RAM_END - RAM to RAM end flag.
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** FlagStatus ECDC_GetFlagStatus(uint32_t ECDC_FLAG)
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 650              		.loc 1 298 1 is_stmt 1
+ 651              		.cfi_startproc
+ 652              	.LVL31:
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     FlagStatus bitstatus = RESET;
+ 653              		.loc 1 299 5
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if ((ECDC->INT_FG & ECDC_FLAG) != (uint8_t)RESET)
+ 654              		.loc 1 301 5
+ 655              		.loc 1 301 14 is_stmt 0
+ 656 0000 B7770140 		li	a5,1073836032
+ 657 0004 938707C0 		addi	a5,a5,-1024
+ 658 0008 DC43     		lw	a5,4(a5)
+ 659              	.LVL32:
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         bitstatus = SET;
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     else
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         bitstatus = RESET;
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     return bitstatus;
+ 660              		.loc 1 310 5 is_stmt 1
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 661              		.loc 1 301 23 is_stmt 0
+ 662 000a 7D8D     		and	a0,a5,a0
+ 663              	.LVL33:
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 664              		.loc 1 311 1
+ 665 000c 3335A000 		snez	a0,a0
+ 666 0010 8280     		ret
+ 667              		.cfi_endproc
+ 668              	.LFE53:
+ 670              		.section	.text.ECDC_ClearFlag,"ax",@progbits
+ 671              		.align	1
+ 672              		.globl	ECDC_ClearFlag
+ 674              	ECDC_ClearFlag:
+ 675              	.LFB54:
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_ClearFlag
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Clears the ECDC's pending flags.
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_FLAG - clear pending flags..
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_FLAG_KeyEx_END - key extend end flag.
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_FLAG_Single_END - Single end flag.
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_FLAG_RAM2RAM_END - RAM to RAM end flag.
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_ClearFlag(uint32_t ECDC_FLAG)
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 676              		.loc 1 326 1 is_stmt 1
+ 677              		.cfi_startproc
+ 678              	.LVL34:
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ECDC->INT_FG |= (uint32_t)ECDC_FLAG;
+ 679              		.loc 1 327 5
+ 680              		.loc 1 327 9 is_stmt 0
+ 681 0000 B7770140 		li	a5,1073836032
+ 682 0004 938707C0 		addi	a5,a5,-1024
+ 683 0008 D843     		lw	a4,4(a5)
+ 684              		.loc 1 327 18
+ 685 000a 498F     		or	a4,a4,a0
+ 686 000c D8C3     		sw	a4,4(a5)
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 687              		.loc 1 328 1
+ 688 000e 8280     		ret
+ 689              		.cfi_endproc
+ 690              	.LFE54:
+ 692              		.section	.text.ECDC_GetITStatus,"ax",@progbits
+ 693              		.align	1
+ 694              		.globl	ECDC_GetITStatus
+ 696              	ECDC_GetITStatus:
+ 697              	.LFB60:
+ 698              		.cfi_startproc
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_GetITStatus
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Checks whether the ECDC interrupt has occurred or not.
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_IT - specifies the ECDC interrupts sources to be enabled or disabled.
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_KeyEx_END - key extend end Interrupt source.
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_Single_END - Single end Interrupt source.
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_RAM2RAM_END - RAM to RAM end Interrupt source.
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** ITStatus ECDC_GetITStatus(uint32_t ECDC_IT)
+ 699              		.loc 1 342 10 is_stmt 1
+ 700 0000 17030000 		tail	ECDC_GetFlagStatus
+ 700      67000300 
+ 701              		.cfi_endproc
+ 702              	.LFE60:
+ 704              		.section	.text.ECDC_ClearITPendingBit,"ax",@progbits
+ 705              		.align	1
+ 706              		.globl	ECDC_ClearITPendingBit
+ 708              	ECDC_ClearITPendingBit:
+ 709              	.LFB62:
+ 710              		.cfi_startproc
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** {
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     ITStatus bitstatus = RESET;
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     if (((ECDC->INT_FG & ECDC_IT) != (uint32_t)RESET))
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         bitstatus = SET;
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     else
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     {
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****         bitstatus = RESET;
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     }
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****     return bitstatus;
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** }
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** 
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** /*********************************************************************
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @fn      ECDC_ClearITPendingBit
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @brief   Clears the ECDC's interrupt pending bits.
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @param   ECDC_IT - specifies the ECDC interrupts sources to be enabled or disabled.
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_KeyEx_END - key extend end Interrupt source.
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_Single_END - Single end Interrupt source.
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *            ECDC_IT_RAM2RAM_END - RAM to RAM end Interrupt source.
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  *
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  * @return  none
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c ****  */
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c **** void ECDC_ClearITPendingBit(uint32_t ECDC_IT)
+ 711              		.loc 1 370 6
+ 712 0000 17030000 		tail	ECDC_ClearFlag
+ 712      67000300 
+ 713              		.cfi_endproc
+ 714              	.LFE62:
+ 716              		.text
+ 717              	.Letext0:
+ 718              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 719              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 720              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 721              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/USBFS/DEVICE/SimulateCDC/V3F/User/system
+ 722              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 723              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_ecdc.h"
+ 724              		.file 8 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_ecdc.c
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:14     .text.ECDC_DeInit:0000000000000000 ECDC_DeInit
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:18     .text.ECDC_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:19     .text.ECDC_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:19     .text.ECDC_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:20     .text.ECDC_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:21     .text.ECDC_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:23     .text.ECDC_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:28     .text.ECDC_DeInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:33     .text.ECDC_DeInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:34     .text.ECDC_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:35     .text.ECDC_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:36     .text.ECDC_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:43     .text.ECDC_StructInit:0000000000000000 ECDC_StructInit
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:46     .text.ECDC_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:48     .text.ECDC_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:49     .text.ECDC_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:50     .text.ECDC_StructInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:50     .text.ECDC_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:52     .text.ECDC_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:53     .text.ECDC_StructInit:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:55     .text.ECDC_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:56     .text.ECDC_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:58     .text.ECDC_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:59     .text.ECDC_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:61     .text.ECDC_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:62     .text.ECDC_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:64     .text.ECDC_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:65     .text.ECDC_StructInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:72     .text.ECDC_CTR_SetCounter:0000000000000000 ECDC_CTR_SetCounter
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:75     .text.ECDC_CTR_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:77     .text.ECDC_CTR_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:78     .text.ECDC_CTR_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:79     .text.ECDC_CTR_SetCounter:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:79     .text.ECDC_CTR_SetCounter:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:81     .text.ECDC_CTR_SetCounter:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:85     .text.ECDC_CTR_SetCounter:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:86     .text.ECDC_CTR_SetCounter:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:88     .text.ECDC_CTR_SetCounter:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:90     .text.ECDC_CTR_SetCounter:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:91     .text.ECDC_CTR_SetCounter:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:93     .text.ECDC_CTR_SetCounter:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:95     .text.ECDC_CTR_SetCounter:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:96     .text.ECDC_CTR_SetCounter:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:98     .text.ECDC_CTR_SetCounter:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:100    .text.ECDC_CTR_SetCounter:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:101    .text.ECDC_CTR_SetCounter:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:108    .text.ECDC_SetKey:0000000000000000 ECDC_SetKey
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:111    .text.ECDC_SetKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:113    .text.ECDC_SetKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:114    .text.ECDC_SetKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:115    .text.ECDC_SetKey:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:115    .text.ECDC_SetKey:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:117    .text.ECDC_SetKey:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:121    .text.ECDC_SetKey:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:122    .text.ECDC_SetKey:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:124    .text.ECDC_SetKey:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:126    .text.ECDC_SetKey:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:127    .text.ECDC_SetKey:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:129    .text.ECDC_SetKey:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:131    .text.ECDC_SetKey:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:132    .text.ECDC_SetKey:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:134    .text.ECDC_SetKey:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:136    .text.ECDC_SetKey:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:137    .text.ECDC_SetKey:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:139    .text.ECDC_SetKey:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:141    .text.ECDC_SetKey:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:143    .text.ECDC_SetKey:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:145    .text.ECDC_SetKey:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:146    .text.ECDC_SetKey:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:148    .text.ECDC_SetKey:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:150    .text.ECDC_SetKey:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:151    .text.ECDC_SetKey:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:153    .text.ECDC_SetKey:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:156    .text.ECDC_SetKey:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:157    .text.ECDC_SetKey:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:161    .text.ECDC_SetKey:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:164    .text.ECDC_SetKey:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:169    .text.ECDC_SetKey:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:170    .text.ECDC_SetKey:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:172    .text.ECDC_SetKey:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:174    .text.ECDC_SetKey:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:175    .text.ECDC_SetKey:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:177    .text.ECDC_SetKey:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:183    .text.ECDC_SetKey:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:184    .text.ECDC_SetKey:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:191    .text.ECDC_SingleWR_RawData:0000000000000000 ECDC_SingleWR_RawData
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:194    .text.ECDC_SingleWR_RawData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:196    .text.ECDC_SingleWR_RawData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:197    .text.ECDC_SingleWR_RawData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:198    .text.ECDC_SingleWR_RawData:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:198    .text.ECDC_SingleWR_RawData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:203    .text.ECDC_SingleWR_RawData:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:204    .text.ECDC_SingleWR_RawData:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:207    .text.ECDC_SingleWR_RawData:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:208    .text.ECDC_SingleWR_RawData:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:211    .text.ECDC_SingleWR_RawData:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:212    .text.ECDC_SingleWR_RawData:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:214    .text.ECDC_SingleWR_RawData:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:216    .text.ECDC_SingleWR_RawData:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:217    .text.ECDC_SingleWR_RawData:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:224    .text.ECDC_SingleRD_EcdcData:0000000000000000 ECDC_SingleRD_EcdcData
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:227    .text.ECDC_SingleRD_EcdcData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:229    .text.ECDC_SingleRD_EcdcData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:230    .text.ECDC_SingleRD_EcdcData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:231    .text.ECDC_SingleRD_EcdcData:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:231    .text.ECDC_SingleRD_EcdcData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:235    .text.ECDC_SingleRD_EcdcData:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:238    .text.ECDC_SingleRD_EcdcData:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:239    .text.ECDC_SingleRD_EcdcData:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:241    .text.ECDC_SingleRD_EcdcData:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:244    .text.ECDC_SingleRD_EcdcData:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:245    .text.ECDC_SingleRD_EcdcData:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:247    .text.ECDC_SingleRD_EcdcData:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:250    .text.ECDC_SingleRD_EcdcData:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:251    .text.ECDC_SingleRD_EcdcData:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:253    .text.ECDC_SingleRD_EcdcData:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:255    .text.ECDC_SingleRD_EcdcData:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:256    .text.ECDC_SingleRD_EcdcData:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:263    .text.ECDC_SetSRC_BaseAddr:0000000000000000 ECDC_SetSRC_BaseAddr
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:266    .text.ECDC_SetSRC_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:268    .text.ECDC_SetSRC_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:269    .text.ECDC_SetSRC_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:270    .text.ECDC_SetSRC_BaseAddr:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:270    .text.ECDC_SetSRC_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:274    .text.ECDC_SetSRC_BaseAddr:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:275    .text.ECDC_SetSRC_BaseAddr:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:277    .text.ECDC_SetSRC_BaseAddr:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:278    .text.ECDC_SetSRC_BaseAddr:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:285    .text.ECDC_SetDST_BaseAddr:0000000000000000 ECDC_SetDST_BaseAddr
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:288    .text.ECDC_SetDST_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:290    .text.ECDC_SetDST_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:291    .text.ECDC_SetDST_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:292    .text.ECDC_SetDST_BaseAddr:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:292    .text.ECDC_SetDST_BaseAddr:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:296    .text.ECDC_SetDST_BaseAddr:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:297    .text.ECDC_SetDST_BaseAddr:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:304    .text.ECDC_HardwareClockCmd:0000000000000000 ECDC_HardwareClockCmd
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:307    .text.ECDC_HardwareClockCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:309    .text.ECDC_HardwareClockCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:310    .text.ECDC_HardwareClockCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:310    .text.ECDC_HardwareClockCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:313    .text.ECDC_HardwareClockCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:315    .text.ECDC_HardwareClockCmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:317    .text.ECDC_HardwareClockCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:318    .text.ECDC_HardwareClockCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:321    .text.ECDC_HardwareClockCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:323    .text.ECDC_HardwareClockCmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:326    .text.ECDC_HardwareClockCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:327    .text.ECDC_HardwareClockCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:329    .text.ECDC_HardwareClockCmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:336    .text.ECDC_ClockConfig:0000000000000000 ECDC_ClockConfig
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:339    .text.ECDC_ClockConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:341    .text.ECDC_ClockConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:342    .text.ECDC_ClockConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:343    .text.ECDC_ClockConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:343    .text.ECDC_ClockConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:347    .text.ECDC_ClockConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:350    .text.ECDC_ClockConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:351    .text.ECDC_ClockConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:353    .text.ECDC_ClockConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:356    .text.ECDC_ClockConfig:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:357    .text.ECDC_ClockConfig:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:360    .text.ECDC_ClockConfig:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:361    .text.ECDC_ClockConfig:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:363    .text.ECDC_ClockConfig:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:368    .text.ECDC_ClockConfig:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:369    .text.ECDC_ClockConfig:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:371    .text.ECDC_ClockConfig:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:375    .text.ECDC_ClockConfig:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:376    .text.ECDC_ClockConfig:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:383    .text.ECDC_KeyExCmd:0000000000000000 ECDC_KeyExCmd
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:386    .text.ECDC_KeyExCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:388    .text.ECDC_KeyExCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:389    .text.ECDC_KeyExCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:389    .text.ECDC_KeyExCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:394    .text.ECDC_KeyExCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:398    .text.ECDC_KeyExCmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:403    .text.ECDC_KeyExCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:404    .text.ECDC_KeyExCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:410    .text.ECDC_KeyExCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:412    .text.ECDC_KeyExCmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:415    .text.ECDC_KeyExCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:416    .text.ECDC_KeyExCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:418    .text.ECDC_KeyExCmd:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:425    .text.ECDC_Init:0000000000000000 ECDC_Init
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:428    .text.ECDC_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:430    .text.ECDC_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:430    .text.ECDC_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:431    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:432    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:433    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:434    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:435    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:437    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:438    .text.ECDC_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:443    .text.ECDC_Init:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:444    .text.ECDC_Init:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:446    .text.ECDC_Init:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:450    .text.ECDC_Init:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:452    .text.ECDC_Init:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:454    .text.ECDC_Init:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:455    .text.ECDC_Init:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:457    .text.ECDC_Init:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:459    .text.ECDC_Init:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:461    .text.ECDC_Init:000000000000002e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:463    .text.ECDC_Init:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:465    .text.ECDC_Init:0000000000000032 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:467    .text.ECDC_Init:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:469    .text.ECDC_Init:0000000000000036 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:471    .text.ECDC_Init:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:473    .text.ECDC_Init:000000000000003a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:475    .text.ECDC_Init:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:477    .text.ECDC_Init:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:480    .text.ECDC_Init:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:482    .text.ECDC_Init:0000000000000042 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:485    .text.ECDC_Init:0000000000000046 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:488    .text.ECDC_Init:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:489    .text.ECDC_Init:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:491    .text.ECDC_Init:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:493    .text.ECDC_Init:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:495    .text.ECDC_Init:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:500    .text.ECDC_Init:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:503    .text.ECDC_Init:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:504    .text.ECDC_Init:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:505    .text.ECDC_Init:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:511    .text.ECDC_Init:0000000000000060 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:513    .text.ECDC_Init:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:519    .text.ECDC_Init:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:526    .text.ECDC_Init:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:528    .text.ECDC_Init:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:532    .text.ECDC_Init:0000000000000074 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:533    .text.ECDC_Init:0000000000000074 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:536    .text.ECDC_Init:000000000000007c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:539    .text.ECDC_Init:0000000000000082 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:541    .text.ECDC_Init:0000000000000086 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:543    .text.ECDC_Init:0000000000000088 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:545    .text.ECDC_Init:000000000000008a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:547    .text.ECDC_Init:000000000000008c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:549    .text.ECDC_Init:000000000000008e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:551    .text.ECDC_Init:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:553    .text.ECDC_Init:0000000000000092 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:555    .text.ECDC_Init:0000000000000094 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:558    .text.ECDC_Init:0000000000000096 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:561    .text.ECDC_Init:000000000000009c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:564    .text.ECDC_Init:00000000000000a0 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:568    .text.ECDC_Init:00000000000000aa .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:569    .text.ECDC_Init:00000000000000aa .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:573    .text.ECDC_Init:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:575    .text.ECDC_Init:00000000000000b6 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:577    .text.ECDC_Init:00000000000000b8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:579    .text.ECDC_Init:00000000000000ba .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:583    .text.ECDC_Init:00000000000000c0 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:584    .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:585    .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:586    .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:587    .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:588    .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:589    .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:592    .text.ECDC_Init:00000000000000c8 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_ecdc.c:59     .text.ECDC_Init:00000000000000c8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:601    .text.ECDC_Init:00000000000000ca .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:605    .text.ECDC_Init:00000000000000ce .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:612    .text.ECDC_ITConfig:0000000000000000 ECDC_ITConfig
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:615    .text.ECDC_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:617    .text.ECDC_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:618    .text.ECDC_ITConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:618    .text.ECDC_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:621    .text.ECDC_ITConfig:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:623    .text.ECDC_ITConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:625    .text.ECDC_ITConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:626    .text.ECDC_ITConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:631    .text.ECDC_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:632    .text.ECDC_ITConfig:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:637    .text.ECDC_ITConfig:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:640    .text.ECDC_ITConfig:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:641    .text.ECDC_ITConfig:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:648    .text.ECDC_GetFlagStatus:0000000000000000 ECDC_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:651    .text.ECDC_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:653    .text.ECDC_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:654    .text.ECDC_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:655    .text.ECDC_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:656    .text.ECDC_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:656    .text.ECDC_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:661    .text.ECDC_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:662    .text.ECDC_GetFlagStatus:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:665    .text.ECDC_GetFlagStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:667    .text.ECDC_GetFlagStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:674    .text.ECDC_ClearFlag:0000000000000000 ECDC_ClearFlag
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:677    .text.ECDC_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:679    .text.ECDC_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:680    .text.ECDC_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:681    .text.ECDC_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:681    .text.ECDC_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:685    .text.ECDC_ClearFlag:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:688    .text.ECDC_ClearFlag:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:689    .text.ECDC_ClearFlag:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:696    .text.ECDC_GetITStatus:0000000000000000 ECDC_GetITStatus
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:698    .text.ECDC_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:700    .text.ECDC_GetITStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:700    .text.ECDC_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:701    .text.ECDC_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:708    .text.ECDC_ClearITPendingBit:0000000000000000 ECDC_ClearITPendingBit
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:710    .text.ECDC_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:712    .text.ECDC_ClearITPendingBit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:712    .text.ECDC_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:713    .text.ECDC_ClearITPendingBit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:00000000000000a6 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:00000000000000f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:000000000000013c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:00000000000001c6 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:000000000000024c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:0000000000000286 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:00000000000002d9 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:000000000000031d .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:000000000000032d .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:000000000000033d .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:000000000000034e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:0000000000000358 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:0000000000000365 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:0000000000000377 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:0000000000000382 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3008   .debug_line_str:0000000000000392 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:39     .text.ECDC_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:68     .text.ECDC_StructInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:104    .text.ECDC_CTR_SetCounter:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:187    .text.ECDC_SetKey:0000000000000044 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:220    .text.ECDC_SingleWR_RawData:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:259    .text.ECDC_SingleRD_EcdcData:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:281    .text.ECDC_SetSRC_BaseAddr:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:300    .text.ECDC_SetDST_BaseAddr:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:332    .text.ECDC_HardwareClockCmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:379    .text.ECDC_ClockConfig:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:421    .text.ECDC_KeyExCmd:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:608    .text.ECDC_Init:00000000000000ce .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:644    .text.ECDC_ITConfig:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:670    .text.ECDC_GetFlagStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:692    .text.ECDC_ClearFlag:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:704    .text.ECDC_GetITStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:716    .text.ECDC_ClearITPendingBit:0000000000000008 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:154    .text.ECDC_SetKey:0000000000000028 .L6
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:179    .text.ECDC_SetKey:0000000000000042 .L5
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:324    .text.ECDC_HardwareClockCmd:0000000000000014 .L19
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:319    .text.ECDC_HardwareClockCmd:0000000000000010 .L21
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:366    .text.ECDC_ClockConfig:0000000000000028 .L23
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:413    .text.ECDC_KeyExCmd:0000000000000014 .L26
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:406    .text.ECDC_KeyExCmd:0000000000000010 .L28
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:497    .text.ECDC_Init:000000000000005e .L30
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:556    .text.ECDC_Init:0000000000000096 .L32
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:591    .text.ECDC_Init:00000000000000c8 .L33
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:530    .text.ECDC_Init:0000000000000074 .L31
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:629    .text.ECDC_ITConfig:0000000000000012 .L41
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:1715   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2869   .debug_str:000000000000021b .LASF106
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3006   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3004   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2732   .debug_rnglists:000000000000004e .LLRL14
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2787   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2877   .debug_str:0000000000000332 .LASF2
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2889   .debug_str:000000000000038f .LASF3
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2863   .debug_str:00000000000001f8 .LASF6
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2879   .debug_str:000000000000033f .LASF4
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2825   .debug_str:0000000000000109 .LASF5
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2823   .debug_str:00000000000000fe .LASF7
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2913   .debug_str:0000000000000445 .LASF8
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2855   .debug_str:00000000000001c6 .LASF9
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2963   .debug_str:00000000000005ae .LASF10
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2949   .debug_str:000000000000054a .LASF11
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2843   .debug_str:0000000000000174 .LASF12
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2891   .debug_str:000000000000039b .LASF13
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2827   .debug_str:0000000000000113 .LASF14
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2903   .debug_str:00000000000003f7 .LASF15
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2833   .debug_str:0000000000000131 .LASF16
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2837   .debug_str:0000000000000152 .LASF17
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2805   .debug_str:0000000000000067 .LASF18
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2799   .debug_str:000000000000002e .LASF19
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2971   .debug_str:00000000000005ee .LASF20
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2993   .debug_str:0000000000000668 .LASF21
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2853   .debug_str:00000000000001bd .LASF22
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2989   .debug_str:000000000000064e .LASF23
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2957   .debug_str:0000000000000584 .LASF24
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2883   .debug_str:0000000000000363 .LASF25
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2867   .debug_str:0000000000000214 .LASF26
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2975   .debug_str:0000000000000600 .LASF27
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2813   .debug_str:00000000000000a6 .LASF28
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2895   .debug_str:00000000000003c1 .LASF29
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2973   .debug_str:00000000000005f4 .LASF30
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2939   .debug_str:00000000000004fd .LASF31
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2839   .debug_str:000000000000015a .LASF32
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2987   .debug_str:0000000000000644 .LASF33
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2951   .debug_str:000000000000055c .LASF34
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2885   .debug_str:0000000000000368 .LASF35
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2899   .debug_str:00000000000003dd .LASF36
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2791   .debug_str:0000000000000008 .LASF37
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2789   .debug_str:0000000000000000 .LASF38
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2947   .debug_str:0000000000000540 .LASF39
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2937   .debug_str:00000000000004f1 .LASF40
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2793   .debug_str:0000000000000011 .LASF41
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2923   .debug_str:0000000000000489 .LASF42
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2797   .debug_str:0000000000000024 .LASF43
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2821   .debug_str:00000000000000f2 .LASF44
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2981   .debug_str:0000000000000621 .LASF45
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2919   .debug_str:000000000000046e .LASF46
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2983   .debug_str:000000000000062c .LASF47
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:3001   .debug_str:00000000000006af .LASF48
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2955   .debug_str:000000000000057b .LASF49
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2965   .debug_str:00000000000005b9 .LASF50
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2829   .debug_str:000000000000011b .LASF51
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2917   .debug_str:0000000000000469 .LASF52
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2849   .debug_str:0000000000000196 .LASF53
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2865   .debug_str:0000000000000202 .LASF54
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2815   .debug_str:00000000000000b2 .LASF55
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2835   .debug_str:000000000000013a .LASF56
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2873   .debug_str:0000000000000310 .LASF57
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2887   .debug_str:0000000000000372 .LASF58
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2991   .debug_str:0000000000000658 .LASF59
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2897   .debug_str:00000000000003cd .LASF60
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2871   .debug_str:0000000000000300 .LASF61
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2999   .debug_str:000000000000069b .LASF62
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2817   .debug_str:00000000000000c9 .LASF63
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2935   .debug_str:00000000000004dc .LASF64
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2941   .debug_str:0000000000000508 .LASF65
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2961   .debug_str:000000000000059d .LASF66
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2901   .debug_str:00000000000003e6 .LASF67
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2801   .debug_str:000000000000003e .LASF68
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2909   .debug_str:0000000000000416 .LASF69
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2967   .debug_str:00000000000005c2 .LASF70
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2841   .debug_str:0000000000000164 .LASF71
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2915   .debug_str:0000000000000458 .LASF72
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2977   .debug_str:000000000000060c .LASF73
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2925   .debug_str:0000000000000494 .LASF74
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2921   .debug_str:0000000000000479 .LASF75
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2927   .debug_str:000000000000049e .LASF76
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2959   .debug_str:0000000000000590 .LASF77
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2803   .debug_str:0000000000000056 .LASF78
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2953   .debug_str:0000000000000565 .LASF79
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2997   .debug_str:0000000000000684 .LASF107
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2847   .debug_str:000000000000018e .LASF81
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2819   .debug_str:00000000000000e1 .LASF80
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2875   .debug_str:0000000000000328 .LASF104
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2893   .debug_str:00000000000003b2 .LASF83
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:675    .text.ECDC_ClearFlag:0000000000000000 .LFB54
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:690    .text.ECDC_ClearFlag:0000000000000010 .LFE54
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2979   .debug_str:0000000000000617 .LASF82
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2807   .debug_str:000000000000006e .LASF108
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:649    .text.ECDC_GetFlagStatus:0000000000000000 .LFB53
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:668    .text.ECDC_GetFlagStatus:0000000000000012 .LFE53
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2479   .debug_loclists:000000000000000c .LLST12
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2494   .debug_loclists:0000000000000026 .LLST13
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2861   .debug_str:00000000000001ea .LASF84
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:613    .text.ECDC_ITConfig:0000000000000000 .LFB52
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:642    .text.ECDC_ITConfig:0000000000000020 .LFE52
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2533   .debug_loclists:000000000000005e .LLST11
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2831   .debug_str:0000000000000128 .LASF85
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2985   .debug_str:0000000000000636 .LASF86
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2933   .debug_str:00000000000004cb .LASF87
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:337    .text.ECDC_ClockConfig:0000000000000000 .LFB50
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:377    .text.ECDC_ClockConfig:0000000000000030 .LFE50
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2845   .debug_str:0000000000000182 .LASF88
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2556   .debug_loclists:0000000000000086 .LLST2
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2931   .debug_str:00000000000004b5 .LASF89
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:305    .text.ECDC_HardwareClockCmd:0000000000000000 .LFB49
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:330    .text.ECDC_HardwareClockCmd:000000000000001a .LFE49
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2851   .debug_str:00000000000001a8 .LASF90
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:286    .text.ECDC_SetDST_BaseAddr:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:298    .text.ECDC_SetDST_BaseAddr:000000000000000c .LFE48
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2795   .debug_str:000000000000001c .LASF91
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2809   .debug_str:0000000000000081 .LASF92
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:264    .text.ECDC_SetSRC_BaseAddr:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:279    .text.ECDC_SetSRC_BaseAddr:000000000000000e .LFE47
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2911   .debug_str:000000000000042e .LASF93
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:225    .text.ECDC_SingleRD_EcdcData:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:257    .text.ECDC_SingleRD_EcdcData:000000000000001a .LFE46
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2811   .debug_str:0000000000000096 .LASF94
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2571   .debug_loclists:00000000000000a0 .LLST1
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2881   .debug_str:000000000000034d .LASF95
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:192    .text.ECDC_SingleWR_RawData:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:218    .text.ECDC_SingleWR_RawData:000000000000001a .LFE45
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2995   .debug_str:0000000000000673 .LASF96
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2907   .debug_str:000000000000040a .LASF97
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2859   .debug_str:00000000000001db .LASF98
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2969   .debug_str:00000000000005da .LASF99
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:73     .text.ECDC_CTR_SetCounter:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:102    .text.ECDC_CTR_SetCounter:000000000000001a .LFE43
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2943   .debug_str:0000000000000522 .LASF100
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2945   .debug_str:0000000000000530 .LASF101
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:44     .text.ECDC_StructInit:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:66     .text.ECDC_StructInit:0000000000000016 .LFE42
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2929   .debug_str:00000000000004a5 .LASF102
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2905   .debug_str:0000000000000400 .LASF103
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:426    .text.ECDC_Init:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:606    .text.ECDC_Init:00000000000000ce .LFE41
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2606   .debug_loclists:00000000000000e0 .LLST5
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2721   .debug_rnglists:0000000000000032 .LLRL9
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2618   .debug_loclists:00000000000000f7 .LLST10
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:499    .text.ECDC_Init:000000000000005e .LBB20
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2713   .debug_rnglists:000000000000001f .LLRL6
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2630   .debug_loclists:000000000000010e .LLST7
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:501    .text.ECDC_Init:000000000000005e .LBB21
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:486    .text.ECDC_Init:000000000000004e .LVL22
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:496    .text.ECDC_Init:000000000000005e .LVL23
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:566    .text.ECDC_Init:00000000000000aa .LVL25
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2857   .debug_str:00000000000001cf .LASF105
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:15     .text.ECDC_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:37     .text.ECDC_DeInit:000000000000002c .LFE40
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:26     .text.ECDC_DeInit:0000000000000016 .LVL0
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:31     .text.ECDC_DeInit:0000000000000024 .LVL1
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:109    .text.ECDC_SetKey:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:185    .text.ECDC_SetKey:0000000000000044 .LFE44
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:166    .text.ECDC_SetKey:000000000000003a .LBB7
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:181    .text.ECDC_SetKey:0000000000000042 .LBE7
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2638   .debug_loclists:000000000000011b .LLST0
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:384    .text.ECDC_KeyExCmd:0000000000000000 .LFB51
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:419    .text.ECDC_KeyExCmd:0000000000000018 .LFE51
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:391    .text.ECDC_KeyExCmd:0000000000000008 .LBB11
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2705   .debug_rnglists:000000000000000c .LLRL3
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:2645   .debug_loclists:0000000000000127 .LLST4
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:652    .text.ECDC_GetFlagStatus:0000000000000000 .LVL31
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:663    .text.ECDC_GetFlagStatus:000000000000000c .LVL33
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:659    .text.ECDC_GetFlagStatus:000000000000000a .LVL32
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:616    .text.ECDC_ITConfig:0000000000000000 .LVL28
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:633    .text.ECDC_ITConfig:0000000000000016 .LVL29
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:635    .text.ECDC_ITConfig:000000000000001a .LVL30
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:340    .text.ECDC_ClockConfig:0000000000000000 .LVL15
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:372    .text.ECDC_ClockConfig:000000000000002c .LVL16
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:228    .text.ECDC_SingleRD_EcdcData:0000000000000000 .LVL8
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:237    .text.ECDC_SingleRD_EcdcData:000000000000000c .LVL9
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:243    .text.ECDC_SingleRD_EcdcData:0000000000000010 .LVL10
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:249    .text.ECDC_SingleRD_EcdcData:0000000000000014 .LVL11
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:429    .text.ECDC_Init:0000000000000000 .LVL20
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:478    .text.ECDC_Init:0000000000000040 .LVL21
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:529    .text.ECDC_Init:0000000000000074 .LVL24
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:590    .text.ECDC_Init:00000000000000c8 .LVL26
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:165    .text.ECDC_SetKey:000000000000003a .LVL5
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:178    .text.ECDC_SetKey:0000000000000042 .LVL6
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:399    .text.ECDC_KeyExCmd:000000000000000c .LVL18
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:405    .text.ECDC_KeyExCmd:0000000000000010 .LVL19
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:726    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:697    .text.ECDC_GetITStatus:0000000000000000 .LFB60
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:702    .text.ECDC_GetITStatus:0000000000000008 .LFE60
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:709    .text.ECDC_ClearITPendingBit:0000000000000000 .LFB62
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:714    .text.ECDC_ClearITPendingBit:0000000000000008 .LFE62
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:396    .text.ECDC_KeyExCmd:000000000000000a .LBE11
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:400    .text.ECDC_KeyExCmd:000000000000000c .LBB14
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:408    .text.ECDC_KeyExCmd:0000000000000010 .LBE14
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:508    .text.ECDC_Init:0000000000000060 .LBE20
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:515    .text.ECDC_Init:0000000000000066 .LBB26
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:523    .text.ECDC_Init:000000000000006c .LBE26
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:509    .text.ECDC_Init:0000000000000060 .LBB25
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:514    .text.ECDC_Init:0000000000000066 .LBE25
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:524    .text.ECDC_Init:000000000000006c .LBB27
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:562    .text.ECDC_Init:00000000000000a0 .LBE27
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:593    .text.ECDC_Init:00000000000000c8 .LBB28
+C:\Users\User\AppData\Local\Temp\ccsChxix.s:604    .text.ECDC_Init:00000000000000ce .LBE28
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+RCC_HB2PeriphResetCmd
+__riscv_restore_0
+__riscv_save_3
+HCLKClock
+SystemClock
+__riscv_restore_3

@@ -1,0 +1,1314 @@
+   1              		.file	"ch32h417_dvp.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.DVP_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	DVP_DeInit
+  14              	DVP_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_dvp.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * File Name          : ch32h417_dvp.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * Version            : V1.0.1
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * Date               : 2025/08/12
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * Description        : This file provides all the DVP firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** #include "ch32h417_dvp.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_DeInit
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Deinitializes the DVP peripheral registers to their default
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *        reset values.
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   none
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_DeInit(void)
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+  17              		.loc 1 25 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_0
+  19      E7020300 
+  20              		.cfi_offset 1, -4
+  21              		.cfi_def_cfa_offset 16
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     RCC_HBPeriphResetCmd(RCC_HBPeriph_DVP, ENABLE);
+  22              		.loc 1 26 5
+  23 0008 8545     		li	a1,1
+  24 000a 0965     		li	a0,8192
+  25 000c 97000000 		call	RCC_HBPeriphResetCmd
+  25      E7800000 
+  26              	.LVL0:
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     RCC_HBPeriphResetCmd(RCC_HBPeriph_DVP, DISABLE);
+  27              		.loc 1 27 5
+  28 0014 8145     		li	a1,0
+  29 0016 0965     		li	a0,8192
+  30 0018 97000000 		call	RCC_HBPeriphResetCmd
+  30      E7800000 
+  31              	.LVL1:
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+  32              		.loc 1 28 1 is_stmt 0
+  33 0020 17030000 		tail	__riscv_restore_0
+  33      67000300 
+  34              		.cfi_restore 1
+  35              		.cfi_def_cfa_offset 0
+  36              		.cfi_endproc
+  37              	.LFE40:
+  39              		.section	.text.DVP_Init,"ax",@progbits
+  40              		.align	1
+  41              		.globl	DVP_Init
+  43              	DVP_Init:
+  44              	.LFB41:
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_Init
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Initializes the DVP peripheral according to the specified
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *        parameters in the DVP_InitStruct.
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   none
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_Init(DVP_InitTypeDef *DVP_InitStruct)
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+  45              		.loc 1 41 1 is_stmt 1
+  46              		.cfi_startproc
+  47              	.LVL2:
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->CR0 = 0;
+  48              		.loc 1 42 5
+  49              		.loc 1 42 14 is_stmt 0
+  50 0000 37660240 		li	a2,1073897472
+  51 0004 23000680 		sb	zero,-2048(a2)
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->CR1 = 0;
+  52              		.loc 1 43 5 is_stmt 1
+  53              		.loc 1 43 14 is_stmt 0
+  54 0008 A3000680 		sb	zero,-2047(a2)
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->CR0 = ((uint8_t)DVP_InitStruct->DVP_JPEGMode << 6) | (uint8_t)DVP_InitStruct->DVP_DataSize
+  55              		.loc 1 45 5 is_stmt 1
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****                (uint8_t)DVP_InitStruct->DVP_HCLK_P | (uint8_t)DVP_InitStruct->DVP_HSYNC_P |
+  56              		.loc 1 46 91 is_stmt 0
+  57 000c 5439     		lbu	a3,21(a0)
+  58 000e 5C29     		lbu	a5,20(a0)
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****                (uint8_t)DVP_InitStruct->DVP_HCLK_P | (uint8_t)DVP_InitStruct->DVP_HSYNC_P |
+  59              		.loc 1 45 55
+  60 0010 9165     		li	a1,16384
+  61 0012 938505FC 		addi	a1,a1,-64
+  62              		.loc 1 46 91
+  63 0016 D58F     		or	a5,a5,a3
+  64 0018 7429     		lbu	a3,22(a0)
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->CR1 = 0;
+  65              		.loc 1 42 14
+  66 001a 13070680 		addi	a4,a2,-2048
+  67              		.loc 1 46 91
+  68 001e D58F     		or	a5,a5,a3
+  69 0020 7439     		lbu	a3,23(a0)
+  70 0022 D58F     		or	a5,a5,a3
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****                (uint8_t)DVP_InitStruct->DVP_HCLK_P | (uint8_t)DVP_InitStruct->DVP_HSYNC_P |
+  71              		.loc 1 45 55
+  72 0024 1451     		lw	a3,32(a0)
+  73 0026 9A06     		slli	a3,a3,6
+  74 0028 ED8E     		and	a3,a3,a1
+  75              		.loc 1 46 91
+  76 002a D58F     		or	a5,a5,a3
+  77 002c 93F7F70F 		andi	a5,a5,0xff
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****                (uint8_t)DVP_InitStruct->DVP_HCLK_P | (uint8_t)DVP_InitStruct->DVP_HSYNC_P |
+  78              		.loc 1 45 14
+  79 0030 2300F680 		sb	a5,-2048(a2)
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****                (uint8_t)DVP_InitStruct->DVP_VSYNC_P;
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->CR1 = (uint8_t)DVP_InitStruct->DVP_FrameCapRate | ((uint8_t)DVP_InitStruct->DVP_Crop << 5)
+  80              		.loc 1 48 5 is_stmt 1
+  81              		.loc 1 48 95 is_stmt 0
+  82 0034 5C4D     		lw	a5,28(a0)
+  83 0036 8966     		li	a3,8192
+  84 0038 8116     		addi	a3,a3,-32
+  85 003a 9607     		slli	a5,a5,5
+  86              		.loc 1 48 101
+  87 003c 103D     		lbu	a2,25(a0)
+  88              		.loc 1 48 95
+  89 003e F58F     		and	a5,a5,a3
+  90              		.loc 1 48 101
+  91 0040 142D     		lbu	a3,24(a0)
+  92 0042 D18E     		or	a3,a3,a2
+  93 0044 D58F     		or	a5,a5,a3
+  94 0046 93F7F70F 		andi	a5,a5,0xff
+  95              		.loc 1 48 14
+  96 004a 1CB3     		sb	a5,1(a4)
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****                (uint8_t)DVP_InitStruct->DVP_CaptureMode;
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->ROW_NUM = (uint16_t )DVP_InitStruct->DVP_ROW_NUM;
+  97              		.loc 1 50 5 is_stmt 1
+  98              		.loc 1 50 45 is_stmt 0
+  99 004c 1E21     		lhu	a5,0(a0)
+ 100              		.loc 1 50 18
+ 101 004e 5EA3     		sh	a5,4(a4)
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->COL_NUM = (uint16_t )DVP_InitStruct->DVP_COL_NUM;
+ 102              		.loc 1 51 5 is_stmt 1
+ 103              		.loc 1 51 45 is_stmt 0
+ 104 0050 3E21     		lhu	a5,2(a0)
+ 105              		.loc 1 51 18
+ 106 0052 7EA3     		sh	a5,6(a4)
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->DMA_BUF0 = (uint32_t )DVP_InitStruct->DVP_DMA_BUF0_Addr;
+ 107              		.loc 1 52 5 is_stmt 1
+ 108              		.loc 1 52 46 is_stmt 0
+ 109 0054 5C41     		lw	a5,4(a0)
+ 110              		.loc 1 52 19
+ 111 0056 1CC7     		sw	a5,8(a4)
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->DMA_BUF1 = (uint32_t )DVP_InitStruct->DVP_DMA_BUF1_Addr;
+ 112              		.loc 1 53 5 is_stmt 1
+ 113              		.loc 1 53 46 is_stmt 0
+ 114 0058 1C45     		lw	a5,8(a0)
+ 115              		.loc 1 53 19
+ 116 005a 5CC7     		sw	a5,12(a4)
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->HOFFCNT = (uint16_t)DVP_InitStruct->DVP_Window_HOFFCNT;
+ 117              		.loc 1 54 5 is_stmt 1
+ 118              		.loc 1 54 44 is_stmt 0
+ 119 005c 5E25     		lhu	a5,12(a0)
+ 120              		.loc 1 54 18
+ 121 005e 1EAF     		sh	a5,24(a4)
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->VST = (uint16_t)DVP_InitStruct->DVP_Window_VST;
+ 122              		.loc 1 55 5 is_stmt 1
+ 123              		.loc 1 55 40 is_stmt 0
+ 124 0060 7E25     		lhu	a5,14(a0)
+ 125              		.loc 1 55 14
+ 126 0062 3EAF     		sh	a5,26(a4)
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->CAPCNT = (uint16_t)DVP_InitStruct->DVP_Window_CAPCNT;
+ 127              		.loc 1 56 5 is_stmt 1
+ 128              		.loc 1 56 43 is_stmt 0
+ 129 0064 1E29     		lhu	a5,16(a0)
+ 130              		.loc 1 56 17
+ 131 0066 5EAF     		sh	a5,28(a4)
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->VLINE = (uint16_t)DVP_InitStruct->DVP_Window_VLine;
+ 132              		.loc 1 57 5 is_stmt 1
+ 133              		.loc 1 57 42 is_stmt 0
+ 134 0068 3E29     		lhu	a5,18(a0)
+ 135              		.loc 1 57 16
+ 136 006a 7EAF     		sh	a5,30(a4)
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 137              		.loc 1 58 1
+ 138 006c 8280     		ret
+ 139              		.cfi_endproc
+ 140              	.LFE41:
+ 142              		.section	.text.DVP_StructInit,"ax",@progbits
+ 143              		.align	1
+ 144              		.globl	DVP_StructInit
+ 146              	DVP_StructInit:
+ 147              	.LFB42:
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_StructInit
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Fills each DVP_InitStruct member with its default value.
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   DVP_InitStruct - pointer to an DVP_InitTypeDef structure that
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *        contains the configuration information for the specified DVP
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *        peripheral.
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_StructInit(DVP_InitTypeDef *DVP_InitStruct)
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 148              		.loc 1 72 1 is_stmt 1
+ 149              		.cfi_startproc
+ 150              	.LVL3:
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_ROW_NUM = 0;
+ 151              		.loc 1 73 5
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_COL_NUM =0;
+ 152              		.loc 1 74 5
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_DMA_BUF0_Addr = 0;
+ 153              		.loc 1 75 5
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_DMA_BUF1_Addr =0;
+ 154              		.loc 1 76 5
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_HOFFCNT = 0;
+ 155              		.loc 1 77 5
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_VST = 0;
+ 156              		.loc 1 78 5
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_CAPCNT = 0;
+ 157              		.loc 1 79 5
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_VLine = 0;
+ 158              		.loc 1 80 5
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_DataSize = DVP_DataSize_8b;
+ 159              		.loc 1 81 5
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_HCLK_P = DVP_Hclk_P_Rising;
+ 160              		.loc 1 82 5
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_HSYNC_P = DVP_Hsync_P_Low;
+ 161              		.loc 1 83 5
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_VSYNC_P = DVP_Vsync_P_Low;
+ 162              		.loc 1 84 5
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_FrameCapRate = DVP_FrameCapRate_100P;
+ 163              		.loc 1 85 5
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_CaptureMode = DVP_CaptureMode_Snapshot;
+ 164              		.loc 1 86 5
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_HCLK_P = DVP_Hclk_P_Rising;
+ 165              		.loc 1 81 34 is_stmt 0
+ 166 0000 B7070400 		li	a5,262144
+ 167 0004 5CC9     		sw	a5,20(a0)
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_FrameCapRate = DVP_FrameCapRate_100P;
+ 168              		.loc 1 85 38
+ 169 0006 8567     		li	a5,4096
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_COL_NUM =0;
+ 170              		.loc 1 73 33
+ 171 0008 23200500 		sw	zero,0(a0)
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_DMA_BUF1_Addr =0;
+ 172              		.loc 1 75 39
+ 173 000c 23220500 		sw	zero,4(a0)
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_HOFFCNT = 0;
+ 174              		.loc 1 76 39
+ 175 0010 23240500 		sw	zero,8(a0)
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_VST = 0;
+ 176              		.loc 1 77 40
+ 177 0014 23260500 		sw	zero,12(a0)
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Window_VLine = 0;
+ 178              		.loc 1 79 39
+ 179 0018 23280500 		sw	zero,16(a0)
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_CaptureMode = DVP_CaptureMode_Snapshot;
+ 180              		.loc 1 85 38
+ 181 001c 1EAD     		sh	a5,24(a0)
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_Crop = DISABLE;
+ 182              		.loc 1 87 5 is_stmt 1
+ 183              		.loc 1 87 30 is_stmt 0
+ 184 001e 232E0500 		sw	zero,28(a0)
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP_InitStruct->DVP_JPEGMode = DISABLE;
+ 185              		.loc 1 88 5 is_stmt 1
+ 186              		.loc 1 88 34 is_stmt 0
+ 187 0022 23200502 		sw	zero,32(a0)
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 188              		.loc 1 89 1
+ 189 0026 8280     		ret
+ 190              		.cfi_endproc
+ 191              	.LFE42:
+ 193              		.section	.text.DVP_Cmd,"ax",@progbits
+ 194              		.align	1
+ 195              		.globl	DVP_Cmd
+ 197              	DVP_Cmd:
+ 198              	.LFB43:
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_Cmd
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Enables or disables the specified DVP peripheral.
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   NewState - ENABLE or DISABLE.
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_Cmd(FunctionalState NewState)
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 199              		.loc 1 101 1 is_stmt 1
+ 200              		.cfi_startproc
+ 201              	.LVL4:
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 202              		.loc 1 102 5
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR0 |= RB_DVP_ENABLE;
+ 203              		.loc 1 104 12 is_stmt 0
+ 204 0000 37670240 		li	a4,1073897472
+ 205 0004 83470780 		lbu	a5,-2048(a4)
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 206              		.loc 1 102 7
+ 207 0008 11C5     		beq	a0,zero,.L6
+ 208              		.loc 1 104 9 is_stmt 1
+ 209              		.loc 1 104 18 is_stmt 0
+ 210 000a 93E71700 		ori	a5,a5,1
+ 211              	.L8:
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR0 &= ~RB_DVP_ENABLE;
+ 212              		.loc 1 108 18
+ 213 000e 2300F780 		sb	a5,-2048(a4)
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 214              		.loc 1 110 1
+ 215 0012 8280     		ret
+ 216              	.L6:
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 217              		.loc 1 108 9 is_stmt 1
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 218              		.loc 1 108 18 is_stmt 0
+ 219 0014 93F7E70F 		andi	a5,a5,254
+ 220 0018 DDBF     		j	.L8
+ 221              		.cfi_endproc
+ 222              	.LFE43:
+ 224              		.section	.text.DVP_DMACmd,"ax",@progbits
+ 225              		.align	1
+ 226              		.globl	DVP_DMACmd
+ 228              	DVP_DMACmd:
+ 229              	.LFB44:
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_DMACmd
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Enables or disables the specified DVP DMA request.
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   NewState - ENABLE or DISABLE.
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_DMACmd(FunctionalState NewState)
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 230              		.loc 1 122 1 is_stmt 1
+ 231              		.cfi_startproc
+ 232              	.LVL5:
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 233              		.loc 1 123 5
+ 234 0000 B7670240 		li	a5,1073897472
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR1 |= RB_DVP_DMA_EN;
+ 235              		.loc 1 125 12 is_stmt 0
+ 236 0004 03C71780 		lbu	a4,-2047(a5)
+ 237 0008 93870780 		addi	a5,a5,-2048
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 238              		.loc 1 123 7
+ 239 000c 09C5     		beq	a0,zero,.L10
+ 240              		.loc 1 125 9 is_stmt 1
+ 241              		.loc 1 125 18 is_stmt 0
+ 242 000e 13671700 		ori	a4,a4,1
+ 243              	.L12:
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR1 &= ~RB_DVP_DMA_EN;
+ 244              		.loc 1 129 18
+ 245 0012 98B3     		sb	a4,1(a5)
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 246              		.loc 1 131 1
+ 247 0014 8280     		ret
+ 248              	.L10:
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 249              		.loc 1 129 9 is_stmt 1
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 250              		.loc 1 129 18 is_stmt 0
+ 251 0016 1377E70F 		andi	a4,a4,254
+ 252 001a E5BF     		j	.L12
+ 253              		.cfi_endproc
+ 254              	.LFE44:
+ 256              		.section	.text.DVP_ReceiveCircuitResetCmd,"ax",@progbits
+ 257              		.align	1
+ 258              		.globl	DVP_ReceiveCircuitResetCmd
+ 260              	DVP_ReceiveCircuitResetCmd:
+ 261              	.LFB45:
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_ReceiveCircuitResetCmd
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Enables or disables the DVP Receive Circuit Reset.
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   NewState - ENABLE or DISABLE.
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_ReceiveCircuitResetCmd(FunctionalState NewState)
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 262              		.loc 1 143 1 is_stmt 1
+ 263              		.cfi_startproc
+ 264              	.LVL6:
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 265              		.loc 1 144 5
+ 266 0000 B7670240 		li	a5,1073897472
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR1 |= RB_DVP_RCV_CLR;
+ 267              		.loc 1 146 12 is_stmt 0
+ 268 0004 03C71780 		lbu	a4,-2047(a5)
+ 269 0008 93870780 		addi	a5,a5,-2048
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 270              		.loc 1 144 7
+ 271 000c 09C5     		beq	a0,zero,.L14
+ 272              		.loc 1 146 9 is_stmt 1
+ 273              		.loc 1 146 18 is_stmt 0
+ 274 000e 13674700 		ori	a4,a4,4
+ 275              	.L16:
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR1 &= ~RB_DVP_RCV_CLR;
+ 276              		.loc 1 150 18
+ 277 0012 98B3     		sb	a4,1(a5)
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 278              		.loc 1 152 1
+ 279 0014 8280     		ret
+ 280              	.L14:
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 281              		.loc 1 150 9 is_stmt 1
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 282              		.loc 1 150 18 is_stmt 0
+ 283 0016 1377B70F 		andi	a4,a4,251
+ 284 001a E5BF     		j	.L16
+ 285              		.cfi_endproc
+ 286              	.LFE45:
+ 288              		.section	.text.DVP_FIFO_ResetCmd,"ax",@progbits
+ 289              		.align	1
+ 290              		.globl	DVP_FIFO_ResetCmd
+ 292              	DVP_FIFO_ResetCmd:
+ 293              	.LFB46:
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_FIFO_ResetCmd
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Enables or disables the DVP FIFO reset.
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   NewState - ENABLE or DISABLE.
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_FIFO_ResetCmd(FunctionalState NewState)
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 294              		.loc 1 164 1 is_stmt 1
+ 295              		.cfi_startproc
+ 296              	.LVL7:
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 297              		.loc 1 165 5
+ 298 0000 B7670240 		li	a5,1073897472
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR1 |= RB_DVP_ALL_CLR;
+ 299              		.loc 1 167 12 is_stmt 0
+ 300 0004 03C71780 		lbu	a4,-2047(a5)
+ 301 0008 93870780 		addi	a5,a5,-2048
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 302              		.loc 1 165 7
+ 303 000c 09C5     		beq	a0,zero,.L18
+ 304              		.loc 1 167 9 is_stmt 1
+ 305              		.loc 1 167 18 is_stmt 0
+ 306 000e 13672700 		ori	a4,a4,2
+ 307              	.L20:
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->CR1 &= ~RB_DVP_ALL_CLR;
+ 308              		.loc 1 171 18
+ 309 0012 98B3     		sb	a4,1(a5)
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 310              		.loc 1 173 1
+ 311 0014 8280     		ret
+ 312              	.L18:
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 313              		.loc 1 171 9 is_stmt 1
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 314              		.loc 1 171 18 is_stmt 0
+ 315 0016 1377D70F 		andi	a4,a4,253
+ 316 001a E5BF     		j	.L20
+ 317              		.cfi_endproc
+ 318              	.LFE46:
+ 320              		.section	.text.DVP_ITConfig,"ax",@progbits
+ 321              		.align	1
+ 322              		.globl	DVP_ITConfig
+ 324              	DVP_ITConfig:
+ 325              	.LFB47:
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_ITConfig
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Enables or disables the specified DVP interrupts.
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   DVP_IT - specifies the DVP interrupt sources to be enabled or disabled.
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_STR_FRM - DVP frame start interrupt Enable.
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_ROW_DONE - DVP row received done interrupt enable
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_FRM_DONE - DVP frame received done interrupt enable
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_FIFO_OV - DVP receive fifo overflow interrupt enable	
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_STP_FRM - DVP frame stop interrupt enable	
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *          NewState - ENABLE or DISABLE.
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_ITConfig(uint8_t DVP_IT, FunctionalState NewState)
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 326              		.loc 1 191 1 is_stmt 1
+ 327              		.cfi_startproc
+ 328              	.LVL8:
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 329              		.loc 1 192 5
+ 330 0000 B7670240 		li	a5,1073897472
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->IER |= (uint32_t)DVP_IT;
+ 331              		.loc 1 194 12 is_stmt 0
+ 332 0004 03C72780 		lbu	a4,-2046(a5)
+ 333 0008 93870780 		addi	a5,a5,-2048
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(NewState != DISABLE)
+ 334              		.loc 1 192 7
+ 335 000c 81C5     		beq	a1,zero,.L22
+ 336              		.loc 1 194 9 is_stmt 1
+ 337              		.loc 1 194 18 is_stmt 0
+ 338 000e 498F     		or	a4,a4,a0
+ 339 0010 B8A3     		sb	a4,2(a5)
+ 340 0012 8280     		ret
+ 341              	.L22:
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP->IER &= (~(uint32_t)DVP_IT);
+ 342              		.loc 1 198 9 is_stmt 1
+ 343              		.loc 1 198 18 is_stmt 0
+ 344 0014 3375A740 		andn	a0,a4,a0
+ 345              	.LVL9:
+ 346 0018 A8A3     		sb	a0,2(a5)
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 347              		.loc 1 200 1
+ 348 001a 8280     		ret
+ 349              		.cfi_endproc
+ 350              	.LFE47:
+ 352              		.section	.text.DVP_GetFlagStatus,"ax",@progbits
+ 353              		.align	1
+ 354              		.globl	DVP_GetFlagStatus
+ 356              	DVP_GetFlagStatus:
+ 357              	.LFB48:
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_GetFlagStatus
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Checks whether the specified DVP flag is set or not.
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   DVP_FLAG - specifies the flag to check.
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_STR_FRM - flag for DVP frame start.
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_ROW_DONE - flag for DVP row receive done.
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FRM_DONE - flag for DVP frame receive done.
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FIFO_OV - flag for DVP receive fifo overflow.
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_STP_FRM - flag for DVP frame stop.
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FIFO_RDY - flag for DVP receive fifo ready.
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FIFO_FULL - flag for DVP receive fifo full.
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FIFO_OV_1 - flag for DVP receive fifo overflow.
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  FlagStatus - SET or RESET.
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** FlagStatus DVP_GetFlagStatus(uint8_t DVP_FLAG)
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 358              		.loc 1 220 1 is_stmt 1
+ 359              		.cfi_startproc
+ 360              	.LVL10:
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     FlagStatus bitstatus = RESET;
+ 361              		.loc 1 221 5
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(DVP_FLAG & 0x80)
+ 362              		.loc 1 223 5
+ 363 0000 B7670240 		li	a5,1073897472
+ 364 0004 93870780 		addi	a5,a5,-2048
+ 365              		.loc 1 223 7 is_stmt 0
+ 366 0008 13174560 		sext.b	a4,a0
+ 367 000c 63590700 		bge	a4,zero,.L25
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         DVP_FLAG &= 0x7F; 
+ 368              		.loc 1 225 9 is_stmt 1
+ 369              	.LVL11:
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         if((DVP->STATUS & DVP_FLAG) != (uint8_t)RESET)
+ 370              		.loc 1 226 9
+ 371              		.loc 1 226 16 is_stmt 0
+ 372 0010 9C3B     		lbu	a5,17(a5)
+ 373              		.loc 1 226 37
+ 374 0012 7D8D     		and	a0,a5,a0
+ 375              	.LVL12:
+ 376              		.loc 1 226 11
+ 377 0014 1375F507 		andi	a0,a0,127
+ 378              	.LVL13:
+ 379              	.L27:
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****             bitstatus = SET;
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         }
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         else
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****             bitstatus = RESET;
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         }
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         if((DVP->IFR & DVP_FLAG) != (uint8_t)RESET)
+ 380              		.loc 1 237 11
+ 381 0018 3335A000 		snez	a0,a0
+ 382              	.LVL14:
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****             bitstatus = SET;
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         }
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         else
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****             bitstatus = RESET;
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         }
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     return bitstatus;
+ 383              		.loc 1 247 5 is_stmt 1
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 384              		.loc 1 248 1 is_stmt 0
+ 385 001c 8280     		ret
+ 386              	.LVL15:
+ 387              	.L25:
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 388              		.loc 1 237 9 is_stmt 1
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 389              		.loc 1 237 16 is_stmt 0
+ 390 001e 9C2B     		lbu	a5,16(a5)
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         {
+ 391              		.loc 1 237 11
+ 392 0020 7D8D     		and	a0,a5,a0
+ 393              	.LVL16:
+ 394 0022 DDBF     		j	.L27
+ 395              		.cfi_endproc
+ 396              	.LFE48:
+ 398              		.section	.text.DVP_ClearFlag,"ax",@progbits
+ 399              		.align	1
+ 400              		.globl	DVP_ClearFlag
+ 402              	DVP_ClearFlag:
+ 403              	.LFB49:
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_ClearFlag
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Clears the DVP's pending flags.
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   DVP_FLAG - specifies the flag to check.
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_STR_FRM - flag for DVP frame start.
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_ROW_DONE - flag for DVP row receive done.
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FRM_DONE - flag for DVP frame receive done.
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_FIFO_OV - flag for DVP receive fifo overflow.
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_FLAG_STP_FRM - flag for DVP frame stop.
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_ClearFlag(uint8_t DVP_FLAG)
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 404              		.loc 1 265 1 is_stmt 1
+ 405              		.cfi_startproc
+ 406              	.LVL17:
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->IFR = (uint8_t)DVP_FLAG;
+ 407              		.loc 1 266 5
+ 408              		.loc 1 266 14 is_stmt 0
+ 409 0000 B7670240 		li	a5,1073897472
+ 410 0004 2388A780 		sb	a0,-2032(a5)
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 411              		.loc 1 267 1
+ 412 0008 8280     		ret
+ 413              		.cfi_endproc
+ 414              	.LFE49:
+ 416              		.section	.text.DVP_GetITStatus,"ax",@progbits
+ 417              		.align	1
+ 418              		.globl	DVP_GetITStatus
+ 420              	DVP_GetITStatus:
+ 421              	.LFB50:
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_GetITStatus
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Checks whether the specified DVP interrupt has occurred or not.
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   DVP_IT - specifies the DVP interrupt source to check.
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_STR_FRM - DVP frame start interrupt.
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_ROW_DONE - DVP row received done interrupt
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_FRM_DONE - DVP frame received done interrupt
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_FIFO_OV - DVP receive fifo overflow interrupt	
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_STP_FRM - DVP frame stop interrupt enable	
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  FlagStatus - SET or RESET.
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** ITStatus DVP_GetITStatus(uint8_t DVP_IT)
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 422              		.loc 1 284 1 is_stmt 1
+ 423              		.cfi_startproc
+ 424              	.LVL18:
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     ITStatus bitstatus = RESET;
+ 425              		.loc 1 285 5
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     uint32_t enablestatus = 0;
+ 426              		.loc 1 286 5
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     enablestatus = (DVP->IER & (uint8_t)DVP_IT);
+ 427              		.loc 1 288 5
+ 428              		.loc 1 288 24 is_stmt 0
+ 429 0000 37670240 		li	a4,1073897472
+ 430 0004 83472780 		lbu	a5,-2046(a4)
+ 431 0008 13070780 		addi	a4,a4,-2048
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     if(((DVP->IFR & DVP_IT) != (uint32_t)RESET) && enablestatus)
+ 432              		.loc 1 290 13
+ 433 000c 182B     		lbu	a4,16(a4)
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 434              		.loc 1 288 24
+ 435 000e 93F7F70F 		andi	a5,a5,0xff
+ 436              	.LVL19:
+ 437              		.loc 1 290 5 is_stmt 1
+ 438              		.loc 1 290 7 is_stmt 0
+ 439 0012 698F     		and	a4,a4,a0
+ 440 0014 09C7     		beq	a4,zero,.L31
+ 441              		.loc 1 290 49 discriminator 1
+ 442 0016 7D8D     		and	a0,a5,a0
+ 443              	.LVL20:
+ 444 0018 3335A000 		snez	a0,a0
+ 445 001c 8280     		ret
+ 446              	.LVL21:
+ 447              	.L31:
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         bitstatus = SET;
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     else
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     {
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****         bitstatus = RESET;
+ 448              		.loc 1 296 19
+ 449 001e 0145     		li	a0,0
+ 450              	.LVL22:
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     }
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     return bitstatus;
+ 451              		.loc 1 299 5 is_stmt 1
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 452              		.loc 1 300 1 is_stmt 0
+ 453 0020 8280     		ret
+ 454              		.cfi_endproc
+ 455              	.LFE50:
+ 457              		.section	.text.DVP_ClearITPendingBit,"ax",@progbits
+ 458              		.align	1
+ 459              		.globl	DVP_ClearITPendingBit
+ 461              	DVP_ClearITPendingBit:
+ 462              	.LFB56:
+ 463              		.cfi_startproc
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_ClearITPendingBit
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Clears the DVP's interrupt pending bits.
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   DVP_IT - specifies the DVP interrupt source to check.
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_STR_FRM - DVP frame start interrupt.
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_ROW_DONE - DVP row received done interrupt
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_FRM_DONE - DVP frame received done interrupt
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_FIFO_OV - DVP receive fifo overflow interrupt	
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *            DVP_IT_STP_FRM - DVP frame stop interrupt	
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  none
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** void DVP_ClearITPendingBit(uint8_t DVP_IT)
+ 464              		.loc 1 316 6 is_stmt 1
+ 465 0000 B7670240 		li	a5,1073897472
+ 466 0004 2388A780 		sb	a0,-2032(a5)
+ 467 0008 8280     		ret
+ 468              		.cfi_endproc
+ 469              	.LFE56:
+ 471              		.section	.text.DVP_GetRxFIFO_count,"ax",@progbits
+ 472              		.align	1
+ 473              		.globl	DVP_GetRxFIFO_count
+ 475              	DVP_GetRxFIFO_count:
+ 476              	.LFB52:
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     DVP->IFR = (uint8_t)DVP_IT;
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_GetRxFIFO_count
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Returns the DVP receive FIFO count.
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   none
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  receive FIFO count.
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** uint8_t DVP_GetRxFIFO_count(void)
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 477              		.loc 1 331 1
+ 478              		.cfi_startproc
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     return (uint8_t)((DVP->STATUS & 0x70) >> 4);
+ 479              		.loc 1 332 5
+ 480              		.loc 1 332 26 is_stmt 0
+ 481 0000 B7670240 		li	a5,1073897472
+ 482 0004 03C51781 		lbu	a0,-2031(a5)
+ 483              		.loc 1 332 43
+ 484 0008 1181     		srli	a0,a0,4
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 485              		.loc 1 333 1
+ 486 000a 1D89     		andi	a0,a0,7
+ 487 000c 8280     		ret
+ 488              		.cfi_endproc
+ 489              	.LFE52:
+ 491              		.section	.text.DVP_GetReceiveROW_count,"ax",@progbits
+ 492              		.align	1
+ 493              		.globl	DVP_GetReceiveROW_count
+ 495              	DVP_GetReceiveROW_count:
+ 496              	.LFB53:
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_GetReceiveROW_count
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Returns the DVP receive ROW count.
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   none
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  receive FIFO count.
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** uint16_t DVP_GetReceiveROW_count(void)
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 497              		.loc 1 345 1 is_stmt 1
+ 498              		.cfi_startproc
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     return (uint16_t)(DVP->ROW_CNT);
+ 499              		.loc 1 346 5
+ 500              		.loc 1 346 12 is_stmt 0
+ 501 0000 B7670240 		li	a5,1073897472
+ 502 0004 03D54781 		lhu	a0,-2028(a5)
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }
+ 503              		.loc 1 347 1
+ 504 0008 8280     		ret
+ 505              		.cfi_endproc
+ 506              	.LFE53:
+ 508              		.section	.text.DVP_GetReceiveData,"ax",@progbits
+ 509              		.align	1
+ 510              		.globl	DVP_GetReceiveData
+ 512              	DVP_GetReceiveData:
+ 513              	.LFB54:
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** 
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** /*********************************************************************
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @fn      DVP_GetReceiveData
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @brief   Returns the DVP receive data.
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @param   none
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  *
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  * @return  DVP->DR - return receive data .
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****  */
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** uint32_t DVP_GetReceiveData(void)
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** {
+ 514              		.loc 1 359 1 is_stmt 1
+ 515              		.cfi_startproc
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c ****     return (uint32_t)DVP->DR;
+ 516              		.loc 1 360 5
+ 517              		.loc 1 360 12 is_stmt 0
+ 518 0000 B7670240 		li	a5,1073897472
+ 519 0004 93870780 		addi	a5,a5,-2048
+ 520 0008 8853     		lw	a0,32(a5)
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_dvp.c **** }...
+ 521              		.loc 1 361 1
+ 522 000a 8280     		ret
+ 523              		.cfi_endproc
+ 524              	.LFE54:
+ 526              		.text
+ 527              	.Letext0:
+ 528              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 529              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 530              		.file 4 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+ 531              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 532              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_dvp.h"
+ 533              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_dvp.c
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:14     .text.DVP_DeInit:0000000000000000 DVP_DeInit
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:18     .text.DVP_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:19     .text.DVP_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:19     .text.DVP_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:20     .text.DVP_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:21     .text.DVP_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:23     .text.DVP_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:28     .text.DVP_DeInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:33     .text.DVP_DeInit:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:34     .text.DVP_DeInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:35     .text.DVP_DeInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:36     .text.DVP_DeInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:43     .text.DVP_Init:0000000000000000 DVP_Init
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:46     .text.DVP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:48     .text.DVP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:49     .text.DVP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:50     .text.DVP_Init:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:50     .text.DVP_Init:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:53     .text.DVP_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:54     .text.DVP_Init:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:56     .text.DVP_Init:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:57     .text.DVP_Init:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:60     .text.DVP_Init:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:63     .text.DVP_Init:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:66     .text.DVP_Init:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:68     .text.DVP_Init:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:72     .text.DVP_Init:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:76     .text.DVP_Init:000000000000002a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:79     .text.DVP_Init:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:81     .text.DVP_Init:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:82     .text.DVP_Init:0000000000000034 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:87     .text.DVP_Init:000000000000003c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:89     .text.DVP_Init:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:91     .text.DVP_Init:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:96     .text.DVP_Init:000000000000004a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:98     .text.DVP_Init:000000000000004c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:99     .text.DVP_Init:000000000000004c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:101    .text.DVP_Init:000000000000004e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:103    .text.DVP_Init:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:104    .text.DVP_Init:0000000000000050 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:106    .text.DVP_Init:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:108    .text.DVP_Init:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:109    .text.DVP_Init:0000000000000054 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:111    .text.DVP_Init:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:113    .text.DVP_Init:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:114    .text.DVP_Init:0000000000000058 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:116    .text.DVP_Init:000000000000005a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:118    .text.DVP_Init:000000000000005c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:119    .text.DVP_Init:000000000000005c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:121    .text.DVP_Init:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:123    .text.DVP_Init:0000000000000060 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:124    .text.DVP_Init:0000000000000060 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:126    .text.DVP_Init:0000000000000062 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:128    .text.DVP_Init:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:129    .text.DVP_Init:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:131    .text.DVP_Init:0000000000000066 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:133    .text.DVP_Init:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:134    .text.DVP_Init:0000000000000068 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:136    .text.DVP_Init:000000000000006a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:138    .text.DVP_Init:000000000000006c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:139    .text.DVP_Init:000000000000006e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:146    .text.DVP_StructInit:0000000000000000 DVP_StructInit
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:149    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:151    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:152    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:153    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:154    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:155    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:156    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:157    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:158    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:159    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:160    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:161    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:162    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:163    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:164    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:165    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:166    .text.DVP_StructInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:166    .text.DVP_StructInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:169    .text.DVP_StructInit:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:171    .text.DVP_StructInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:173    .text.DVP_StructInit:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:175    .text.DVP_StructInit:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:177    .text.DVP_StructInit:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:179    .text.DVP_StructInit:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:181    .text.DVP_StructInit:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:183    .text.DVP_StructInit:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:184    .text.DVP_StructInit:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:186    .text.DVP_StructInit:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:187    .text.DVP_StructInit:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:189    .text.DVP_StructInit:0000000000000026 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:190    .text.DVP_StructInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:197    .text.DVP_Cmd:0000000000000000 DVP_Cmd
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:200    .text.DVP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:202    .text.DVP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:203    .text.DVP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:204    .text.DVP_Cmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:204    .text.DVP_Cmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:207    .text.DVP_Cmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:209    .text.DVP_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:210    .text.DVP_Cmd:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:213    .text.DVP_Cmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:215    .text.DVP_Cmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:218    .text.DVP_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:219    .text.DVP_Cmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:221    .text.DVP_Cmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:228    .text.DVP_DMACmd:0000000000000000 DVP_DMACmd
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:231    .text.DVP_DMACmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:233    .text.DVP_DMACmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:234    .text.DVP_DMACmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:234    .text.DVP_DMACmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:236    .text.DVP_DMACmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:239    .text.DVP_DMACmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:241    .text.DVP_DMACmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:242    .text.DVP_DMACmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:245    .text.DVP_DMACmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:247    .text.DVP_DMACmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:250    .text.DVP_DMACmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:251    .text.DVP_DMACmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:253    .text.DVP_DMACmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:260    .text.DVP_ReceiveCircuitResetCmd:0000000000000000 DVP_ReceiveCircuitResetCmd
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:263    .text.DVP_ReceiveCircuitResetCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:265    .text.DVP_ReceiveCircuitResetCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:266    .text.DVP_ReceiveCircuitResetCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:266    .text.DVP_ReceiveCircuitResetCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:268    .text.DVP_ReceiveCircuitResetCmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:271    .text.DVP_ReceiveCircuitResetCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:273    .text.DVP_ReceiveCircuitResetCmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:274    .text.DVP_ReceiveCircuitResetCmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:277    .text.DVP_ReceiveCircuitResetCmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:279    .text.DVP_ReceiveCircuitResetCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:282    .text.DVP_ReceiveCircuitResetCmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:283    .text.DVP_ReceiveCircuitResetCmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:285    .text.DVP_ReceiveCircuitResetCmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:292    .text.DVP_FIFO_ResetCmd:0000000000000000 DVP_FIFO_ResetCmd
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:295    .text.DVP_FIFO_ResetCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:297    .text.DVP_FIFO_ResetCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:298    .text.DVP_FIFO_ResetCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:298    .text.DVP_FIFO_ResetCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:300    .text.DVP_FIFO_ResetCmd:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:303    .text.DVP_FIFO_ResetCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:305    .text.DVP_FIFO_ResetCmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:306    .text.DVP_FIFO_ResetCmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:309    .text.DVP_FIFO_ResetCmd:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:311    .text.DVP_FIFO_ResetCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:314    .text.DVP_FIFO_ResetCmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:315    .text.DVP_FIFO_ResetCmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:317    .text.DVP_FIFO_ResetCmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:324    .text.DVP_ITConfig:0000000000000000 DVP_ITConfig
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:327    .text.DVP_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:329    .text.DVP_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:330    .text.DVP_ITConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:330    .text.DVP_ITConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:332    .text.DVP_ITConfig:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:335    .text.DVP_ITConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:337    .text.DVP_ITConfig:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:338    .text.DVP_ITConfig:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:343    .text.DVP_ITConfig:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:344    .text.DVP_ITConfig:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:348    .text.DVP_ITConfig:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:349    .text.DVP_ITConfig:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:356    .text.DVP_GetFlagStatus:0000000000000000 DVP_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:359    .text.DVP_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:361    .text.DVP_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:362    .text.DVP_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:363    .text.DVP_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:363    .text.DVP_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:366    .text.DVP_GetFlagStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:370    .text.DVP_GetFlagStatus:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:371    .text.DVP_GetFlagStatus:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:372    .text.DVP_GetFlagStatus:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:374    .text.DVP_GetFlagStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:377    .text.DVP_GetFlagStatus:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:381    .text.DVP_GetFlagStatus:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:384    .text.DVP_GetFlagStatus:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:385    .text.DVP_GetFlagStatus:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:389    .text.DVP_GetFlagStatus:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:390    .text.DVP_GetFlagStatus:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:392    .text.DVP_GetFlagStatus:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:395    .text.DVP_GetFlagStatus:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:402    .text.DVP_ClearFlag:0000000000000000 DVP_ClearFlag
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:405    .text.DVP_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:407    .text.DVP_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:408    .text.DVP_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:409    .text.DVP_ClearFlag:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:409    .text.DVP_ClearFlag:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:412    .text.DVP_ClearFlag:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:413    .text.DVP_ClearFlag:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:420    .text.DVP_GetITStatus:0000000000000000 DVP_GetITStatus
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:423    .text.DVP_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:425    .text.DVP_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:426    .text.DVP_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:427    .text.DVP_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:428    .text.DVP_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:429    .text.DVP_GetITStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:429    .text.DVP_GetITStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:433    .text.DVP_GetITStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:435    .text.DVP_GetITStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:438    .text.DVP_GetITStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:439    .text.DVP_GetITStatus:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:442    .text.DVP_GetITStatus:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:449    .text.DVP_GetITStatus:000000000000001e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:452    .text.DVP_GetITStatus:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:453    .text.DVP_GetITStatus:0000000000000020 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:454    .text.DVP_GetITStatus:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:461    .text.DVP_ClearITPendingBit:0000000000000000 DVP_ClearITPendingBit
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:463    .text.DVP_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:465    .text.DVP_ClearITPendingBit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:465    .text.DVP_ClearITPendingBit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:468    .text.DVP_ClearITPendingBit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:475    .text.DVP_GetRxFIFO_count:0000000000000000 DVP_GetRxFIFO_count
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:478    .text.DVP_GetRxFIFO_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:479    .text.DVP_GetRxFIFO_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:480    .text.DVP_GetRxFIFO_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:481    .text.DVP_GetRxFIFO_count:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:481    .text.DVP_GetRxFIFO_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:484    .text.DVP_GetRxFIFO_count:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:486    .text.DVP_GetRxFIFO_count:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:488    .text.DVP_GetRxFIFO_count:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:495    .text.DVP_GetReceiveROW_count:0000000000000000 DVP_GetReceiveROW_count
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:498    .text.DVP_GetReceiveROW_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:499    .text.DVP_GetReceiveROW_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:500    .text.DVP_GetReceiveROW_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:501    .text.DVP_GetReceiveROW_count:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:501    .text.DVP_GetReceiveROW_count:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:504    .text.DVP_GetReceiveROW_count:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:505    .text.DVP_GetReceiveROW_count:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:512    .text.DVP_GetReceiveData:0000000000000000 DVP_GetReceiveData
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:515    .text.DVP_GetReceiveData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:516    .text.DVP_GetReceiveData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:517    .text.DVP_GetReceiveData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:518    .text.DVP_GetReceiveData:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:518    .text.DVP_GetReceiveData:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:522    .text.DVP_GetReceiveData:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:523    .text.DVP_GetReceiveData:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000000a5 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000000f7 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:000000000000013b .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000001c5 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:000000000000024b .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:0000000000000285 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000002c9 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000002d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000002e7 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:00000000000002f8 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:0000000000000302 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:000000000000030f .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:000000000000031a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2194   .debug_line_str:0000000000000329 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:39     .text.DVP_DeInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:142    .text.DVP_Init:000000000000006e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:193    .text.DVP_StructInit:0000000000000028 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:224    .text.DVP_Cmd:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:256    .text.DVP_DMACmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:288    .text.DVP_ReceiveCircuitResetCmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:320    .text.DVP_FIFO_ResetCmd:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:352    .text.DVP_ITConfig:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:398    .text.DVP_GetFlagStatus:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:416    .text.DVP_ClearFlag:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:457    .text.DVP_GetITStatus:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:471    .text.DVP_ClearITPendingBit:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:491    .text.DVP_GetRxFIFO_count:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:508    .text.DVP_GetReceiveROW_count:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:526    .text.DVP_GetReceiveData:000000000000000c .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:216    .text.DVP_Cmd:0000000000000014 .L6
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:211    .text.DVP_Cmd:000000000000000e .L8
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:248    .text.DVP_DMACmd:0000000000000016 .L10
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:243    .text.DVP_DMACmd:0000000000000012 .L12
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:280    .text.DVP_ReceiveCircuitResetCmd:0000000000000016 .L14
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:275    .text.DVP_ReceiveCircuitResetCmd:0000000000000012 .L16
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:312    .text.DVP_FIFO_ResetCmd:0000000000000016 .L18
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:307    .text.DVP_FIFO_ResetCmd:0000000000000012 .L20
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:341    .text.DVP_ITConfig:0000000000000014 .L22
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:387    .text.DVP_GetFlagStatus:000000000000001e .L25
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:379    .text.DVP_GetFlagStatus:0000000000000018 .L27
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:447    .text.DVP_GetITStatus:000000000000001e .L31
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1200   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2101   .debug_str:0000000000000180 .LASF75
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2192   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2190   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1988   .debug_rnglists:000000000000000c .LLRL5
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2037   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2123   .debug_str:00000000000002f3 .LASF2
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2115   .debug_str:00000000000002c1 .LASF3
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2095   .debug_str:0000000000000155 .LASF6
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2107   .debug_str:0000000000000278 .LASF4
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2081   .debug_str:00000000000000ff .LASF5
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2061   .debug_str:000000000000009b .LASF7
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2133   .debug_str:000000000000032a .LASF8
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2143   .debug_str:0000000000000372 .LASF9
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2057   .debug_str:000000000000007e .LASF10
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2157   .debug_str:00000000000003d2 .LASF11
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2089   .debug_str:000000000000012e .LASF12
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2117   .debug_str:00000000000002cd .LASF13
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2073   .debug_str:00000000000000df .LASF14
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2125   .debug_str:0000000000000300 .LASF15
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2119   .debug_str:00000000000002e4 .LASF16
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2077   .debug_str:00000000000000f0 .LASF17
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2185   .debug_str:0000000000000483 .LASF18
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2163   .debug_str:00000000000003ff .LASF19
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2169   .debug_str:0000000000000426 .LASF20
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2183   .debug_str:0000000000000478 .LASF21
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2041   .debug_str:0000000000000015 .LASF22
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2067   .debug_str:00000000000000c3 .LASF23
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2127   .debug_str:0000000000000309 .LASF24
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2045   .debug_str:000000000000002d .LASF25
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2173   .debug_str:0000000000000438 .LASF26
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2175   .debug_str:0000000000000441 .LASF27
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2091   .debug_str:000000000000013c .LASF28
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2069   .debug_str:00000000000000cd .LASF29
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2187   .debug_str:000000000000048a .LASF30
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2155   .debug_str:00000000000003c8 .LASF31
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2139   .debug_str:0000000000000365 .LASF32
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2079   .debug_str:00000000000000f8 .LASF33
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2121   .debug_str:00000000000002ed .LASF34
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2167   .debug_str:000000000000041a .LASF35
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2141   .debug_str:000000000000036d .LASF36
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2147   .debug_str:0000000000000391 .LASF37
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2065   .debug_str:00000000000000b7 .LASF38
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2047   .debug_str:0000000000000035 .LASF39
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2129   .debug_str:0000000000000311 .LASF40
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2053   .debug_str:0000000000000062 .LASF41
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2051   .debug_str:0000000000000053 .LASF42
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2059   .debug_str:0000000000000089 .LASF43
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2109   .debug_str:0000000000000286 .LASF44
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2097   .debug_str:000000000000015f .LASF45
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2177   .debug_str:000000000000044a .LASF46
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2171   .debug_str:000000000000042c .LASF47
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2049   .debug_str:0000000000000047 .LASF48
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2063   .debug_str:00000000000000a6 .LASF49
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2179   .debug_str:0000000000000455 .LASF50
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2151   .debug_str:00000000000003ad .LASF51
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2083   .debug_str:0000000000000109 .LASF52
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2135   .debug_str:000000000000033d .LASF53
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2039   .debug_str:0000000000000000 .LASF59
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2181   .debug_str:0000000000000465 .LASF54
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:513    .text.DVP_GetReceiveData:0000000000000000 .LFB54
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:524    .text.DVP_GetReceiveData:000000000000000c .LFE54
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2137   .debug_str:000000000000034d .LASF55
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:496    .text.DVP_GetReceiveROW_count:0000000000000000 .LFB53
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:506    .text.DVP_GetReceiveROW_count:000000000000000a .LFE53
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2099   .debug_str:000000000000016c .LASF56
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:476    .text.DVP_GetRxFIFO_count:0000000000000000 .LFB52
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:489    .text.DVP_GetRxFIFO_count:000000000000000e .LFE52
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2145   .debug_str:000000000000037b .LASF76
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2131   .debug_str:0000000000000323 .LASF61
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2149   .debug_str:000000000000039d .LASF63
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:421    .text.DVP_GetITStatus:0000000000000000 .LFB50
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:455    .text.DVP_GetITStatus:0000000000000022 .LFE50
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1778   .debug_loclists:000000000000000c .LLST3
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2105   .debug_str:000000000000026e .LASF57
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2087   .debug_str:0000000000000121 .LASF58
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1806   .debug_loclists:000000000000003f .LLST4
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2159   .debug_str:00000000000003e4 .LASF60
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2103   .debug_str:0000000000000265 .LASF62
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2093   .debug_str:0000000000000143 .LASF64
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:357    .text.DVP_GetFlagStatus:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:396    .text.DVP_GetFlagStatus:0000000000000024 .LFE48
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1868   .debug_loclists:000000000000009a .LLST1
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1905   .debug_loclists:00000000000000dc .LLST2
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2161   .debug_str:00000000000003f2 .LASF66
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:325    .text.DVP_ITConfig:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:350    .text.DVP_ITConfig:000000000000001c .LFE47
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:1924   .debug_loclists:0000000000000100 .LLST0
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2075   .debug_str:00000000000000e7 .LASF65
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2153   .debug_str:00000000000003b6 .LASF67
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:293    .text.DVP_FIFO_ResetCmd:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:318    .text.DVP_FIFO_ResetCmd:000000000000001c .LFE46
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2113   .debug_str:00000000000002a6 .LASF68
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:261    .text.DVP_ReceiveCircuitResetCmd:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:286    .text.DVP_ReceiveCircuitResetCmd:000000000000001c .LFE45
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2165   .debug_str:000000000000040f .LASF69
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:229    .text.DVP_DMACmd:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:254    .text.DVP_DMACmd:000000000000001c .LFE44
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2071   .debug_str:00000000000000d7 .LASF70
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:198    .text.DVP_Cmd:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:222    .text.DVP_Cmd:000000000000001a .LFE43
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2043   .debug_str:000000000000001e .LASF71
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:147    .text.DVP_StructInit:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:191    .text.DVP_StructInit:0000000000000028 .LFE42
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2111   .debug_str:0000000000000297 .LASF72
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2055   .debug_str:0000000000000075 .LASF73
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:44     .text.DVP_Init:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:140    .text.DVP_Init:000000000000006e .LFE41
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:2085   .debug_str:0000000000000116 .LASF74
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:15     .text.DVP_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:37     .text.DVP_DeInit:0000000000000028 .LFE40
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:26     .text.DVP_DeInit:0000000000000014 .LVL0
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:31     .text.DVP_DeInit:0000000000000020 .LVL1
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:403    .text.DVP_ClearFlag:0000000000000000 .LFB49
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:414    .text.DVP_ClearFlag:000000000000000a .LFE49
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:424    .text.DVP_GetITStatus:0000000000000000 .LVL18
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:443    .text.DVP_GetITStatus:0000000000000018 .LVL20
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:446    .text.DVP_GetITStatus:000000000000001e .LVL21
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:450    .text.DVP_GetITStatus:0000000000000020 .LVL22
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:436    .text.DVP_GetITStatus:0000000000000012 .LVL19
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:360    .text.DVP_GetFlagStatus:0000000000000000 .LVL10
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:369    .text.DVP_GetFlagStatus:0000000000000010 .LVL11
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:375    .text.DVP_GetFlagStatus:0000000000000014 .LVL12
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:378    .text.DVP_GetFlagStatus:0000000000000018 .LVL13
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:386    .text.DVP_GetFlagStatus:000000000000001e .LVL15
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:393    .text.DVP_GetFlagStatus:0000000000000022 .LVL16
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:382    .text.DVP_GetFlagStatus:000000000000001c .LVL14
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:328    .text.DVP_ITConfig:0000000000000000 .LVL8
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:345    .text.DVP_ITConfig:0000000000000018 .LVL9
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:535    .debug_info:0000000000000000 .Ldebug_info0
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:462    .text.DVP_ClearITPendingBit:0000000000000000 .LFB56
+C:\Users\User\AppData\Local\Temp\ccC5pt3t.s:469    .text.DVP_ClearITPendingBit:000000000000000a .LFE56
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+RCC_HBPeriphResetCmd
+__riscv_restore_0

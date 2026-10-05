@@ -1,0 +1,1676 @@
+   1              		.file	"core_riscv.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.__get_FFLAGS,"ax",@progbits
+  11              		.align	1
+  12              		.globl	__get_FFLAGS
+  14              	__get_FFLAGS:
+  15              	.LFB0:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * File Name          : core_riscv.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * Version            : V1.0.2
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * Date               : 2026/02/02
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * Description        : RISC-V V3F_V5F Core Peripheral Access Layer Source File for CH32H417_416_415
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** #include <stdint.h>
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /* define compiler specific symbols */
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** #if defined ( __CC_ARM   )
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __ASM            __asm                                      /*!< asm keyword for ARM Comp
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __INLINE         __inline                                   /*!< inline keyword for ARM C
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** #elif defined ( __ICCARM__ )
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __ASM           __asm                                       /*!< asm keyword for IAR Comp
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __INLINE        inline                                      /*!< inline keyword for IAR C
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** #elif defined   (  __GNUC__  )
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __ASM            __asm                                      /*!< asm keyword for GNU Comp
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __INLINE         inline                                     /*!< inline keyword for GNU C
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** #elif defined   (  __TASKING__  )
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __ASM            __asm                                      /*!< asm keyword for TASKING 
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   #define __INLINE         inline                                     /*!< inline keyword for TASKI
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** #endif
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** volatile uint32_t WFE_MASK = 0;
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_FFLAGS
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Floating-Point Accrued Exceptions
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  fflags value
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_FFLAGS(void)
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+  17              		.loc 1 43 1
+  18              		.cfi_startproc
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+  19              		.loc 1 44 3
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "fflags" : "=r" (result) );
+  20              		.loc 1 46 3
+  21              	 #APP
+  22              	# 46 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+  47              	  return (result);
+  23              		csrr a0,fflags
+  24              	# 0 "" 2
+  25              	.LVL0:
+  26              		.loc 1 47 3
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+  27              		.loc 1 48 1 is_stmt 0
+  28              	 #NO_APP
+  29 0004 8280     		ret
+  30              		.cfi_endproc
+  31              	.LFE0:
+  33              		.section	.text.__set_FFLAGS,"ax",@progbits
+  34              		.align	1
+  35              		.globl	__set_FFLAGS
+  37              	__set_FFLAGS:
+  38              	.LFB1:
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_FFLAGS
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Floating-Point Accrued Exceptions
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set FFLAGS value
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_FFLAGS(uint32_t value)
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+  39              		.loc 1 60 1 is_stmt 1
+  40              		.cfi_startproc
+  41              	.LVL1:
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw fflags, %0" : : "r" (value) );
+  42              		.loc 1 61 3
+  43              	 #APP
+  44              	# 61 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+  62              	}
+  45              		csrw fflags, a0
+  46              	# 0 "" 2
+  47              		.loc 1 62 1 is_stmt 0
+  48              	 #NO_APP
+  49 0004 8280     		ret
+  50              		.cfi_endproc
+  51              	.LFE1:
+  53              		.section	.text.__get_FRM,"ax",@progbits
+  54              		.align	1
+  55              		.globl	__get_FRM
+  57              	__get_FRM:
+  58              	.LFB2:
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_FRM
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Floating-Point Dynamic Rounding Mode
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  frm value
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_FRM(void)
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+  59              		.loc 1 72 1 is_stmt 1
+  60              		.cfi_startproc
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+  61              		.loc 1 73 3
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "frm" : "=r" (result) );
+  62              		.loc 1 75 3
+  63              	 #APP
+  64              	# 75 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+  76              	  return (result);
+  65              		csrr a0,frm
+  66              	# 0 "" 2
+  67              	.LVL2:
+  68              		.loc 1 76 3
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+  69              		.loc 1 77 1 is_stmt 0
+  70              	 #NO_APP
+  71 0004 8280     		ret
+  72              		.cfi_endproc
+  73              	.LFE2:
+  75              		.section	.text.__set_FRM,"ax",@progbits
+  76              		.align	1
+  77              		.globl	__set_FRM
+  79              	__set_FRM:
+  80              	.LFB3:
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_FRM
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Floating-Point Dynamic Rounding Mode
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set frm value
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_FRM(uint32_t value)
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+  81              		.loc 1 89 1 is_stmt 1
+  82              		.cfi_startproc
+  83              	.LVL3:
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw frm, %0" : : "r" (value) );
+  84              		.loc 1 90 3
+  85              	 #APP
+  86              	# 90 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+  91              	}
+  87              		csrw frm, a0
+  88              	# 0 "" 2
+  89              		.loc 1 91 1 is_stmt 0
+  90              	 #NO_APP
+  91 0004 8280     		ret
+  92              		.cfi_endproc
+  93              	.LFE3:
+  95              		.section	.text.__get_FCSR,"ax",@progbits
+  96              		.align	1
+  97              		.globl	__get_FCSR
+  99              	__get_FCSR:
+ 100              	.LFB4:
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_FCSR
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Floating-Point Control and Status Register
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  fcsr value
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_FCSR(void)
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 101              		.loc 1 101 1 is_stmt 1
+ 102              		.cfi_startproc
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 103              		.loc 1 102 3
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "fcsr" : "=r" (result) );
+ 104              		.loc 1 104 3
+ 105              	 #APP
+ 106              	# 104 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 105              	  return (result);
+ 107              		csrr a0,fcsr
+ 108              	# 0 "" 2
+ 109              	.LVL4:
+ 110              		.loc 1 105 3
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 111              		.loc 1 106 1 is_stmt 0
+ 112              	 #NO_APP
+ 113 0004 8280     		ret
+ 114              		.cfi_endproc
+ 115              	.LFE4:
+ 117              		.section	.text.__set_FCSR,"ax",@progbits
+ 118              		.align	1
+ 119              		.globl	__set_FCSR
+ 121              	__set_FCSR:
+ 122              	.LFB5:
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_FCSR
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Floating-Point Dynamic Rounding Mode
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set fcsr value
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_FCSR(uint32_t value)
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 123              		.loc 1 118 1 is_stmt 1
+ 124              		.cfi_startproc
+ 125              	.LVL5:
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw fcsr, %0" : : "r" (value) );
+ 126              		.loc 1 119 3
+ 127              	 #APP
+ 128              	# 119 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 120              	}
+ 129              		csrw fcsr, a0
+ 130              	# 0 "" 2
+ 131              		.loc 1 120 1 is_stmt 0
+ 132              	 #NO_APP
+ 133 0004 8280     		ret
+ 134              		.cfi_endproc
+ 135              	.LFE5:
+ 137              		.section	.text.__get_MSTATUS,"ax",@progbits
+ 138              		.align	1
+ 139              		.globl	__get_MSTATUS
+ 141              	__get_MSTATUS:
+ 142              	.LFB6:
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MSTATUS
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine Status Register
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mstatus value
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MSTATUS(void)
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 143              		.loc 1 130 1 is_stmt 1
+ 144              		.cfi_startproc
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 145              		.loc 1 131 3
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mstatus" : "=r" (result) );
+ 146              		.loc 1 133 3
+ 147              	 #APP
+ 148              	# 133 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 134              	  return (result);
+ 149              		csrr a0,mstatus
+ 150              	# 0 "" 2
+ 151              	.LVL6:
+ 152              		.loc 1 134 3
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 153              		.loc 1 135 1 is_stmt 0
+ 154              	 #NO_APP
+ 155 0004 8280     		ret
+ 156              		.cfi_endproc
+ 157              	.LFE6:
+ 159              		.section	.text.__set_MSTATUS,"ax",@progbits
+ 160              		.align	1
+ 161              		.globl	__set_MSTATUS
+ 163              	__set_MSTATUS:
+ 164              	.LFB7:
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MSTATUS
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine Status Register
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set mstatus value
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MSTATUS(uint32_t value)
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 165              		.loc 1 147 1 is_stmt 1
+ 166              		.cfi_startproc
+ 167              	.LVL7:
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mstatus, %0" : : "r" (value) );
+ 168              		.loc 1 148 3
+ 169              	 #APP
+ 170              	# 148 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 149              	}
+ 171              		csrw mstatus, a0
+ 172              	# 0 "" 2
+ 173              		.loc 1 149 1 is_stmt 0
+ 174              	 #NO_APP
+ 175 0004 8280     		ret
+ 176              		.cfi_endproc
+ 177              	.LFE7:
+ 179              		.section	.text.__get_MISA,"ax",@progbits
+ 180              		.align	1
+ 181              		.globl	__get_MISA
+ 183              	__get_MISA:
+ 184              	.LFB8:
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MISA
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine ISA Register
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  misa value
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MISA(void)
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 185              		.loc 1 159 1 is_stmt 1
+ 186              		.cfi_startproc
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 187              		.loc 1 160 3
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "misa" : "=r" (result) );
+ 188              		.loc 1 162 3
+ 189              	 #APP
+ 190              	# 162 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 163              	  return (result);
+ 191              		csrr a0,misa
+ 192              	# 0 "" 2
+ 193              	.LVL8:
+ 194              		.loc 1 163 3
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 195              		.loc 1 164 1 is_stmt 0
+ 196              	 #NO_APP
+ 197 0004 8280     		ret
+ 198              		.cfi_endproc
+ 199              	.LFE8:
+ 201              		.section	.text.__set_MISA,"ax",@progbits
+ 202              		.align	1
+ 203              		.globl	__set_MISA
+ 205              	__set_MISA:
+ 206              	.LFB9:
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MISA
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine ISA Register
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set misa value
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MISA(uint32_t value)
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 207              		.loc 1 176 1 is_stmt 1
+ 208              		.cfi_startproc
+ 209              	.LVL9:
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw misa, %0" : : "r" (value) );
+ 210              		.loc 1 177 3
+ 211              	 #APP
+ 212              	# 177 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 178              	}
+ 213              		csrw misa, a0
+ 214              	# 0 "" 2
+ 215              		.loc 1 178 1 is_stmt 0
+ 216              	 #NO_APP
+ 217 0004 8280     		ret
+ 218              		.cfi_endproc
+ 219              	.LFE9:
+ 221              		.section	.text.__get_MTVEC,"ax",@progbits
+ 222              		.align	1
+ 223              		.globl	__get_MTVEC
+ 225              	__get_MTVEC:
+ 226              	.LFB10:
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MTVEC
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine Trap-Vector Base-Address Register
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mtvec value
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MTVEC(void)
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 227              		.loc 1 188 1 is_stmt 1
+ 228              		.cfi_startproc
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 229              		.loc 1 189 3
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mtvec" : "=r" (result) );
+ 230              		.loc 1 191 3
+ 231              	 #APP
+ 232              	# 191 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 192              	  return (result);
+ 233              		csrr a0,mtvec
+ 234              	# 0 "" 2
+ 235              	.LVL10:
+ 236              		.loc 1 192 3
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 237              		.loc 1 193 1 is_stmt 0
+ 238              	 #NO_APP
+ 239 0004 8280     		ret
+ 240              		.cfi_endproc
+ 241              	.LFE10:
+ 243              		.section	.text.__set_MTVEC,"ax",@progbits
+ 244              		.align	1
+ 245              		.globl	__set_MTVEC
+ 247              	__set_MTVEC:
+ 248              	.LFB11:
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MTVEC
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine Trap-Vector Base-Address Register
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set mtvec value
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MTVEC(uint32_t value)
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 249              		.loc 1 205 1 is_stmt 1
+ 250              		.cfi_startproc
+ 251              	.LVL11:
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mtvec, %0" : : "r" (value) );
+ 252              		.loc 1 206 3
+ 253              	 #APP
+ 254              	# 206 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 207              	}
+ 255              		csrw mtvec, a0
+ 256              	# 0 "" 2
+ 257              		.loc 1 207 1 is_stmt 0
+ 258              	 #NO_APP
+ 259 0004 8280     		ret
+ 260              		.cfi_endproc
+ 261              	.LFE11:
+ 263              		.section	.text.__get_MSCRATCH,"ax",@progbits
+ 264              		.align	1
+ 265              		.globl	__get_MSCRATCH
+ 267              	__get_MSCRATCH:
+ 268              	.LFB12:
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MSCRATCH
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine Seratch Register
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mscratch value
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MSCRATCH(void)
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 269              		.loc 1 217 1 is_stmt 1
+ 270              		.cfi_startproc
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 271              		.loc 1 218 3
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mscratch" : "=r" (result) );
+ 272              		.loc 1 220 3
+ 273              	 #APP
+ 274              	# 220 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 221              	  return (result);
+ 275              		csrr a0,mscratch
+ 276              	# 0 "" 2
+ 277              	.LVL12:
+ 278              		.loc 1 221 3
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 279              		.loc 1 222 1 is_stmt 0
+ 280              	 #NO_APP
+ 281 0004 8280     		ret
+ 282              		.cfi_endproc
+ 283              	.LFE12:
+ 285              		.section	.text.__set_MSCRATCH,"ax",@progbits
+ 286              		.align	1
+ 287              		.globl	__set_MSCRATCH
+ 289              	__set_MSCRATCH:
+ 290              	.LFB13:
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MSCRATCH
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine Seratch Register
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @param   value  - set mscratch value
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  none
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MSCRATCH(uint32_t value)
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 291              		.loc 1 234 1 is_stmt 1
+ 292              		.cfi_startproc
+ 293              	.LVL13:
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mscratch, %0" : : "r" (value) );
+ 294              		.loc 1 235 3
+ 295              	 #APP
+ 296              	# 235 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 236              	}
+ 297              		csrw mscratch, a0
+ 298              	# 0 "" 2
+ 299              		.loc 1 236 1 is_stmt 0
+ 300              	 #NO_APP
+ 301 0004 8280     		ret
+ 302              		.cfi_endproc
+ 303              	.LFE13:
+ 305              		.section	.text.__get_MEPC,"ax",@progbits
+ 306              		.align	1
+ 307              		.globl	__get_MEPC
+ 309              	__get_MEPC:
+ 310              	.LFB14:
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MEPC
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine Exception Program Register
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mepc value
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MEPC(void)
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 311              		.loc 1 246 1 is_stmt 1
+ 312              		.cfi_startproc
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 313              		.loc 1 247 3
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mepc" : "=r" (result) );
+ 314              		.loc 1 249 3
+ 315              	 #APP
+ 316              	# 249 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 250              	  return (result);
+ 317              		csrr a0,mepc
+ 318              	# 0 "" 2
+ 319              	.LVL14:
+ 320              		.loc 1 250 3
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 321              		.loc 1 251 1 is_stmt 0
+ 322              	 #NO_APP
+ 323 0004 8280     		ret
+ 324              		.cfi_endproc
+ 325              	.LFE14:
+ 327              		.section	.text.__set_MEPC,"ax",@progbits
+ 328              		.align	1
+ 329              		.globl	__set_MEPC
+ 331              	__set_MEPC:
+ 332              	.LFB15:
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MEPC
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine Exception Program Register
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mepc value
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MEPC(uint32_t value)
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 333              		.loc 1 261 1 is_stmt 1
+ 334              		.cfi_startproc
+ 335              	.LVL15:
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mepc, %0" : : "r" (value) );
+ 336              		.loc 1 262 3
+ 337              	 #APP
+ 338              	# 262 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 263              	}
+ 339              		csrw mepc, a0
+ 340              	# 0 "" 2
+ 341              		.loc 1 263 1 is_stmt 0
+ 342              	 #NO_APP
+ 343 0004 8280     		ret
+ 344              		.cfi_endproc
+ 345              	.LFE15:
+ 347              		.section	.text.__get_MCAUSE,"ax",@progbits
+ 348              		.align	1
+ 349              		.globl	__get_MCAUSE
+ 351              	__get_MCAUSE:
+ 352              	.LFB16:
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MCAUSE
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine Cause Register
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MCAUSE(void)
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 353              		.loc 1 273 1 is_stmt 1
+ 354              		.cfi_startproc
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 355              		.loc 1 274 3
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mcause" : "=r" (result) );
+ 356              		.loc 1 276 3
+ 357              	 #APP
+ 358              	# 276 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 277              	  return (result);
+ 359              		csrr a0,mcause
+ 360              	# 0 "" 2
+ 361              	.LVL16:
+ 362              		.loc 1 277 3
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 363              		.loc 1 278 1 is_stmt 0
+ 364              	 #NO_APP
+ 365 0004 8280     		ret
+ 366              		.cfi_endproc
+ 367              	.LFE16:
+ 369              		.section	.text.__set_MCAUSE,"ax",@progbits
+ 370              		.align	1
+ 371              		.globl	__set_MCAUSE
+ 373              	__set_MCAUSE:
+ 374              	.LFB17:
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MEPC
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine Cause Register
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MCAUSE(uint32_t value)
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 375              		.loc 1 288 1 is_stmt 1
+ 376              		.cfi_startproc
+ 377              	.LVL17:
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mcause, %0" : : "r" (value) );
+ 378              		.loc 1 289 3
+ 379              	 #APP
+ 380              	# 289 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 290              	}
+ 381              		csrw mcause, a0
+ 382              	# 0 "" 2
+ 383              		.loc 1 290 1 is_stmt 0
+ 384              	 #NO_APP
+ 385 0004 8280     		ret
+ 386              		.cfi_endproc
+ 387              	.LFE17:
+ 389              		.section	.text.__get_MTVAL,"ax",@progbits
+ 390              		.align	1
+ 391              		.globl	__get_MTVAL
+ 393              	__get_MTVAL:
+ 394              	.LFB18:
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MTVAL
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the Machine Trap Value Register
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mtval value
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MTVAL(void)
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 395              		.loc 1 300 1 is_stmt 1
+ 396              		.cfi_startproc
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 397              		.loc 1 301 3
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mtval" : "=r" (result) );
+ 398              		.loc 1 303 3
+ 399              	 #APP
+ 400              	# 303 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 304              	  return (result);
+ 401              		csrr a0,mtval
+ 402              	# 0 "" 2
+ 403              	.LVL18:
+ 404              		.loc 1 304 3
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 405              		.loc 1 305 1 is_stmt 0
+ 406              	 #NO_APP
+ 407 0004 8280     		ret
+ 408              		.cfi_endproc
+ 409              	.LFE18:
+ 411              		.section	.text.__set_MTVAL,"ax",@progbits
+ 412              		.align	1
+ 413              		.globl	__set_MTVAL
+ 415              	__set_MTVAL:
+ 416              	.LFB19:
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MTVAL
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the Machine Trap Value Register
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mtval value
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MTVAL(uint32_t value)
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 417              		.loc 1 315 1 is_stmt 1
+ 418              		.cfi_startproc
+ 419              	.LVL19:
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mtval, %0" : : "r" (value) );
+ 420              		.loc 1 316 3
+ 421              	 #APP
+ 422              	# 316 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 317              	}
+ 423              		csrw mtval, a0
+ 424              	# 0 "" 2
+ 425              		.loc 1 317 1 is_stmt 0
+ 426              	 #NO_APP
+ 427 0004 8280     		ret
+ 428              		.cfi_endproc
+ 429              	.LFE19:
+ 431              		.section	.text.__get_MVENDORID,"ax",@progbits
+ 432              		.align	1
+ 433              		.globl	__get_MVENDORID
+ 435              	__get_MVENDORID:
+ 436              	.LFB20:
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MVENDORID
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return Vendor ID Register
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mvendorid value
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MVENDORID(void)
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 437              		.loc 1 327 1 is_stmt 1
+ 438              		.cfi_startproc
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 439              		.loc 1 328 3
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mvendorid" : "=r" (result) );
+ 440              		.loc 1 330 3
+ 441              	 #APP
+ 442              	# 330 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 331              	  return (result);
+ 443              		csrr a0,mvendorid
+ 444              	# 0 "" 2
+ 445              	.LVL20:
+ 446              		.loc 1 331 3
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 447              		.loc 1 332 1 is_stmt 0
+ 448              	 #NO_APP
+ 449 0004 8280     		ret
+ 450              		.cfi_endproc
+ 451              	.LFE20:
+ 453              		.section	.text.__get_MARCHID,"ax",@progbits
+ 454              		.align	1
+ 455              		.globl	__get_MARCHID
+ 457              	__get_MARCHID:
+ 458              	.LFB21:
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MARCHID
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return Machine Architecture ID Register
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  marchid value
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MARCHID(void)
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 459              		.loc 1 342 1 is_stmt 1
+ 460              		.cfi_startproc
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 461              		.loc 1 343 3
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "marchid" : "=r" (result) );
+ 462              		.loc 1 345 3
+ 463              	 #APP
+ 464              	# 345 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 346              	  return (result);
+ 465              		csrr a0,marchid
+ 466              	# 0 "" 2
+ 467              	.LVL21:
+ 468              		.loc 1 346 3
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 469              		.loc 1 347 1 is_stmt 0
+ 470              	 #NO_APP
+ 471 0004 8280     		ret
+ 472              		.cfi_endproc
+ 473              	.LFE21:
+ 475              		.section	.text.__get_MIMPID,"ax",@progbits
+ 476              		.align	1
+ 477              		.globl	__get_MIMPID
+ 479              	__get_MIMPID:
+ 480              	.LFB22:
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MIMPID
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return Machine Implementation ID Register
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mimpid value
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MIMPID(void)
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 481              		.loc 1 357 1 is_stmt 1
+ 482              		.cfi_startproc
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 483              		.loc 1 358 3
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mimpid" : "=r" (result) );
+ 484              		.loc 1 360 3
+ 485              	 #APP
+ 486              	# 360 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 361              	  return (result);
+ 487              		csrr a0,mimpid
+ 488              	# 0 "" 2
+ 489              	.LVL22:
+ 490              		.loc 1 361 3
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 491              		.loc 1 362 1 is_stmt 0
+ 492              	 #NO_APP
+ 493 0004 8280     		ret
+ 494              		.cfi_endproc
+ 495              	.LFE22:
+ 497              		.section	.text.__get_MHARTID,"ax",@progbits
+ 498              		.align	1
+ 499              		.globl	__get_MHARTID
+ 501              	__get_MHARTID:
+ 502              	.LFB23:
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MHARTID
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return Hart ID Register
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mhartid value
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MHARTID(void)
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 503              		.loc 1 372 1 is_stmt 1
+ 504              		.cfi_startproc
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 505              		.loc 1 373 3
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mhartid" : "=r" (result) );
+ 506              		.loc 1 375 3
+ 507              	 #APP
+ 508              	# 375 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 376              	  return (result);
+ 509              		csrr a0,mhartid
+ 510              	# 0 "" 2
+ 511              	.LVL23:
+ 512              		.loc 1 376 3
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 513              		.loc 1 377 1 is_stmt 0
+ 514              	 #NO_APP
+ 515 0004 8280     		ret
+ 516              		.cfi_endproc
+ 517              	.LFE23:
+ 519              		.section	.text.__get_SP,"ax",@progbits
+ 520              		.align	1
+ 521              		.globl	__get_SP
+ 523              	__get_SP:
+ 524              	.LFB24:
+ 378:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 379:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 380:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_SP
+ 381:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 382:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return SP Register
+ 383:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 384:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  SP value
+ 385:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 386:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_SP(void)
+ 387:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 525              		.loc 1 387 1 is_stmt 1
+ 526              		.cfi_startproc
+ 388:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 527              		.loc 1 388 3
+ 389:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 390:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "mv %0," "sp" : "=r"(result) : );
+ 528              		.loc 1 390 3
+ 529              	 #APP
+ 530              	# 390 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 391              	  return (result);
+ 531              		mv a0,sp
+ 532              	# 0 "" 2
+ 533              	.LVL24:
+ 534              		.loc 1 391 3
+ 392:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 535              		.loc 1 392 1 is_stmt 0
+ 536              	 #NO_APP
+ 537 0002 8280     		ret
+ 538              		.cfi_endproc
+ 539              	.LFE24:
+ 541              		.section	.text.__set_MCOUNT_INHIBIT,"ax",@progbits
+ 542              		.align	1
+ 543              		.globl	__set_MCOUNT_INHIBIT
+ 545              	__set_MCOUNT_INHIBIT:
+ 546              	.LFB25:
+ 393:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 394:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 395:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MCOUNT_INHIBIT
+ 396:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 397:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set Instruction and cycle count shield switch in machine mode
+ 398:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 399:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 400:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 401:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MCOUNT_INHIBIT(uint32_t value)
+ 402:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 547              		.loc 1 402 1 is_stmt 1
+ 548              		.cfi_startproc
+ 549              	.LVL25:
+ 403:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mcounteren, %0" : : "r" (value) );
+ 550              		.loc 1 403 3
+ 551              	 #APP
+ 552              	# 403 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 404              	}
+ 553              		csrw mcounteren, a0
+ 554              	# 0 "" 2
+ 555              		.loc 1 404 1 is_stmt 0
+ 556              	 #NO_APP
+ 557 0004 8280     		ret
+ 558              		.cfi_endproc
+ 559              	.LFE25:
+ 561              		.section	.text.__get_MCOUNT_INHIBIT,"ax",@progbits
+ 562              		.align	1
+ 563              		.globl	__get_MCOUNT_INHIBIT
+ 565              	__get_MCOUNT_INHIBIT:
+ 566              	.LFB26:
+ 405:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 406:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 407:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MCOUNT_INHIBIT
+ 408:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 409:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return Instruction and cycle count shield switch in machine mode
+ 410:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 411:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  SP value
+ 412:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 413:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MCOUNT_INHIBIT(void)
+ 414:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 567              		.loc 1 414 1 is_stmt 1
+ 568              		.cfi_startproc
+ 415:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 569              		.loc 1 415 3
+ 416:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 417:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mcounteren" : "=r"(result) : );
+ 570              		.loc 1 417 3
+ 571              	 #APP
+ 572              	# 417 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 418              	  return (result);
+ 573              		csrr a0,mcounteren
+ 574              	# 0 "" 2
+ 575              	.LVL26:
+ 576              		.loc 1 418 3
+ 419:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 577              		.loc 1 419 1 is_stmt 0
+ 578              	 #NO_APP
+ 579 0004 8280     		ret
+ 580              		.cfi_endproc
+ 581              	.LFE26:
+ 583              		.section	.text.__set_MCYCLE,"ax",@progbits
+ 584              		.align	1
+ 585              		.globl	__set_MCYCLE
+ 587              	__set_MCYCLE:
+ 588              	.LFB27:
+ 420:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 421:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 422:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MCYCLE
+ 423:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 424:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the number of cycles in machine mode
+ 425:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 426:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 427:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 428:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MCYCLE(uint32_t value)
+ 429:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 589              		.loc 1 429 1 is_stmt 1
+ 590              		.cfi_startproc
+ 591              	.LVL27:
+ 430:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw mcycle, %0" : : "r" (value) );
+ 592              		.loc 1 430 3
+ 593              	 #APP
+ 594              	# 430 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 431              	}
+ 595              		csrw mcycle, a0
+ 596              	# 0 "" 2
+ 597              		.loc 1 431 1 is_stmt 0
+ 598              	 #NO_APP
+ 599 0004 8280     		ret
+ 600              		.cfi_endproc
+ 601              	.LFE27:
+ 603              		.section	.text.__get_MCYCLE,"ax",@progbits
+ 604              		.align	1
+ 605              		.globl	__get_MCYCLE
+ 607              	__get_MCYCLE:
+ 608              	.LFB28:
+ 432:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 433:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 434:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MCYCLE
+ 435:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 436:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the number of cycles in machine mode
+ 437:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 438:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  SP value
+ 439:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 440:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MCYCLE(void)
+ 441:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 609              		.loc 1 441 1 is_stmt 1
+ 610              		.cfi_startproc
+ 442:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 611              		.loc 1 442 3
+ 443:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 444:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "mcycle" : "=r"(result) : );
+ 612              		.loc 1 444 3
+ 613              	 #APP
+ 614              	# 444 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 445              	  return (result);
+ 615              		csrr a0,mcycle
+ 616              	# 0 "" 2
+ 617              	.LVL28:
+ 618              		.loc 1 445 3
+ 446:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 619              		.loc 1 446 1 is_stmt 0
+ 620              	 #NO_APP
+ 621 0004 8280     		ret
+ 622              		.cfi_endproc
+ 623              	.LFE28:
+ 625              		.section	.text.__set_MINSTRET,"ax",@progbits
+ 626              		.align	1
+ 627              		.globl	__set_MINSTRET
+ 629              	__set_MINSTRET:
+ 630              	.LFB29:
+ 447:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 448:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 449:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_MINSTRET
+ 450:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 451:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the number of completed instructions in machine mode
+ 452:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 453:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 454:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 455:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_MINSTRET(uint32_t value)
+ 456:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 631              		.loc 1 456 1 is_stmt 1
+ 632              		.cfi_startproc
+ 633              	.LVL29:
+ 457:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw minstret, %0" : : "r" (value) );
+ 634              		.loc 1 457 3
+ 635              	 #APP
+ 636              	# 457 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 458              	}
+ 637              		csrw minstret, a0
+ 638              	# 0 "" 2
+ 639              		.loc 1 458 1 is_stmt 0
+ 640              	 #NO_APP
+ 641 0004 8280     		ret
+ 642              		.cfi_endproc
+ 643              	.LFE29:
+ 645              		.section	.text.__get_MINSTRET,"ax",@progbits
+ 646              		.align	1
+ 647              		.globl	__get_MINSTRET
+ 649              	__get_MINSTRET:
+ 650              	.LFB30:
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 460:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_MINSTRET
+ 462:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 463:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the number of completed instructions in machine mode
+ 464:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 465:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  SP value
+ 466:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 467:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_MINSTRET(void)
+ 468:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 651              		.loc 1 468 1 is_stmt 1
+ 652              		.cfi_startproc
+ 469:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 653              		.loc 1 469 3
+ 470:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 471:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "minstret" : "=r"(result) : );
+ 654              		.loc 1 471 3
+ 655              	 #APP
+ 656              	# 471 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 472              	  return (result);
+ 657              		csrr a0,minstret
+ 658              	# 0 "" 2
+ 659              	.LVL30:
+ 660              		.loc 1 472 3
+ 473:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 661              		.loc 1 473 1 is_stmt 0
+ 662              	 #NO_APP
+ 663 0004 8280     		ret
+ 664              		.cfi_endproc
+ 665              	.LFE30:
+ 667              		.section	.text.__set_UCYCLE,"ax",@progbits
+ 668              		.align	1
+ 669              		.globl	__set_UCYCLE
+ 671              	__set_UCYCLE:
+ 672              	.LFB31:
+ 474:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 475:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 476:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_UCYCLE
+ 477:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 478:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the number of cycles in user mode
+ 479:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 480:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 481:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 482:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_UCYCLE(uint32_t value)
+ 483:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 673              		.loc 1 483 1 is_stmt 1
+ 674              		.cfi_startproc
+ 675              	.LVL31:
+ 484:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw cycle, %0" : : "r" (value) );
+ 676              		.loc 1 484 3
+ 677              	 #APP
+ 678              	# 484 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 485              	}
+ 679              		csrw cycle, a0
+ 680              	# 0 "" 2
+ 681              		.loc 1 485 1 is_stmt 0
+ 682              	 #NO_APP
+ 683 0004 8280     		ret
+ 684              		.cfi_endproc
+ 685              	.LFE31:
+ 687              		.section	.text.__get_UCYCLE,"ax",@progbits
+ 688              		.align	1
+ 689              		.globl	__get_UCYCLE
+ 691              	__get_UCYCLE:
+ 692              	.LFB32:
+ 486:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 487:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 488:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_UCYCLE
+ 489:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 490:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the number of cycles in user mode
+ 491:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 492:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  SP value
+ 493:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 494:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_UCYCLE(void)
+ 495:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 693              		.loc 1 495 1 is_stmt 1
+ 694              		.cfi_startproc
+ 496:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 695              		.loc 1 496 3
+ 497:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 498:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "cycle" : "=r"(result) : );
+ 696              		.loc 1 498 3
+ 697              	 #APP
+ 698              	# 498 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 499              	  return (result);
+ 699              		csrr a0,cycle
+ 700              	# 0 "" 2
+ 701              	.LVL32:
+ 702              		.loc 1 499 3
+ 500:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 703              		.loc 1 500 1 is_stmt 0
+ 704              	 #NO_APP
+ 705 0004 8280     		ret
+ 706              		.cfi_endproc
+ 707              	.LFE32:
+ 709              		.section	.text.__set_UINSTRET,"ax",@progbits
+ 710              		.align	1
+ 711              		.globl	__set_UINSTRET
+ 713              	__set_UINSTRET:
+ 714              	.LFB33:
+ 501:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 502:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 503:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __set_UINSTRET
+ 504:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 505:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Set the number of completed instructions in user mode
+ 506:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 507:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  mcause value
+ 508:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 509:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** void __set_UINSTRET(uint32_t value)
+ 510:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 715              		.loc 1 510 1 is_stmt 1
+ 716              		.cfi_startproc
+ 717              	.LVL33:
+ 511:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ("csrw instret, %0" : : "r" (value) );
+ 718              		.loc 1 511 3
+ 719              	 #APP
+ 720              	# 511 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 512              	}
+ 721              		csrw instret, a0
+ 722              	# 0 "" 2
+ 723              		.loc 1 512 1 is_stmt 0
+ 724              	 #NO_APP
+ 725 0004 8280     		ret
+ 726              		.cfi_endproc
+ 727              	.LFE33:
+ 729              		.section	.text.__get_UINSTRET,"ax",@progbits
+ 730              		.align	1
+ 731              		.globl	__get_UINSTRET
+ 733              	__get_UINSTRET:
+ 734              	.LFB34:
+ 513:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 514:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** /*********************************************************************
+ 515:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @fn      __get_UINSTRET
+ 516:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 517:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @brief   Return the number of completed instructions in user mode
+ 518:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  *
+ 519:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  * @return  SP value
+ 520:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****  */
+ 521:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** uint32_t __get_UINSTRET(void)
+ 522:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** {
+ 735              		.loc 1 522 1 is_stmt 1
+ 736              		.cfi_startproc
+ 523:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   uint32_t result;
+ 737              		.loc 1 523 3
+ 524:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** 
+ 525:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c ****   __ASM volatile ( "csrr %0," "instret" : "=r"(result) : );
+ 738              		.loc 1 525 3
+ 739              	 #APP
+ 740              	# 525 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.c" 1
+ 526              	  return (result);
+ 741              		csrr a0,instret
+ 742              	# 0 "" 2
+ 743              	.LVL34:
+ 744              		.loc 1 526 3
+ 527:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c **** }
+ 745              		.loc 1 527 1 is_stmt 0
+ 746              	 #NO_APP
+ 747 0004 8280     		ret
+ 748              		.cfi_endproc
+ 749              	.LFE34:
+ 751              		.globl	WFE_MASK
+ 752              		.section	.sbss.WFE_MASK,"aw",@nobits
+ 753              		.align	2
+ 756              	WFE_MASK:
+ 757 0000 00000000 		.zero	4
+ 758              		.text
+ 759              	.Letext0:
+ 760              		.file 2 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 761              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 core_riscv.c
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:14     .text.__get_FFLAGS:0000000000000000 __get_FFLAGS
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:18     .text.__get_FFLAGS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:19     .text.__get_FFLAGS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:20     .text.__get_FFLAGS:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:46     .text.__get_FFLAGS:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:46     .text.__get_FFLAGS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:27     .text.__get_FFLAGS:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:29     .text.__get_FFLAGS:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:30     .text.__get_FFLAGS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:37     .text.__set_FFLAGS:0000000000000000 __set_FFLAGS
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:40     .text.__set_FFLAGS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:42     .text.__set_FFLAGS:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:61     .text.__set_FFLAGS:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:61     .text.__set_FFLAGS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:49     .text.__set_FFLAGS:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:50     .text.__set_FFLAGS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:57     .text.__get_FRM:0000000000000000 __get_FRM
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:60     .text.__get_FRM:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:61     .text.__get_FRM:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:62     .text.__get_FRM:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:75     .text.__get_FRM:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:75     .text.__get_FRM:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:69     .text.__get_FRM:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:71     .text.__get_FRM:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:72     .text.__get_FRM:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:79     .text.__set_FRM:0000000000000000 __set_FRM
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:82     .text.__set_FRM:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:84     .text.__set_FRM:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:90     .text.__set_FRM:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:90     .text.__set_FRM:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:91     .text.__set_FRM:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:92     .text.__set_FRM:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:99     .text.__get_FCSR:0000000000000000 __get_FCSR
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:102    .text.__get_FCSR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:103    .text.__get_FCSR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:104    .text.__get_FCSR:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:104    .text.__get_FCSR:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:104    .text.__get_FCSR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:111    .text.__get_FCSR:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:113    .text.__get_FCSR:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:114    .text.__get_FCSR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:121    .text.__set_FCSR:0000000000000000 __set_FCSR
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:124    .text.__set_FCSR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:126    .text.__set_FCSR:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:119    .text.__set_FCSR:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:119    .text.__set_FCSR:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:133    .text.__set_FCSR:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:134    .text.__set_FCSR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:141    .text.__get_MSTATUS:0000000000000000 __get_MSTATUS
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:144    .text.__get_MSTATUS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:145    .text.__get_MSTATUS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:146    .text.__get_MSTATUS:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:133    .text.__get_MSTATUS:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:133    .text.__get_MSTATUS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:153    .text.__get_MSTATUS:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:155    .text.__get_MSTATUS:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:156    .text.__get_MSTATUS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:163    .text.__set_MSTATUS:0000000000000000 __set_MSTATUS
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:166    .text.__set_MSTATUS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:168    .text.__set_MSTATUS:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:148    .text.__set_MSTATUS:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:148    .text.__set_MSTATUS:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:175    .text.__set_MSTATUS:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:176    .text.__set_MSTATUS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:183    .text.__get_MISA:0000000000000000 __get_MISA
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:186    .text.__get_MISA:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:187    .text.__get_MISA:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:188    .text.__get_MISA:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:162    .text.__get_MISA:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:162    .text.__get_MISA:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:195    .text.__get_MISA:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:197    .text.__get_MISA:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:198    .text.__get_MISA:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:205    .text.__set_MISA:0000000000000000 __set_MISA
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:208    .text.__set_MISA:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:210    .text.__set_MISA:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:177    .text.__set_MISA:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:177    .text.__set_MISA:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:217    .text.__set_MISA:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:218    .text.__set_MISA:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:225    .text.__get_MTVEC:0000000000000000 __get_MTVEC
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:228    .text.__get_MTVEC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:229    .text.__get_MTVEC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:230    .text.__get_MTVEC:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:191    .text.__get_MTVEC:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:191    .text.__get_MTVEC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:237    .text.__get_MTVEC:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:239    .text.__get_MTVEC:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:240    .text.__get_MTVEC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:247    .text.__set_MTVEC:0000000000000000 __set_MTVEC
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:250    .text.__set_MTVEC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:252    .text.__set_MTVEC:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:206    .text.__set_MTVEC:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:206    .text.__set_MTVEC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:259    .text.__set_MTVEC:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:260    .text.__set_MTVEC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:267    .text.__get_MSCRATCH:0000000000000000 __get_MSCRATCH
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:270    .text.__get_MSCRATCH:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:271    .text.__get_MSCRATCH:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:272    .text.__get_MSCRATCH:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:220    .text.__get_MSCRATCH:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:220    .text.__get_MSCRATCH:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:279    .text.__get_MSCRATCH:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:281    .text.__get_MSCRATCH:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:282    .text.__get_MSCRATCH:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:289    .text.__set_MSCRATCH:0000000000000000 __set_MSCRATCH
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:292    .text.__set_MSCRATCH:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:294    .text.__set_MSCRATCH:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:235    .text.__set_MSCRATCH:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:235    .text.__set_MSCRATCH:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:301    .text.__set_MSCRATCH:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:302    .text.__set_MSCRATCH:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:309    .text.__get_MEPC:0000000000000000 __get_MEPC
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:312    .text.__get_MEPC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:313    .text.__get_MEPC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:314    .text.__get_MEPC:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:249    .text.__get_MEPC:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:249    .text.__get_MEPC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:321    .text.__get_MEPC:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:323    .text.__get_MEPC:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:324    .text.__get_MEPC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:331    .text.__set_MEPC:0000000000000000 __set_MEPC
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:334    .text.__set_MEPC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:336    .text.__set_MEPC:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:262    .text.__set_MEPC:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:262    .text.__set_MEPC:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:343    .text.__set_MEPC:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:344    .text.__set_MEPC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:351    .text.__get_MCAUSE:0000000000000000 __get_MCAUSE
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:354    .text.__get_MCAUSE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:355    .text.__get_MCAUSE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:356    .text.__get_MCAUSE:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:276    .text.__get_MCAUSE:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:276    .text.__get_MCAUSE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:363    .text.__get_MCAUSE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:365    .text.__get_MCAUSE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:366    .text.__get_MCAUSE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:373    .text.__set_MCAUSE:0000000000000000 __set_MCAUSE
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:376    .text.__set_MCAUSE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:378    .text.__set_MCAUSE:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:289    .text.__set_MCAUSE:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:289    .text.__set_MCAUSE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:385    .text.__set_MCAUSE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:386    .text.__set_MCAUSE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:393    .text.__get_MTVAL:0000000000000000 __get_MTVAL
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:396    .text.__get_MTVAL:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:397    .text.__get_MTVAL:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:398    .text.__get_MTVAL:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:303    .text.__get_MTVAL:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:303    .text.__get_MTVAL:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:405    .text.__get_MTVAL:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:407    .text.__get_MTVAL:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:408    .text.__get_MTVAL:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:415    .text.__set_MTVAL:0000000000000000 __set_MTVAL
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:418    .text.__set_MTVAL:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:420    .text.__set_MTVAL:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:316    .text.__set_MTVAL:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:316    .text.__set_MTVAL:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:427    .text.__set_MTVAL:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:428    .text.__set_MTVAL:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:435    .text.__get_MVENDORID:0000000000000000 __get_MVENDORID
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:438    .text.__get_MVENDORID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:439    .text.__get_MVENDORID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:440    .text.__get_MVENDORID:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:330    .text.__get_MVENDORID:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:330    .text.__get_MVENDORID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:447    .text.__get_MVENDORID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:449    .text.__get_MVENDORID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:450    .text.__get_MVENDORID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:457    .text.__get_MARCHID:0000000000000000 __get_MARCHID
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:460    .text.__get_MARCHID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:461    .text.__get_MARCHID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:462    .text.__get_MARCHID:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:345    .text.__get_MARCHID:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:345    .text.__get_MARCHID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:469    .text.__get_MARCHID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:471    .text.__get_MARCHID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:472    .text.__get_MARCHID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:479    .text.__get_MIMPID:0000000000000000 __get_MIMPID
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:482    .text.__get_MIMPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:483    .text.__get_MIMPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:484    .text.__get_MIMPID:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:360    .text.__get_MIMPID:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:360    .text.__get_MIMPID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:491    .text.__get_MIMPID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:493    .text.__get_MIMPID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:494    .text.__get_MIMPID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:501    .text.__get_MHARTID:0000000000000000 __get_MHARTID
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:504    .text.__get_MHARTID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:505    .text.__get_MHARTID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:506    .text.__get_MHARTID:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:375    .text.__get_MHARTID:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:375    .text.__get_MHARTID:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:513    .text.__get_MHARTID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:515    .text.__get_MHARTID:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:516    .text.__get_MHARTID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:523    .text.__get_SP:0000000000000000 __get_SP
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:526    .text.__get_SP:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:527    .text.__get_SP:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:528    .text.__get_SP:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:390    .text.__get_SP:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:390    .text.__get_SP:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:535    .text.__get_SP:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:537    .text.__get_SP:0000000000000002 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:538    .text.__get_SP:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:545    .text.__set_MCOUNT_INHIBIT:0000000000000000 __set_MCOUNT_INHIBIT
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:548    .text.__set_MCOUNT_INHIBIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:550    .text.__set_MCOUNT_INHIBIT:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:403    .text.__set_MCOUNT_INHIBIT:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:403    .text.__set_MCOUNT_INHIBIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:557    .text.__set_MCOUNT_INHIBIT:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:558    .text.__set_MCOUNT_INHIBIT:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:565    .text.__get_MCOUNT_INHIBIT:0000000000000000 __get_MCOUNT_INHIBIT
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:568    .text.__get_MCOUNT_INHIBIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:569    .text.__get_MCOUNT_INHIBIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:570    .text.__get_MCOUNT_INHIBIT:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:417    .text.__get_MCOUNT_INHIBIT:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:417    .text.__get_MCOUNT_INHIBIT:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:577    .text.__get_MCOUNT_INHIBIT:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:579    .text.__get_MCOUNT_INHIBIT:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:580    .text.__get_MCOUNT_INHIBIT:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:587    .text.__set_MCYCLE:0000000000000000 __set_MCYCLE
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:590    .text.__set_MCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:592    .text.__set_MCYCLE:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:430    .text.__set_MCYCLE:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:430    .text.__set_MCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:599    .text.__set_MCYCLE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:600    .text.__set_MCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:607    .text.__get_MCYCLE:0000000000000000 __get_MCYCLE
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:610    .text.__get_MCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:611    .text.__get_MCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:612    .text.__get_MCYCLE:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:444    .text.__get_MCYCLE:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:444    .text.__get_MCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:619    .text.__get_MCYCLE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:621    .text.__get_MCYCLE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:622    .text.__get_MCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:629    .text.__set_MINSTRET:0000000000000000 __set_MINSTRET
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:632    .text.__set_MINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:634    .text.__set_MINSTRET:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:457    .text.__set_MINSTRET:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:457    .text.__set_MINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:641    .text.__set_MINSTRET:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:642    .text.__set_MINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:649    .text.__get_MINSTRET:0000000000000000 __get_MINSTRET
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:652    .text.__get_MINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:653    .text.__get_MINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:654    .text.__get_MINSTRET:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:471    .text.__get_MINSTRET:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:471    .text.__get_MINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:661    .text.__get_MINSTRET:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:663    .text.__get_MINSTRET:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:664    .text.__get_MINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:671    .text.__set_UCYCLE:0000000000000000 __set_UCYCLE
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:674    .text.__set_UCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:676    .text.__set_UCYCLE:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:484    .text.__set_UCYCLE:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:484    .text.__set_UCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:683    .text.__set_UCYCLE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:684    .text.__set_UCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:691    .text.__get_UCYCLE:0000000000000000 __get_UCYCLE
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:694    .text.__get_UCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:695    .text.__get_UCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:696    .text.__get_UCYCLE:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:498    .text.__get_UCYCLE:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:498    .text.__get_UCYCLE:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:703    .text.__get_UCYCLE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:705    .text.__get_UCYCLE:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:706    .text.__get_UCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:713    .text.__set_UINSTRET:0000000000000000 __set_UINSTRET
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:716    .text.__set_UINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:718    .text.__set_UINSTRET:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:511    .text.__set_UINSTRET:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:511    .text.__set_UINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:725    .text.__set_UINSTRET:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:726    .text.__set_UINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:733    .text.__get_UINSTRET:0000000000000000 __get_UINSTRET
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:736    .text.__get_UINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:737    .text.__get_UINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:738    .text.__get_UINSTRET:0000000000000000 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:525    .text.__get_UINSTRET:0000000000000000 $x
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.c:525    .text.__get_UINSTRET:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:745    .text.__get_UINSTRET:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:747    .text.__get_UINSTRET:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:748    .text.__get_UINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:756    .sbss.WFE_MASK:0000000000000000 WFE_MASK
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:0000000000000099 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:00000000000000eb .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:0000000000000125 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:00000000000001af .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:0000000000000235 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:0000000000000242 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:000000000000024f .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2012   .debug_line_str:0000000000000260 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:33     .text.__get_FFLAGS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:53     .text.__set_FFLAGS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:75     .text.__get_FRM:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:95     .text.__set_FRM:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:117    .text.__get_FCSR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:137    .text.__set_FCSR:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:159    .text.__get_MSTATUS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:179    .text.__set_MSTATUS:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:201    .text.__get_MISA:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:221    .text.__set_MISA:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:243    .text.__get_MTVEC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:263    .text.__set_MTVEC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:285    .text.__get_MSCRATCH:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:305    .text.__set_MSCRATCH:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:327    .text.__get_MEPC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:347    .text.__set_MEPC:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:369    .text.__get_MCAUSE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:389    .text.__set_MCAUSE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:411    .text.__get_MTVAL:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:431    .text.__set_MTVAL:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:453    .text.__get_MVENDORID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:475    .text.__get_MARCHID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:497    .text.__get_MIMPID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:519    .text.__get_MHARTID:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:541    .text.__get_SP:0000000000000004 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:561    .text.__set_MCOUNT_INHIBIT:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:583    .text.__get_MCOUNT_INHIBIT:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:603    .text.__set_MCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:625    .text.__get_MCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:645    .text.__set_MINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:667    .text.__get_MINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:687    .text.__set_UCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:709    .text.__get_UCYCLE:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:729    .text.__set_UINSTRET:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:752    .text.__get_UINSTRET:0000000000000006 .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1403   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1955   .debug_str:0000000000000117 .LASF50
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2010   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2008   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1796   .debug_rnglists:000000000000000c .LLRL0
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1905   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1963   .debug_str:0000000000000224 .LASF2
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1961   .debug_str:0000000000000216 .LASF3
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1919   .debug_str:0000000000000047 .LASF4
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1973   .debug_str:000000000000026a .LASF5
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1949   .debug_str:00000000000000f6 .LASF6
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1927   .debug_str:0000000000000072 .LASF11
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1985   .debug_str:00000000000002c5 .LASF7
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1947   .debug_str:00000000000000e8 .LASF8
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1965   .debug_str:0000000000000230 .LASF9
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1969   .debug_str:0000000000000250 .LASF10
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1967   .debug_str:0000000000000247 .LASF12
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1989   .debug_str:00000000000002ec .LASF51
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1943   .debug_str:00000000000000cb .LASF13
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:734    .text.__get_UINSTRET:0000000000000000 .LFB34
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:749    .text.__get_UINSTRET:0000000000000006 .LFE34
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1911   .debug_str:0000000000000018 .LASF15
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1929   .debug_str:000000000000007d .LASF16
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:714    .text.__set_UINSTRET:0000000000000000 .LFB33
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:727    .text.__set_UINSTRET:0000000000000006 .LFE33
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1931   .debug_str:000000000000008c .LASF18
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1971   .debug_str:000000000000025d .LASF14
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:692    .text.__get_UCYCLE:0000000000000000 .LFB32
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:707    .text.__get_UCYCLE:0000000000000006 .LFE32
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2001   .debug_str:0000000000000339 .LASF17
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:672    .text.__set_UCYCLE:0000000000000000 .LFB31
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:685    .text.__set_UCYCLE:0000000000000006 .LFE31
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1915   .debug_str:000000000000002d .LASF19
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:650    .text.__get_MINSTRET:0000000000000000 .LFB30
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:665    .text.__get_MINSTRET:0000000000000006 .LFE30
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2003   .debug_str:0000000000000346 .LASF20
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:630    .text.__set_MINSTRET:0000000000000000 .LFB29
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:643    .text.__set_MINSTRET:0000000000000006 .LFE29
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1921   .debug_str:0000000000000051 .LASF21
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:608    .text.__get_MCYCLE:0000000000000000 .LFB28
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:623    .text.__get_MCYCLE:0000000000000006 .LFE28
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1953   .debug_str:000000000000010a .LASF22
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:588    .text.__set_MCYCLE:0000000000000000 .LFB27
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:601    .text.__set_MCYCLE:0000000000000006 .LFE27
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1979   .debug_str:0000000000000297 .LASF23
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:566    .text.__get_MCOUNT_INHIBIT:0000000000000000 .LFB26
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:581    .text.__get_MCOUNT_INHIBIT:0000000000000006 .LFE26
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1987   .debug_str:00000000000002d7 .LASF24
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:546    .text.__set_MCOUNT_INHIBIT:0000000000000000 .LFB25
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:559    .text.__set_MCOUNT_INHIBIT:0000000000000006 .LFE25
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1925   .debug_str:0000000000000069 .LASF25
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:524    .text.__get_SP:0000000000000000 .LFB24
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:539    .text.__get_SP:0000000000000004 .LFE24
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1913   .debug_str:000000000000001f .LASF26
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:502    .text.__get_MHARTID:0000000000000000 .LFB23
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:517    .text.__get_MHARTID:0000000000000006 .LFE23
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1993   .debug_str:0000000000000301 .LASF27
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:480    .text.__get_MIMPID:0000000000000000 .LFB22
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:495    .text.__get_MIMPID:0000000000000006 .LFE22
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1983   .debug_str:00000000000002b7 .LASF28
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:458    .text.__get_MARCHID:0000000000000000 .LFB21
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:473    .text.__get_MARCHID:0000000000000006 .LFE21
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1999   .debug_str:0000000000000329 .LASF29
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:436    .text.__get_MVENDORID:0000000000000000 .LFB20
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:451    .text.__get_MVENDORID:0000000000000006 .LFE20
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1933   .debug_str:0000000000000092 .LASF30
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:416    .text.__set_MTVAL:0000000000000000 .LFB19
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:429    .text.__set_MTVAL:0000000000000006 .LFE19
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1991   .debug_str:00000000000002f5 .LASF31
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:394    .text.__get_MTVAL:0000000000000000 .LFB18
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:409    .text.__get_MTVAL:0000000000000006 .LFE18
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1907   .debug_str:0000000000000000 .LASF32
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:374    .text.__set_MCAUSE:0000000000000000 .LFB17
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:387    .text.__set_MCAUSE:0000000000000006 .LFE17
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1977   .debug_str:000000000000028a .LASF33
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:352    .text.__get_MCAUSE:0000000000000000 .LFB16
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:367    .text.__get_MCAUSE:0000000000000006 .LFE16
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1981   .debug_str:00000000000002ac .LASF34
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:332    .text.__set_MEPC:0000000000000000 .LFB15
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:345    .text.__set_MEPC:0000000000000006 .LFE15
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1923   .debug_str:000000000000005e .LASF35
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:310    .text.__get_MEPC:0000000000000000 .LFB14
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:325    .text.__get_MEPC:0000000000000006 .LFE14
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1997   .debug_str:000000000000031a .LASF36
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:290    .text.__set_MSCRATCH:0000000000000000 .LFB13
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:303    .text.__set_MSCRATCH:0000000000000006 .LFE13
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1959   .debug_str:0000000000000207 .LASF37
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:268    .text.__get_MSCRATCH:0000000000000000 .LFB12
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:283    .text.__get_MSCRATCH:0000000000000006 .LFE12
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1935   .debug_str:000000000000009e .LASF38
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:248    .text.__set_MTVEC:0000000000000000 .LFB11
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:261    .text.__set_MTVEC:0000000000000006 .LFE11
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1995   .debug_str:000000000000030e .LASF39
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:226    .text.__get_MTVEC:0000000000000000 .LFB10
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:241    .text.__get_MTVEC:0000000000000006 .LFE10
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1917   .debug_str:000000000000003c .LASF40
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:206    .text.__set_MISA:0000000000000000 .LFB9
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:219    .text.__set_MISA:0000000000000006 .LFE9
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1957   .debug_str:00000000000001fc .LASF41
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:184    .text.__get_MISA:0000000000000000 .LFB8
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:199    .text.__get_MISA:0000000000000006 .LFE8
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1945   .debug_str:00000000000000da .LASF42
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:164    .text.__set_MSTATUS:0000000000000000 .LFB7
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:177    .text.__set_MSTATUS:0000000000000006 .LFE7
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:2005   .debug_str:0000000000000355 .LASF43
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:142    .text.__get_MSTATUS:0000000000000000 .LFB6
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:157    .text.__get_MSTATUS:0000000000000006 .LFE6
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1909   .debug_str:000000000000000d .LASF44
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:122    .text.__set_FCSR:0000000000000000 .LFB5
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:135    .text.__set_FCSR:0000000000000006 .LFE5
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1951   .debug_str:00000000000000ff .LASF45
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:100    .text.__get_FCSR:0000000000000000 .LFB4
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:115    .text.__get_FCSR:0000000000000006 .LFE4
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1939   .debug_str:00000000000000b4 .LASF46
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:80     .text.__set_FRM:0000000000000000 .LFB3
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:93     .text.__set_FRM:0000000000000006 .LFE3
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1937   .debug_str:00000000000000aa .LASF47
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:58     .text.__get_FRM:0000000000000000 .LFB2
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:73     .text.__get_FRM:0000000000000006 .LFE2
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1975   .debug_str:000000000000027d .LASF48
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:38     .text.__set_FFLAGS:0000000000000000 .LFB1
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:51     .text.__set_FFLAGS:0000000000000006 .LFE1
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:1941   .debug_str:00000000000000be .LASF49
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:15     .text.__get_FFLAGS:0000000000000000 .LFB0
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:31     .text.__get_FFLAGS:0000000000000006 .LFE0
+C:\Users\User\AppData\Local\Temp\ccUscmt9.s:763    .debug_info:0000000000000000 .Ldebug_info0
+
+NO UNDEFINED SYMBOLS

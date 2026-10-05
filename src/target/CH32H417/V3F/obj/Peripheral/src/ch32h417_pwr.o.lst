@@ -1,0 +1,1503 @@
+   1              		.file	"ch32h417_pwr.c"
+   2              		.option nopic
+   3              		.attribute arch, "rv32i2p0_m2p0_a2p0_c2p0_zba1p0_zbb1p0_zbc1p0_zbs1p0_xw"
+   4              		.attribute unaligned_access, 0
+   5              		.attribute stack_align, 16
+   6              		.text
+   7              	.Ltext0:
+   8              		.cfi_sections	.debug_frame
+   9              		.file 0 "c:\\Users\\User\\Documents\\GitHub\\ch32h417\\EVT\\EXAM\\USBFS\\DEVICE\\SimulateCDC\\V3F\
+  10              		.section	.text.PWR_DeInit,"ax",@progbits
+  11              		.align	1
+  12              		.globl	PWR_DeInit
+  14              	PWR_DeInit:
+  15              	.LFB40:
+  16              		.file 1 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src/ch32h417_pwr.c"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /********************************** (C) COPYRIGHT *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * File Name          : ch32h417_pwr.c
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * Version            : V1.0.1
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * Date               : 2025/09/16
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * Description        : This file provides all the PWR firmware functions.
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** #include "ch32h417_pwr.h"
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** #include "ch32h417_rcc.h"
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /* PWR registers bit mask */
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /* CTLR register bit mask */
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** #define CTLR_DS_MASK     ((uint32_t)0xFFFFFFFE)
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** #define CTLR_PLS_MASK    ((uint32_t)0xFFFFFF1F)
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_DeInit
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Deinitializes the PWR peripheral registers to their default
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *        reset values.
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_DeInit(void)
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+  17              		.loc 1 29 1
+  18              		.cfi_startproc
+  19 0000 17030000 		call	t0,__riscv_save_0
+  19      E7020300 
+  20              		.cfi_offset 1, -4
+  21              		.cfi_def_cfa_offset 16
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     RCC_HB1PeriphResetCmd(RCC_HB1Periph_PWR, ENABLE);
+  22              		.loc 1 30 5
+  23 0008 8545     		li	a1,1
+  24 000a 37050010 		li	a0,268435456
+  25 000e 97000000 		call	RCC_HB1PeriphResetCmd
+  25      E7800000 
+  26              	.LVL0:
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     RCC_HB1PeriphResetCmd(RCC_HB1Periph_PWR, DISABLE);
+  27              		.loc 1 31 5
+  28 0016 8145     		li	a1,0
+  29 0018 37050010 		li	a0,268435456
+  30 001c 97000000 		call	RCC_HB1PeriphResetCmd
+  30      E7800000 
+  31              	.LVL1:
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+  32              		.loc 1 32 1 is_stmt 0
+  33 0024 17030000 		tail	__riscv_restore_0
+  33      67000300 
+  34              		.cfi_restore 1
+  35              		.cfi_def_cfa_offset 0
+  36              		.cfi_endproc
+  37              	.LFE40:
+  39              		.section	.text.PWR_BackupAccessCmd,"ax",@progbits
+  40              		.align	1
+  41              		.globl	PWR_BackupAccessCmd
+  43              	PWR_BackupAccessCmd:
+  44              	.LFB41:
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_BackupAccessCmd
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Enables or disables access to the RTC and backup registers.
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   NewState - new state of the access to the RTC and backup registers,
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            This parameter can be: ENABLE or DISABLE.
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_BackupAccessCmd(FunctionalState NewState)
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+  45              		.loc 1 45 1 is_stmt 1
+  46              		.cfi_startproc
+  47              	.LVL2:
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     if(NewState)
+  48              		.loc 1 46 5
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         PWR->CTLR |= PWR_CTLR_DBP;
+  49              		.loc 1 48 12 is_stmt 0
+  50 0000 37770040 		li	a4,1073770496
+  51 0004 1C43     		lw	a5,0(a4)
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     if(NewState)
+  52              		.loc 1 46 7
+  53 0006 09C5     		beq	a0,zero,.L4
+  54              		.loc 1 48 9 is_stmt 1
+  55              		.loc 1 48 19 is_stmt 0
+  56 0008 93E70710 		ori	a5,a5,256
+  57              	.L6:
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     else
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         PWR->CTLR &= ~(PWR_CTLR_DBP);
+  58              		.loc 1 52 19
+  59 000c 1CC3     		sw	a5,0(a4)
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+  60              		.loc 1 54 1
+  61 000e 8280     		ret
+  62              	.L4:
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  63              		.loc 1 52 9 is_stmt 1
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  64              		.loc 1 52 19 is_stmt 0
+  65 0010 93F7F7EF 		andi	a5,a5,-257
+  66 0014 E5BF     		j	.L6
+  67              		.cfi_endproc
+  68              	.LFE41:
+  70              		.section	.text.PWR_PVDCmd,"ax",@progbits
+  71              		.align	1
+  72              		.globl	PWR_PVDCmd
+  74              	PWR_PVDCmd:
+  75              	.LFB42:
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_PVDCmd
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Enables or disables the Power Voltage Detector(PVD).
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   NewState - new state of the PVD(ENABLE or DISABLE).
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_PVDCmd(FunctionalState NewState)
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+  76              		.loc 1 66 1 is_stmt 1
+  77              		.cfi_startproc
+  78              	.LVL3:
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     if(NewState)
+  79              		.loc 1 67 5
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         PWR->CTLR |= PWR_CTLR_PVDE;
+  80              		.loc 1 69 12 is_stmt 0
+  81 0000 37770040 		li	a4,1073770496
+  82 0004 1C43     		lw	a5,0(a4)
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     if(NewState)
+  83              		.loc 1 67 7
+  84 0006 09C5     		beq	a0,zero,.L8
+  85              		.loc 1 69 9 is_stmt 1
+  86              		.loc 1 69 19 is_stmt 0
+  87 0008 93E70701 		ori	a5,a5,16
+  88              	.L10:
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     else
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         PWR->CTLR &= ~(PWR_CTLR_PVDE);
+  89              		.loc 1 73 19
+  90 000c 1CC3     		sw	a5,0(a4)
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+  91              		.loc 1 75 1
+  92 000e 8280     		ret
+  93              	.L8:
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  94              		.loc 1 73 9 is_stmt 1
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+  95              		.loc 1 73 19 is_stmt 0
+  96 0010 BD9B     		andi	a5,a5,-17
+  97 0012 EDBF     		j	.L10
+  98              		.cfi_endproc
+  99              	.LFE42:
+ 101              		.section	.text.PWR_PVDLevelConfig,"ax",@progbits
+ 102              		.align	1
+ 103              		.globl	PWR_PVDLevelConfig
+ 105              	PWR_PVDLevelConfig:
+ 106              	.LFB43:
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_PVDLevelConfig
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Configures the voltage threshold detected by the Power Voltage
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *        Detector(PVD).
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   PWR_PVDLevel - specifies the PVD detection level
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE0 - PVD detection level set to mode 0.
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE1 - PVD detection level set to mode 1.
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE2 - PVD detection level set to mode 2.
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE3 - PVD detection level set to mode 3.
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE4 - PVD detection level set to mode 4.
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE5 - PVD detection level set to mode 5.
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE6 - PVD detection level set to mode 6.
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_PVDLevel_MODE7 - PVD detection level set to mode 7.
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_PVDLevelConfig(uint32_t PWR_PVDLevel)
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 107              		.loc 1 96 1 is_stmt 1
+ 108              		.cfi_startproc
+ 109              	.LVL4:
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     uint32_t tmpreg = 0;
+ 110              		.loc 1 97 5
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     tmpreg = PWR->CTLR;
+ 111              		.loc 1 98 5
+ 112              		.loc 1 98 12 is_stmt 0
+ 113 0000 37770040 		li	a4,1073770496
+ 114 0004 1C43     		lw	a5,0(a4)
+ 115              	.LVL5:
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     tmpreg &= CTLR_PLS_MASK;
+ 116              		.loc 1 99 5 is_stmt 1
+ 117              		.loc 1 99 12 is_stmt 0
+ 118 0006 93F7F7F1 		andi	a5,a5,-225
+ 119              	.LVL6:
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     tmpreg |= PWR_PVDLevel;
+ 120              		.loc 1 100 5 is_stmt 1
+ 121              		.loc 1 100 12 is_stmt 0
+ 122 000a C98F     		or	a5,a5,a0
+ 123              	.LVL7:
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     PWR->CTLR = tmpreg;
+ 124              		.loc 1 101 5 is_stmt 1
+ 125              		.loc 1 101 15 is_stmt 0
+ 126 000c 1CC3     		sw	a5,0(a4)
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+ 127              		.loc 1 102 1
+ 128 000e 8280     		ret
+ 129              		.cfi_endproc
+ 130              	.LFE43:
+ 132              		.section	.text.PWR_EnterSTOPMode,"ax",@progbits
+ 133              		.align	1
+ 134              		.globl	PWR_EnterSTOPMode
+ 136              	PWR_EnterSTOPMode:
+ 137              	.LFB44:
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_EnterSTOPMode
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Enters STOP mode.
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   PWR_Regulator - specifies the regulator state in STOP mode.
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_Regulator_ON - STOP mode with regulator ON
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_Regulator_LowPower - STOP mode with regulator in low power mode
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *          PWR_STOPEntry - specifies if STOP mode in entered with WFI or WFE instruction.
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_STOPEntry_WFI - enter STOP mode with WFI instruction
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_STOPEntry_WFE - enter STOP mode with WFE instruction
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_EnterSTOPMode(uint32_t PWR_Regulator, uint8_t PWR_STOPEntry)
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 138              		.loc 1 119 1 is_stmt 1
+ 139              		.cfi_startproc
+ 140              	.LVL8:
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     uint32_t tmpreg = 0;
+ 141              		.loc 1 120 5
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     tmpreg = PWR->CTLR;
+ 142              		.loc 1 121 5
+ 143              		.loc 1 121 12 is_stmt 0
+ 144 0000 37770040 		li	a4,1073770496
+ 145 0004 1C43     		lw	a5,0(a4)
+ 146              	.LVL9:
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     tmpreg &= CTLR_DS_MASK;
+ 147              		.loc 1 122 5 is_stmt 1
+ 148              		.loc 1 122 12 is_stmt 0
+ 149 0006 F99B     		andi	a5,a5,-2
+ 150              	.LVL10:
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     tmpreg |= PWR_Regulator;
+ 151              		.loc 1 123 5 is_stmt 1
+ 152              		.loc 1 123 12 is_stmt 0
+ 153 0008 C98F     		or	a5,a5,a0
+ 154              	.LVL11:
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     PWR->CTLR = tmpreg;
+ 155              		.loc 1 124 5 is_stmt 1
+ 156              		.loc 1 124 15 is_stmt 0
+ 157 000a 1CC3     		sw	a5,0(a4)
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     NVIC->SCTLR |= (1 << 2);
+ 158              		.loc 1 126 5 is_stmt 1
+ 159              		.loc 1 126 9 is_stmt 0
+ 160 000c 37F700E0 		li	a4,-536809472
+ 161 0010 832707D1 		lw	a5,-752(a4)
+ 162              	.LVL12:
+ 163              		.loc 1 126 17
+ 164 0014 93E74700 		ori	a5,a5,4
+ 165 0018 2328F7D0 		sw	a5,-752(a4)
+ 166              	.LVL13:
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     if(PWR_STOPEntry == PWR_STOPEntry_WFI)
+ 167              		.loc 1 128 5 is_stmt 1
+ 168              		.loc 1 128 7 is_stmt 0
+ 169 001c 8547     		li	a5,1
+ 170 001e 6391F502 		bne	a1,a5,.L13
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         __WFI();
+ 171              		.loc 1 130 9 is_stmt 1
+ 172              	.LBB6:
+ 173              	.LBB7:
+ 174              		.file 2 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h"
+   1:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /********************************** (C) COPYRIGHT  *******************************
+   2:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * File Name          : core_riscv.h
+   3:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Author             : WCH
+   4:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Version            : V1.0.2
+   5:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Date               : 2026/03/18
+   6:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Description        : RISC-V V3F_V5F Core Peripheral Access Layer Header File for CH32H417_416_415
+   7:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *********************************************************************************
+   8:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.
+   9:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * Attention: This software (modified or not) and binary are used for 
+  10:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** * microcontroller manufactured by Nanjing Qinheng Microelectronics.
+  11:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** *******************************************************************************/
+  12:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifndef __CORE_RISCV_H__
+  13:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define __CORE_RISCV_H__
+  14:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  15:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  16:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  extern "C" {
+  17:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  18:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  19:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* IO definitions */
+  20:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #ifdef __cplusplus
+  21:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile                /* defines 'read only' permissions    */
+  22:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #else
+  23:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   #define     __I     volatile const          /* defines 'read only' permissions    */
+  24:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #endif
+  25:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __O     volatile                /* defines 'write only' permissions   */
+  26:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define       __IO    volatile                /* defines 'read / write' permissions */
+  27:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  28:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Standard Peripheral Library old types (maintained for legacy purpose) */
+  29:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint64_t vuc64;  /* Read Only */
+  30:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint32_t vuc32;  /* Read Only */
+  31:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint16_t vuc16;  /* Read Only */
+  32:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I uint8_t  vuc8;   /* Read Only */
+  33:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  34:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint64_t uc64;  /* Read Only */
+  35:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint32_t uc32;  /* Read Only */
+  36:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint16_t uc16;  /* Read Only */
+  37:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const uint8_t  uc8;   /* Read Only */
+  38:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  39:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int64_t vsc64;  /* Read Only */
+  40:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int32_t vsc32;  /* Read Only */
+  41:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int16_t vsc16;  /* Read Only */
+  42:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __I int8_t  vsc8;   /* Read Only */
+  43:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  44:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int64_t sc64;  /* Read Only */
+  45:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int32_t sc32;  /* Read Only */
+  46:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int16_t sc16;  /* Read Only */
+  47:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef const int8_t  sc8;   /* Read Only */
+  48:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  49:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint64_t  vu64;
+  50:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint32_t  vu32;
+  51:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint16_t  vu16;
+  52:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO uint8_t   vu8;
+  53:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  54:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint64_t  u64;
+  55:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint32_t  u32;
+  56:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint16_t  u16;
+  57:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef uint8_t   u8;
+  58:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  59:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int64_t  vs64;
+  60:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int32_t  vs32;
+  61:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int16_t  vs16;
+  62:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef __IO int8_t   vs8;
+  63:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  64:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int64_t  s64;
+  65:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int32_t  s32;
+  66:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int16_t  s16;
+  67:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef int8_t   s8;
+  68:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  69:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {NoREADY = 0, READY = !NoREADY} ErrorStatus;
+  70:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  71:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
+  72:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  73:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;
+  74:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  75:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define RV_STATIC_INLINE  static inline
+  76:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  77:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for HSEM */
+  78:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+  79:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+  80:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t RX[32];
+  81:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[0x80];
+  82:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t RLRX[32]; 
+  83:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x80];
+  84:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t LSE;
+  85:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[4];
+  86:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CLR;
+  87:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t KEY;
+  88:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0xF0];
+  89:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IER;
+  90:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[4];
+  91:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;
+  92:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVE5[4];
+  93:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+  94:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[4];
+  95:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t LSM;
+  96:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }HSEM_Type;
+  97:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+  98:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for IPC */
+  99:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 100:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 101:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 102:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR;
+ 103:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISM;
+ 104:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 105:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ENA;
+ 106:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t STS;
+ 107:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t SET;
+ 108:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O uint32_t CLR;
+ 109:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t MSG[4];
+ 110:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }IPC_Type;
+ 111:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 112:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for Program Fast Interrupt Controller (PFIC) */
+ 113:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct{
+ 114:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t ISR[8];
+ 115:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IPR[8];
+ 116:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ITHRESDR;
+ 117:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED;
+ 118:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CFGR;
+ 119:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t GISR;
+ 120:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t VTFIDR[4];
+ 121:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED0[12];
+ 122:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t VTFADDR[4];
+ 123:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED1[0x90];
+ 124:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IENR[8];
+ 125:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED2[0x60];
+ 126:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IRER[8];
+ 127:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED3[0x60];
+ 128:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPSR[8];
+ 129:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED4[0x60];
+ 130:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __O  uint32_t IPRR[8];
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED5[0x60];
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t IACTR[8];
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED6[0xE0];
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IPRIOR[256];
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED7[0x100]; 
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint8_t IALLOCR[256];
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t IAUTR[8];
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t WAKEIP[2];
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED8[0x58]; 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __I  uint32_t CSTAR[2];
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED9[0x4F8]; 
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EENR;
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EPR;
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t EWUPR;
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint8_t RESERVED10[0x84]; 
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t SCTLR;
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }PFIC_Type;
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* memory mapped structure for SysTick */
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** typedef struct
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CTLR;
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t ISR;  //only for SysTick0
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CNT;
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t RESERVED0;
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __IO uint32_t CMP;
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }SysTick_Type;
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define HSEM          ((HSEM_Type *) 0xE000C000 )
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define IPC           ((IPC_Type *) 0xE000D000 )
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define PFIC          ((PFIC_Type *) 0xE000E000 )
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define NVIC          PFIC
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define	NVIC_KEY3		  ((uint32_t)0xBEEF0000)
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick0      ((SysTick_Type *) 0xE000F000)
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define SysTick1      ((SysTick_Type *) 0xE000F080)
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /* Core_ID */
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V3F   ((uint8_t)0x00)
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** #define Core_ID_V5F   ((uint8_t)0x01)
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_MASK;
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** extern volatile uint32_t WFE_WkupSource;
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __enable_irq
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Global Interrupt
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __enable_irq()
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrs 0x800, %0" : : "r" (0x88) );
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __disable_irq
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Global Interrupt
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __disable_irq()
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("csrc 0x800, %0" : : "r" (0x88) );
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __NOP
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   nop
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __NOP()
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("nop");
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_EnableIRQ
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Enable Interrupt
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_EnableIRQ(IRQn_Type IRQn)
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IENR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_DisableIRQ
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Disable Interrupt
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 235:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_DisableIRQ(IRQn_Type IRQn)
+ 236:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 237:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IRER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 238:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __asm volatile ("fence.i");
+ 239:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 240:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 241:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 242:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetStatusIRQ
+ 243:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 244:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Enable State
+ 245:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 246:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 247:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 248:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Enable
+ 249:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Disable
+ 250:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 251:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetStatusIRQ(IRQn_Type IRQn)
+ 252:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 253:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->ISR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 254:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 255:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 256:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 257:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetPendingIRQ
+ 258:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 259:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Pending State
+ 260:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 261:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 262:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 263:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Pending Enable
+ 264:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt Pending Disable
+ 265:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 266:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+ 267:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 268:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 269:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 270:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 271:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 272:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPendingIRQ
+ 273:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 274:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Pending
+ 275:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 276:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 277:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 278:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 279:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 280:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+ 281:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 282:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPSR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 283:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 284:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 285:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 286:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_ClearPendingIRQ
+ 287:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 288:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Clear Interrupt Pending
+ 289:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 290:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 291:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 292:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 293:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 294:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+ 295:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 296:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F));
+ 297:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 298:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 299:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 300:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetActive
+ 301:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 302:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Active State
+ 303:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 304:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 305:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 306:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Interrupt Active
+ 307:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Interrupt No Active
+ 308:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 309:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn)
+ 310:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 311:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IACTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 312:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 313:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 314:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 315:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetPriority
+ 316:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 317:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Priority
+ 318:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 319:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 320:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V5F:
+ 321:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 5~8 Level(CSR-0x804 bit1 = 1 bit[3:2] = 3)
+ 322:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:5] - Preemption Priority
+ 323:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[4] - Sub priority
+ 324:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 325:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable- 3~4 Level(CSR-0x804 bit1 = 1 bit[3:2] = 2)
+ 326:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:6] - Preemption Priority
+ 327:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[5:4] - Sub priority
+ 328:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 329:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 330:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 331:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 332:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 333:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 334:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *             priority - bit[7:4] - Sub priority
+ 335:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 336:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          V3F:
+ 337:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting enable-2 Level(CSR-0x804 bit1 = 1 bit[3:2] = 1)
+ 338:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7] - Preemption Priority
+ 339:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[6:4] - Sub priority
+ 340:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 341:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            interrupt nesting disable(CSR-0x804 bit1 = 0)
+ 342:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *              priority - bit[7:4] - Sub priority
+ 343:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *                         bit[3:0] - Reserve
+ 344:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 345:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 346:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 347:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint8_t p
+ 348:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 349:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IPRIOR[(uint32_t)(IRQn)] = priority;
+ 350:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 351:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 352:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 353:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_GetAllocateIRQ
+ 354:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 355:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Get Interrupt Allocate 
+ 356:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 357:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 358:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 359:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to V5F
+ 360:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - Allocate to V3F
+ 361:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 362:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_GetAllocateIRQ(IRQn_Type IRQn)
+ 363:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 364:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t)((NVIC->IALLOCR[(uint32_t)(IRQn)] & (1 << 0))?1:0));
+ 365:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 366:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 367:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 368:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_SetAllocateIRQ
+ 369:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 370:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Interrupt Allocate
+ 371:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 372:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers ( >31 )
+ 373:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          Core_ID - Core ID
+ 374:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V5F - V5F
+ 375:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *            Core_ID_V3F - V3F
+ 376:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 377:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 378:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 379:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void NVIC_SetAllocateIRQ(IRQn_Type IRQn, uint8_
+ 380:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 381:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   if(IRQn > 31)
+ 382:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->IALLOCR[(uint32_t)(IRQn)] = Core_ID;
+ 383:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 384:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 385:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 386:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      NVIC_OwnCoreGetAllocateIRQ
+ 387:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 388:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Own Core Get Interrupt Allocate 
+ 389:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 390:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @param   IRQn - Interrupt Numbers
+ 391:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 392:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  1 - Allocate to own core
+ 393:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *          0 - No allocate to own core
+ 394:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 395:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE uint32_t NVIC_OwnCoreGetAllocateIRQ(IRQn_Type I
+ 396:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 397:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   return((uint32_t) ((NVIC->IAUTR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0));
+ 398:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 399:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 400:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 401:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFI
+ 402:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 403:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Interrupt
+ 404:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 405:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 406:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 407:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFI(void)
+ 408:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 409:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR &= ~(1<<3);	// wfi
+ 175              		.loc 2 409 3
+ 176              		.loc 2 409 7 is_stmt 0
+ 177 0022 832707D1 		lw	a5,-752(a4)
+ 178              		.loc 2 409 15
+ 179 0026 DD9B     		andi	a5,a5,-9
+ 180 0028 2328F7D0 		sw	a5,-752(a4)
+ 410:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 181              		.loc 2 410 3 is_stmt 1
+ 182              	 #APP
+ 183              	# 410 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h" 1
+ 411              	}
+ 184              		wfi
+ 185              	# 0 "" 2
+ 186              	.LVL14:
+ 187              	 #NO_APP
+ 188              	.L14:
+ 189              	.LBE7:
+ 190              	.LBE6:
+ 131:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+ 132:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     else
+ 133:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         __WFE();
+ 135:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+ 136:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 137:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     NVIC->SCTLR &= ~(1 << 2);
+ 191              		.loc 1 137 5
+ 192              		.loc 1 137 9 is_stmt 0
+ 193 0030 37F700E0 		li	a4,-536809472
+ 194 0034 832707D1 		lw	a5,-752(a4)
+ 195              		.loc 1 137 17
+ 196 0038 ED9B     		andi	a5,a5,-5
+ 197 003a 2328F7D0 		sw	a5,-752(a4)
+ 138:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+ 198              		.loc 1 138 1
+ 199 003e 8280     		ret
+ 200              	.LVL15:
+ 201              	.L13:
+ 134:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+ 202              		.loc 1 134 9 is_stmt 1
+ 203              	.LBB8:
+ 204              	.LBB9:
+ 412:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 413:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 414:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      _SEV
+ 415:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 416:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Event
+ 417:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 418:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 419:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 420:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void _SEV(void)
+ 421:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 422:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   uint32_t t;
+ 423:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 424:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   t = NVIC->SCTLR;
+ 425:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3)|(1<<5);
+ 426:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR = (NVIC->SCTLR & ~(1<<5)) | ( t & (1<<5));
+ 427:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 428:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 429:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 430:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE_IDSET
+ 431:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 432:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Set Events ID
+ 433:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 434:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 435:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 436:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE_IDSET(uint32_t LINE_ID)
+ 437:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 438:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_MASK |= LINE_ID;
+ 439:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 440:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 441:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** /*********************************************************************
+ 442:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @fn      __WFE
+ 443:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 444:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @brief   Wait for Events
+ 445:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  *
+ 446:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  * @return  none
+ 447:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****  */
+ 448:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** __attribute__( ( always_inline ) ) RV_STATIC_INLINE void __WFE(void)
+ 449:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** {
+ 450:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   __attribute__((unused)) uint32_t t=0;
+ 205              		.loc 2 450 3
+ 451:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 452:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 |= WFE_MASK;
+ 206              		.loc 2 452 3
+ 207 0040 B7070140 		li	a5,1073807360
+ 208 0044 93850740 		addi	a1,a5,1024
+ 209              	.LVL16:
+ 210 0048 B7060000 		lui	a3,%hi(WFE_MASK)
+ 211 004c 03A60600 		lw	a2,%lo(WFE_MASK)(a3)
+ 212 0050 8841     		lw	a0,0(a1)
+ 213              	.LVL17:
+ 214              		.loc 2 452 31 is_stmt 0
+ 215 0052 498E     		or	a2,a2,a0
+ 216 0054 90C1     		sw	a2,0(a1)
+ 453:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** 
+ 454:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = 0;
+ 217              		.loc 2 454 3 is_stmt 1
+ 218              		.loc 2 454 18 is_stmt 0
+ 219 0056 B7050000 		lui	a1,%hi(WFE_WkupSource)
+ 220 005a 23A00500 		sw	zero,%lo(WFE_WkupSource)(a1)
+ 455:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->EPR = 0xFFFFFFFF;
+ 221              		.loc 2 455 3 is_stmt 1
+ 222              		.loc 2 455 13 is_stmt 0
+ 223 005e 7D56     		li	a2,-1
+ 224 0060 2322C7C8 		sw	a2,-892(a4)
+ 456:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   NVIC->SCTLR |= (1<<3);
+ 225              		.loc 2 456 3 is_stmt 1
+ 226              		.loc 2 456 7 is_stmt 0
+ 227 0064 032607D1 		lw	a2,-752(a4)
+ 228              		.loc 2 456 15
+ 229 0068 13668600 		ori	a2,a2,8
+ 230 006c 2328C7D0 		sw	a2,-752(a4)
+ 457:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   asm volatile ("wfi");
+ 231              		.loc 2 457 3 is_stmt 1
+ 232              	 #APP
+ 233              	# 457 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h" 1
+ 458              	
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   for(;;)
+ 460:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     t = *(__IO uint32_t*)0x40010414;
+ 234              		wfi
+ 235              	# 0 "" 2
+ 236              		.loc 2 461 7 is_stmt 0
+ 237              	 #NO_APP
+ 238 0074 93874741 		addi	a5,a5,1044
+ 239              	.LVL18:
+ 240              	.L16:
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   for(;;)
+ 241              		.loc 2 459 3 is_stmt 1
+ 242              		.loc 2 461 5
+ 243              		.loc 2 461 7 is_stmt 0
+ 244 0078 9843     		lw	a4,0(a5)
+ 245              	.LVL19:
+ 462:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     if((t & WFE_MASK) || (WFE_MASK == 0))
+ 246              		.loc 2 462 5 is_stmt 1
+ 247              		.loc 2 462 11 is_stmt 0
+ 248 007a 03A60600 		lw	a2,%lo(WFE_MASK)(a3)
+ 249 007e 718F     		and	a4,a4,a2
+ 250              	.LVL20:
+ 251              		.loc 2 462 7
+ 252 0080 19E7     		bne	a4,zero,.L15
+ 253              		.loc 2 462 36
+ 254 0082 03A70600 		lw	a4,%lo(WFE_MASK)(a3)
+ 255              		.loc 2 462 23
+ 256 0086 01C7     		beq	a4,zero,.L15
+ 463:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     {
+ 464:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****       break;
+ 465:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     } else{
+ 466:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****      asm volatile ("wfi");
+ 257              		.loc 2 466 6 is_stmt 1
+ 258              	 #APP
+ 259              	# 466 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core/core_riscv.h" 1
+ 467              	    }
+ 459:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   {
+ 260              		wfi
+ 261              	# 0 "" 2
+ 262              		.loc 2 459 3
+ 461:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****     if((t & WFE_MASK) || (WFE_MASK == 0))
+ 263              		.loc 2 461 7 is_stmt 0
+ 264              	 #NO_APP
+ 265 008c F5B7     		j	.L16
+ 266              	.L15:
+ 468:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   }  
+ 469:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   WFE_WkupSource = *(__IO uint32_t*)0x40010414;
+ 267              		.loc 2 469 3 is_stmt 1
+ 268              		.loc 2 469 20 is_stmt 0
+ 269 008e 9843     		lw	a4,0(a5)
+ 270              		.loc 2 469 18
+ 271 0090 23A0E500 		sw	a4,%lo(WFE_WkupSource)(a1)
+ 470:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010400 &= ~WFE_MASK;
+ 272              		.loc 2 470 3 is_stmt 1
+ 273 0094 37070140 		li	a4,1073807360
+ 274 0098 13070740 		addi	a4,a4,1024
+ 275              		.loc 2 470 34 is_stmt 0
+ 276 009c 03A60600 		lw	a2,%lo(WFE_MASK)(a3)
+ 277              		.loc 2 470 3
+ 278 00a0 0C43     		lw	a1,0(a4)
+ 279              		.loc 2 470 31
+ 280 00a2 33F6C540 		andn	a2,a1,a2
+ 281 00a6 10C3     		sw	a2,0(a4)
+ 471:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h ****   *(__IO uint32_t*)0x40010414 |= WFE_MASK;
+ 282              		.loc 2 471 3 is_stmt 1
+ 283 00a8 03A70600 		lw	a4,%lo(WFE_MASK)(a3)
+ 284 00ac 9443     		lw	a3,0(a5)
+ 285              		.loc 2 471 31 is_stmt 0
+ 286 00ae 558F     		or	a4,a4,a3
+ 287 00b0 98C3     		sw	a4,0(a5)
+ 472:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h **** }
+ 288              		.loc 2 472 1
+ 289 00b2 BDBF     		j	.L14
+ 290              	.LBE9:
+ 291              	.LBE8:
+ 292              		.cfi_endproc
+ 293              	.LFE44:
+ 295              		.section	.text.PWR_GetFlagStatus,"ax",@progbits
+ 296              		.align	1
+ 297              		.globl	PWR_GetFlagStatus
+ 299              	PWR_GetFlagStatus:
+ 300              	.LFB45:
+ 139:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 140:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+ 141:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_GetFlagStatus
+ 142:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 143:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Checks whether the specified PWR flag is set or not.
+ 144:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 145:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   PWR_FLAG - specifies the flag to check.
+ 146:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_FLAG_PVDO - PVD Output
+ 147:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 148:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  The new state of PWR_FLAG (SET or RESET).
+ 149:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+ 150:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** FlagStatus PWR_GetFlagStatus(uint32_t PWR_FLAG)
+ 151:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 301              		.loc 1 151 1 is_stmt 1
+ 302              		.cfi_startproc
+ 303              	.LVL21:
+ 152:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     FlagStatus bitstatus = RESET;
+ 304              		.loc 1 152 5
+ 153:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     if((PWR->CSR & PWR_FLAG) != (uint32_t)RESET)
+ 305              		.loc 1 154 5
+ 306              		.loc 1 154 12 is_stmt 0
+ 307 0000 B7770040 		li	a5,1073770496
+ 308 0004 DC43     		lw	a5,4(a5)
+ 309              	.LVL22:
+ 155:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+ 156:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         bitstatus = SET;
+ 157:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+ 158:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     else
+ 159:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+ 160:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****         bitstatus = RESET;
+ 161:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     }
+ 162:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     return bitstatus;
+ 310              		.loc 1 162 5 is_stmt 1
+ 154:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     {
+ 311              		.loc 1 154 18 is_stmt 0
+ 312 0006 7D8D     		and	a0,a5,a0
+ 313              	.LVL23:
+ 163:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+ 314              		.loc 1 163 1
+ 315 0008 3335A000 		snez	a0,a0
+ 316 000c 8280     		ret
+ 317              		.cfi_endproc
+ 318              	.LFE45:
+ 320              		.section	.text.PWR_VIO18ModeCfg,"ax",@progbits
+ 321              		.align	1
+ 322              		.globl	PWR_VIO18ModeCfg
+ 324              	PWR_VIO18ModeCfg:
+ 325              	.LFB46:
+ 164:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 165:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+ 166:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_VIO18ModeCfg
+ 167:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 168:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   specified the VIO18 configuration mode .
+ 169:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 170:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   PWR_VIO18CfgMode - specifies the VIO18 configuration mode.
+ 171:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18CFGMODE_SW - software Configuration
+ 172:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18CFGMODE_HW - hardware Configuration
+ 173:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 174:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none.
+ 175:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+ 176:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_VIO18ModeCfg(uint32_t PWR_VIO18CfgMode)
+ 177:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 326              		.loc 1 177 1 is_stmt 1
+ 327              		.cfi_startproc
+ 328              	.LVL24:
+ 178:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     PWR->CTLR &= ~PWR_CTLR_VIO_SWCR;
+ 329              		.loc 1 178 5
+ 330              		.loc 1 178 8 is_stmt 0
+ 331 0000 B7770040 		li	a5,1073770496
+ 332 0004 9843     		lw	a4,0(a5)
+ 333              		.loc 1 178 15
+ 334 0006 1377F7DF 		andi	a4,a4,-513
+ 335 000a 98C3     		sw	a4,0(a5)
+ 179:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     PWR->CTLR |= PWR_VIO18CfgMode;
+ 336              		.loc 1 179 5 is_stmt 1
+ 337              		.loc 1 179 8 is_stmt 0
+ 338 000c 9843     		lw	a4,0(a5)
+ 339              		.loc 1 179 15
+ 340 000e 498F     		or	a4,a4,a0
+ 341 0010 98C3     		sw	a4,0(a5)
+ 180:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  }
+ 342              		.loc 1 180 2
+ 343 0012 8280     		ret
+ 344              		.cfi_endproc
+ 345              	.LFE46:
+ 347              		.section	.text.PWR_VIO18LevelCfg,"ax",@progbits
+ 348              		.align	1
+ 349              		.globl	PWR_VIO18LevelCfg
+ 351              	PWR_VIO18LevelCfg:
+ 352              	.LFB47:
+ 181:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 182:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+ 183:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_GetFlagStatus
+ 184:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 185:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   specified the VIO18 level.
+ 186:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 187:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @param   VIO18Level - specifies the VIO18 level.
+ 188:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18Level_MODE0 - VIO18 level 0
+ 189:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18Level_MODE1 - VIO18 level 1
+ 190:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18Level_MODE2 - VIO18 level 2
+ 191:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18Level_MODE3 - VIO18 level 3
+ 192:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18Level_MODE4 - VIO18 level 4
+ 193:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18Level_MODE5 - VIO18 level 5
+ 194:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 195:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none.
+ 196:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+ 197:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_VIO18LevelCfg(uint16_t VIO18Level)
+ 198:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 353              		.loc 1 198 1 is_stmt 1
+ 354              		.cfi_startproc
+ 355              	.LVL25:
+ 199:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     PWR->CTLR &= ~PWR_CTLR_VSEL_VIO18;
+ 356              		.loc 1 199 5
+ 357              		.loc 1 199 8 is_stmt 0
+ 358 0000 B7770040 		li	a5,1073770496
+ 359 0004 9843     		lw	a4,0(a5)
+ 360              		.loc 1 199 15
+ 361 0006 F976     		li	a3,-8192
+ 362 0008 9386F63F 		addi	a3,a3,1023
+ 363 000c 758F     		and	a4,a4,a3
+ 364 000e 98C3     		sw	a4,0(a5)
+ 200:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     PWR->CTLR |= VIO18Level;
+ 365              		.loc 1 200 5 is_stmt 1
+ 366              		.loc 1 200 8 is_stmt 0
+ 367 0010 9843     		lw	a4,0(a5)
+ 368              		.loc 1 200 15
+ 369 0012 598D     		or	a0,a0,a4
+ 370              	.LVL26:
+ 371 0014 88C3     		sw	a0,0(a5)
+ 201:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+ 372              		.loc 1 201 1
+ 373 0016 8280     		ret
+ 374              		.cfi_endproc
+ 375              	.LFE47:
+ 377              		.section	.text.PWR_GetVIO18InitialStatus,"ax",@progbits
+ 378              		.align	1
+ 379              		.globl	PWR_GetVIO18InitialStatus
+ 381              	PWR_GetVIO18InitialStatus:
+ 382              	.LFB48:
+ 202:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 203:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+ 204:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_GetVIO18InitialStatus
+ 205:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 206:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Get the VIO18 initial status.
+ 207:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 208:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  PWR_VIO18InitialStatus - VIO18 initial status
+ 209:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18InitialStatus_0 - VIO18 initial status 0
+ 210:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18InitialStatus_1 - VIO18 initial status 1
+ 211:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18InitialStatus_2 - VIO18 initial status 2
+ 212:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *            PWR_VIO18InitialStatus_3 - VIO18 initial status 3
+ 213:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+ 214:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** PWR_VIO18InitialStatus PWR_GetVIO18InitialStatus(void)
+ 215:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 383              		.loc 1 215 1 is_stmt 1
+ 384              		.cfi_startproc
+ 216:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     return ((PWR->CSR & PWR_CSR_VIO18_SR) >> 8);
+ 385              		.loc 1 216 5
+ 386              		.loc 1 216 17 is_stmt 0
+ 387 0000 B7770040 		li	a5,1073770496
+ 388 0004 C843     		lw	a0,4(a5)
+ 389              		.loc 1 216 43
+ 390 0006 2181     		srli	a0,a0,8
+ 217:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+ 391              		.loc 1 217 1
+ 392 0008 0D89     		andi	a0,a0,3
+ 393 000a 8280     		ret
+ 394              		.cfi_endproc
+ 395              	.LFE48:
+ 397              		.section	.text.PWR_VDD12ExternPower,"ax",@progbits
+ 398              		.align	1
+ 399              		.globl	PWR_VDD12ExternPower
+ 401              	PWR_VDD12ExternPower:
+ 402              	.LFB49:
+ 218:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 219:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** /*********************************************************************
+ 220:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @fn      PWR_VDD12ExternPower
+ 221:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 222:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @brief   Reduce the internal VDD12 voltage when the chip's VDD12 power supply is externally prov
+ 223:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  *
+ 224:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  * @return  none.
+ 225:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****  */
+ 226:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** void PWR_VDD12ExternPower(void)
+ 227:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** {
+ 403              		.loc 1 227 1 is_stmt 1
+ 404              		.cfi_startproc
+ 228:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     uint32_t cfg = 0;
+ 405              		.loc 1 228 5
+ 406              	.LVL27:
+ 229:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** 
+ 230:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     cfg = *(vu32*)SYS_CFGR0_BASE;
+ 407              		.loc 1 230 5
+ 408              		.loc 1 230 9 is_stmt 0
+ 409 0000 B7C60350 		li	a3,1342423040
+ 410 0004 9C42     		lw	a5,0(a3)
+ 411              	.LVL28:
+ 231:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     cfg &= ~((0x7 << 4) | (0x7 << 14) | (0x7 << 17));
+ 412              		.loc 1 231 5 is_stmt 1
+ 413              		.loc 1 231 9 is_stmt 0
+ 414 0006 3747F0FF 		li	a4,-1032192
+ 415 000a 1307F7F8 		addi	a4,a4,-113
+ 416 000e F98F     		and	a5,a5,a4
+ 417              	.LVL29:
+ 232:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     cfg |= ((0x1 << 4) | (0x1 << 14) | (0x1 << 17));
+ 418              		.loc 1 232 5 is_stmt 1
+ 419              		.loc 1 232 9 is_stmt 0
+ 420 0010 37470200 		li	a4,147456
+ 421 0014 4107     		addi	a4,a4,16
+ 422 0016 D98F     		or	a5,a5,a4
+ 423              	.LVL30:
+ 233:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c ****     *(vu32*)SYS_CFGR0_BASE = cfg;    
+ 424              		.loc 1 233 5 is_stmt 1
+ 425              		.loc 1 233 28 is_stmt 0
+ 426 0018 9CC2     		sw	a5,0(a3)
+ 234:c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/src\ch32h417_pwr.c **** }
+ 427              		.loc 1 234 1
+ 428 001a 8280     		ret
+ 429              		.cfi_endproc
+ 430              	.LFE49:
+ 432              		.text
+ 433              	.Letext0:
+ 434              		.file 3 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 435              		.file 4 "d:\\mounriver\\mounriver_studio2\\resources\\app\\resources\\win32\\components\\wch\\tool
+ 436              		.file 5 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417.h"
+ 437              		.file 6 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_pwr.h"
+ 438              		.file 7 "c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Peripheral/inc/ch32h417_rcc.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ch32h417_pwr.c
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:14     .text.PWR_DeInit:0000000000000000 PWR_DeInit
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:18     .text.PWR_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:19     .text.PWR_DeInit:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:19     .text.PWR_DeInit:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:20     .text.PWR_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:21     .text.PWR_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:23     .text.PWR_DeInit:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:28     .text.PWR_DeInit:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:33     .text.PWR_DeInit:0000000000000024 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:34     .text.PWR_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:35     .text.PWR_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:36     .text.PWR_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:43     .text.PWR_BackupAccessCmd:0000000000000000 PWR_BackupAccessCmd
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:46     .text.PWR_BackupAccessCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:48     .text.PWR_BackupAccessCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:49     .text.PWR_BackupAccessCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:50     .text.PWR_BackupAccessCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:50     .text.PWR_BackupAccessCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:53     .text.PWR_BackupAccessCmd:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:55     .text.PWR_BackupAccessCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:56     .text.PWR_BackupAccessCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:59     .text.PWR_BackupAccessCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:61     .text.PWR_BackupAccessCmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:64     .text.PWR_BackupAccessCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:65     .text.PWR_BackupAccessCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:67     .text.PWR_BackupAccessCmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:74     .text.PWR_PVDCmd:0000000000000000 PWR_PVDCmd
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:77     .text.PWR_PVDCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:79     .text.PWR_PVDCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:80     .text.PWR_PVDCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:81     .text.PWR_PVDCmd:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:81     .text.PWR_PVDCmd:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:84     .text.PWR_PVDCmd:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:86     .text.PWR_PVDCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:87     .text.PWR_PVDCmd:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:90     .text.PWR_PVDCmd:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:92     .text.PWR_PVDCmd:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:95     .text.PWR_PVDCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:96     .text.PWR_PVDCmd:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:98     .text.PWR_PVDCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:105    .text.PWR_PVDLevelConfig:0000000000000000 PWR_PVDLevelConfig
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:108    .text.PWR_PVDLevelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:110    .text.PWR_PVDLevelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:111    .text.PWR_PVDLevelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:112    .text.PWR_PVDLevelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:113    .text.PWR_PVDLevelConfig:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:113    .text.PWR_PVDLevelConfig:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:117    .text.PWR_PVDLevelConfig:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:118    .text.PWR_PVDLevelConfig:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:121    .text.PWR_PVDLevelConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:122    .text.PWR_PVDLevelConfig:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:125    .text.PWR_PVDLevelConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:126    .text.PWR_PVDLevelConfig:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:128    .text.PWR_PVDLevelConfig:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:129    .text.PWR_PVDLevelConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:136    .text.PWR_EnterSTOPMode:0000000000000000 PWR_EnterSTOPMode
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:139    .text.PWR_EnterSTOPMode:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:141    .text.PWR_EnterSTOPMode:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:142    .text.PWR_EnterSTOPMode:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:143    .text.PWR_EnterSTOPMode:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:144    .text.PWR_EnterSTOPMode:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:144    .text.PWR_EnterSTOPMode:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:148    .text.PWR_EnterSTOPMode:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:149    .text.PWR_EnterSTOPMode:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:152    .text.PWR_EnterSTOPMode:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:153    .text.PWR_EnterSTOPMode:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:156    .text.PWR_EnterSTOPMode:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:157    .text.PWR_EnterSTOPMode:000000000000000a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:159    .text.PWR_EnterSTOPMode:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:160    .text.PWR_EnterSTOPMode:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:164    .text.PWR_EnterSTOPMode:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:168    .text.PWR_EnterSTOPMode:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:169    .text.PWR_EnterSTOPMode:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:175    .text.PWR_EnterSTOPMode:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:176    .text.PWR_EnterSTOPMode:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:177    .text.PWR_EnterSTOPMode:0000000000000022 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:179    .text.PWR_EnterSTOPMode:0000000000000026 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h:410    .text.PWR_EnterSTOPMode:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:192    .text.PWR_EnterSTOPMode:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:193    .text.PWR_EnterSTOPMode:0000000000000030 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:196    .text.PWR_EnterSTOPMode:0000000000000038 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:199    .text.PWR_EnterSTOPMode:000000000000003e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:205    .text.PWR_EnterSTOPMode:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:206    .text.PWR_EnterSTOPMode:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:207    .text.PWR_EnterSTOPMode:0000000000000040 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:215    .text.PWR_EnterSTOPMode:0000000000000052 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:218    .text.PWR_EnterSTOPMode:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:219    .text.PWR_EnterSTOPMode:0000000000000056 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:222    .text.PWR_EnterSTOPMode:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:223    .text.PWR_EnterSTOPMode:000000000000005e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:226    .text.PWR_EnterSTOPMode:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:227    .text.PWR_EnterSTOPMode:0000000000000064 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:229    .text.PWR_EnterSTOPMode:0000000000000068 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h:457    .text.PWR_EnterSTOPMode:0000000000000070 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:238    .text.PWR_EnterSTOPMode:0000000000000074 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:242    .text.PWR_EnterSTOPMode:0000000000000078 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:243    .text.PWR_EnterSTOPMode:0000000000000078 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:244    .text.PWR_EnterSTOPMode:0000000000000078 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:247    .text.PWR_EnterSTOPMode:000000000000007a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:248    .text.PWR_EnterSTOPMode:000000000000007a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:252    .text.PWR_EnterSTOPMode:0000000000000080 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:254    .text.PWR_EnterSTOPMode:0000000000000082 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:256    .text.PWR_EnterSTOPMode:0000000000000086 .L0 
+c:/Users/User/Documents/GitHub/ch32h417/EVT/EXAM/SRC/Core\core_riscv.h:466    .text.PWR_EnterSTOPMode:0000000000000088 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:263    .text.PWR_EnterSTOPMode:000000000000008c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:265    .text.PWR_EnterSTOPMode:000000000000008c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:268    .text.PWR_EnterSTOPMode:000000000000008e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:269    .text.PWR_EnterSTOPMode:000000000000008e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:271    .text.PWR_EnterSTOPMode:0000000000000090 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:273    .text.PWR_EnterSTOPMode:0000000000000094 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:276    .text.PWR_EnterSTOPMode:000000000000009c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:278    .text.PWR_EnterSTOPMode:00000000000000a0 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:280    .text.PWR_EnterSTOPMode:00000000000000a2 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:283    .text.PWR_EnterSTOPMode:00000000000000a8 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:286    .text.PWR_EnterSTOPMode:00000000000000ae .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:289    .text.PWR_EnterSTOPMode:00000000000000b2 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:292    .text.PWR_EnterSTOPMode:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:299    .text.PWR_GetFlagStatus:0000000000000000 PWR_GetFlagStatus
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:302    .text.PWR_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:304    .text.PWR_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:305    .text.PWR_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:306    .text.PWR_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:307    .text.PWR_GetFlagStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:307    .text.PWR_GetFlagStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:311    .text.PWR_GetFlagStatus:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:312    .text.PWR_GetFlagStatus:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:315    .text.PWR_GetFlagStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:317    .text.PWR_GetFlagStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:324    .text.PWR_VIO18ModeCfg:0000000000000000 PWR_VIO18ModeCfg
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:327    .text.PWR_VIO18ModeCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:329    .text.PWR_VIO18ModeCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:330    .text.PWR_VIO18ModeCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:331    .text.PWR_VIO18ModeCfg:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:331    .text.PWR_VIO18ModeCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:334    .text.PWR_VIO18ModeCfg:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:337    .text.PWR_VIO18ModeCfg:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:338    .text.PWR_VIO18ModeCfg:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:340    .text.PWR_VIO18ModeCfg:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:343    .text.PWR_VIO18ModeCfg:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:344    .text.PWR_VIO18ModeCfg:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:351    .text.PWR_VIO18LevelCfg:0000000000000000 PWR_VIO18LevelCfg
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:354    .text.PWR_VIO18LevelCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:356    .text.PWR_VIO18LevelCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:357    .text.PWR_VIO18LevelCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:358    .text.PWR_VIO18LevelCfg:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:358    .text.PWR_VIO18LevelCfg:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:361    .text.PWR_VIO18LevelCfg:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:366    .text.PWR_VIO18LevelCfg:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:367    .text.PWR_VIO18LevelCfg:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:369    .text.PWR_VIO18LevelCfg:0000000000000012 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:373    .text.PWR_VIO18LevelCfg:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:374    .text.PWR_VIO18LevelCfg:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:381    .text.PWR_GetVIO18InitialStatus:0000000000000000 PWR_GetVIO18InitialStatus
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:384    .text.PWR_GetVIO18InitialStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:385    .text.PWR_GetVIO18InitialStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:386    .text.PWR_GetVIO18InitialStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:387    .text.PWR_GetVIO18InitialStatus:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:387    .text.PWR_GetVIO18InitialStatus:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:390    .text.PWR_GetVIO18InitialStatus:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:392    .text.PWR_GetVIO18InitialStatus:0000000000000008 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:394    .text.PWR_GetVIO18InitialStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:401    .text.PWR_VDD12ExternPower:0000000000000000 PWR_VDD12ExternPower
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:404    .text.PWR_VDD12ExternPower:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:405    .text.PWR_VDD12ExternPower:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:407    .text.PWR_VDD12ExternPower:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:408    .text.PWR_VDD12ExternPower:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:409    .text.PWR_VDD12ExternPower:0000000000000000 $x
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:409    .text.PWR_VDD12ExternPower:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:413    .text.PWR_VDD12ExternPower:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:414    .text.PWR_VDD12ExternPower:0000000000000006 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:419    .text.PWR_VDD12ExternPower:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:420    .text.PWR_VDD12ExternPower:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:425    .text.PWR_VDD12ExternPower:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:426    .text.PWR_VDD12ExternPower:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:428    .text.PWR_VDD12ExternPower:000000000000001a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:429    .text.PWR_VDD12ExternPower:000000000000001c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000000a5 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000000f7 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:000000000000013b .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:0000000000000175 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000001ff .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:0000000000000285 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000002c9 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000002d8 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000002e7 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:00000000000002f4 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:0000000000000305 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:000000000000030f .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:000000000000031a .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2296   .debug_line_str:0000000000000329 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:39     .text.PWR_DeInit:000000000000002c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:70     .text.PWR_BackupAccessCmd:0000000000000016 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:101    .text.PWR_PVDCmd:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:132    .text.PWR_PVDLevelConfig:0000000000000010 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:295    .text.PWR_EnterSTOPMode:00000000000000b4 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:320    .text.PWR_GetFlagStatus:000000000000000e .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:347    .text.PWR_VIO18ModeCfg:0000000000000014 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:377    .text.PWR_VIO18LevelCfg:0000000000000018 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:397    .text.PWR_GetVIO18InitialStatus:000000000000000c .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:432    .text.PWR_VDD12ExternPower:000000000000001c .L0 
+                     .debug_frame:0000000000000000 .L0 
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:62     .text.PWR_BackupAccessCmd:0000000000000010 .L4
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:57     .text.PWR_BackupAccessCmd:000000000000000c .L6
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:93     .text.PWR_PVDCmd:0000000000000010 .L8
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:88     .text.PWR_PVDCmd:000000000000000c .L10
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:201    .text.PWR_EnterSTOPMode:0000000000000040 .L13
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:266    .text.PWR_EnterSTOPMode:000000000000008e .L15
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:240    .text.PWR_EnterSTOPMode:0000000000000078 .L16
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:188    .text.PWR_EnterSTOPMode:0000000000000030 .L14
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1238   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2183   .debug_str:0000000000000140 .LASF81
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2294   .debug_line_str:0000000000000052 .LASF0
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2292   .debug_line_str:0000000000000000 .LASF1
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2085   .debug_rnglists:000000000000000c .LLRL9
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2119   .debug_line:0000000000000000 .Ldebug_line0
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2211   .debug_str:00000000000002e5 .LASF2
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2203   .debug_str:00000000000002b4 .LASF3
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2177   .debug_str:000000000000012a .LASF6
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2195   .debug_str:000000000000026e .LASF4
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2139   .debug_str:0000000000000068 .LASF5
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2135   .debug_str:000000000000004c .LASF7
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2223   .debug_str:0000000000000324 .LASF8
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2173   .debug_str:0000000000000112 .LASF9
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2261   .debug_str:00000000000003f2 .LASF10
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2249   .debug_str:00000000000003a9 .LASF11
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2165   .debug_str:00000000000000e9 .LASF12
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2205   .debug_str:00000000000002c0 .LASF13
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2147   .debug_str:000000000000008b .LASF14
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2213   .debug_str:00000000000002f2 .LASF15
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2207   .debug_str:00000000000002d7 .LASF16
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2125   .debug_str:0000000000000018 .LASF17
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2159   .debug_str:00000000000000d1 .LASF18
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2287   .debug_str:0000000000000496 .LASF19
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2257   .debug_str:00000000000003d9 .LASF20
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2265   .debug_str:0000000000000402 .LASF21
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2285   .debug_str:000000000000048b .LASF22
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2169   .debug_str:0000000000000102 .LASF23
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2273   .debug_str:0000000000000419 .LASF24
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2143   .debug_str:000000000000007c .LASF25
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2161   .debug_str:00000000000000d9 .LASF26
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2171   .debug_str:000000000000010b .LASF27
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2141   .debug_str:0000000000000072 .LASF28
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2131   .debug_str:0000000000000030 .LASF29
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2239   .debug_str:0000000000000373 .LASF30
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2247   .debug_str:00000000000003a4 .LASF31
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2145   .debug_str:0000000000000081 .LASF32
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2267   .debug_str:0000000000000408 .LASF33
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2243   .debug_str:0000000000000390 .LASF34
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2263   .debug_str:00000000000003fd .LASF35
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2245   .debug_str:000000000000039a .LASF36
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2209   .debug_str:00000000000002e0 .LASF37
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2149   .debug_str:0000000000000093 .LASF38
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2227   .debug_str:0000000000000345 .LASF39
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2151   .debug_str:000000000000009d .LASF40
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2219   .debug_str:0000000000000315 .LASF41
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2251   .debug_str:00000000000003bb .LASF42
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2221   .debug_str:000000000000031c .LASF43
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2179   .debug_str:0000000000000134 .LASF44
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2157   .debug_str:00000000000000ca .LASF45
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2253   .debug_str:00000000000003c5 .LASF46
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2121   .debug_str:0000000000000000 .LASF47
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2255   .debug_str:00000000000003cf .LASF48
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2235   .debug_str:0000000000000361 .LASF49
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2229   .debug_str:000000000000034b .LASF50
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2197   .debug_str:000000000000027c .LASF51
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2181   .debug_str:000000000000013a .LASF52
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2127   .debug_str:000000000000001d .LASF53
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2259   .debug_str:00000000000003e9 .LASF54
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2175   .debug_str:000000000000011b .LASF55
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2283   .debug_str:0000000000000486 .LASF56
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2215   .debug_str:00000000000002fb .LASF57
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2231   .debug_str:0000000000000351 .LASF58
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2275   .debug_str:0000000000000422 .LASF59
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2277   .debug_str:000000000000043b .LASF60
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2279   .debug_str:0000000000000454 .LASF61
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2281   .debug_str:000000000000046d .LASF62
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2201   .debug_str:000000000000029d .LASF63
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2199   .debug_str:0000000000000287 .LASF82
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2185   .debug_str:0000000000000225 .LASF64
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:402    .text.PWR_VDD12ExternPower:0000000000000000 .LFB49
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:430    .text.PWR_VDD12ExternPower:000000000000001c .LFE49
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1863   .debug_loclists:000000000000000c .LLST8
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2153   .debug_str:00000000000000a7 .LASF83
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:382    .text.PWR_GetVIO18InitialStatus:0000000000000000 .LFB48
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:395    .text.PWR_GetVIO18InitialStatus:000000000000000c .LFE48
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2191   .debug_str:000000000000024b .LASF65
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:352    .text.PWR_VIO18LevelCfg:0000000000000000 .LFB47
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:375    .text.PWR_VIO18LevelCfg:0000000000000018 .LFE47
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2163   .debug_str:00000000000000de .LASF67
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1876   .debug_loclists:0000000000000024 .LLST7
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2137   .debug_str:0000000000000057 .LASF66
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:325    .text.PWR_VIO18ModeCfg:0000000000000000 .LFB46
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:345    .text.PWR_VIO18ModeCfg:0000000000000014 .LFE46
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2193   .debug_str:000000000000025d .LASF68
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2289   .debug_str:000000000000049d .LASF84
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:300    .text.PWR_GetFlagStatus:0000000000000000 .LFB45
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:318    .text.PWR_GetFlagStatus:000000000000000e .LFE45
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2129   .debug_str:0000000000000027 .LASF69
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1891   .debug_loclists:000000000000003e .LLST5
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2189   .debug_str:0000000000000241 .LASF70
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1906   .debug_loclists:0000000000000058 .LLST6
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2123   .debug_str:0000000000000006 .LASF71
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:137    .text.PWR_EnterSTOPMode:0000000000000000 .LFB44
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:293    .text.PWR_EnterSTOPMode:00000000000000b4 .LFE44
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2225   .debug_str:0000000000000337 .LASF72
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1945   .debug_loclists:0000000000000090 .LLST1
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2217   .debug_str:0000000000000307 .LASF73
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:1973   .debug_loclists:00000000000000c3 .LLST2
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2187   .debug_str:000000000000023a .LASF74
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2001   .debug_loclists:00000000000000f6 .LLST3
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:172    .text.PWR_EnterSTOPMode:0000000000000022 .LBB6
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:190    .text.PWR_EnterSTOPMode:0000000000000030 .LBE6
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:203    .text.PWR_EnterSTOPMode:0000000000000040 .LBB8
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:291    .text.PWR_EnterSTOPMode:00000000000000b4 .LBE8
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2020   .debug_loclists:000000000000011d .LLST4
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2241   .debug_str:000000000000037d .LASF75
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:106    .text.PWR_PVDLevelConfig:0000000000000000 .LFB43
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:130    .text.PWR_PVDLevelConfig:0000000000000010 .LFE43
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2237   .debug_str:0000000000000366 .LASF76
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2033   .debug_loclists:0000000000000135 .LLST0
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2233   .debug_str:0000000000000356 .LASF77
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:75     .text.PWR_PVDCmd:0000000000000000 .LFB42
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:99     .text.PWR_PVDCmd:0000000000000014 .LFE42
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2155   .debug_str:00000000000000c1 .LASF78
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2133   .debug_str:0000000000000038 .LASF79
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:44     .text.PWR_BackupAccessCmd:0000000000000000 .LFB41
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:68     .text.PWR_BackupAccessCmd:0000000000000016 .LFE41
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2167   .debug_str:00000000000000f7 .LASF80
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:15     .text.PWR_DeInit:0000000000000000 .LFB40
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:37     .text.PWR_DeInit:000000000000002c .LFE40
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:26     .text.PWR_DeInit:0000000000000016 .LVL0
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:31     .text.PWR_DeInit:0000000000000024 .LVL1
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2269   .debug_str:000000000000040d .LASF85
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:2271   .debug_str:0000000000000413 .LASF86
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:406    .text.PWR_VDD12ExternPower:0000000000000000 .LVL27
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:411    .text.PWR_VDD12ExternPower:0000000000000006 .LVL28
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:355    .text.PWR_VIO18LevelCfg:0000000000000000 .LVL25
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:370    .text.PWR_VIO18LevelCfg:0000000000000014 .LVL26
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:303    .text.PWR_GetFlagStatus:0000000000000000 .LVL21
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:313    .text.PWR_GetFlagStatus:0000000000000008 .LVL23
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:309    .text.PWR_GetFlagStatus:0000000000000006 .LVL22
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:140    .text.PWR_EnterSTOPMode:0000000000000000 .LVL8
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:186    .text.PWR_EnterSTOPMode:0000000000000030 .LVL14
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:200    .text.PWR_EnterSTOPMode:0000000000000040 .LVL15
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:213    .text.PWR_EnterSTOPMode:0000000000000052 .LVL17
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:209    .text.PWR_EnterSTOPMode:0000000000000048 .LVL16
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:146    .text.PWR_EnterSTOPMode:0000000000000006 .LVL9
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:162    .text.PWR_EnterSTOPMode:0000000000000014 .LVL12
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:166    .text.PWR_EnterSTOPMode:000000000000001c .LVL13
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:239    .text.PWR_EnterSTOPMode:0000000000000078 .LVL18
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:245    .text.PWR_EnterSTOPMode:000000000000007a .LVL19
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:250    .text.PWR_EnterSTOPMode:0000000000000080 .LVL20
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:109    .text.PWR_PVDLevelConfig:0000000000000000 .LVL4
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:115    .text.PWR_PVDLevelConfig:0000000000000006 .LVL5
+C:\Users\User\AppData\Local\Temp\ccoCcEIO.s:440    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+__riscv_save_0
+RCC_HB1PeriphResetCmd
+__riscv_restore_0
+WFE_MASK
+WFE_WkupSource

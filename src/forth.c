@@ -804,7 +804,8 @@ static void reportError(int ior) {
     lfSetColor(COLOR_BRIGHT_RED);
     if (ior == ERR_UNDEFINED_WORD) {
         lf_puts(lastparsed);
-        lf_puts(" ?\n");
+        lf_puts(" ?");
+        lfCR();
         return;
     }
     lf_puts("Error: ior=");

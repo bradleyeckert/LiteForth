@@ -62,7 +62,13 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   and the LF makes an empty one), so reported line numbers double. There are no options to skip the flash or block files: lf always
   loads or creates them. `-f file` and `-k file` name the flash and block
   files (defaults `FLASHFILENAME` and `BLOCKFILENAME` in `options.h`);
-  `-t port` and `-b baud` select a serial port instead of stdio. Use `-o 3` when a test must keep going after errors.
+  `-t port` and `-b baud` select a serial port instead of stdio.
+  On Windows, `-k F:` (a drive letter) uses the block partition of that
+  removable disk through raw disk access (`rawdisk.c`, needs an
+  administrator; layout in `doc/sdcard.md`). `unit_tests/rawdisk` tests the
+  partition logic on image files, since the container can't run Windows;
+  `rawdisk.c`'s Windows half can only be syntax-checked here (clang
+  `-target x86_64-w64-mingw32` with mingw-w64 headers). Use `-o 3` when a test must keep going after errors.
 - Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
   does); flash is write-protected otherwise and `:` fails with ior -20.
 - `open-flash` maps the flash page to a RAM buffer from the memory pool.

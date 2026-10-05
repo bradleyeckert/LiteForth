@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "blocks.h"
+#include "rawdisk.h"
 #include "errcodes.h"
 
 /* Active file path tracker */
@@ -13,6 +14,9 @@ static uint32_t actual_blocks = 0;
 
 /* The file starts with BLK_SIGNATURE, so its blocks can be written */
 static int writable = 0;
+
+/* The blocks are on a raw disk partition (rawdisk.c), not in a file */
+static int raw = 0;
 
 /* Creates a blank block file: SIMNUMBLOCKS blocks of spaces, with the
    signature at the start of block 0. Returns 0 or an error code. */
@@ -45,8 +49,19 @@ int blk_init(char* filename, uint32_t* capacity) {
     strncpy(active_blk_filename, target_file, sizeof(active_blk_filename) - 1);
     actual_blocks = 0;
     writable = 0;
+    raw = 0;
     if (capacity != NULL) {
         *capacity = 0;
+    }
+
+    if (rawdisk_is_drive(target_file)) {    // e.g. "F:": a removable disk
+        int ior = rawdisk_open(target_file, &actual_blocks, &writable);
+        if (ior) return ior;
+        raw = 1;
+        if (capacity != NULL) {
+            *capacity = actual_blocks;
+        }
+        return 0;
     }
 
     FILE* file = fopen(target_file, "rb");
@@ -99,6 +114,9 @@ int blk_read(uint32_t blk, uint32_t *dest) {
     if (blk >= actual_blocks) {
         return ERR_BLK_BOUNDS;
     }
+    if (raw) {
+        return rawdisk_read(blk, dest);
+    }
 
     char *target_file = (active_blk_filename[0] != '\0') ? active_blk_filename : BLOCKFILENAME;
     FILE *file = fopen(target_file, "rb");
@@ -128,6 +146,9 @@ int blk_write(uint32_t blk, uint32_t *src) {
     }
     if (blk >= actual_blocks) {
         return ERR_BLK_BOUNDS;
+    }
+    if (raw) {
+        return rawdisk_write(blk, src);
     }
 
     char *target_file = (active_blk_filename[0] != '\0') ? active_blk_filename : BLOCKFILENAME;

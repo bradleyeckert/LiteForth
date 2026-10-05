@@ -20,7 +20,10 @@
  * with BLK_SIGNATURE is padded with spaces to a whole number of blocks,
  * and all its blocks can be read and written. A file that doesn't is left
  * untouched and offers only block 0, read-only.
- * filename: the block file, or NULL or "" for BLOCKFILENAME.
+ * filename: the block file, or NULL or "" for BLOCKFILENAME. On Windows,
+ * a drive letter ("F:") selects the block partition of that removable
+ * disk instead (rawdisk.h); it fails if the disk can't be opened or has no
+ * block partition, and is never created or padded.
  * capacity: if not NULL, receives the number of blocks (1 or 0 for a file
  * without the signature).
  * Returns 0 if okay, or a negative error code if the file can't be

@@ -259,6 +259,40 @@ partition's size in blocks (16384 for 64 MiB) instead of 1.
 
 ---
 
+## Using the card with lf on Windows
+
+The desktop `lf` can use the card's block partition instead of
+`lfblocks.bin`: give the card's drive letter (the FAT partition's) as the
+block file.
+
+```
+lf -k F:
+```
+
+`lf` finds the disk that holds `F:`, reads its MBR, and uses the block
+partition just as the board does: the first entry of type `DA`, which
+must be 64 KB aligned and start with the signature to be writable. At
+startup it says on stderr what it found, for example
+`blocks: 16384 blocks at sector 60751872`.
+
+- **Run it as administrator.** Windows only allows raw disk access to
+  administrators; otherwise `lf` says so and exits.
+- **Only removable drives.** `lf` refuses a drive that Windows doesn't
+  report as removable, so a slip of the letter can't reach a hard disk or
+  a USB SSD.
+- **The FAT partition stays usable.** `lf` only reads sector 0 and writes
+  inside the block partition, which has no volume, so Windows allows the
+  writes while `F:` is mounted.
+- Eject the card from Windows before moving it to the board: writes go
+  straight to the card, but ejecting makes sure the FAT side is flushed.
+
+On Linux or macOS, `-k` takes a path, and a drive letter is just a file
+name. Giving the partition device itself, such as `-k /dev/sdb2` (as root),
+should work as an ordinary block file, since it starts with the signature;
+this hasn't been tried.
+
+---
+
 ## Editing blocks with a raw disk editor
 
 The block partition has no file system, so you look at and change its data

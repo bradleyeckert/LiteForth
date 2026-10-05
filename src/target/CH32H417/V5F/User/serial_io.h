@@ -25,7 +25,9 @@ int set_terminal_mode(int enable);
 /**
  * Selects the USB CDC port as the terminal. Waits until the V3F has
  * initialized the shared rings (it does so before it wakes the V5F, so
- * normally this doesn't wait at all).
+ * normally this doesn't wait at all). Drops any input that arrived before
+ * this call, such as the Ctrl+X presses that restarted the V5F, and counts
+ * the start in v5f_starts, which tells the V3F the restart worked.
  *
  * @param name      Ignored.
  * @param baudrate  Ignored: the host's line coding has no effect on USB.

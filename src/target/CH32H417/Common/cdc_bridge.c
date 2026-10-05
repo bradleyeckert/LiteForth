@@ -35,6 +35,13 @@
  *   packet waits longer than CDC_TX_TIMEOUT, the bridge discards the tx
  *   ring until the host reads again, like a UART with nothing connected.
  *
+ * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host
+ * restart the V5F in safe-boot mode (see cdc_shared.h): it boots without
+ * starting the app. The bytes still go to the V5F, so a single Ctrl+X is
+ * an ordinary character. They are seen as they are copied into the rx
+ * ring, so if the V5F has stopped reading and the ring is full (4K of
+ * unread input), they can't arrive; then only a reset helps.
+ *
  * Changes to the driver's state are made with the USB interrupt disabled.
  */
 #include "cdc_bridge.h"
@@ -61,6 +68,8 @@ void cdc_shared_init(void) {
     cdc_shared_t *sh = CDC_SHARED;
     sh->rx.head = sh->rx.tail = 0;
     sh->tx.head = sh->tx.tail = 0;
+    /* safe_boot is left alone: it must survive the chip reset that
+       v5f_safe_restart falls back on. v5f_starts only ever counts up. */
     CDC_FENCE();
     sh->magic = CDC_SHARED_MAGIC;
     CDC_FENCE();
@@ -86,8 +95,60 @@ static void slot_release(void) {
     }
 }
 
+/*=========================================================================
+* Ctrl+X x3: restart the V5F in safe-boot mode
+=========================================================================*/
+
+static uint8_t ctrl_x_run;              /* consecutive Ctrl+X bytes seen */
+
+/* Counts consecutive Ctrl+X. Returns 1 on the third. */
+static int ctrl_x_seen(uint8_t b) {
+    if (b != CDC_CTRL_X) {
+        ctrl_x_run = 0;
+        return 0;
+    }
+    if (++ctrl_x_run < 3) return 0;
+    ctrl_x_run = 0;
+    return 1;
+}
+
+/* Waits for USART1 (debug printf) to finish, so a reset doesn't cut it off. */
+static void debug_uart_drain(void) {
+    while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
+}
+
+/* Restarts the V5F so that it boots without starting the app. Signals it
+   through HSEM CDC_RESTART_HSEM, which its interrupt answers by jumping to
+   its reset entry; serial_open then counts the start in v5f_starts. If the
+   V5F doesn't start again within CDC_RESTART_WAIT_MS (it isn't taking
+   interrupts), resets the whole chip; safe_boot survives that. The bridge
+   isn't polled meanwhile; the USB interrupt keeps the device alive. */
+static void v5f_safe_restart(void) {
+    cdc_shared_t *sh = CDC_SHARED;
+    uint32_t starts = sh->v5f_starts;
+
+    ctrl_x_run = 0;                     /* the V5F drops the input around it */
+    printf("Ctrl+X x3: restarting the V5F in safe mode\r\n");
+    sh->safe_boot = CDC_SAFE_BOOT_MAGIC;
+    CDC_FENCE();
+    HSEM_FastTake((HSEM_ID_TypeDef)CDC_RESTART_HSEM);
+    HSEM_ReleaseOneSem((HSEM_ID_TypeDef)CDC_RESTART_HSEM, 0);
+
+    for (int ms = 0; ms < CDC_RESTART_WAIT_MS; ms++) {
+        Delay_Ms(1);
+        if (sh->v5f_starts != starts) {
+            printf("V5F restarted\r\n");
+            return;
+        }
+    }
+    printf("V5F didn't restart: resetting the chip\r\n");
+    debug_uart_drain();
+    NVIC_SystemReset();
+}
+
 static void host_to_ring(void) {
     cdc_ring_t *r = &CDC_SHARED->rx;
+    int restart = 0;
     if (Uart.Tx_RemainNum == 0) return; /* nothing from the host */
     USB_IRQ_OFF();
     while (Uart.Tx_RemainNum) {
@@ -104,6 +165,7 @@ static void host_to_ring(void) {
             const uint8_t *src = &UART_Tx_Buf[slot * DEF_USB_FS_PACK_LEN + pos];
             for (uint32_t i = 0; i < n; i++) {
                 r->data[(head + i) & RING_MASK] = src[i];
+                restart |= ctrl_x_seen(src[i]);
             }
             CDC_FENCE();                /* data before head */
             r->head = head + n;
@@ -116,6 +178,7 @@ static void host_to_ring(void) {
         slot_release();                 /* used up, or a zero-length packet */
     }
     USB_IRQ_ON();
+    if (restart) v5f_safe_restart();
 }
 
 /*=========================================================================

@@ -833,7 +833,9 @@ int lfQuit(void) {
             reportError(ior);           // and don't start the app
         } else {
             vmReset();
-            g_lf_sys_options |= SYS_OPTION_RUNNING;
+            if (!(g_lf_sys_options & SYS_OPTION_NO_AUTORUN)) {
+                g_lf_sys_options |= SYS_OPTION_RUNNING; // start the app
+            }
         }
     }
     while (1) {

@@ -20,10 +20,14 @@ int set_terminal_mode(int enable) {
 int serial_open(char* name, int baudrate) {
     (void)name;
     (void)baudrate;
+    cdc_ring_t *r = &CDC_SHARED->rx;
     while (CDC_SHARED->magic != CDC_SHARED_MAGIC) {
         cdc_backoff();                  /* the V3F hasn't set up the rings yet */
     }
     CDC_FENCE();
+    r->tail = r->head;                  /* drop input from before this start, */
+    CDC_FENCE();                        /* e.g. the Ctrl+X that restarted us */
+    CDC_SHARED->v5f_starts++;           /* tells the V3F we're running */
     return 0;
 }
 

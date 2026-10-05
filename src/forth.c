@@ -144,6 +144,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "literal",      API0(API_LITERAL),          A_IMMEDIATE | 0},
     { PREV, ".wid",         API0(API_DOTWID),                         0},
     { PREV, "x'",           API0(API_XTICK),                          0},
+    { PREV, ">aux",           API0(API_TOAUX),                         0},
     { PREV, "page",         API0(API_PAGE),                           0},
     { PREV, "wordlist",     API0(API_WORDLIST),                       0},
     { PREV, "open-flash",   API0(API_OPEN_FLASH),                     0},

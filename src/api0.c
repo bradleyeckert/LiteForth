@@ -302,6 +302,11 @@ static int extick(void) {
     return vmPush(word->aux);
 }
 
+/* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */
+static int toaux(void) {
+    return lfToHeader(0, vmPop());
+}
+
 /* ONLY  ( -- )  Search only the `only` wordlist. CONTEXT is in forth.h. */
 int lfAPI_only(void) {
     int8_t* ctx = CONTEXT;

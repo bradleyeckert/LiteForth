@@ -53,17 +53,18 @@
  52 API_EXECUTE          execute
  53 API_SAVE_WIDS        lfAPI_saveWids
  54 API_LABEL            lfAPI_label
- 55 API_ENDTEST          lfAPI_endTest
- 56 API_DOTEST           lfAPI_doTest
- 57 API_BEGINTEST        lfAPI_beginTest
- 58 API_HEX              lfAPI_hex
- 59 API_DECIMAL          lfAPI_decimal
- 60 API_DOTPAGE          lfAPI_dotPage
- 61 API_DOTPAGES         lfAPI_dotPages
- 62 API_DUMP             lfAPI_dump
- 63 API_DUMPI            lfAPI_dumpIns
- 64 API_DASM             lfAPI_dasm
- 65 API_DOTS             lfAPI_dotEss
- 66 API_DOT              lfAPI_dot
- 67 API_SEE              lfAPI_see
-count 68
+ 55 API_TOAUX            toaux
+ 56 API_ENDTEST          lfAPI_endTest
+ 57 API_DOTEST           lfAPI_doTest
+ 58 API_BEGINTEST        lfAPI_beginTest
+ 59 API_HEX              lfAPI_hex
+ 60 API_DECIMAL          lfAPI_decimal
+ 61 API_DOTPAGE          lfAPI_dotPage
+ 62 API_DOTPAGES         lfAPI_dotPages
+ 63 API_DUMP             lfAPI_dump
+ 64 API_DUMPI            lfAPI_dumpIns
+ 65 API_DASM             lfAPI_dasm
+ 66 API_DOTS             lfAPI_dotEss
+ 67 API_DOT              lfAPI_dot
+ 68 API_SEE              lfAPI_see
+count 69

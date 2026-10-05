@@ -302,6 +302,14 @@ static int extick(void) {
     return vmPush(word->aux);
 }
 
+/* `>AUX` ( aux <name> -- ) */
+static int toaux(void) {
+    const struct s_head* word = lfTickWord();
+    if (word == NULL) return ERR_UNDEFINED_WORD;
+    ((struct s_head*)word)->aux |= vmPop();
+    return 0;
+}
+
 /* ONLY  ( -- )  Search only the `only` wordlist. CONTEXT is in forth.h. */
 int lfAPI_only(void) {
     int8_t* ctx = CONTEXT;

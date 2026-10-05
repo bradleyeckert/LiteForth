@@ -11,6 +11,7 @@
  *******************************************************************************/
 #include "debug.h"
 #include "hardware.h"
+#include "cdc_bridge.h"
 /*********************************************************************
  * @fn      main
  *
@@ -28,6 +29,7 @@ int main(void)
     printf("V3F SystemCoreClk:%d\r\n", SystemCoreClock);
 
 #if (Run_Core == Run_Core_V3FandV5F)
+    cdc_shared_init();                  //empty the rings before the V5F uses them
 	NVIC_WakeUp_V5F(Core_V5F_StartAddr);//wake up V5
 	HSEM_ITConfig(HSEM_ID0, ENABLE);
     NVIC->SCTLR |= 1<<4;

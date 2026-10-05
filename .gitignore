@@ -22,3 +22,7 @@ src/target/desktop/unit_tests/load/got.txt
 src/target/desktop/unit_tests/quit/got.txt
 src/target/desktop/unit_tests/api0/test_api0
 src/target/desktop/unit_tests/api0/got.txt
+
+# MounRiver Studio (CH32H417) build outputs and per-machine workspace state
+src/target/CH32H417/*/obj/
+src/target/CH32H417/.mrs/

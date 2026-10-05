@@ -32,10 +32,18 @@
 #define DEBUG   DEBUG_UART1
 
 #elif defined(Core_V5F)
-#define DEBUG   DEBUG_UART8
+/* LiteForth: the V5F prints on USART1 too, shared with the V3F (WCH: UART8) */
+#define DEBUG   DEBUG_UART1
 
 #endif
 
+#endif
+
+/* LiteForth: _write holds this hardware semaphore while it sends a string,
+   so the two cores' strings don't mix on the shared UART. HSEM0 wakes the
+   V3F at boot and HSEM1 restarts the V5F (Common/cdc_shared.h). */
+#ifndef DEBUG_HSEM
+#define DEBUG_HSEM  2
 #endif
 
 /* Run Core Definition */

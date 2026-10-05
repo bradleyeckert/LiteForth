@@ -121,6 +121,16 @@ void USART_Printf_Init(uint32_t baudrate)
     GPIO_InitTypeDef  GPIO_InitStructure = {0};
     USART_InitTypeDef USART_InitStructure = {0};
 
+#if(DEBUG == DEBUG_UART1)
+    /* LiteForth: both cores print here. Leave it alone if the other core (or
+       this one, before a restart) already set it up, so reconfiguring it
+       can't garble a character in flight. The first setup's baud rate wins. */
+    if(USART1->CTLR1 & USART_CTLR1_UE)
+    {
+        return;
+    }
+#endif
+
 #if(DEBUG == DEBUG_UART1)  
     RCC_HB2PeriphClockCmd(RCC_HB2Periph_AFIO | RCC_HB2Periph_USART1 | RCC_HB2Periph_GPIOA, ENABLE);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF7);
@@ -184,9 +194,43 @@ void USART_Printf_Init(uint32_t baudrate)
  *
  * @return  size: Data length
  */
+/* LiteForth: the debug UART is shared by both cores, so _write holds
+   HSEM DEBUG_HSEM while it sends a string. Strings from the two cores can
+   still interleave, but not within a string. If the other core holds the
+   semaphore while the UART stays idle for DEBUG_IDLE_POLLS polls, it has
+   stopped mid-string (restarted or hung), so this core prints anyway. */
+#define DEBUG_IDLE_POLLS    100000u
+
+#if(DEBUG == DEBUG_UART1)
+#define DEBUG_USARTx    USART1
+#elif(DEBUG == DEBUG_UART8)
+#define DEBUG_USARTx    USART8
+#elif(DEBUG == DEBUG_UART6)
+#define DEBUG_USARTx    USART6
+#endif
+
+/* Takes the semaphore. Returns 1 if this core holds it, 0 if it gave up. */
+static int debug_lock(void)
+{
+    uint32_t idle = 0;
+    while(HSEM_FastTake((HSEM_ID_TypeDef)DEBUG_HSEM) != READY)
+    {
+        if(USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_TC) != RESET)
+        {
+            if(++idle > DEBUG_IDLE_POLLS) return 0;
+        }
+        else
+        {
+            idle = 0;                   /* the other core is sending */
+        }
+    }
+    return 1;
+}
+
 __attribute__((used)) int _write(int fd, char *buf, int size)
 {
     int i = 0;
+    int locked = debug_lock();
     (void)fd;
     for(i = 0; i < size; i++)
     {
@@ -200,6 +244,10 @@ __attribute__((used)) int _write(int fd, char *buf, int size)
         while(USART_GetFlagStatus(USART6, USART_FLAG_TC) == RESET);
         USART_SendData(USART6, *buf++);
 #endif
+    }
+    if(locked)
+    {
+        HSEM_ReleaseOneSem((HSEM_ID_TypeDef)DEBUG_HSEM, 0);
     }
 
     return size;

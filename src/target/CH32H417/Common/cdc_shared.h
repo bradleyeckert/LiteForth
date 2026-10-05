@@ -48,6 +48,8 @@ extern "C" {
 #define CDC_RING_SIZE       4096u           /* bytes per ring, power of 2 */
 #define CDC_SAFE_BOOT_MAGIC 0x5AFEB007u     /* safe_boot: skip the app's autorun */
 #define CDC_RESTART_HSEM    1               /* HSEM_ID1: V3F -> V5F restart request */
+                                            /* (HSEM0 wakes the V3F at boot; HSEM2 guards the
+                                               debug UART, DEBUG_HSEM in SRC/Debug/debug.h) */
 #define CDC_RESTART_WAIT_MS 500             /* then the V3F resets the chip */
 #define CDC_CTRL_X          0x18            /* three in a row restart the V5F */
 

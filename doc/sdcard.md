@@ -27,7 +27,7 @@ bytes of block 0. It marks the card as LiteForth's: LiteForth never writes
 it, so it can't mistake another card's raw data for blocks and overwrite
 it. Without the signature, LiteForth reports a capacity of 1 block and
 lets you read block 0, to see what's there, but refuses to write any block.
-On the CH32H417, the debug UART (USART8) says which case it found at
+On the CH32H417, the debug UART (USART1) says which case it found at
 startup. Partitioning doesn't write the signature, so it's the last step for every system:
 [Marking the partition for LiteForth](#marking-the-partition-for-liteforth).
 Block 0 will hold more metadata as LiteForth develops; for now the

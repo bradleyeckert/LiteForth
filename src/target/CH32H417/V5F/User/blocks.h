@@ -28,7 +28,7 @@
  * be read and written (capacity = its size in 4 KB blocks). If not, the
  * capacity is 1: block 0 can be read, to see what's there, and nothing
  * can be written. With no card, no MBR or no type 0xDA partition, the
- * capacity is 0. The reason goes to the debug UART (USART8).
+ * capacity is 0. The reason goes to the debug UART (USART1).
  * filename: ignored.
  * capacity: if not NULL, receives the number of blocks.
  * Returns 0: a missing or unusable card isn't an error, just no blocks.

@@ -37,7 +37,8 @@ int serial_open(char* name, int baudrate);
 
 /**
  * Waits until the V3F has taken all output from the tx ring (sent it, or
- * discarded it because no terminal is reading).
+ * discarded it because the terminal stopped reading). Doesn't wait while
+ * no program has the port open: the V3F holds that output for later.
  */
 void serial_close(void);
 
@@ -50,8 +51,9 @@ int serial_ready(void);
 
 /**
  * Checks whether serial_putc would have to wait: the tx ring is full
- * because the host is reading more slowly than the V5F writes. Does NOT
- * block.
+ * because the host is reading more slowly than the V5F writes. Never busy
+ * while no program has the port open, since serial_putc then drops bytes
+ * rather than wait. Does NOT block.
  *
  * @return 0 when ready for data, 1 when busy.
  */
@@ -66,8 +68,12 @@ int serial_getc(void);
 
 /**
  * Writes a byte to the host, waiting while the tx ring is full. The V3F
- * sends it in its next USB packet. If no terminal has the port open, the
- * V3F discards output, so this never waits for long.
+ * sends it in its next USB packet. While no program has the port open
+ * (DTR clear), the V3F holds the ring, and this doesn't wait: once the
+ * 4K ring is full it drops the byte. The held output (the oldest 4K)
+ * appears when a terminal opens the port. If a program keeps the port
+ * open but stops reading, the V3F discards output after a timeout, so
+ * this never waits for long.
  *
  * @param c The character byte code to transmit.
  * @return  0.

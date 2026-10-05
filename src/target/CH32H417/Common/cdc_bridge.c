@@ -30,10 +30,17 @@
  *   follows if the ring is empty (Uart.USB_Up_Pack0_Flag), so the host's
  *   read returns.
  *
- *   A host polls endpoint 3 only while a program has the port open. TIM2's
+ *   Nothing is sent while no program has the port open (host_open, the
+ *   DTR bit the USB interrupt records from SET_CONTROL_LINE_STATE) or the
+ *   device isn't configured: the tx ring is held, so what the V5F writes
+ *   meanwhile (up to 4K; serial_putc drops the rest) appears when a
+ *   terminal opens the port.
+ *
+ *   A program can also keep the port open but stop reading. TIM2's
  *   interrupt (UART.c, 100 us ticks) counts Uart.USB_Up_TimeOut; when a
- *   packet waits longer than CDC_TX_TIMEOUT, the bridge discards the tx
- *   ring until the host reads again, like a UART with nothing connected.
+ *   packet waits longer than CDC_TX_TIMEOUT with the port open, the bridge
+ *   discards the tx ring until the host reads again, so the V5F never
+ *   waits forever.
  *
  * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host
  * restart the V5F in safe-boot mode (see cdc_shared.h): it boots without
@@ -68,6 +75,7 @@ void cdc_shared_init(void) {
     cdc_shared_t *sh = CDC_SHARED;
     sh->rx.head = sh->rx.tail = 0;
     sh->tx.head = sh->tx.tail = 0;
+    sh->host_open = 0;                  /* until the host sets DTR */
     /* safe_boot is left alone: it must survive the chip reset that
        v5f_safe_restart falls back on. v5f_starts only ever counts up. */
     CDC_FENCE();
@@ -207,12 +215,16 @@ static void ring_discard(cdc_ring_t *t) {
 
 static void ring_to_host(void) {
     static uint8_t stalled;             /* host stopped reading */
+    static uint8_t was_open;            /* host_open at the last poll */
     cdc_ring_t *t = &CDC_SHARED->tx;
+    uint8_t open = USBFS_DevEnumStatus && CDC_SHARED->host_open;
 
-    if (!USBFS_DevEnumStatus) {         /* no host has configured us */
-        ring_discard(t);
-        return;
+    if (open && !was_open) {            /* a terminal just opened the port: */
+        Uart.USB_Up_TimeOut = 0;        /* give a waiting packet a fresh timeout */
+        stalled = 0;
     }
+    was_open = open;
+    if (!open) return;                  /* nobody listening: hold the output */
     if (Uart.USB_Up_IngFlag) {          /* last packet not taken yet */
         if (Uart.USB_Up_TimeOut >= CDC_TX_TIMEOUT) stalled = 1;
         if (stalled) ring_discard(t);

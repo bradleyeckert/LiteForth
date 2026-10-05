@@ -23,9 +23,11 @@ void cdc_shared_init(void);
  * V3F's main loop, in place of the SimulateCDC example's
  * UART_DataRx_Deal and UART_DataTx_Deal.
  *
- * Output is discarded while the USB device is not configured, or once the
- * host has left a packet unread for CDC_TX_TIMEOUT (no terminal has the
- * port open), so the V5F never waits forever for space in the tx ring.
+ * Output is held while no program has the port open (DTR clear, see
+ * host_open in cdc_shared.h) or the device isn't configured, and sent
+ * when one opens it. With the port open, output is discarded once the
+ * host has left a packet unread for CDC_TX_TIMEOUT, so the V5F never waits
+ * forever for space in the tx ring.
  *
  * Three consecutive Ctrl+X bytes from the host restart the V5F so that it
  * boots without starting the app (see cdc_shared.h). That takes up to

@@ -20,10 +20,17 @@ type `DA`:
   partition a whole number of MiB.
 
 Type `DA` keeps Windows and macOS from offering to format the block
-partition or mount it. If LiteForth doesn't find the `LITEFORTHBLK` header
-in block 0 of the partition, it writes one, sized to the partition. It
-doesn't clear the other blocks: on a used card they hold whatever was there
-before. To start with blank blocks, see [Filling the blocks with spaces](#filling-the-blocks-with-spaces).
+partition or mount it.
+
+The partition must also start with the signature `LITEFORTH`, the first 9
+bytes of block 0. It marks the card as LiteForth's: LiteForth never writes
+it, so it can't mistake another card's raw data for blocks and overwrite
+it. Without the signature, LiteForth reports a capacity of 1 block and
+lets you read block 0, to see what's there, but refuses to write any block.
+Partitioning doesn't write it, so it's the last step for every system:
+[Marking the partition for LiteForth](#marking-the-partition-for-liteforth).
+Block 0 will hold more metadata as LiteForth develops; for now the
+signature is all it needs.
 
 **Partitioning erases the whole card.** Each section below starts by
 finding the card's device name. Check it twice: choosing the wrong disk
@@ -199,34 +206,55 @@ result is right.
 
 ---
 
-## Filling the blocks with spaces
+## Marking the partition for LiteForth
 
-Optional. Fresh blocks hold whatever the card held before, so `list` shows
-noise and `load` would interpret it. To start clean, fill the partition with
-spaces (ASCII 20h) and write the block 0 header yourself. On Linux, with
-`P` and the sizes from the steps above:
+Write `LITEFORTH` at the start of partition 2. Optionally, fill the
+partition with spaces (ASCII 20h) first: otherwise the blocks hold
+whatever the card held before, so `list` shows noise and `load` would
+interpret it. Filling overwrites the start of the partition too, so do it
+before writing the signature.
+
+### Linux
+
+With `P` and `BLOCKS_MIB` from the Linux steps:
 
 ```sh
+# optional: fill the block partition with spaces
 tr '\000' ' ' < /dev/zero | head -c $(( BLOCKS_MIB * 1048576 )) | sudo dd of=${P}2 bs=1M status=progress
-printf 'LITEFORTHBLK 1 1000 %X %X\n' $(( P2_SIZE / 8 )) $(( P2_SIZE / 8 )) | sudo dd of=${P}2 conv=notrunc
+# required: the signature
+printf 'LITEFORTH' | sudo dd of=${P}2 conv=notrunc
 sync
 ```
 
-On macOS, with `DISK` and the sizes from the macOS steps, write to the
-partition's block device (`/dev/diskNs2`, not the raw `/dev/rdiskNs2`, which
-only takes whole sectors):
+### macOS
+
+With `DISK` and `BLOCKS_MIB` from the macOS steps. Write to the
+partition's block device (`/dev/diskNs2`), not the raw `/dev/rdiskNs2`,
+which only takes whole sectors:
 
 ```sh
+# optional: fill the block partition with spaces
 tr '\000' ' ' < /dev/zero | head -c $(( BLOCKS_MIB * 1048576 )) | sudo dd of=/dev/${DISK}s2 bs=1m
-printf 'LITEFORTHBLK 1 1000 %X %X\n' $(( P2_SIZE / 8 )) $(( P2_SIZE / 8 )) | sudo dd of=/dev/${DISK}s2 conv=notrunc
+# required: the signature
+printf 'LITEFORTH' | sudo dd of=/dev/${DISK}s2 conv=notrunc
 sync
-``` On Windows there's no
-built-in tool for writing a raw partition; let LiteForth write the header,
-and overwrite blocks as you use them.
+```
 
-The header's last two numbers are, in hex, the number of blocks and the
-first write-protected block (here: none, since it equals the number of
-blocks). See [Block 0](popthehood.md#block-0) for the format.
+### Windows
+
+Windows has no built-in tool for writing a raw partition, so use a disk
+editor from the list below, running as administrator. In HxD: *Tools >
+Open disk*, choose the card's physical disk with *Open as Readonly*
+unchecked, *Search > Go to* byte offset `P2_START` × 512 (the start of
+partition 2; see [Finding a block](#finding-a-block)), type `LITEFORTH`
+over the first 9 bytes in the text column, and *File > Save*. In Active@
+Disk Editor, open partition 2 itself and type it at offset 0.
+
+### Checking it
+
+On Linux, `sudo head -c 9 ${P}2` prints `LITEFORTH` (on macOS,
+`sudo head -c 9 /dev/${DISK}s2`). On the board, `capacity .` shows the
+partition's size in blocks (16384 for 64 MiB) instead of 1.
 
 ---
 
@@ -241,7 +269,7 @@ straight to the card.
 ### Finding a block
 
 Block *n* is the 4 KB (0x1000 bytes) at offset *n* × 4096 from the start
-of partition 2. Block 0 starts with the `LITEFORTHBLK` header.
+of partition 2. Block 0 starts with the `LITEFORTH` signature.
 
 - An editor that opens **partition 2 itself** (`/dev/sdb2` on Linux, or
   the partition chosen in the editor's disk dialog) shows block *n* at

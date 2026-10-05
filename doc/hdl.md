@@ -24,7 +24,7 @@ A typical code execution sequence proceeds as follows:
 
 - `ce` is set to `1` and PC is placed on the address bus.
 - The synchronous memory registers the address, `ce` is set to `0`.
-- *The data has not necessarily settled yet.
+- *The data has not necessarily settled yet.*
 - The 32-bit instruction pair is registered from the data bus.
 - Slot 0 executes.
 - Slot 1 executes.
@@ -43,7 +43,7 @@ A typical data fetch proceeds as follows:
 
 - `ce` is set to `1` and A or B is placed on the address bus.
 - The synchronous memory registers the address, `ce` is set to `0`.
-- *The data has not necessarily settled yet.
+- *The data has not necessarily settled yet.*
 - The 32-bit `mem_data_reg` is registered from the data bus.
 - The barrel shifted and masked is registered in T.
 

@@ -53,17 +53,17 @@ int blk_init(char *filename, uint32_t *capacity) {
     SD_Error err = SD_Init();
     NVIC_DisableIRQ(SDIO_IRQn);         /* polling: no SDIO interrupts on this core */
     if (err != SD_OK) {
-        printf("blocks: no SD card (error %d)\r\n", (int)err);
+        printf("V5F blocks: no SD card (error %d)\r\n", (int)err);
         return 0;
     }
 
     /* The MBR: find the block partition */
     if (SD_ReadDisk((u8 *)sector_buf, 0, 1) != SD_OK) {
-        printf("blocks: can't read the SD card's MBR\r\n");
+        printf("V5F blocks: can't read the SD card's MBR\r\n");
         return 0;
     }
     if (sec[510] != 0x55 || sec[511] != 0xAA) {
-        printf("blocks: the SD card has no MBR partition table\r\n");
+        printf("V5F blocks: the SD card has no MBR partition table\r\n");
         return 0;
     }
     uint32_t start = 0, sectors = 0;
@@ -77,7 +77,7 @@ int blk_init(char *filename, uint32_t *capacity) {
         }
     }
     if (!found || sectors < SECTORS_PER_BLOCK) {
-        printf("blocks: no LiteForth block partition (type DA) on the SD card\r\n");
+        printf("V5F blocks: no LiteForth block partition (type DA) on the SD card\r\n");
         return 0;
     }
     first_sector = start;
@@ -85,16 +85,16 @@ int blk_init(char *filename, uint32_t *capacity) {
 
     /* Block 0 must start with the signature, on a 64 KB boundary */
     if (start % ALIGN_SECTORS) {
-        printf("blocks: the block partition at sector %lu isn't 64 KB aligned: read-only\r\n",
+        printf("V5F blocks: the block partition at sector %lu isn't 64 KB aligned: read-only\r\n",
                (unsigned long)start);
     } else if (SD_ReadDisk((u8 *)sector_buf, start, 1) != SD_OK) {
-        printf("blocks: can't read block 0\r\n");
+        printf("V5F blocks: can't read block 0\r\n");
     } else if (memcmp(sec, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
-        printf("blocks: block 0 doesn't start with " BLK_SIGNATURE ": read-only\r\n");
+        printf("V5F blocks: block 0 doesn't start with " BLK_SIGNATURE ": read-only\r\n");
     } else {
         blocks = sectors / SECTORS_PER_BLOCK;
         writable = 1;
-        printf("blocks: %lu blocks at sector %lu\r\n",
+        printf("V5F blocks: %lu blocks at sector %lu\r\n",
                (unsigned long)blocks, (unsigned long)start);
     }
     if (capacity) *capacity = blocks;

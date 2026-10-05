@@ -18,10 +18,15 @@ it holds two projects, `V3F` and `V5F`, one per core.
 The projects reach `Common/` and the `SRC/` folders as linked folders
 (`PARENT-1-PROJECT_LOC/...` in each `.project`), so the folder builds on
 its own wherever the repo is checked out. To update the SDK, replace `SRC/`
-with a newer copy of WCH's `EVT/EXAM/SRC`, then redo the two local changes:
-`SRC/Ld/V3F/Link_v3f.ld` ends the V3F's `RAM` 32K early to leave room for
-`RAM_SHARED`, and `SRC/Ld/V5F/Link_v5f.ld` reserves the LiteForth flash
-and raises the V5F's C stack from 2K to 16K (both below).
+with a newer copy of WCH's `EVT/EXAM/SRC`, then redo the local changes,
+each marked `LiteForth` in the file:
+
+- `SRC/Ld/V3F/Link_v3f.ld` ends the V3F's `RAM` 32K early to leave room
+  for `RAM_SHARED`.
+- `SRC/Ld/V5F/Link_v5f.ld` reserves the LiteForth flash and raises the
+  V5F's C stack from 2K to 16K.
+- `SRC/Debug/debug.h` and `debug.c` send both cores' `printf` to USART1,
+  with a hardware semaphore around each string (see *Debug output*).
 
 MounRiver's build output (`V3F/obj/`, `V5F/obj/`) and per-machine
 workspace state (`.mrs/`) are not tracked.
@@ -111,20 +116,37 @@ That matters because the V3F doesn't start USB on its own. With
 3. The V3F calls `Hardware()`, which starts USB and the bridge.
 
 So if the V5F image is missing or stale, or the V5F stops before step 2,
-the V3F never wakes and the device never enumerates. The V3F's debug UART
-(USART1, 9600 baud, also on the WCH-LinkE) shows how far it got:
+the V3F never wakes and the device never enumerates. The debug UART
+(USART1, 9600 baud, also on the WCH-LinkE) shows how far it got. Both cores
+print there; the lines appear in about this order:
 
 | Line | Means |
 |---|---|
 | `V3F SystemCoreClk:...` | V3F booted |
 | `V3F waiting for V5F` | V3F woke the V5F and went to sleep |
-| `V3F wake up` | the V5F signalled; if this never comes, look at the V5F (image, flashing) |
+| `V5F SystemCoreClk:...` | V5F booted; if this never comes, look at the V5F image (flashing) |
+| `V5F released HSEM0, running LiteForth` | V5F signalled the V3F |
+| `V3F wake up` | V3F woke from STOP |
 | `USB CDC bridge to V5F running on USBFS controller` | USB device started |
+| `V5F blocks: ...` | what the V5F found on the SD card (see *Blocks*) |
+| `V5F: LiteForth starting, ...` | booting from flash, or flash is blank |
 | `USB address N` | the host reset the device and assigned an address |
 | `USB configured` | enumeration finished; the COM port should appear |
 
-The V5F prints `V5F SystemCoreClk:...` and `V5F released HSEM0, running
-LiteForth` on its own debug UART, USART8.
+### Debug output
+
+Both cores' `printf` go to USART1 (WCH's examples give the V5F USART8).
+`_write` in `SRC/Debug/debug.c` holds hardware semaphore HSEM2 while it
+sends a string, so a string from one core is never split by the other's;
+whole strings from the two cores still interleave as they come. If the
+other core holds the semaphore while the UART sits idle for a while (it was
+restarted or hung mid-string), `_write` prints anyway, so a stuck V5F can't
+silence the V3F. `USART_Printf_Init` leaves USART1 alone once it's enabled,
+so the second core, or a restarted V5F, doesn't reconfigure it under a
+character in flight; the first core's baud rate (9600) wins.
+
+HSEM use: HSEM0 wakes the V3F at boot, HSEM1 restarts the V5F (Ctrl+X),
+HSEM2 guards the debug UART.
 
 ## LiteForth flash and blocks (V5F)
 
@@ -174,9 +196,9 @@ partition of type `DA`:
 | Partition not on a 64 KB boundary, or block 0 doesn't start with `LITEFORTH` | 1 (block 0, to see what's there) | no |
 | Aligned partition starting with `LITEFORTH` | its size in 4 KB blocks | yes |
 
-Block *n* is sectors `start + 8n` to `start + 8n + 7`. USART8 shows the
-outcome, e.g. `blocks: 16384 blocks at sector 15392768` or
-`blocks: block 0 doesn't start with LITEFORTH: read-only`. The card is
+Block *n* is sectors `start + 8n` to `start + 8n + 7`. USART1 shows the
+outcome, e.g. `V5F blocks: 16384 blocks at sector 15392768` or
+`V5F blocks: block 0 doesn't start with LITEFORTH: read-only`. The card is
 read once at startup, so a card inserted later needs a restart (Ctrl+X
 three times will do). If transfers fail, try a slower SD clock: raise
 `SDIO_TRANSFER_CLK_DIV` in `sdio.h`.
@@ -215,7 +237,7 @@ card, the rest unmapped), and runs
 `lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
 the boot record pointer that `go.f` stores, isn't `0xE339E339` or
 `0xFFFFFFFF`), it boots from it
-(`SYS_OPTION_BOOTING`). `bye` restarts `lfQuit`. USART8 shows
+(`SYS_OPTION_BOOTING`). `bye` restarts `lfQuit`. USART1 shows
 `V5F: LiteForth starting, booting from flash` or `..., flash is blank`.
 
 `lftime.c` drives `lfGetTimeMicroSec` from SysTick1: a 1 ms interrupt

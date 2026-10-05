@@ -95,6 +95,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/errcodes.h` | Forth `ior` codes (standard negative throw codes) |
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
+| `src/target/CH32H417/` | MCU target code (not built by the makefile): `serial_io.c` over USB CDC, on WCH's SimulateCDC driver |
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `scripts/regression.f` | Regression script run by `make test` |
 

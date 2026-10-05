@@ -11,56 +11,113 @@
  *******************************************************************************/
 #include "debug.h"
 #include "hardware.h"
+#include "../../../../forth.h"          /* LiteForth core, in src/ */
+#include "../../../../vm.h"
+#include "../../../../memalloc.h"
+#include "../../../../tools.h"
+#include "../../../../errcodes.h"
+#include "options.h"                    /* LiteForth target files, here */
 #include "serial_io.h"
+#include "flash.h"
+#include "blocks.h"
+#include "lftime.h"
+#include "main.h"
 
 /*********************************************************************
- * USB CDC echo test
+ * LiteForth on the V5F, after src/target/desktop/main.c.
  *
- * The V3F runs the USB device; the V5F talks to the host through the
- * shared rings via serial_io. Each byte typed in the terminal is echoed,
- * and Enter starts a new line with a prompt that shows how many bytes the
- * V5F counted on the line before, so the reply visibly comes from the V5F.
+ * The terminal is the USB CDC port: the V3F runs USB and passes the bytes
+ * through the shared rings (serial_io.c). Flash pages are in the code
+ * flash (flash.c), and there is no block storage yet (blocks.c).
  */
-static void put_str(const char *s)
-{
-    while (*s) serial_putc(*s++);
+extern uint32_t g_block_capacity;
+
+// The total idata and udata spans RAM_PAGE_CELLS cells
+int lfInitPointers(void) {
+    int32_t* mem = vm_memory[RAM_PAGE];
+    if (mem == NULL) return ERR_ALLOCATE_FAILED;
+    // udata space origin and limit
+    mem[F_PTRS + 0] = LF_HERE0 + 0x400;
+    mem[F_PTRS + 1] = VARIABLE(RAM_PAGE_CELLS);
+    // idata space origin and limit
+    mem[F_PTRS + 2] = LF_HERE0; // start of IDATA is LF_PTRS
+    mem[F_PTRS + 3] = LF_HERE0 + 0x400;
+    // code space origin and limit
+    mem[F_PTRS + 4] = 0x80000003;
+    mem[F_PTRS + 5] = FLASH_PAGE_CELLS / 4;
+    // text space origin and limit
+    mem[F_PTRS + 6] = FLASH_PAGE_CELLS / 4;
+    mem[F_PTRS + 7] = FLASH_PAGE_CELLS;
+    // initial idp
+    mem[F_PTRS + 8] = LF_HERE0;
+    return 0;
 }
 
-static void put_dec(uint32_t n)
+/* Sets up LiteForth's memory: flash pages 0..RAM_PAGE-1 in the code flash,
+   the RAM page from the pool, and the rest unmapped. Returns an ior. */
+static int lfMapMemory(int32_t** flash)
 {
-    char buf[11];
-    int i = 0;
-    do {
-        buf[i++] = (char)('0' + n % 10);
-        n /= 10;
-    } while (n);
-    while (i) serial_putc(buf[--i]);
+    pool_reset();
+    int32_t* ram = pool_alloc(RAM_PAGE_CELLS);
+    if (ram == NULL) return ERR_ALLOCATE_FAILED;
+
+    int ior = flash_init(NULL, flash);
+    if (ior) return ior;
+    ior = blk_init(NULL, &g_block_capacity);
+    if (ior) return ior;
+
+    for (int i = 0; i < VM_MEM_PAGES; i++) {
+        if (i < RAM_PAGE) {
+            // Assign pointer to page i of flash memory
+            vm_memory[i] = &(*flash)[i * FLASH_PAGE_CELLS];
+            vm_memory_name[i] = "Flash";
+            vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
+            vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected
+            vm_memory_executable[i] = FLASH_PAGE_CELLS;
+        }
+        else if (i == RAM_PAGE) {
+            // Assign pointer to the RAM page
+            vm_memory[i] = ram;
+            vm_memory_name[i] = "RAM";
+            vm_memory_rd_limit[i] = RAM_PAGE_CELLS;
+            vm_memory_executable[i] = RAM_PAGE_CELLS;
+        }
+        else {
+            // Reserved/Unmapped segments
+            vm_memory[i] = NULL;
+            vm_memory_rd_limit[i] = 0;
+            vm_memory_wp_limit[i] = 0;
+            vm_memory_executable[i] = 0;
+            vm_memory_name[i] = "reserved";
+        }
+    }
+    return 0;
 }
 
-static void Echo(void)
+/* Runs LiteForth on the USB CDC terminal. Never returns: `bye` restarts it. */
+static void LiteForth(void)
 {
-    uint32_t count = 0;
-    int last = 0;
+    int32_t* flash = NULL;
+    int ior = lfMapMemory(&flash);
+    if (ior) {
+        printf("V5F: LiteForth memory setup failed, ior=%d\r\n", ior);
+        return;
+    }
+
+    // Boot from flash once go.f has saved an image: it stores the boot
+    // record's address in cell 1. Blank flash reads 0xFFFFFFFF.
+    if ((uint32_t)flash[1] != 0xFFFFFFFFu) {
+        g_lf_sys_options |= SYS_OPTION_BOOTING;
+    }
+    printf("V5F: LiteForth starting, %s\r\n",
+           (g_lf_sys_options & SYS_OPTION_BOOTING) ? "booting from flash" : "flash is blank");
 
     serial_open(NULL, 0);
-    put_str("\r\nV5F echo test over USB CDC\r\nV5F> ");
-    while (1)
-    {
-        int c = serial_getc();
-        if (c == '\n' && last == '\r') {
-            last = c;                   /* CRLF: the CR already did it */
-            continue;
-        }
-        last = c;
-        if (c == '\r' || c == '\n') {
-            put_str("\r\n(");
-            put_dec(count);
-            put_str(" bytes) V5F> ");
-            count = 0;
-        } else {
-            serial_putc((char)c);
-            count++;
-        }
+    while (1) {
+        ior = lfQuit();                 // returns on bye
+        lfSetColor(COLOR_NORMAL);
+        serial_close();
+        printf("V5F: lfQuit returned %d, restarting\r\n", ior);
     }
 }
 
@@ -81,8 +138,9 @@ int main(void)
 #if (Run_Core == Run_Core_V3FandV5F)
     HSEM_FastTake(HSEM_ID0);
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
-    printf("V5F released HSEM0, running echo\r\n");
-    Echo();
+    printf("V5F released HSEM0, running LiteForth\r\n");
+    lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
+    LiteForth();
 
 #elif (Run_Core == Run_Core_V3F)
 

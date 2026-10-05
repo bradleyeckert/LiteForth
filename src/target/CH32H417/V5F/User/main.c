@@ -105,8 +105,10 @@ static void LiteForth(void)
     }
 
     // Boot from flash once go.f has saved an image: it stores the boot
-    // record's address in cell 1. Blank flash reads 0xFFFFFFFF.
-    if ((uint32_t)flash[1] != 0xFFFFFFFFu) {
+    // record's address in cell 1. Erased flash reads FLASH_ERASED_WORD
+    // (0xE339E339) on this chip; 0xFFFFFFFF counts as blank too.
+    uint32_t boot = (uint32_t)flash[1];
+    if (boot != FLASH_ERASED_WORD && boot != 0xFFFFFFFFu) {
         g_lf_sys_options |= SYS_OPTION_BOOTING;
     }
     printf("V5F: LiteForth starting, %s\r\n",

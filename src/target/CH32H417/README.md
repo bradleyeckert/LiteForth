@@ -142,7 +142,9 @@ dictionary, is 64K instead of the desktop's 16K. `VM_LOG2_PAGES` stays 3.
 The VM reads the pages in place. `close-flash` calls `flash_program`, which
 erases the page (one 64K block) and programs it from the RAM cache with
 WCH's `FLASH_ROM_ERASE` / `FLASH_ROM_WRITE`, then reads it back to check.
-A page that hasn't changed isn't rewritten. While a page is open its 64K
+A page that hasn't changed isn't rewritten. Erased flash on this chip reads `0xE339E339`, not
+`0xFFFFFFFF` (`FLASH_ERASED_WORD` in `flash.h`), so `0 12 dump` of blank
+flash shows that pattern. While a page is open its 64K
 cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
 256K DTCM). Other geometries work too, as long as a page is a whole number
 of 8K sectors and all pages fit in the 256K; `options.h` checks both.
@@ -187,7 +189,8 @@ After it wakes the V3F, the V5F starts the time base (`lfTimeInit`), maps
 LiteForth's memory as the desktop `main.c` does (flash pages 0-3 in the
 code flash, the RAM page from the pool, the rest unmapped), and runs
 `lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
-the boot record pointer that `go.f` stores, isn't blank), it boots from it
+the boot record pointer that `go.f` stores, isn't `0xE339E339` or
+`0xFFFFFFFF`), it boots from it
 (`SYS_OPTION_BOOTING`). `bye` restarts `lfQuit`. USART8 shows
 `V5F: LiteForth starting, booting from flash` or `..., flash is blank`.
 

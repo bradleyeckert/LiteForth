@@ -372,7 +372,7 @@
 	"flashConfig": {
 		"mcutype": "CH32H417",
 		"address": "0x08000000",
-		"target_path": "obj\\CH372Device_V3F.bin",
+		"target_path": "obj\\SimulateCDC_V3F.bin",
 		"clkSpeed": "High",
 		"debug_interface_mode": "1-wire serial",
 		"erase": true,

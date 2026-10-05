@@ -21,7 +21,7 @@ int serial_open(char* name, int baudrate) {
     (void)name;
     (void)baudrate;
     while (CDC_SHARED->magic != CDC_SHARED_MAGIC) {
-        /* the V3F hasn't set up the rings yet */
+        cdc_backoff();                  /* the V3F hasn't set up the rings yet */
     }
     CDC_FENCE();
     return 0;
@@ -29,7 +29,7 @@ int serial_open(char* name, int baudrate) {
 
 void serial_close(void) {
     while (cdc_ring_count(&CDC_SHARED->tx)) {
-        /* the V3F sends or discards it */
+        cdc_backoff();                  /* the V3F sends or discards it */
     }
 }
 
@@ -44,7 +44,7 @@ int serial_busy(void) {
 int serial_getc(void) {
     cdc_ring_t *r = &CDC_SHARED->rx;
     while (cdc_ring_count(r) == 0) {
-        /* wait for the host */
+        cdc_backoff();                  /* wait for the host */
     }
     CDC_FENCE();                        /* head before data */
     uint32_t tail = r->tail;
@@ -57,7 +57,7 @@ int serial_getc(void) {
 int serial_putc(char c) {
     cdc_ring_t *t = &CDC_SHARED->tx;
     while (cdc_ring_space(t) == 0) {
-        /* wait for the V3F to send */
+        cdc_backoff();                  /* wait for the V3F to send */
     }
     CDC_FENCE();                        /* V3F has finished with that space */
     uint32_t head = t->head;

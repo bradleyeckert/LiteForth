@@ -56,6 +56,13 @@ typedef struct {
 /* Orders memory accesses between the cores. */
 #define CDC_FENCE() __asm__ volatile ("fence rw, rw" ::: "memory")
 
+/* Waits a little between polls of the shared SRAM. The V3F executes from
+   the same SRAM and the USB controller DMAs into it, so a core spinning on
+   a ring index at full speed could starve them. Roughly 100 cycles. */
+static inline void cdc_backoff(void) {
+    for (int i = 0; i < 100; i++) __asm__ volatile ("nop");
+}
+
 /* Bytes waiting in a ring. */
 static inline uint32_t cdc_ring_count(const cdc_ring_t *r) {
     return r->head - r->tail;

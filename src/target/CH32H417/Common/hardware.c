@@ -48,8 +48,21 @@ void Hardware(void)
     USBFS_RCC_Init( );
     USBFS_Device_Init( ENABLE );
     
+    uint8_t addr = 0, configured = 0;
     while(1)
     {
         cdc_bridge_poll( );
+
+        /* Enumeration progress, for the debug UART */
+        if( USBFS_DevAddr != addr )
+        {
+            addr = USBFS_DevAddr;
+            printf("USB address %d\r\n", addr);
+        }
+        if( USBFS_DevEnumStatus != configured )
+        {
+            configured = USBFS_DevEnumStatus;
+            printf("USB configured\r\n");
+        }
     }
 }

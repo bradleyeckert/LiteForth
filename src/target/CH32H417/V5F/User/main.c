@@ -29,7 +29,8 @@
  *
  * The terminal is the USB CDC port: the V3F runs USB and passes the bytes
  * through the shared rings (serial_io.c). Flash pages are in the code
- * flash (flash.c), and there is no block storage yet (blocks.c).
+ * flash (flash.c), and blocks are in a raw partition on the microSD card
+ * (blocks.c, doc/sdcard.md).
  */
 extern uint32_t g_block_capacity;
 
@@ -132,6 +133,10 @@ static void lfRestartListen(void)
 /* Runs LiteForth on the USB CDC terminal. Never returns: `bye` restarts it. */
 static void LiteForth(void)
 {
+    // Open the terminal first: it tells the V3F we've (re)started, and
+    // lfMapMemory can take a second or more to bring up the SD card.
+    serial_open(NULL, 0);
+
     int32_t* flash = NULL;
     int ior = lfMapMemory(&flash);
     if (ior) {
@@ -157,7 +162,6 @@ static void LiteForth(void)
            (g_lf_sys_options & SYS_OPTION_BOOTING) ? "booting from flash" : "flash is blank",
            safe ? ", safe boot (app not started)" : "");
 
-    serial_open(NULL, 0);
     if (safe) {
         const char *msg = "\r\nSafe boot (Ctrl+X x3): the app is not running. `cold` starts it.\r\n";
         while (*msg) serial_putc(*msg++);

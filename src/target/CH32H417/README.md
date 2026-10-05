@@ -1,7 +1,24 @@
 # CH32H417 target
 
-Not built by the makefile. Build these files with MounRiver Studio (or
-`riscv-none-elf-gcc`) as part of a WCH project.
+Not built by the makefile. Open `SimulateCDC.wvsln` in MounRiver Studio;
+it holds two projects, `V3F` and `V5F`, one per core.
+
+## Layout
+
+| Path | What it is |
+|---|---|
+| `Common/` | WCH's SimulateCDC sources (USB driver, descriptors, UART bridge, `hardware.c`), shared by both cores |
+| `V3F/`, `V5F/` | Per-core MounRiver projects: `User/` (`main.c`, interrupts, clock setup) and project files |
+| `SRC/` | WCH's SDK, copied from [openwch/ch32h417 `EVT/EXAM/SRC`](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/SRC) (commit 6d1e469): `Core/`, `Debug/`, `Ld/` (linker scripts), `Peripheral/` (standard peripheral library), `Startup/` |
+| `serial_io.c/.h` | LiteForth's terminal over USB CDC (below) |
+
+The projects reach `Common/` and the `SRC/` folders as linked folders
+(`PARENT-1-PROJECT_LOC/...` in each `.project`), so the folder builds on
+its own wherever the repo is checked out. To update the SDK, replace `SRC/`
+with a newer copy of WCH's `EVT/EXAM/SRC`.
+
+MounRiver's build output (`V3F/obj/`, `V5F/obj/`) and per-machine
+workspace state (`.mrs/`) are not tracked.
 
 ## serial_io.c: terminal over USB CDC
 
@@ -24,8 +41,8 @@ same buffers.
 
 ### Wiring it up
 
-Start from the SimulateCDC project (V3F or V5F), add the LiteForth sources
-(`src/*.c` and this directory) and their include paths, then replace the
+In the V3F or V5F project, add the LiteForth sources (`src/*.c` and
+`serial_io.c`) and their include paths, then replace the
 loop at the end of `Hardware()` in `Common/hardware.c`:
 
 ```c

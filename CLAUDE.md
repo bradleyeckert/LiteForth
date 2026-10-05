@@ -76,8 +76,11 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   code to write flash to blocks is planned. `make test` uses copies of the
   `bin/` images. Run experiments in the scratchpad, not the repo, so the
   tracked images aren't modified.
-- Block files: 4 KB blocks (not 1 KB), block n at byte offset n*4096, block 0
-  holds the `LITEFORTHBLK ...` header. Only `SYSTEM_BLOCKS` (2) buffers exist,
+- Block files: 4 KB blocks (not 1 KB), block n at byte offset n*4096. Block 0
+  must start with the signature `LITEFORTH` (9 bytes); without it a block file
+  (or SD partition) reports capacity 1, block 0 is readable and nothing is
+  writable, and the file is never modified. That's the only block 0 metadata
+  for now (`unit_tests/blocks/` checks it). Only `SYSTEM_BLOCKS` (2) buffers exist,
   so any 3-deep nesting of loads evicts buffers.
 
 ## Source map

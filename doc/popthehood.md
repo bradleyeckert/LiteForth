@@ -297,6 +297,11 @@ Supposing a code space of 256 KB, a 32:1 source-to-object ratio
 No user code can be stored in Block 0.
 You can't `load` block 0, but you can list it.
 It contains basic boilerplate.
+
+Today the only required content is the signature: block 0 must start with
+`LITEFORTH` (9 bytes). A block device without it reports a capacity of 1:
+block 0 can be read, to see what's there, but no block can be written.
+The fields below are planned and are not read yet.
 Essential boilerplate identifies the partition type, so block 0 starts with
 the following human readable strings. Strings are ASCII with no delimiter.
 Blanks (leading or trailing) are ignored.

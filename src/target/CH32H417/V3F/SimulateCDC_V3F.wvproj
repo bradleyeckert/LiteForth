@@ -17,23 +17,23 @@
 		"linkedFolders": [
 			{
 				"name": "Core",
-				"location": "../../../../SRC/Core"
+				"location": "../SRC/Core"
 			},
 			{
 				"name": "Debug",
-				"location": "../../../../SRC/Debug"
+				"location": "../SRC/Debug"
 			},
 			{
 				"name": "Ld",
-				"location": "../../../../SRC/Ld"
+				"location": "../SRC/Ld"
 			},
 			{
 				"name": "Peripheral",
-				"location": "../../../../SRC/Peripheral"
+				"location": "../SRC/Peripheral"
 			},
 			{
 				"name": "Startup",
-				"location": "../../../../SRC/Startup"
+				"location": "../SRC/Startup"
 			},
 			{
 				"name": "Common",

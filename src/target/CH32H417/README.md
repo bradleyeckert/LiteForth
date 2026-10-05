@@ -11,13 +11,15 @@ it holds two projects, `V3F` and `V5F`, one per core.
 | `V3F/`, `V5F/` | Per-core MounRiver projects: `User/` (`main.c`, interrupts, clock setup) and project files |
 | `SRC/` | WCH's SDK, copied from [openwch/ch32h417 `EVT/EXAM/SRC`](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/SRC) (commit 6d1e469): `Core/`, `Debug/`, `Ld/` (linker scripts), `Peripheral/` (standard peripheral library), `Startup/` |
 | `V5F/User/serial_io.c/.h` | LiteForth's terminal I/O for the V5F, over the shared rings (below) |
+| `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage (none yet) and options for the V5F (below) |
 
 The projects reach `Common/` and the `SRC/` folders as linked folders
 (`PARENT-1-PROJECT_LOC/...` in each `.project`), so the folder builds on
 its own wherever the repo is checked out. To update the SDK, replace `SRC/`
-with a newer copy of WCH's `EVT/EXAM/SRC`, then redo the one local change:
+with a newer copy of WCH's `EVT/EXAM/SRC`, then redo the two local changes:
 `SRC/Ld/V3F/Link_v3f.ld` ends the V3F's `RAM` 32K early to leave room for
-`RAM_SHARED` (below).
+`RAM_SHARED`, and `SRC/Ld/V5F/Link_v5f.ld` reserves the LiteForth flash
+(both below).
 
 MounRiver's build output (`V3F/obj/`, `V5F/obj/`) and per-machine
 workspace state (`.mrs/`) are not tracked.
@@ -129,6 +131,42 @@ the V3F never wakes and the device never enumerates. The V3F's debug UART
 
 The V5F prints `V5F SystemCoreClk:...` and `V5F released HSEM0, running
 echo` on its own debug UART, USART8.
+
+## LiteForth flash and blocks (V5F)
+
+### Flash: `V5F/User/flash.c`
+
+The code flash is mapped at `0x08000000` (960K in dual-flash mode, 480K in
+single). The V3F's image takes the first 64K and the V5F's the next 128K.
+`SRC/Ld/V5F/Link_v5f.ld` reserves the next **256K, `0x08030000`-`0x0806FFFF`**,
+for LiteForth (`__lf_flash_start`, `__lf_flash_size`), and fails the link
+if the V5F image would grow into it. That range is valid in either flash
+mode.
+
+`V5F/User/options.h` divides it into `RAM_PAGE` = 4 flash pages of
+`FLASH_PAGE_CELLS` = 16384 cells (64K each), so page 0, which holds the
+dictionary, is 64K instead of the desktop's 16K. `VM_LOG2_PAGES` stays 3.
+The VM reads the pages in place. `close-flash` calls `flash_program`, which
+erases the page (one 64K block) and programs it from the RAM cache with
+WCH's `FLASH_ROM_ERASE` / `FLASH_ROM_WRITE`, then reads it back to check.
+A page that hasn't changed isn't rewritten. While a page is open its 64K
+cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
+256K DTCM). Other geometries work too, as long as a page is a whole number
+of 8K sectors and all pages fit in the 256K; `options.h` checks both.
+
+**Downloading erases it.** The download settings erase the whole chip
+(`"erase": true`, `"clearcodeflash": true` in the `.wvproj`; "Erase All" in
+MounRiver's download dialog), so every download also wipes the LiteForth
+flash. To keep what LiteForth has compiled across downloads, turn that off
+so only the sectors in the image are erased.
+
+### Blocks: `V5F/User/blocks.c`
+
+No block storage yet. `blk_init` reports 0 blocks, and `blk_read` /
+`blk_write` return `ERR_BLK_BOUNDS`, so `block` and `load` fail cleanly.
+
+`flash.c` and `blocks.c` include `src/errcodes.h` by relative path, because
+the V5F project doesn't have LiteForth's `src/` on its include path yet.
 
 ### Next: LiteForth on the V5F
 

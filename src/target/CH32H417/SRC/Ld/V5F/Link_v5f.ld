@@ -15,6 +15,15 @@ MEMORY
 	RAM_LOAD (xrw) : ORIGIN = (0x200C0000+512), LENGTH = 256           /* RAM for .load section*/
 }
 
+/* LiteForth: 256K of flash right after the V5F image (0x00030000, read and
+   programmed through its alias 0x08030000), used by V5F/User/flash.c.
+   Nothing is linked here; the image must end below it. 0x08030000-0x0806FFFF
+   lies within both the 480K (single) and 960K (dual) flash modes. */
+__lf_flash_start = 0x08030000;
+__lf_flash_size  = 256K;
+ASSERT(ORIGIN(FLASH) + LENGTH(FLASH) <= __lf_flash_start - 0x08000000,
+       "V5F FLASH region overlaps the LiteForth flash")
+
 SECTIONS
 {
 	.init :

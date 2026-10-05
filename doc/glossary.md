@@ -40,7 +40,7 @@ Name lookup ignores case.
 | `:` | `( <name> -- )` | Starts compiling a new colon definition. If `name` is an unresolved `label`, it makes no new header: it resolves the label to this code instead. |
 | `:noname` | `( -- xt )` | Starts compiling an anonymous colon definition and pushes its execution token. `;` ends it. |
 | `;` | `( -- )` | Ends the current colon definition. Immediate. |
-| `>aux` | `( aux <name> -- )` | ORs `aux` into the aux field (the flags) of `<name>`'s header; see `x'`. The header must be in RAM, so open the flash page first. |
+| `>aux` | `( aux -- )` | Toggles (XORs) the bits of `aux` in the aux field (the flags) of the most recent definition's header, as `immediate` does with its flag; see `x'`. |
 | `>body` | `( xt -- addr )` | Returns the data address of a word made by `create`. |
 | `>options` | `( n -- )` | Sets system option flags: a nonzero `n` ORs its bits in, 0 clears them all. Ignored once the options are locked. |
 | `>r` | `( x -- ) (R: -- x)` | Moves `x` to the return stack. |

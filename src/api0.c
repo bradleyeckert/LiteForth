@@ -302,12 +302,9 @@ static int extick(void) {
     return vmPush(word->aux);
 }
 
-/* `>AUX` ( aux <name> -- ) */
+/* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */
 static int toaux(void) {
-    const struct s_head* word = lfTickWord();
-    if (word == NULL) return ERR_UNDEFINED_WORD;
-    ((struct s_head*)word)->aux |= vmPop();
-    return 0;
+    return lfToHeader(0, vmPop());
 }
 
 /* ONLY  ( -- )  Search only the `only` wordlist. CONTEXT is in forth.h. */

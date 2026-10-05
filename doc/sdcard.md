@@ -227,3 +227,73 @@ and overwrite blocks as you use them.
 The header's last two numbers are, in hex, the number of blocks and the
 first write-protected block (here: none, since it equals the number of
 blocks). See [Block 0](popthehood.md#block-0) for the format.
+
+---
+
+## Editing blocks with a raw disk editor
+
+The block partition has no file system, so you look at and change its data
+with a raw disk (sector) editor. Run it as administrator (Windows) or root
+(Linux). The block partition is never mounted, so nothing else is using
+it; still, keep a copy before changing anything, since an editor writes
+straight to the card.
+
+### Finding a block
+
+Block *n* is the 4 KB (0x1000 bytes) at offset *n* × 4096 from the start
+of partition 2. Block 0 starts with the `LITEFORTHBLK` header.
+
+- An editor that opens **partition 2 itself** (`/dev/sdb2` on Linux, or
+  the partition chosen in the editor's disk dialog) shows block *n* at
+  offset *n* × 0x1000.
+- An editor that opens **the whole card** needs the partition's start
+  sector first: `P2_START` from the steps above, `sudo sfdisk -d /dev/sdb`
+  on Linux, or `list partition` / `detail partition` in `diskpart`. Block
+  *n* is then at byte offset `P2_START` × 512 + *n* × 4096, or at sector
+  `P2_START` + 8 × *n*.
+
+Block text is UTF-8, 4096 bytes per block. LiteForth shows a block as 32
+lines of 128 columns (`SCREEN_COLUMNS`), so an editor set to 128 bytes per
+row lines up with what `list` shows. Overwrite characters rather than
+inserting or deleting them, so the block stays exactly 4096 bytes.
+
+### Windows
+
+- **[HxD](https://mh-nexus.de/en/hxd/)** (free). *Tools > Open disk*
+  lists physical disks and lettered volumes. The block partition has no
+  drive letter, so open the card's physical disk (with *Open as Readonly*
+  unchecked to edit), then use *Search > Go to* with the byte offset
+  above. *Edit > Select block* and *File > Save as* can copy a range of
+  sectors to a file.
+- **[Active@ Disk Editor](https://www.disk-editor.org/)** (free; Windows,
+  Linux and macOS). Lists the partitions on each disk, so you can open
+  partition 2 directly, and has templates for decoding the MBR.
+- **[WinHex](https://www.x-ways.net/winhex/)** (commercial). *Tools > Open
+  Disk* shows physical disks and their partitions, and it can interpret the
+  MBR and jump to a partition.
+- **[wxHexEditor](https://www.wxhexeditor.org/)** (free, open source;
+  Windows, Linux and macOS). Opens disk devices for editing. Its last
+  release is a 2017 beta.
+
+### Linux
+
+- **`hexedit`** (terminal, in most distributions' packages):
+  `sudo hexedit /dev/sdb2` opens the block partition. Enter jumps to an
+  offset (prefix hex with `0x`: `0x5000` is block 5), Tab switches between the
+  hex and text columns, F2 saves and Ctrl+C quits without saving.
+- **[wxHexEditor](https://www.wxhexeditor.org/)**: *Devices > Open Disk
+  Device*, then choose `/dev/sdb2`. Start it with `sudo`.
+- **[Active@ Disk Editor](https://www.disk-editor.org/)**: the Linux
+  version opens the partition directly, as on Windows.
+- **`dd`, for one block at a time.** Copy block *n* out, edit the copy with
+  any hex or text editor that keeps it at 4096 bytes, and write it back:
+
+  ```sh
+  N=5
+  sudo dd if=/dev/sdb2 of=block$N.bin bs=4096 skip=$N count=1        # read block N
+  fold -w 128 block$N.bin                                             # view it as LiteForth shows it
+  sudo dd if=block$N.bin of=/dev/sdb2 bs=4096 seek=$N count=1 conv=notrunc,fsync  # write it back
+  ```
+
+  Check the size before writing back: `stat -c %s block$N.bin` must say
+  4096.

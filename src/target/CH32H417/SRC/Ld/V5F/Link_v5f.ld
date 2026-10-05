@@ -1,6 +1,6 @@
 ENTRY( _start )
 
-__stack_size = 2048;
+__stack_size = 16384;   /* LiteForth: WCH had 2048; the interpreter recurses (load, words calling the VM) */
 
 PROVIDE( _stack_size = __stack_size );
 

@@ -12,6 +12,7 @@ it holds two projects, `V3F` and `V5F`, one per core.
 | `SRC/` | WCH's SDK, copied from [openwch/ch32h417 `EVT/EXAM/SRC`](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/SRC) (commit 6d1e469): `Core/`, `Debug/`, `Ld/` (linker scripts), `Peripheral/` (standard peripheral library), `Startup/` |
 | `V5F/User/serial_io.c/.h` | LiteForth's terminal I/O for the V5F, over the shared rings (below) |
 | `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage (none yet) and options for the V5F (below) |
+| `V5F/User/main.c/.h`, `lftime.c/.h`, `lf_*.c` | LiteForth on the V5F: startup, the microsecond time base, and one-line wrappers that compile LiteForth's `src/*.c` into the project (below) |
 
 The projects reach `Common/` and the `SRC/` folders as linked folders
 (`PARENT-1-PROJECT_LOC/...` in each `.project`), so the folder builds on
@@ -19,7 +20,7 @@ its own wherever the repo is checked out. To update the SDK, replace `SRC/`
 with a newer copy of WCH's `EVT/EXAM/SRC`, then redo the two local changes:
 `SRC/Ld/V3F/Link_v3f.ld` ends the V3F's `RAM` 32K early to leave room for
 `RAM_SHARED`, and `SRC/Ld/V5F/Link_v5f.ld` reserves the LiteForth flash
-(both below).
+and raises the V5F's C stack from 2K to 16K (both below).
 
 MounRiver's build output (`V3F/obj/`, `V5F/obj/`) and per-machine
 workspace state (`.mrs/`) are not tracked.
@@ -27,7 +28,7 @@ workspace state (`.mrs/`) are not tracked.
 ## Terminal over USB CDC, across the two cores
 
 The V3F runs the USB device and nothing else; the V5F runs the app
-(LiteForth, or for now an echo test) and talks to the host through
+(LiteForth) and talks to the host through
 `serial_io`. The two cores share only a pair of byte rings:
 
 ```
@@ -89,17 +90,9 @@ Implements `serial_io.h` (the same interface as
   the IN endpoint. After `CDC_TX_TIMEOUT` (default 1000 ticks, 100 ms) the
   V3F discards the tx ring until the host reads again, so the V5F's output
   never blocks for long. The same happens while the device is not
-  configured, so text written at power-up (such as the echo test's banner)
+  configured, so text written at power-up (such as LiteForth's banner)
   is lost unless a terminal is already open.
 - **Line coding is ignored.** Any baud rate works.
-
-### Echo test
-
-`V5F/User/main.c` runs `Echo()`: it echoes each byte, and on Enter prints
-`(N bytes) V5F> `, where N is the length of the line the V5F counted, so a
-reply visibly comes from the V5F. Open the port in a terminal and press
-Enter to get the first prompt. Debug `printf` output goes to USART1 (V3F)
-and USART8 (V5F).
 
 ### Flashing and startup
 
@@ -130,7 +123,7 @@ the V3F never wakes and the device never enumerates. The V3F's debug UART
 | `USB configured` | enumeration finished; the COM port should appear |
 
 The V5F prints `V5F SystemCoreClk:...` and `V5F released HSEM0, running
-echo` on its own debug UART, USART8.
+LiteForth` on its own debug UART, USART8.
 
 ## LiteForth flash and blocks (V5F)
 
@@ -165,16 +158,53 @@ so only the sectors in the image are erased.
 No block storage yet. `blk_init` reports 0 blocks, and `blk_read` /
 `blk_write` return `ERR_BLK_BOUNDS`, so `block` and `load` fail cleanly.
 
-`flash.c` and `blocks.c` include `src/errcodes.h` by relative path, because
-the V5F project doesn't have LiteForth's `src/` on its include path yet.
+## LiteForth on the V5F
 
-### Next: LiteForth on the V5F
+### How it's built
 
-Add the LiteForth sources (`src/*.c`) and include path to the V5F project,
-then replace `Echo()` with:
+MounRiver compiles every `.c` file in `V5F/User/`. LiteForth's portable
+core (`src/*.c`) comes in through one wrapper per file, `lf_forth.c`,
+`lf_vm.c` and so on, each a single `#include "../../../../forth.c"`. So the
+project files need no changes when the core gains or loses code, and each
+core file's quoted includes find the core headers beside it in `src/`,
+and the target headers (`options.h`, `serial_io.h`, `flash.h`, `blocks.h`,
+`lftime.h`, `main.h`) here in `V5F/User/`. The target files reach
+`src/` headers by relative path for the same reason. A new core source file
+needs a new wrapper.
 
-```c
-    serial_open( NULL, 0 );
-    lfQuit( );                       /* see src/target/desktop/main.c */
-    serial_close( );
-```
+The V5F project compiles as **gnu11** (WCH's projects use gnu99): the core
+uses a C11 `u8"..."` string. If MounRiver ever shows a `u8` error in
+`forth.c`, check *Project Properties > C/C++ Build > Settings > GNU RISC-V
+Cross C Compiler > Optimization > Language standard*.
+
+The image uses about 35K of the V5F's 128K for code (all of it runs from
+ITCM), and about 100K of its 256K DTCM, mostly the 96K memory pool. The
+C stack is 16K (`__stack_size` in `Link_v5f.ld`).
+
+### Startup (`V5F/User/main.c`)
+
+After it wakes the V3F, the V5F starts the time base (`lfTimeInit`), maps
+LiteForth's memory as the desktop `main.c` does (flash pages 0-3 in the
+code flash, the RAM page from the pool, the rest unmapped), and runs
+`lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
+the boot record pointer that `go.f` stores, isn't blank), it boots from it
+(`SYS_OPTION_BOOTING`). `bye` restarts `lfQuit`. USART8 shows
+`V5F: LiteForth starting, booting from flash` or `..., flash is blank`.
+
+`lftime.c` drives `lfGetTimeMicroSec` from SysTick1: a 1 ms interrupt
+counts milliseconds in 64 bits, and the counter supplies the
+microseconds. WCH's `Delay_Us`/`Delay_Ms` reprogram SysTick1, so the V5F
+must not call them after `lfTimeInit`. `lfWatchdogPing` does nothing yet.
+
+### Using it
+
+Open the COM port with **local echo on**: LiteForth doesn't echo what you
+type. Enter ends a line; a terminal that sends CR LF gets an extra empty
+line, which is harmless. LiteForth doesn't handle Backspace in a line yet.
+
+The flash starts blank, so the first thing to do is load `scripts/go.f`
+by sending it as a text file from the terminal. USB flow control makes
+the host wait while LiteForth works, so it can go at full speed. `go.f`
+compiles into flash page 0 and saves a boot image; after the next reset
+the V5F boots it. Remember that a MounRiver download erases it (see
+*Flash* above).

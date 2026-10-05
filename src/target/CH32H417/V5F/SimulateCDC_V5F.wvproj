@@ -186,7 +186,7 @@
 						"include_files": []
 					},
 					"optimization": {
-						"language_standard": "gnu99",
+						"language_standard": "gnu11",
 						"other_optimization_flags": ""
 					},
 					"warnings": {

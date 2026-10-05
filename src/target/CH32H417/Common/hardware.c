@@ -11,20 +11,23 @@
 *******************************************************************************/
 /*
  *@Note
- *Example routine to emulate a simulate USB-CDC Device, USE USART4(PF3[RX]/PF4[TX]);
- *Please note: This code uses the default serial port 1 for debugging,
- *if you need to modify the debugging serial port, please do not use USART4
+ *USB-CDC device on the V3F. Based on WCH's SimulateCDC example, which
+ *bridges USB to USART4; here cdc_bridge_poll bridges USB to the V5F
+ *through the shared rings in cdc_shared.h instead.
+ *Debug printf output goes to USART1.
 */
 #include "hardware.h"
 #include "ch32h417_usbfs_device.h"
 
 #include "UART.h"
 #include "ch32h417_usb.h"
+#include "cdc_bridge.h"
 
 /*********************************************************************
  * @fn      Hardware
  *
- * @brief   Resets the CRC Data register (DR).
+ * @brief   Starts the USB CDC device and runs the bridge to the V5F.
+ *          Never returns.
  *
  * @return  none
  */
@@ -32,13 +35,13 @@ void Hardware(void)
 {
     printf("Build Time: %s %s\n", __DATE__, __TIME__);
     printf("GCC Version: %d.%d.%d\n",__GNUC__, __GNUC_MINOR__,__GNUC_PATCHLEVEL__);
-    printf("SimulateCDC Running On USBFS Controller\n");
+    printf("USB CDC bridge to V5F running on USBFS controller\n");
 	RCC_Configuration( );
 
     /* Tim2 init */
     TIM2_Init( );
 
-    /* Usart1 init */
+    /* USB state (Uart, used by the USB interrupt) and USART4 */
     UART_Init( 1, DEF_UARTx_BAUDRATE, DEF_UARTx_STOPBIT, DEF_UARTx_PARITY );
 
     /* USB20 device init */
@@ -47,7 +50,6 @@ void Hardware(void)
     
     while(1)
     {
-        UART_DataRx_Deal( );
-        UART_DataTx_Deal( );
+        cdc_bridge_poll( );
     }
 }

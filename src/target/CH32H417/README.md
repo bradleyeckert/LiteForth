@@ -99,6 +99,37 @@ reply visibly comes from the V5F. Open the port in a terminal and press
 Enter to get the first prompt. Debug `printf` output goes to USART1 (V3F)
 and USART8 (V5F).
 
+### Flashing and startup
+
+Build both projects, then download from the **V5F** project. Its download
+is `obj/Merge.Bin`: the V3F's image (at 0) merged with the V5F's (at
+`0x10000`), so it programs both cores. The V3F project's download erases
+the whole chip and writes only the V3F image, which leaves the V5F with
+nothing to run.
+
+That matters because the V3F doesn't start USB on its own. With
+`Run_Core == Run_Core_V3FandV5F` (the default in `SRC/Debug/debug.h`):
+
+1. The V3F empties the rings, wakes the V5F, and sleeps in STOP mode.
+2. The V5F boots and releases HSEM0, which wakes the V3F.
+3. The V3F calls `Hardware()`, which starts USB and the bridge.
+
+So if the V5F image is missing or stale, or the V5F stops before step 2,
+the V3F never wakes and the device never enumerates. The V3F's debug UART
+(USART1, 9600 baud, also on the WCH-LinkE) shows how far it got:
+
+| Line | Means |
+|---|---|
+| `V3F SystemCoreClk:...` | V3F booted |
+| `V3F waiting for V5F` | V3F woke the V5F and went to sleep |
+| `V3F wake up` | the V5F signalled; if this never comes, look at the V5F (image, flashing) |
+| `USB CDC bridge to V5F running on USBFS controller` | USB device started |
+| `USB address N` | the host reset the device and assigned an address |
+| `USB configured` | enumeration finished; the COM port should appear |
+
+The V5F prints `V5F SystemCoreClk:...` and `V5F released HSEM0, running
+echo` on its own debug UART, USART8.
+
 ### Next: LiteForth on the V5F
 
 Add the LiteForth sources (`src/*.c`) and include path to the V5F project,

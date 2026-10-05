@@ -88,6 +88,7 @@ static void slot_release(void) {
 
 static void host_to_ring(void) {
     cdc_ring_t *r = &CDC_SHARED->rx;
+    if (Uart.Tx_RemainNum == 0) return; /* nothing from the host */
     USB_IRQ_OFF();
     while (Uart.Tx_RemainNum) {
         uint16_t slot = Uart.Tx_DealNum;
@@ -135,6 +136,7 @@ static void ep3_arm(uint16_t len) {
 
 /* Drops everything in the tx ring. */
 static void ring_discard(cdc_ring_t *t) {
+    if (cdc_ring_count(t) == 0) return;
     uint32_t head = t->head;
     CDC_FENCE();
     t->tail = head;

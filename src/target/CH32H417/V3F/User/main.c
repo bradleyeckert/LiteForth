@@ -30,6 +30,8 @@ int main(void)
 
 #if (Run_Core == Run_Core_V3FandV5F)
     cdc_shared_init();                  //empty the rings before the V5F uses them
+    printf("V3F waiting for V5F\r\n"); //if "V3F wake up" never follows, the V5F didn't start
+    while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET); //finish sending before STOP
 	NVIC_WakeUp_V5F(Core_V5F_StartAddr);//wake up V5
 	HSEM_ITConfig(HSEM_ID0, ENABLE);
     NVIC->SCTLR |= 1<<4;

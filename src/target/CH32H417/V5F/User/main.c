@@ -81,6 +81,7 @@ int main(void)
 #if (Run_Core == Run_Core_V3FandV5F)
     HSEM_FastTake(HSEM_ID0);
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
+    printf("V5F released HSEM0, running echo\r\n");
     Echo();
 
 #elif (Run_Core == Run_Core_V3F)

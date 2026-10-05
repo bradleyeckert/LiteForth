@@ -61,7 +61,8 @@ instructions order the data before the index that publishes it.
 loops on `cdc_bridge_poll()` in place of the example's `UART_DataRx_Deal()`
 and `UART_DataTx_Deal()` (which bridged USB to USART4). The USB driver from
 [SimulateCDC](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/USBFS/DEVICE/SimulateCDC)
-is used unchanged:
+is used with one change: `ch32h417_usbfs_device.c` records DTR in the
+shared block (edits marked `LiteForth`).
 
 | From `Common/` | Used for |
 |---|---|
@@ -92,12 +93,21 @@ Implements `serial_io.h` (the same interface as
   flight goes in the next one, so output batches itself and needs no
   flushing. A zero-length packet follows a full final packet.
   `serial_busy` is 1 only while the 4K tx ring is full.
-- **No terminal.** If no program has the port open, the host stops reading
-  the IN endpoint. After `CDC_TX_TIMEOUT` (default 1000 ticks, 100 ms) the
+- **No terminal.** A terminal program raises DTR when it opens the port
+  and drops it when it closes (CDC `SET_CONTROL_LINE_STATE`, wValue bit 0).
+  The driver records it in `host_open` in the shared block (cleared on bus
+  reset). While it's 0, or the device isn't configured, the V3F sends
+  nothing and the tx ring holds the V5F's output, such as LiteForth's
+  banner, until a terminal opens the port. `serial_putc` never waits then:
+  once the 4K ring is full, further bytes are dropped, so the oldest 4K is
+  what the terminal sees. The app keeps running offline (LiteForth runs it
+  with `vmRun` while waiting for input).
+- **Open but not reading.** If the port is open but the host stops reading
+  the IN endpoint, after `CDC_TX_TIMEOUT` (default 1000 ticks, 100 ms) the
   V3F discards the tx ring until the host reads again, so the V5F's output
-  never blocks for long. The same happens while the device is not
-  configured, so text written at power-up (such as LiteForth's banner)
-  is lost unless a terminal is already open.
+  never blocks for long.
+- **Terminals must assert DTR.** PuTTY, Tera Term, minicom and screen do.
+  A program that opens the port with DTR off sees no output.
 - **Line coding is ignored.** Any baud rate works.
 
 ### Flashing and startup

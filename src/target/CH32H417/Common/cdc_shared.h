@@ -25,6 +25,14 @@
  * data before the new head, and a consumer reads the data before it
  * publishes the new tail.
  *
+ * Host open: when a program opens the COM port, the host sends
+ * SET_CONTROL_LINE_STATE with DTR set, and clears it when the port is
+ * closed. The V3F's USB interrupt keeps that in host_open. While it's 0,
+ * nobody is listening: the V3F holds the tx ring instead of sending it, and
+ * the V5F's serial_putc drops bytes once the ring is full rather than
+ * waiting, so the app keeps running. The held output (up to 4K, oldest
+ * kept) appears when a terminal opens the port.
+ *
  * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host make
  * the V3F restart the V5F in safe-boot mode, so a runaway app can always be
  * stopped from the terminal. The V3F sets safe_boot to CDC_SAFE_BOOT_MAGIC
@@ -61,6 +69,7 @@ typedef struct {
 
 typedef struct {
     volatile uint32_t magic;                /* CDC_SHARED_MAGIC once set up */
+    volatile uint32_t host_open;            /* V3F: 1 while a program has the port open (DTR) */
     volatile uint32_t safe_boot;            /* CDC_SAFE_BOOT_MAGIC: next V5F start skips the app */
     volatile uint32_t v5f_starts;           /* V5F: counts serial_open calls */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */

@@ -12,6 +12,13 @@
 
 #define RING_MASK   (CDC_RING_SIZE - 1u)
 
+/* 1 while a program on the host has the port open (DTR), as the V3F's USB
+   interrupt records it. While it's 0 the V3F holds the tx ring, so writing
+   must never wait for room. */
+static int host_open(void) {
+    return CDC_SHARED->host_open != 0;
+}
+
 int set_terminal_mode(int enable) {
     (void)enable;
     return 0;
@@ -32,7 +39,7 @@ int serial_open(char* name, int baudrate) {
 }
 
 void serial_close(void) {
-    while (cdc_ring_count(&CDC_SHARED->tx)) {
+    while (cdc_ring_count(&CDC_SHARED->tx) && host_open()) {
         cdc_backoff();                  /* the V3F sends or discards it */
     }
 }
@@ -42,7 +49,7 @@ int serial_ready(void) {
 }
 
 int serial_busy(void) {
-    return cdc_ring_space(&CDC_SHARED->tx) == 0;
+    return cdc_ring_space(&CDC_SHARED->tx) == 0 && host_open();
 }
 
 int serial_getc(void) {
@@ -61,6 +68,7 @@ int serial_getc(void) {
 int serial_putc(char c) {
     cdc_ring_t *t = &CDC_SHARED->tx;
     while (cdc_ring_space(t) == 0) {
+        if (!host_open()) return 0;     /* nobody listening and the ring is full: drop it */
         cdc_backoff();                  /* wait for the V3F to send */
     }
     CDC_FENCE();                        /* V3F has finished with that space */

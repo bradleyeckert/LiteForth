@@ -12,6 +12,7 @@
 #include "ch32h417_usbfs_device.h"
 #include "usb_desc.h"
 #include "ch32h417_usb.h"
+#include "cdc_shared.h"   /* LiteForth: host_open */
 /******************************************************************************/
 /* Variable Definition */
 /* Global */
@@ -307,6 +308,8 @@ void USBFS_IRQHandler( void )
                                 break;
 
                             case CDC_SET_LINE_CTLSTE:
+                                /* LiteForth: DTR (wValue bit 0) says a program has the port open */
+                                CDC_SHARED->host_open = USBFS_SetupReqValue & 0x01;
                                 break;
 
                             case CDC_SEND_BREAK:
@@ -646,6 +649,7 @@ void USBFS_IRQHandler( void )
         USBFSD->DEV_ADDR = 0;
         USBFS_Device_Endp_Init( );
         UART_ParaInit( 1 );
+        CDC_SHARED->host_open = 0;      /* LiteForth: no program has the port open yet */
         USBFSD->INT_FG = USBFS_UIF_BUS_RST;
     }
     else if( intflag & USBFS_UIF_SUSPEND )

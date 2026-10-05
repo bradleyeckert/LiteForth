@@ -1,0 +1,13 @@
+[fresh]
+64 
+LITEFORTH
+[signed]
+2 wrote-1 
+8192
+[foreign]
+1 read-0 Error: ior=-92 Target block index exceeds allocated file capacity
+Error: ior=-96 Attempted write onto a write-protected block range
+
+untouched
+[short]
+0 

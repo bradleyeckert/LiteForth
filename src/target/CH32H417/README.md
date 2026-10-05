@@ -11,7 +11,8 @@ it holds two projects, `V3F` and `V5F`, one per core.
 | `V3F/`, `V5F/` | Per-core MounRiver projects: `User/` (`main.c`, interrupts, clock setup) and project files |
 | `SRC/` | WCH's SDK, copied from [openwch/ch32h417 `EVT/EXAM/SRC`](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/SRC) (commit 6d1e469): `Core/`, `Debug/`, `Ld/` (linker scripts), `Peripheral/` (standard peripheral library), `Startup/` |
 | `V5F/User/serial_io.c/.h` | LiteForth's terminal I/O for the V5F, over the shared rings (below) |
-| `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage (none yet) and options for the V5F (below) |
+| `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage on the microSD card, and options for the V5F (below) |
+| `V5F/User/sdio.c/.h` | WCH's SD card driver for the SDIO peripheral, copied unmodified from `EVT/EXAM/SDIO/SDIO_SD` (commit 3924a05) |
 | `V5F/User/main.c/.h`, `lftime.c/.h`, `lf_*.c` | LiteForth on the V5F: startup, the microsecond time base, and one-line wrappers that compile LiteForth's `src/*.c` into the project (below) |
 
 The projects reach `Common/` and the `SRC/` folders as linked folders
@@ -157,10 +158,28 @@ so only the sectors in the image are erased.
 
 ### Blocks: `V5F/User/blocks.c`
 
-No block storage yet. `blk_init` reports 0 blocks, and `blk_read` /
-`blk_write` return `ERR_BLK_BOUNDS`, so `block` and `load` fail cleanly.
-The plan is a raw partition on the microSD card (type `DA`, 64 KB aligned);
+Blocks live in a raw partition on the microSD card;
 [doc/sdcard.md](../../../doc/sdcard.md) explains how to prepare the card.
+The card is on the SDIO peripheral, which on the nanoCH32H417 uses CLK PB11,
+CMD PB10 and D0-D3 PE8-PE11 (alternate function 8). `blocks.c` uses WCH's
+driver (`sdio.c`) in polling mode: its DMA mode would use DMA1 channel 1,
+which the V3F's UART code also uses.
+
+At startup `blk_init` brings up the card, reads the MBR and takes the first
+partition of type `DA`:
+
+| Card | Capacity | Writable |
+|---|---|---|
+| No card, no MBR, or no type `DA` partition | 0 | no |
+| Partition not on a 64 KB boundary, or block 0 doesn't start with `LITEFORTH` | 1 (block 0, to see what's there) | no |
+| Aligned partition starting with `LITEFORTH` | its size in 4 KB blocks | yes |
+
+Block *n* is sectors `start + 8n` to `start + 8n + 7`. USART8 shows the
+outcome, e.g. `blocks: 16384 blocks at sector 15392768` or
+`blocks: block 0 doesn't start with LITEFORTH: read-only`. The card is
+read once at startup, so a card inserted later needs a restart (Ctrl+X
+three times will do). If transfers fail, try a slower SD clock: raise
+`SDIO_TRANSFER_CLK_DIV` in `sdio.h`.
 
 ## LiteForth on the V5F
 
@@ -187,9 +206,12 @@ C stack is 16K (`__stack_size` in `Link_v5f.ld`).
 
 ### Startup (`V5F/User/main.c`)
 
-After it wakes the V3F, the V5F starts the time base (`lfTimeInit`), maps
+After it wakes the V3F, the V5F starts the time base (`lfTimeInit`), opens
+the terminal (first, because starting the SD card can take a second and
+`serial_open` is what tells the V3F a restart worked), maps
 LiteForth's memory as the desktop `main.c` does (flash pages 0-3 in the
-code flash, the RAM page from the pool, the rest unmapped), and runs
+code flash, the RAM page from the pool, the block partition on the SD
+card, the rest unmapped), and runs
 `lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
 the boot record pointer that `go.f` stores, isn't `0xE339E339` or
 `0xFFFFFFFF`), it boots from it

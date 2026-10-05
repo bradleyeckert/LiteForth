@@ -76,8 +76,11 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   code to write flash to blocks is planned. `make test` uses copies of the
   `bin/` images. Run experiments in the scratchpad, not the repo, so the
   tracked images aren't modified.
-- Block files: 4 KB blocks (not 1 KB), block n at byte offset n*4096, block 0
-  holds the `LITEFORTHBLK ...` header. Only `SYSTEM_BLOCKS` (2) buffers exist,
+- Block files: 4 KB blocks (not 1 KB), block n at byte offset n*4096. Block 0
+  must start with the signature `LITEFORTH` (9 bytes); without it a block file
+  (or SD partition) reports capacity 1, block 0 is readable and nothing is
+  writable, and the file is never modified. That's the only block 0 metadata
+  for now (`unit_tests/blocks/` checks it). Only `SYSTEM_BLOCKS` (2) buffers exist,
   so any 3-deep nesting of loads evicts buffers.
 
 ## Source map
@@ -96,7 +99,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/errcodes.h` | Forth `ior` codes (standard negative throw codes) |
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
-| `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (no blocks yet), `options.h` (4 x 64K flash pages, RAM_PAGE 4), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
+| `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (a raw type-DA partition on the microSD card via WCH's `sdio.c`; see doc/sdcard.md), `options.h` (4 x 64K flash pages, RAM_PAGE 4), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `scripts/regression.f` | Regression script run by `make test` |
 

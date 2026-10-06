@@ -542,6 +542,7 @@ static int loadTIB(int* length) {
             }
             continue;
         }
+        if (g_lf_sys_options & SYS_OPTION_DEADTIB) continue;
         int c = serial_getc();
         if (c < 0) {
             g_lf_sys_options &= ~(SYS_OPTION_NO_OK | SYS_OPTION_NO_DOTESS);

@@ -189,6 +189,7 @@ extern uint32_t g_lf_sys_options; // used in forth.c, main.c, vm.c
 
 #define SYS_OPTIONS_LOCKED    0x8000	/* `>options` ignores changes		*/
 #define SYS_OPTION_NO_API     0x4000	/* disallow the use of API calls    */
+#define SYS_OPTION_DEADTIB    0x2000    /* the app gets the keyboard        */
 #define SYS_OPTION_NO_AUTORUN 0x0100    /* booting doesn't start the app    */
 #define SYS_OPTION_USE_COLORS 0x0080	/* use color messages				*/
 #define SYS_OPTION_VERBOSE    0x0040	/* echo input lines					*/

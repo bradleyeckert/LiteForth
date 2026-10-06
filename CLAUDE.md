@@ -58,7 +58,9 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - `-o N` sets `g_lf_sys_options` (flags in `vm.h`): 1 no `ok>`, 2 no stack
   display, 4 quit on first error (validation), 8 boot from flash, 16 app
   running (set by `cold`), 32 ignore CR, 64 verbose echo, 256 boot without
-  starting the app (`cold` starts it). Without 32, CRLF input counts every line twice (the CR ends a line
+  starting the app (`cold` starts it), 8192 (`SYS_OPTION_DEADTIB`) the running
+  app gets the keyboard: `loadTIB` runs it even with input waiting and reads
+  nothing itself until the app stops (`unit_tests/deadtib`). Without 32, CRLF input counts every line twice (the CR ends a line
   and the LF makes an empty one), so reported line numbers double. There are no options to skip the flash or block files: lf always
   loads or creates them. `-f file` and `-k file` name the flash and block
   files (defaults `FLASHFILENAME` and `BLOCKFILENAME` in `options.h`);

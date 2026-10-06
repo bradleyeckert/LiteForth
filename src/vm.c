@@ -322,7 +322,7 @@ execute:
             int32_t tos = t;
             DDROP();
             switch (imm) {
-            case VMSTO_YEET: ior = tos;  break;
+            case VMSTO_YEET: if (tos) ior = tos;  break;
             case VMSTO_SHIFT:
                 shift_size = tos & 0x1F; break;
             default: break;

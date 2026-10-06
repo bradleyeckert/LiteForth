@@ -138,5 +138,6 @@
 #define ERR_BAD_STACK_ALLOCATION   (-118)   /* Not enough stack for requested task usage */
 #define ERR_UNRESOLVED_LATER       (-119)   /* Unresolved `later` found */
 #define ERR_CANNOT_DOES            (-120)   /* Cannot resolve the CREATE of DOES> */
+#define ERR_EMPTY_TASKER           (-121)   /* Attempt to `activate` a task before `multitask` */
 
 #endif // ERRCODES_H

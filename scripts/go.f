@@ -57,6 +57,7 @@ hex
 decimal
 
 : 0=        ( x -- flag )   if 0 exit then -1 ;
+: 0<>       ( x -- flag )   0= inv ;
 
 ( The multitasker uses VM primitives `task[`, `]task`, `u!`, and `user`.    )
 
@@ -78,7 +79,8 @@ decimal
 : stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;
 
 ( When `begin pause again` executes on an awake task, pause swaps out the   )
-( return address. `onlytask` creates a terminal task using `operator`.      )
+( return address. `multitask` creates a terminal task using `operator` and  )
+( kicks off multitasking with only the operator task in the queue.          )
 
 :noname     ( next a -- )
     a! u! task[ dup !a ( ix r:d |R: ra ? \ save current r:d )
@@ -87,14 +89,41 @@ decimal
 
 _udata here 3 allot constant operator
 
-: multitask ( -- )
+: multitask  ( -- ) ( R: ra -- )
     operator                              ( this bulky literal is used once ) 
     dup u! dup a! !a+  awake !a+     ( ix |R: ra \ populate next and action )
-    task[  !a+ r> drop 
+    task[  !a+ r> drop       ( capture the operator's r:d and start address )
 ;
 
+hex
+_idata variable stackused  300030 stackused !  ( reserved for terminal task )
+decimal
 
+: task  ( user_cells data_stack return_stack <name> -- )
+    _idata create  16 lshift +                                     ( uc r:d )
+    stackused a! @a  swap over +                               ( uc r:d new )
+    dup stack-masks inv and 0<> -118 and yeet  ( check against upper limits )
+    swap a swap  , !  ( uc )  _udata here       ( CELL 0 = stack base rp:sp )
+    swap 3 + allot  _idata ,  _udata    ( CELL 1 = address of the user area )
+;
 
+( Add a task to the ring after the current one. The rest of the word that   )
+( calls `activate` becomes the task, and the caller of that word goes on:   )
+( : launch  t1 activate begin {your code} pause again ;                     )
+
+: activate  ( task -- )  ( R: ra -- )
+    a! @a+ @a+                                                   ( r:d user )
+    [ _user ,inst ] a 0= -121 and yeet          ( the task queue must exist )
+    @a over !a  swap a!               ( r:d opnext ) ( link in the new task )
+    !a+  awake !a+  dup !a+                ( NEXT = up, STATUS = awake, r:d )
+    ]task r> drop drop 
+;
+
+20 32 32 task t1
+10 20 20 task t2
+
+.( t1: ) t1 2 dump
+.( t2: ) t2 2 dump
 
 
 ( string output )
@@ -149,6 +178,10 @@ variable counter
    _code here >r  'here ! ,compile  postpone exit
    r> 'here ! _udata
 ;
+
+variable ctr 
+
+: try  t1 activate  begin pause  1 ctr +!  again ;
 
 :noname ( demo application )
     init-idata

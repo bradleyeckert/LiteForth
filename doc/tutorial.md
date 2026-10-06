@@ -35,7 +35,6 @@ Text that contains newlines does the obvious: you see `ok>`s on the left.
 - `>options` ( u -- ) Toggles the option flags in `u` (XOR); `0 >options` clears them all
 
 - 8000h : `>options` is locked, `u` is ignored
-- 2000h : a running app gets the keyboard
 - 0040h : echo input lines
 - 0020h : ignore CR (for files with CRLF line endings)
 - 0010h : the app is running

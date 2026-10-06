@@ -332,6 +332,12 @@ execute:
         case VMO_PFX1:
             pfx = (pfx << (VM_IMM_BITS + 1)) | imm | (1 << VM_IMM_BITS); break;
         case VMO_API0:
+            if (g_lf_sys_options & SYS_OPTION_ONLY_TERM) {
+                if (imm > API_T_TXQ) {
+                    ior = ERR_NO_API_CALL_ALLOWED;
+                    break;
+                }
+            }
         case VMO_API1:
             if (g_lf_sys_options & SYS_OPTION_NO_API) {
                 ior = ERR_NO_API_CALL_ALLOWED;

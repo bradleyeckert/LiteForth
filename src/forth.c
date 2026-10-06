@@ -1002,11 +1002,12 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
     latest = head_addr;
     target_head->name = (char*)(uintptr_t)name_dest;
     target_head->w = w;
-    target_head->aux = aux;
+    uint8_t mywid = *CURRENT;
+    target_head->aux = aux | mywid;
 
     // Insert header at top of current wordlist (linked list). Links are
     // tagged values (see lfFollow), so they stay valid in flash.
-    s_wid* current = &wids[*CURRENT];
+    s_wid* current = &wids[mywid];
     target_head->link = (struct s_head*)current->head;
     current->head = linkToVM(head_addr);
 

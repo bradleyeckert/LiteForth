@@ -137,5 +137,6 @@
 #define ERR_BAD_BOOT_RECORD        (-117)   /* no valid `save-wids` boot record in flash */
 #define ERR_BAD_STACK_ALLOCATION   (-118)   /* Not enough stack for requested task usage */
 #define ERR_UNRESOLVED_LATER       (-119)   /* Unresolved `later` found */
+#define ERR_CANNOT_DOES            (-120)   /* Cannot resolve the CREATE of DOES> */
 
 #endif // ERRCODES_H

@@ -365,7 +365,7 @@ int lfAPI_dotCreate(void) {
 * DOES> replaces the ; with a jump.
 */
 int lfAPI_dotDoes(void) {
-    if (created == 0) return ERR_UNSUPPORTED_OPERATION;
+    if (created == 0) return ERR_CANNOT_DOES;
     uint32_t pc = cpPC();   // instruction address of the code after does>
     int ior = storeJump(created, pc);
     created = 0;

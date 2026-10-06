@@ -1,4 +1,4 @@
-.( Testing Forth primitives ) 7 >options ( validation mode )
+.( Testing Forth primitives ) 0 >options 39 >options ( validation mode )
 cr  ( This file is intended to replace stdin on a console app. )
 ( `make test` runs it as `lf -o 39` in a temp directory holding copies )
 ( of bin/lfflash.bin and bin/lfblocks.bin. The first failed            )

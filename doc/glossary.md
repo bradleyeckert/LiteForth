@@ -42,7 +42,7 @@ Name lookup ignores case.
 | `;` | `( -- )` | Ends the current colon definition. Immediate. |
 | `>aux` | `( aux -- )` | Toggles (XORs) the bits of `aux` in the aux field (the flags) of the most recent definition's header, as `immediate` does with its flag; see `x'`. |
 | `>body` | `( xt -- addr )` | Returns the data address of a word made by `create`. |
-| `>options` | `( n -- )` | Sets system option flags: a nonzero `n` ORs its bits in, 0 clears them all. Ignored once the options are locked. |
+| `>options` | `( n -- )` | Toggles system option flags: a nonzero `n` XORs its bits in (so the same `n` twice restores them), 0 clears them all. Ignored once the options are locked. |
 | `>r` | `( x -- ) (R: -- x)` | Moves `x` to the return stack. |
 | `@` | `( addr -- x )` | Fetches from `addr` (a cell or a bit-field slice address). |
 | `@a` | `( -- x )` | Fetches from the address in register `A`. |

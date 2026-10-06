@@ -22,6 +22,7 @@
 #include "flash.h"
 #include "blocks.h"
 #include "lftime.h"
+#include "iopage.h"
 #include "main.h"
 
 /*********************************************************************
@@ -56,7 +57,8 @@ int lfInitPointers(void) {
 }
 
 /* Sets up LiteForth's memory: flash pages 0..RAM_PAGE-1 in the code flash,
-   the RAM page from the pool, and the rest unmapped. Returns an ior. */
+   the RAM page from the pool, the peripheral registers in VM_IO_PAGE, and
+   the rest unmapped. Returns an ior. */
 static int lfMapMemory(int32_t** flash)
 {
     pool_reset();
@@ -84,6 +86,17 @@ static int lfMapMemory(int32_t** flash)
             vm_memory_rd_limit[i] = RAM_PAGE_CELLS;
             vm_memory_executable[i] = RAM_PAGE_CELLS;
         }
+#ifdef VM_IO_PAGE
+        else if (i == VM_IO_PAGE) {
+            // The peripheral registers: writable, not executable. vmFetch
+            // and vmStore check each access with vmIoValid (iopage.c).
+            vm_memory[i] = (int32_t*)IO_BASE;
+            vm_memory_name[i] = "I/O";
+            vm_memory_rd_limit[i] = IO_CELLS;
+            vm_memory_wp_limit[i] = 0;
+            vm_memory_executable[i] = 0;
+        }
+#endif
         else {
             // Reserved/Unmapped segments
             vm_memory[i] = NULL;

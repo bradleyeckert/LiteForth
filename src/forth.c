@@ -300,6 +300,9 @@ char* lfVmBytes(uint32_t a) {
     int page = (a & 0x3FFFFF) >> (22 - VM_LOG2_PAGES);
     uint32_t cell = a & VM_PAGE_MASK;
     if ((vm_memory[page] == NULL) || (cell >= vm_memory_rd_limit[page])) return NULL;
+#ifdef VM_IO_PAGE
+    if (page == VM_IO_PAGE) return NULL;    // registers, never names or headers
+#endif
     return (char*)&vm_memory[page][cell] + ((a >> 25) & 3);
 }
 

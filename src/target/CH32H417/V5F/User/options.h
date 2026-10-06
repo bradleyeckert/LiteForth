@@ -22,6 +22,7 @@
 #define FLASH_PAGE_CELLS  16384 // Flash memory page size [1] CH32H417: 64KB, one erase block
 #define RAM_PAGE              4 // The memory page used by system variables. CH32H417: 4 flash pages, 256KB
 #define RAM_PAGE_CELLS     4096 // RAM page size [2]
+#define VM_IO_PAGE            5 // CH32H417: the peripheral registers (iopage.h)
 // memalloc.c
 #define POOL_CAPACITY     24576 // cells of the system memory pool. CH32H417: RAM page + open-flash cache [3]
 // flash.c: the flash lives at __lf_flash_start (V5F linker script). Unused.

@@ -17,6 +17,9 @@ Each segment can have its own read, write-protect, and executable limits.
 - Code reads are valid from 0 to `vm_memory_executable`-1.
 - Data reads are valid from 0 to `vm_memory_rd_limit`-1.
 - Data writes are valid from `vm_memory_wp_limit` to `vm_memory_rd_limit`-1.
+If options.h defines VM_IO_PAGE, that page holds memory-mapped I/O: data
+reads and writes there must also pass the target's vmIoValid (iopage.h),
+which rejects the gaps between peripherals.
 These pointers take 256 bytes of RAM if VM_SEGMENTS = 8.
 */
 

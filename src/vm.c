@@ -5,6 +5,9 @@
 #include "errcodes.h"
 #include "api0.h"
 #include "lftime.h"
+#ifdef VM_IO_PAGE
+#include "iopage.h"                     // the target's I/O page: vmIoValid
+#endif
 
 int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -51,6 +54,11 @@ int vmFetch(uint32_t addr, int32_t* data) {
     if (a >= vm_memory_rd_limit[page]) {
         return ERR_INVALID_ADDRESS;
     }
+#ifdef VM_IO_PAGE
+    if ((page == VM_IO_PAGE) && !vmIoValid(a)) {
+        return ERR_INVALID_ADDRESS;     // a gap between peripherals
+    }
+#endif
     uint32_t res = vm_memory[page][a];
     if (bitfield_size) {
         int bshift = (addr >> 22) & 0x1F;
@@ -70,6 +78,11 @@ int vmStore(uint32_t addr, int32_t data) {
     if (a < vm_memory_wp_limit[page]) { // and above the write protect limit
         return ERR_WRITE_PROTECTED;
     }
+#ifdef VM_IO_PAGE
+    if ((page == VM_IO_PAGE) && !vmIoValid(a)) {
+        return ERR_INVALID_ADDRESS;     // a gap between peripherals
+    }
+#endif
     if (bitfield_size) { // bit fields need a RMW operation
         int bshift = (addr >> 22) & 0x1F;
         uint32_t mask = (1 << bitfield_size) - 1;

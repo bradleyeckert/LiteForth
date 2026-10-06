@@ -519,6 +519,10 @@ static uint32_t linecount = 0;
  * `break`: the app is stuck, so it is stopped and ERR_VM_TIMEOUT is returned,
  * ending the line early.
  *
+ * With SYS_OPTION_DEADTIB set, a running app has the keyboard: it runs even
+ * while input is waiting, and the terminal reads nothing, so the app gets
+ * every key (`key?`, `key`). Once the app stops, the terminal reads again.
+ *
  * Returns 0, ERR_TIB_OVERFLOW if the line did not fit in TIB (the rest of it
  * is discarded), or ERR_VM_TIMEOUT.
  */
@@ -527,8 +531,12 @@ static int loadTIB(int* length) {
     int remaining = TIBSIZE; // remaining space in TIB
     int ior = 0;
 
+    // With SYS_OPTION_DEADTIB, a running app gets the keyboard: it runs
+    // whether or not input is waiting, and reads the keys itself. If the app
+    // stops, the terminal takes the keyboard back.
+    const uint32_t appkeys = SYS_OPTION_DEADTIB | SYS_OPTION_RUNNING;
     while (1) {
-        if (serial_ready() < 1) {
+        if (((g_lf_sys_options & appkeys) == appkeys) || (serial_ready() < 1)) {
 #ifdef yield2c
             yield2c(); // Yield to other tasks while waiting...
 #endif
@@ -542,7 +550,6 @@ static int loadTIB(int* length) {
             }
             continue;
         }
-        if (g_lf_sys_options & SYS_OPTION_DEADTIB) continue;
         int c = serial_getc();
         if (c < 0) {
             g_lf_sys_options &= ~(SYS_OPTION_NO_OK | SYS_OPTION_NO_DOTESS);

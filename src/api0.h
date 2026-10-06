@@ -30,8 +30,9 @@ typedef char api0_count_fits_9_bits[(API0_COUNT <= 512) ? 1 : -1];
 
 /**
  * @brief Forth word `>options`  ( n -- )
- * Sets system option flags (SYS_OPTION_* in vm.h). A nonzero n ORs its
- * bits into the options; zero clears all options. Has no effect once
+ * Toggles system option flags (SYS_OPTION_* in vm.h). A nonzero n XORs its
+ * bits into the options, so the same n twice restores them; zero clears
+ * all options. Has no effect once
  * SYS_OPTIONS_LOCKED is set.
  *
  * @return 0.

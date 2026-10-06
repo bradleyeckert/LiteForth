@@ -32,14 +32,19 @@ Text that contains newlines does the obvious: you see `ok>`s on the left.
 
 ## Run-time display options
 
-- `>options` ( u -- ) Sets the option flags
-- `options>` ( -- u ) Gets the option flags
+- `>options` ( u -- ) Toggles the option flags in `u` (XOR); `0 >options` clears them all
 
-- 0010h : `>options` is locked, `u` is ignored
-- 0008h : echo input lines
+- 8000h : `>options` is locked, `u` is ignored
+- 2000h : a running app gets the keyboard
+- 0040h : echo input lines
+- 0020h : ignore CR (for files with CRLF line endings)
+- 0010h : the app is running
 - 0004h : quit immediately upon error
 - 0002h : suppress the stack display before `ok>`
 - 0001h : suppress `ok>` prompt
+
+Since `>options` toggles, start a file with `0 >options` before setting
+flags if lf may have been started with some already set (`-o`).
 
 When you are replacing stdin with a file, you don't want `ok>` printing after
 each line. The input file would start with:

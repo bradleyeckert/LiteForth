@@ -338,6 +338,7 @@ execute:
                     break;
                 }
             }
+            FALLTHROUGH;
         case VMO_API1:
             if (g_lf_sys_options & SYS_OPTION_NO_API) {
                 ior = ERR_NO_API_CALL_ALLOWED;

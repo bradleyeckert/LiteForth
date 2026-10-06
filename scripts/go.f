@@ -111,12 +111,17 @@ decimal
 ( calls `activate` becomes the task, and the caller of that word goes on:   )
 ( : launch  t1 activate begin {your code} pause again ;                     )
 
+( `task[` on the new task's stacks puts ra on top of its return stack, as   )
+( `multitask` does for the operator, so `awake` resumes it at ra.           )
+
 : activate  ( task -- )  ( R: ra -- )
     a! @a+ @a+                                                   ( r:d user )
     [ _user ,inst ] a 0= -121 and yeet          ( the task queue must exist )
     @a over !a  swap a!               ( r:d opnext ) ( link in the new task )
-    !a+  awake !a+  dup !a+                ( NEXT = up, STATUS = awake, r:d )
-    ]task r> drop drop 
+    !a+  awake !a+                  ( r:d \ NEXT and ACTION set, A = its R:D )
+    task[ !a  ]task              ( r:d \ park our rp:sp in R:D, use its stacks )
+    task[  @a swap !a  ]task  ( our-r:d \ R:D = its rp:sp with ra on top, back )
+    r> drop drop drop  r> drop         ( drop ra: return to caller's caller )
 ;
 
 20 32 32 task t1

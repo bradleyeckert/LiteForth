@@ -474,6 +474,24 @@ T{ mt-count -> 5 }T
 T{ stop  operator 1 + @  u@ -> asleep operator }T
 T{ 3 mt-spin  7 -> 7 }T
 awake operator 1 + !
+: activate  ( task -- )  ( R: ra -- )
+    a! @a+ @a+  [ _user ,inst ] a 0= -121 and yeet
+    @a over !a  swap a!  !a+  awake !a+
+    task[ !a  ]task  task[  @a swap !a  ]task
+    r> drop drop drop  r> drop
+;
+( a task: cell 0 = stack base rp:sp [48:48], cell 1 = its user area )
+_data here 3 allot constant mt-user
+_data here 2 allot constant mt-task
+3145776 mt-task !  mt-user mt-task 1 + !
+_data here 1 allot constant mt-ctr  0 mt-ctr !
+: mt-launch  ( -- ) mt-task activate  begin 1 mt-ctr +! pause again ;
+( activate links the task in after the terminal and returns to our caller )
+T{ 11 22 mt-launch 33 -> 11 22 33 }T
+T{ operator @  mt-user @  mt-user 1 + @ -> mt-user operator awake }T
+( the rest of mt-launch runs as the task, once per pause of the terminal )
+T{ 11 22 33  3 mt-spin  mt-ctr @ -> 11 22 33 3 }T
+operator operator !  ( back to a ring of one )
 
 ( label declares a word for a forward reference; a later : resolves it )
 ( without a new header, so the word defined before it stays visible   )

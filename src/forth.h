@@ -360,7 +360,8 @@ int lfAPI_saveWids(void);
  * build) is set to NULL.
  * The search order is not changed. lfQuit calls this when
  * SYS_OPTION_BOOTING is set, then resets the VM and starts the app, unless
- * SYS_OPTION_NO_AUTORUN is set.
+ * SYS_OPTION_NO_AUTORUN is set. If there is no valid record, lfQuit says
+ * nothing, keeps the default wordlists and doesn't start the app.
  * @return 0, or ERR_BAD_BOOT_RECORD if cell 1 doesn't point to a valid record.
  */
 int lfBootFromFlash(void);

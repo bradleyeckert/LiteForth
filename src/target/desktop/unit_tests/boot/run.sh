@@ -3,7 +3,7 @@
 # a small dictionary and app, ends with `save-wids` and close-flash; a second run
 # boots from that flash image, which the desktop loads at a different address,
 # so the saved wordlists must not depend on C addresses. Also checks that a
-# flash image without a valid record is reported and not run. Runs in a temp
+# flash image without a valid record is quietly not run. Runs in a temp
 # dir and compares the output with expected.txt. Usage: run.sh path/to/lf
 set -e
 LF=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")

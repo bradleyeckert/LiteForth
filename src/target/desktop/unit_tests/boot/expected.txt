@@ -1,4 +1,3 @@
-Error: ior=-117 no valid `save-wids` boot record in flash
 no-record 
 `forth `only extra 
 42 

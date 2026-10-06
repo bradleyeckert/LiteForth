@@ -1,7 +1,7 @@
 #!/bin/sh
-# SYS_OPTION_DEADTIB test: a running app with DEADTIB set gets the keyboard.
+# stop-tib test: a running app with `stop-tib` set gets the keyboard.
 # After go.f, an app is compiled that echoes every key and, on `q`, loops
-# without `break` until the VM times out and stops it. `cold` and DEADTIB
+# without `break` until the VM times out and stops it. `cold` and `1 stop-tib !`
 # start it with more lines still waiting on stdin: the app must echo them
 # (rather than lf spinning with a key waiting that nobody reads), and once
 # it stops, the terminal must read the rest. Runs in a temp dir and compares
@@ -35,7 +35,7 @@ cat <<'F'
 ; hex 80000000 ,jump decimal
 close-flash
 .( app-ready ) cr
-cold 8192 >options
+cold 1 stop-tib !
 abc 1 2 + .q
 .( terminal-back ) cr
 bye

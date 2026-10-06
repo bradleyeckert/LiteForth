@@ -103,11 +103,6 @@ T{ 3 4* -> 12 }T
 : 16*  ( n -- 16n ) 4 >r |inst 2* unext ;
 T{ 1 16* -> 16 }T
 
-( u! sets the user pointer; a qlit instruction pushes U + u9 )
-: u@   ( -- u ) [ 30208 ,inst ] ;
-T{ 1234 u! u@ -> 1234 }T
-T{ 0 u! u@ -> 0 }T
-
 
 ( ===================================================================== )
 ( Macros: two micro-ops in one word                                     )

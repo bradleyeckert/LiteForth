@@ -1,5 +1,21 @@
 # HDL
 
+The CPU simulated by `vm.c` is designed to be built in silicon.
+Forth processors do not have a decode pipeline stage to select the inputs to slow logic.
+The inputs are already there. Decoding settles which output to select.
+An example is the [J1](https://github.com/jamesbowman/j1).
+LiteForth's CPU includes a MISC mode that packs 3 GreenArrays type of instructions.
+
+The code compiled by LiteForth will run in a real Forth chip, but it would have to avoid API calls.
+
+## stacks
+
+The stacks are based on small memories, like 128-cell or 256-cell each. Each stack is addressed by
+a stack pointer. The top of the stack is kept in a register (T or R). The stack can be implemented
+with synchronous memories. Due their small size, the stacks are fast.
+
+## memory access
+
 In hardware (FPGA, ASIC), synchronous code memory would be addressed by the PC.
 The instruction arrives two clock cycles after PC changes.
 When `;` is '1', the instruction bus settles while the group is executing.
@@ -61,8 +77,6 @@ It looks like 2 cycles for write, 5 for read, and 7 for RMW.
 
 If you compare that to an MCU with 400 MHz core clock and 200 MHz APB clock,
 it looks about the same.
-
-The code compiled by LiteForth will run in a real Forth chip, but it would have to avoid API calls.
 
 ## left and right shifts
 

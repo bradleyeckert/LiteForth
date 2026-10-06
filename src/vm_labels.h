@@ -125,7 +125,6 @@
 #define VMO_TOSYS               8
 #define VMO_USER                9
 #define VMO_FROMSYS             10
-#define VMO_QLIT                11
 #define VMO_PFX                 12
 #define VMO_PFX1                13
 #define VMO_API0                14
@@ -142,7 +141,6 @@
 #define VMI_TOSYS              (VMI_OTHER + (VMO_TOSYS    << 9))
 #define VMI_USER               (VMI_OTHER + (VMO_USER     << 9))
 #define VMI_FROMSYS            (VMI_OTHER + (VMO_FROMSYS  << 9))
-#define VMI_QLIT               (VMI_OTHER + (VMO_QLIT     << 9))
 #define VMI_API0               (VMI_OTHER + (VMO_API0     << 9))
 #define VMI_API1               (VMI_OTHER + (VMO_API1     << 9))
 

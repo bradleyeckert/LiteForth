@@ -232,7 +232,7 @@ The µops (note - they don't take immediate data) are:
 | *>sys* |  8 | sys instructions that pop from the stack |
 | user   |  9 | A \= U \+ u9 |
 |***sys>***| 10 | sys instructions that push to the stack |
-|***qlit***| 11 | Push U \+ u9 |
+|        | 11 | |
 | pfx    | 12 | Prefix: lex \= (lex\<\<9) + u9 |
 | pfx1   | 13 | Prefix: lex \= (lex\<\<9) + u9 + 0x200 |
 | RFcall | 14 | Call root function in VM |

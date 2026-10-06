@@ -222,7 +222,6 @@ static const ConstantMapping constant_table[] = {
     { VMI_PFX,          "_pfx"},
     { VMI_PFX1,         "_pfx1"},
     { VMI_USER,         "_user"},
-    { VMI_QLIT,         "_qlit"},
     { VMI_API0,         "_api0"},
     { VMI_API1,         "_api1"},
     { W_PRIMITIVE,      "w_primitive"},

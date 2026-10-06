@@ -327,9 +327,6 @@ execute:
             case VMSFROM_Y: t = Y; break;
             default: break;
             } break;
-        case VMO_QLIT:
-            DDUP();  t = u + imm;
-            break;
         case VMO_PFX:
             pfx = (pfx << (VM_IMM_BITS + 1)) | imm; break;
         case VMO_PFX1:
@@ -347,7 +344,8 @@ execute:
             cspan = 0;                  // memory may have been remapped
             break;
         case 5:
-        case 7:  ior = ERR_INVALID_OPCODE;  break;
+        case 7:
+        case 11:  ior = ERR_INVALID_OPCODE;  break;
         default: UNREACHABLE();         // all 16 are cases
         }
     }

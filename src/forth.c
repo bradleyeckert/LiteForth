@@ -1036,8 +1036,8 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
  * is output to callback function `echo`.
  */
 
-static const char* esc_chars0 = "abfnrtv";
-static const char* esc_chars1 = "\a\b\f\n\r\t\v";
+static const char* esc_chars0 = "abefnrtv";
+static const char* esc_chars1 = "\a\b\x1b\f\n\r\t\v";
 
 int lfParseInputString(putcfunc* echo, char terminator) {
     int escaped = 0;

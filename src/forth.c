@@ -737,8 +737,8 @@ int lfInterpret(char* str, int len) {
  */
 static void quitReset(void) {
     lfSetColor(COLOR_NORMAL);
-    LF_PACKEDSTATE[0] = 10;
-    LF_PACKEDSTATE[F_CURRENT] = 0;
+    LF_PACKEDSTATE[0] = 10; // most Forth state variables
+    vmStore(LF_CURRENT, 0);
     linecount = 0;
     vmPoke(VM_REG_sp, 0);
     vmPoke(VM_REG_rp, 0);

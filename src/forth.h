@@ -228,8 +228,8 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name);
  * Finds the C address of a VM address.
  * @param a Cell address, or byte slice address (an 8-bit slice selects a
  *          byte of the cell, as in a name's address).
- * @return The C address, or NULL if a's page isn't mapped or a is past its
- *         read limit.
+ * @return The C address, or NULL if a's page isn't mapped, a is past its
+ *         read limit, or a is in the I/O page (VM_IO_PAGE).
  */
 char* lfVmBytes(uint32_t a);
 

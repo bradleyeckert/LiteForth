@@ -829,10 +829,10 @@ int lfQuit(void) {
     lfAPI_forth();
     vmReset();
     if (g_lf_sys_options & SYS_OPTION_BOOTING) {
-        int ior = lfBootFromFlash();    // restore the wordlists saved by save-wids
-        if (ior) {
-            reportError(ior);           // and don't start the app
-        } else {
+        // Restore the wordlists saved by save-wids. Without a valid record
+        // (e.g. a new, blank flash file), quietly keep the defaults and
+        // don't start the app.
+        if (lfBootFromFlash() == 0) {
             vmReset();
             if (!(g_lf_sys_options & SYS_OPTION_NO_AUTORUN)) {
                 g_lf_sys_options |= SYS_OPTION_RUNNING; // start the app

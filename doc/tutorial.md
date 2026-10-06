@@ -33,7 +33,6 @@ Text that contains newlines does the obvious: you see `ok>`s on the left.
 ## Run-time display options
 
 - `>options` ( u -- ) Toggles the option flags in `u` (XOR); `0 >options` clears them all
-- `options>` ( -- u ) Gets the option flags
 
 - 8000h : `>options` is locked, `u` is ignored
 - 2000h : a running app gets the keyboard

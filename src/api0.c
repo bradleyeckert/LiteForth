@@ -282,7 +282,9 @@ static int capacity(void) {
 }
 
 /* EXECUTE  ( i*x xt -- j*x )  Run any execution token: a primitive, macro
-   or API word as one instruction, anything else as a call */
+   or API word as one instruction, anything else as a call. No longer in the
+   dictionary (go.f defines `execute`); API_EXECUTE keeps its slot because
+   API 0 indices must not move. */
 static int execute(void) {
     return lfExecuteXT((uint32_t)vmPop());
 }

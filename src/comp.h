@@ -37,7 +37,7 @@ int lfExecuteWord(const struct s_head* word);
  * once. Otherwise the low 23 bits are a code address, which is called and
  * runs until it returns. Unlike lfExecuteWord there is no header, so a
  * constant can't be recognized: its value would be treated as code.
- * Re-entrant, so it may be called from an API function (see `execute`).
+ * Re-entrant, so it may be called from an API function.
  * @param xt Execution token.
  * @return 0 on success, or an explicit negative error code on failure.
  */

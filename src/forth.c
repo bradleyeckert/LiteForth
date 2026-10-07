@@ -173,7 +173,6 @@ static const struct s_head forth_heads[] = {
     { PREV, "|inst",        API0(API_NEWINST),          A_IMMEDIATE | 0},
     { PREV, "cold",         API0(API_COLD),                           0},
     { PREV, ":noname",      API0(API_NONAME),                         0},
-    { PREV, "execute",      API0(API_EXECUTE),                        0},
     { PREV, "save-wids",    API0(API_SAVE_WIDS),                      0},
     { PREV, "label",        API0(API_LABEL),                          0},
 #if (FAT_FORTH & 1)                                     

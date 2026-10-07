@@ -212,7 +212,6 @@ static const ConstantMapping constant_table[] = {
     { VARIABLE(F_HERE0),"ram-base"},
     { ((STACK_CAPACITY - 1) << 16) | (STACK_CAPACITY - 1), "stack-masks"},
     { LF_DEADTIB,       "stop-tib"},
-    { LF_COLUMNS,       "_scr-cols"},
     { VMI_CALL,         "_call"},
     { VMI_JUMP,         "_jump"},
     { VMI_LIT,          "_lit"},
@@ -845,7 +844,6 @@ int lfQuit(void) {
     lfAPI_only();
     lfAPI_forth();
     vmReset();
-    vmStore(LF_COLUMNS, SCREEN_COLUMNS - 32);
     if (g_lf_sys_options & SYS_OPTION_BOOTING) {
         // Restore the wordlists saved by save-wids. Without a valid record
         // (e.g. a new, blank flash file), quietly keep the defaults and
@@ -1150,11 +1148,8 @@ int lfAPI_load(void) {
 static void printTraceLine(void) {
     int toin = lfTOINfetch();
     if (toin > source_len) toin = source_len;
-    int cols = 0;
-    vmFetch(LF_COLUMNS, &cols);
-    cols += 32; //
-    int row = (toin / cols) + 1;
-    int col = (toin % cols) + 1;
+    int row = (toin / SCREEN_COLUMNS) + 1;
+    int col = (toin % SCREEN_COLUMNS) + 1;
 
     int line_start = toin;
     while (line_start > 0 && source[line_start - 1] != '\n' && source[line_start - 1] != '\r') {

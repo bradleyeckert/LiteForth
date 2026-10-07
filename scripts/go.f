@@ -64,6 +64,7 @@ decimal
 : =         ( n1 n2 -- flag ) xor 0= ;
 : execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;  // safe execute, may remove limits later
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;
+: _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        // a multiply that does not use the API
 
 ( BLOCK 13 )
 ( Multitasking )
@@ -121,31 +122,27 @@ decimal _udata here 3 allot constant operator                                   
 : -         ( n -- -n )     negate + ;                                          // subtract
 
 : _.map     ( -- )
-   here . ." to " 'here 1+ @ .
-   ." unused " unused . ." cells" cr
+    here . ." to " 'here 1+ @ . ." unused " unused . ." cells" cr
 ;
-: .map      ( -- )
-   _udata ." _udata " _.map
-   _idata ." _idata " _.map
-   _code  ." _code  " _.map
-   _text  ." _text  " _.map
-   _udata
+: .map      ( -- )                                                              // display map of all sections
+    _udata ." _udata " _.map  _idata ." _idata " _.map
+    _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
 ;
+
 
 ( BLOCK 16 )
 ( idata save and restore )
-: save-idata  ( -- )
+: save-idata  ( -- )                                                            // compile idata initialization structure
     _idata here  dp[] tuck - amask
-    _text dup , ( 'src len )
-    for  @+ ,  next  drop
+    _text dup , ( 'src len )  for  @+ ,  next  drop                             // first the length, then the data
 ;
 
 : init-idata  ( addr -- )
-    1 @ @  @+ >r  a! dp[] b!  |inst
-    @a+ !b+ unext
+    1 @ @  @+ >r  a! dp[] b!                                                    // load idata from idata structure
+    |inst @a+ !b+ unext
 ;
 
-: ,jump  ( xt addr -- )
+: ,jump  ( xt addr -- )                                                         // compile a jump at addr
    _code here >r  'here ! ,compile  postpone exit
    r> 'here ! _udata
 ;

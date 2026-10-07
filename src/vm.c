@@ -248,13 +248,12 @@ execute:
             case VMU_SWAP:
                 n = datastack[dsp];  datastack[dsp] = t;  t = n;    break;
             case VMU_PLUSSTAR: { // multiply step: T:A >> 1, adding N if A odd
-                uint64_t sum = (uint32_t)t;
+                uint64_t sum = (uint32_t)t; // the adder inputs are T and N
                 if (a & 1) {
-                    sum += (uint32_t)datastack[dsp]; // N, not popped
+                    sum += (uint32_t)datastack[dsp]; // result = carry:sum[31:0]:a
                 }
-                sum = (sum << 31) | ((uint32_t)a >> 1);
-                t = (int32_t)(uint32_t)(sum >> 32);
-                a = (int32_t)(uint32_t)sum;
+                t = (int32_t)(uint32_t)(sum >> 1);
+                a = (int32_t)(((sum & 1) << 31) | ((uint32_t)a >> 1));
             }                                                       break;
             case VMU_B:         DDUP();  t = b;                     break;
             case VMU_BSTORE:    n = t;  DDROP();  b = n;            break;

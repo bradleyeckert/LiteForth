@@ -42,7 +42,6 @@ locations for accessibility by Forth or by C.
 #define LF_MSPACE    BITFIELD(2, 26, 0)
 #define LF_DEADTIB   BITFIELD(1, 28, 0)
 #define LF_CURRENT   BITFIELD(8, 0, F_CURRENT)
-#define LF_COLUMNS   BITFIELD(7, 8, F_CURRENT)
 // there is spare room for 17 more bits of state in F_CURRENT
 #define LF_TIB       BITFIELD(8, 0, F_TIB) /* Terminal Input Buffer        */
 #define LF_CONTEXT   BITFIELD(8, 0, F_CONTEXT)    /* context list          */

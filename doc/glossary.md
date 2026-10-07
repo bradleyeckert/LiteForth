@@ -167,7 +167,6 @@ Name lookup ignores case.
 | `false` | Boolean false flag. |
 | `log2pages` | Memory page count exponent shift value ($\log_2$). |
 | `ram-base` | Base RAM memory boundary pointer. |
-| `scr-columns` | Variable for screen columns, less 32. Initially `SCREEN_COLUMNS-32`. May be 0 to 127. |
 | `stack-masks` | `STACK_CAPACITY` - 1 in both halves, as `rp:sp`: the masks for the stack pointers. `task` uses it to check that stack windows fit. |
 | `state` | Pointer to bitfield holding compilation (`1`) vs interpretation (`0`) state. |
 | `stop-tib` | 1-bit variable: while it is set and the app is running, the app gets the keyboard (`key?`, `key`) and the terminal reads nothing. If the app stops, the terminal reads again. |

@@ -222,7 +222,7 @@ These are compiled by the boot script, not built in.
 | `else` | `( a1 -- a2 )` | Immediate. |
 | `emit` | `( c -- )` | Sends a character (`t_tx!`). |
 | `emit?` | `( -- flag )` | Nonzero while output is busy (`t_tx?`). |
-| `execute` | `( i*x xt -- j*x )` | Calls the code at `xt` (colon, `:noname` or `create` code). Yeets -21 if `xt` is 0. The xt of a primitive, macro or API word isn't a code address, so it can't be executed. |
+| `execute` | `( i*x xt -- j*x )` | Calls the code at `xt` (colon, `:noname` or `create` code). Yeets -21 if `xt` is 0 or has bits set above the 22-bit cell address, as the xt of a primitive, macro or API word does: those can't be executed. |
 | `for` | `( -- a )` | Immediate. At run time `( n -- )`: starts a loop that runs `n` times (`R` = n..1). `0 for` runs 2^32 times. |
 | `here` | `( -- a )` | Next free address in the current space. |
 | `hex` | `( -- )` | Sets `base` to 16. |

@@ -58,7 +58,7 @@ decimal
 
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 : 0<>       ( x -- flag )   0= inv ;
-: execute   ( xt -- )       dup 0= -21 and yeet >r ;
+: execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;
 
 ( Define a `pause` that quickly passes over a sleeping task.                )
 :noname     ( next a -- )   drop u! ; constant asleep

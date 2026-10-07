@@ -440,8 +440,11 @@ T{ ram-base 40 + @+ drop @+ nip -> 8 }T
 : '         ( <name> -- xt) x' drop ;
 : lshift    ( u1 u2 -- u3 ) shft[ ]shl ;
 : 0=        ( x -- flag )   if 0 exit then -1 ;
-( execute, copied from go.f: calls colon or :noname code )
-: execute   ( xt -- )       dup 0= -21 and yeet >r ;
+( execute, copied from go.f: calls colon or :noname code. An xt of 0 )
+( or with bits above the 22-bit address [a primitive, macro or API   )
+( word] yeets -21.                                                    )
+: 0<>       ( x -- flag )   0= inv ;
+: execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;
 T{ xt17 execute -> 17 }T
 T{ x' before-nn drop execute -> 7 }T
 : ex18  xt17 execute 1 + ;

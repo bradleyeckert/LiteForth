@@ -87,13 +87,41 @@ _udata here 3 allot constant operator
   `init-idata multitask hi`, then loops `begin demo-step pause break again`.
   `cold` starts it, and `counter` rises more slowly than without `pause`.
 
-`task` and `activate`, to create tasks and add them to the ring, will come
-back later.
+## Adding tasks
+
+```forth
+: activate  ( task -- )  ( R: ra -- )
+    a! @a+ @a+  [ _user ,inst ] a 0= -121 and yeet
+    @a over !a  swap a!  !a+  awake !a+
+    task[ !a  ]task  task[  @a swap !a  ]task
+    r> drop drop drop  r> drop
+;
+: launch  t1 activate  begin {your code} pause again ;
+```
+
+- **`task`** ( user_cells data_stack return_stack <name> -- ) reserves a
+  window of each stack and a user area. The task's cell 0 is its stack base
+  `rp:sp`, cell 1 the address of its user area.
+- **`activate`** links the task into the ring after the running task, with
+  ACTION = `awake`. Then it gives the task the same starting state that
+  `multitask` gives the operator:
+  - `task[ !a ]task`: parks the caller's `rp:sp` in the new R:D cell and
+    switches to the new task's stack windows.
+  - `task[`: pushes R, the rest of the word that called `activate`, onto
+    the new task's return stack, and a T cell onto its data stack.
+  - `@a swap !a ]task`: stores the new task's `rp:sp` in its R:D and
+    switches back to the caller's stacks.
+  - `r> drop drop drop r> drop`: drops what the first `task[` pushed and
+    the return address, so `;` returns to the caller of `launch`.
+- The next `pause` reaches the new task through `awake`, which pops the
+  address from the new task's return stack and starts it there, with one
+  junk cell as T.
+- `activate` yeets -121 if U = 0, since there is no ring to join.
 
 ## Notes
 
 - **Start the ring first.** Don't `pause` before `multitask`. With U = 0,
   `pause` fetches NEXT and ACTION from cells 0 and 1, and jumps to cell 1.
-- **One task so far.** So far only a ring of one task has been run, so
-  `awake` switches the terminal to itself. `regression.f` checks that the
-  terminal's stacks and R survive `pause`, and what `stop` does in that ring.
+- `regression.f` checks that the terminal's stacks and R survive `pause`,
+  what `stop` does in a ring of one, and that a task added with `activate`
+  runs once per `pause` of the terminal.

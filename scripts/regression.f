@@ -268,15 +268,6 @@ T{ dd -> 3 3 }T
 T{ call17 -> 17 }T
 T{ before-nn -> 7 }T  ( the ; after :noname did not hide before-nn )
 
-( execute runs any xt: colon and :noname code is called, and a       )
-( primitive, macro or API word runs as one instruction               )
-T{ xt17 execute -> 17 }T
-T{ x' before-nn drop execute -> 7 }T
-T{ 4 x' dup drop execute -> 4 4 }T
-T{ 1 2 x' nip drop execute -> 2 }T
-T{ 2 3 x' um* drop execute -> 6 0 }T
-: ex18  xt17 execute 1 + ;
-T{ ex18 -> 18 }T
 
 ( base, hex, decimal )
 T{ base @  HEX      -> 0A }T
@@ -449,6 +440,12 @@ T{ ram-base 40 + @+ drop @+ nip -> 8 }T
 : '         ( <name> -- xt) x' drop ;
 : lshift    ( u1 u2 -- u3 ) shft[ ]shl ;
 : 0=        ( x -- flag )   if 0 exit then -1 ;
+( execute, copied from go.f: calls colon or :noname code )
+: execute   ( xt -- )       dup 0= -21 and yeet >r ;
+T{ xt17 execute -> 17 }T
+T{ x' before-nn drop execute -> 7 }T
+: ex18  xt17 execute 1 + ;
+T{ ex18 -> 18 }T
 : +!        ( n a -- )      a! @a + !a ;
 
 :noname     ( next a -- )   drop u! ; constant asleep

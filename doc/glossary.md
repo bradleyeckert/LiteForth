@@ -84,7 +84,6 @@ Name lookup ignores case.
 | `dup` | `( x -- x x )` | Duplicates the top item. |
 | `empty` | `( -- )` | Resets the dictionary: removes user words and wordlists and resets the dictionary pointers. |
 | `empty-buffers` | `( -- )` | Unassigns all block buffers without saving them. |
-| `execute` | `( i*x xt -- j*x )` | Runs execution token `xt`: a primitive, macro or API word as one instruction, anything else (colon, `:noname` or `create` code) as a call. |
 | `exit` | `( -- )` | Immediate. Compiles a return from the current word. |
 | `flush` | `( -- )` | Saves modified block buffers, then unassigns all of them. |
 | `forth` | `( -- )` | Makes the forth wordlist first in the search order. |
@@ -223,6 +222,7 @@ These are compiled by the boot script, not built in.
 | `else` | `( a1 -- a2 )` | Immediate. |
 | `emit` | `( c -- )` | Sends a character (`t_tx!`). |
 | `emit?` | `( -- flag )` | Nonzero while output is busy (`t_tx?`). |
+| `execute` | `( i*x xt -- j*x )` | Calls the code at `xt` (colon, `:noname` or `create` code). Yeets -21 if `xt` is 0. The xt of a primitive, macro or API word isn't a code address, so it can't be executed. |
 | `for` | `( -- a )` | Immediate. At run time `( n -- )`: starts a loop that runs `n` times (`R` = n..1). `0 for` runs 2^32 times. |
 | `here` | `( -- a )` | Next free address in the current space. |
 | `hex` | `( -- )` | Sets `base` to 16. |

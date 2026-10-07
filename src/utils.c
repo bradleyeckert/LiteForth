@@ -470,6 +470,8 @@ static const ErrorMapping error_table[] = {
     { ERR_BAD_BOOT_RECORD, "no valid `save-wids` boot record in flash" },
     { ERR_BAD_STACK_ALLOCATION, "Not enough stack for requested task usage" },
     { ERR_UNRESOLVED_LATER, "Unresolved `later` found" },
+    { ERR_CANNOT_DOES, "Cannot resolve the CREATE of DOES>" },
+    { ERR_EMPTY_TASKER, "Attempt to `activate` a task before `multitask`" }
 };
 
 /**

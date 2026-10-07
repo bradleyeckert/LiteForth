@@ -58,32 +58,14 @@ decimal
 
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 : 0<>       ( x -- flag )   0= inv ;
-
-( The multitasker uses VM primitives `task[`, `]task`, `u!`, and `user`.    )
-
-( task[                  ]task                      user           u!       )
-( -----------------      ----------------------     ------------   -------- )
-( VM_DDUP; VM_RDUP;      sp = tos & 0xFFFF;         A = U + imm;   U = T;   )
-( T = {rp << 16} | sp;   rp = {tos >> 16} & 0xFFFF;                VM_DDROP;)
-            
-( Multitasker: cooperative, round robin. Each task has a user area, which   )
-( the U register points to while the task runs:                             )
-(   U+0 NEXT    user area of the next task in the ring                      )
-(   U+1 ACTION  xt that pause jumps to: awake, asleep or [start]            )
-(   U+2 R:D     saved rp:sp while the task isn't running                    )
-( The physical stacks are shared: each task gets its own window of them.    )
+: execute   ( xt -- )       dup 0= -21 and yeet >r ;
 
 ( Define a `pause` that quickly passes over a sleeping task.                )
 :noname     ( next a -- )   drop u! ; constant asleep
 : pause     ( -- next a )   [ _user ,inst ] @a+ @a+ >r a ;
 : stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;
-
-( When `begin pause again` executes on an awake task, pause swaps out the   )
-( return address. `multitask` creates a terminal task using `operator` and  )
-( kicks off multitasking with only the operator task in the queue.          )
-
 :noname     ( next a -- )
-    a! u! task[ dup !a ( ix r:d |R: ra ? \ save current r:d )
+    a! u! task[ dup !a                 ( ix r:d |R: ra ? \ save current r:d )
     [ _user 2 + ,inst ] @a ]task r> drop drop
 ; constant awake
 
@@ -118,8 +100,8 @@ decimal
     a! @a+ @a+                                                   ( r:d user )
     [ _user ,inst ] a 0= -121 and yeet          ( the task queue must exist )
     @a over !a  swap a!               ( r:d opnext ) ( link in the new task )
-    !a+  awake !a+                  ( r:d \ NEXT and ACTION set, A = its R:D )
-    task[ !a  ]task              ( r:d \ park our rp:sp in R:D, use its stacks )
+    !a+  awake !a+                 ( r:d \ NEXT and ACTION set, A = its R:D )
+    task[ !a  ]task           ( r:d \ park our rp:sp in R:D, use its stacks )
     task[  @a swap !a  ]task  ( our-r:d \ R:D = its rp:sp with ra on top, back )
     r> drop drop drop  r> drop         ( drop ra: return to caller's caller )
 ;

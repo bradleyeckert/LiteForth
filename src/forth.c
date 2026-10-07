@@ -21,7 +21,7 @@
 static int case_insensitive = CASE_INSENSITIVE;
 
 static int lfTOINfetch(void) {
-    int32_t result;
+    uint32_t result;
     vmFetch(LF_TOIN, &result);
     return result;
 }
@@ -532,7 +532,7 @@ static uint32_t linecount = 0;
 // A running app with `stop-tib` set gets the keyboard (see loadTIB)
 static int appHasKeys(void) {
     if (!(g_lf_sys_options & SYS_OPTION_RUNNING)) return 0;
-    int32_t deadtib = 0;
+    uint32_t deadtib = 0;
     vmFetch(LF_DEADTIB, &deadtib);
     return deadtib;
 }
@@ -942,16 +942,15 @@ static const struct s_head* checkHead(const struct s_head* link) {
 }
 
 int lfBootFromFlash(void) {
-    int32_t a = 0;
-    if (vmFetch(1, &a)) return ERR_BAD_BOOT_RECORD;
-    uint32_t addr = (uint32_t)a;
+    uint32_t addr = 0;
+    if (vmFetch(1, &addr)) return ERR_BAD_BOOT_RECORD;
     int page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t offset = addr & VM_PAGE_MASK;
     if ((addr >> 22) || (page >= RAM_PAGE) || (vm_memory[page] == NULL))
         return ERR_BAD_BOOT_RECORD;     // not a cell address in flash
     uint32_t limit = vm_memory_rd_limit[page];
     if (offset + WIDS_RECORD_TABLE > limit) return ERR_BAD_BOOT_RECORD;
-    int32_t* record = &vm_memory[page][offset];
+    uint32_t* record = &vm_memory[page][offset];
     int n = record[WIDS_RECORD_COUNT];
     if ((n < 1) || (n > WIDS_MAX)) return ERR_BAD_BOOT_RECORD;
     uint32_t bytes = (uint32_t)n * sizeof(struct s_wid);
@@ -977,14 +976,14 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
     if (ior) return ior;
 
     // Resolve destination memory location in 32-bit cells
-    int32_t* textptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
+    uint32_t* textptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
     int32_t  f_hp = *textptr;
     int32_t  f_hmax = textptr[1];
     int page = (f_hp & 0x3FFFFF) >> (22 - VM_LOG2_PAGES);
     int32_t ch_dest = lfSetSliceWidth(f_hp, 8); // LF byte address for name
     uint32_t dest = ch_dest & VM_PAGE_MASK; // cell index within page
 
-    int32_t* cell_dest = &vm_memory[page][dest];
+    uint32_t* cell_dest = &vm_memory[page][dest];
 
     // Name string starts here: the header holds its VM byte address
     uint32_t name_dest = (uint32_t)ch_dest;

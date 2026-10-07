@@ -20,14 +20,14 @@ void tearDown(void) {
 
 /* Test 1: flash_init creates a new file filled with 0xFF when file is missing */
 void test_flash_init_creates_blank_file(void) {
-    int32_t* mem_ptr = NULL;
+    uint32_t* mem_ptr = NULL;
     int err = flash_init(TEST_FLASH_FILE, &mem_ptr);
     TEST_ASSERT_EQUAL_INT(0, err);
     TEST_ASSERT_NOT_NULL(mem_ptr);
 
     // Verify in-memory initialization to 0xFF
     for (size_t i = 0; i < (FLASH_PAGE_CELLS * RAM_PAGE); i++) {
-        TEST_ASSERT_EQUAL_HEX32(0xFFFFFFFF, (uint32_t)mem_ptr[i]);
+        TEST_ASSERT_EQUAL_HEX32(0xFFFFFFFF, mem_ptr[i]);
     }
 
     // Verify file was written to disk with 0xFF bytes
@@ -43,7 +43,7 @@ void test_flash_init_creates_blank_file(void) {
 
 /* Test 2: flash_program updates both in-memory flashmem and file storage */
 void test_flash_program_syncs_memory_and_disk(void) {
-    int32_t* mem_ptr = NULL;
+    uint32_t* mem_ptr = NULL;
     flash_init(TEST_FLASH_FILE, &mem_ptr);
 
     // Create pattern buffer
@@ -59,7 +59,7 @@ void test_flash_program_syncs_memory_and_disk(void) {
     // 1. Assert in-memory synchronization
     size_t start_idx = page * FLASH_PAGE_CELLS;
     for (int i = 0; i < FLASH_PAGE_CELLS; i++) {
-        TEST_ASSERT_EQUAL_HEX32(page_buf[i], (uint32_t)mem_ptr[start_idx + i]);
+        TEST_ASSERT_EQUAL_HEX32(page_buf[i], mem_ptr[start_idx + i]);
     }
 
     // 2. Assert file persistence on disk
@@ -77,7 +77,7 @@ void test_flash_program_syncs_memory_and_disk(void) {
 
 /* Test 3: flash_program rejects out-of-bound pages */
 void test_flash_program_invalid_sector(void) {
-    int32_t* mem_ptr = NULL;
+    uint32_t* mem_ptr = NULL;
     flash_init(TEST_FLASH_FILE, &mem_ptr);
 
     uint32_t dummy_buf[FLASH_PAGE_CELLS] = {0};
@@ -103,10 +103,10 @@ void test_flash_program_grows_short_file(void) {
     }
     fclose(f);
 
-    int32_t* mem_ptr = NULL;
+    uint32_t* mem_ptr = NULL;
     TEST_ASSERT_EQUAL_INT(0, flash_init(TEST_FLASH_FILE, &mem_ptr));
-    TEST_ASSERT_EQUAL_HEX32(0x12345678, (uint32_t)mem_ptr[24]);
-    TEST_ASSERT_EQUAL_HEX32(0xFFFFFFFF, (uint32_t)mem_ptr[25]);
+    TEST_ASSERT_EQUAL_HEX32(0x12345678, mem_ptr[24]);
+    TEST_ASSERT_EQUAL_HEX32(0xFFFFFFFF, mem_ptr[25]);
 
     uint32_t page_buf[FLASH_PAGE_CELLS];
     for (int i = 0; i < FLASH_PAGE_CELLS; i++) {

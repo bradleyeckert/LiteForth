@@ -23,7 +23,7 @@
  * mem: receives a pointer to flash page 0 (the pages are contiguous).
  * Returns 0.
  */
-int flash_init(char *filename, int32_t** mem);
+int flash_init(char *filename, uint32_t** mem);
 
 /**
  * Copies FLASH_PAGE_CELLS elements from source buffer 'm' into flash page

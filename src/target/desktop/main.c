@@ -16,7 +16,7 @@ extern uint32_t g_block_capacity;
 
 // The total idata and udata spans RAM_PAGE_CELLS cells
 int lfInitPointers(void) {
-    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t* mem = vm_memory[RAM_PAGE];
     if (mem == NULL) return ERR_ALLOCATE_FAILED;
     // udata space origin and limit
     mem[F_PTRS + 0] = LF_HERE0 + 0x400;
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     }
 
     pool_reset();
-    int32_t* ram = pool_alloc(RAM_PAGE_CELLS);
-    int32_t* flash = NULL;
+    uint32_t* ram = pool_alloc(RAM_PAGE_CELLS);
+    uint32_t* flash = NULL;
 
     // Simulated flash and blocks live in files (by default in the working
     // directory), which are created if they don't exist.

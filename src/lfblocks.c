@@ -27,8 +27,8 @@ static void init_buffer_system(void) {
 
 /* Helper to get a direct C pointer to a block buffer's 4KB payload in RAM */
 static uint32_t* get_buf_ptr(int buf_idx) {
-    int32_t* ram_base = vm_memory[RAM_PAGE];
-    int32_t* buf_base = ram_base + F_BLOCKBUFS;
+    uint32_t* ram_base = vm_memory[RAM_PAGE];
+    uint32_t* buf_base = ram_base + F_BLOCKBUFS;
     return (uint32_t*)(buf_base + (buf_idx * BLOCK_SIZE_CELLS));
 }
 

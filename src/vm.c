@@ -9,7 +9,7 @@
 #include "iopage.h"                     // the target's I/O page: vmIoValid
 #endif
 
-int32_t* vm_memory[VM_MEM_PAGES] = { NULL };
+uint32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
 uint32_t vm_memory_wp_limit[VM_MEM_PAGES] = { 0 };
 uint32_t vm_memory_executable[VM_MEM_PAGES] = { 0 };
@@ -19,8 +19,8 @@ char* vm_memory_name[VM_MEM_PAGES] = { NULL };
  * The VM's registers and stacks are unsigned: cells are bit patterns, and
  * unsigned arithmetic wraps without undefined behavior. A value is cast to
  * signed only where the VM treats it as signed: sign extension, the `-if`
- * test, and iors, which are negative numbers. The functions in vm.h keep
- * their signed types; they convert at the boundary.
+ * test, and iors, which are negative numbers. Memory (vm_memory) and the
+ * cell values that vmFetch and vmStore pass are unsigned too.
  */
 PLACE_IN_DTCM;
 static uint32_t datastack[STACK_CAPACITY];
@@ -38,8 +38,7 @@ static uint8_t  sp = 0;  // Data Stack Pointer
 static uint8_t  rp = 0;  // Return Stack Pointer
 static uint32_t prefix = 0;  // Literal prefix
 
-// The address after addr: the next cell, or the next slice of a bit field
-static uint32_t fieldPlus(uint32_t addr) {
+uint32_t vmFieldPlus(uint32_t addr) {
     uint32_t bsize = (addr >> 27) & 0x1F;
     if (bsize == 0) {
         return addr + 1;
@@ -52,13 +51,8 @@ static uint32_t fieldPlus(uint32_t addr) {
     return (bsize << 27) | (bshift << 22) | (addr & 0x3FFFFF);
 }
 
-int32_t vmFieldPlus(int32_t addr) {
-    return (int32_t)fieldPlus((uint32_t)addr);
-}
-
-// Reads the cell (or bit field) at addr into *data. Returns an ior.
 PLACE_IN_ITCM;
-static int fetch(uint32_t addr, uint32_t* data) {
+int vmFetch(uint32_t addr, uint32_t* data) {
     uint32_t bitfield_size = addr >> 27;
     uint32_t page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_PAGE_MASK;
@@ -70,7 +64,7 @@ static int fetch(uint32_t addr, uint32_t* data) {
         return ERR_INVALID_ADDRESS;     // a gap between peripherals
     }
 #endif
-    uint32_t res = (uint32_t)vm_memory[page][a];
+    uint32_t res = vm_memory[page][a];
     if (bitfield_size) {
         uint32_t bshift = (addr >> 22) & 0x1F;
         res = (res >> bshift) & ((1u << bitfield_size) - 1);
@@ -79,15 +73,7 @@ static int fetch(uint32_t addr, uint32_t* data) {
     return 0;
 }
 
-int vmFetch(uint32_t addr, int32_t* data) {
-    uint32_t x = 0;
-    int ior = fetch(addr, &x);
-    *data = (int32_t)x;
-    return ior;
-}
-
-// Writes data to the cell (or bit field) at addr. Returns an ior.
-static int store(uint32_t addr, uint32_t data) {
+int vmStore(uint32_t addr, uint32_t data) {
     uint32_t bitfield_size = addr >> 27;
     uint32_t page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_PAGE_MASK;
@@ -106,14 +92,10 @@ static int store(uint32_t addr, uint32_t data) {
         uint32_t bshift = (addr >> 22) & 0x1F;
         uint32_t mask = (1u << bitfield_size) - 1;
         data = ((data & mask) << bshift) |
-            ((uint32_t)vm_memory[page][a] & ~(mask << bshift));
+            (vm_memory[page][a] & ~(mask << bshift));
     }
-    vm_memory[page][a] = (int32_t)data;
+    vm_memory[page][a] = data;
     return 0;
-}
-
-int vmStore(uint32_t addr, int32_t data) {
-    return store(addr, (uint32_t)data);
 }
 
 /*
@@ -166,7 +148,7 @@ static int32_t vmExec(int once, uint32_t inst, uint32_t address) {
     // The code page being run: PC values cbase .. cbase+cspan-1 are in it and
     // executable. cspan = 0 forces a lookup. Anything outside, including the
     // 0xDEADC0DE terminator, takes the slow path in fetch.
-    const int32_t* code = NULL;
+    const uint32_t* code = NULL;
     uint32_t cbase = 0, cspan = 0;
     int slow = once;                    // check after each instruction:
                                         // once, or stepping (not word calls)
@@ -201,7 +183,7 @@ fetch:                                  // outer loop starts here...
     }
     // Two instructions per cell, the even one in the lower half. Only the
     // lower 16 bits of inst are used below.
-    inst = (uint32_t)code[(pc - cbase) >> 1] >> ((pc & 1) << 4);
+    inst = code[(pc - cbase) >> 1] >> ((pc & 1) << 4);
     pc++;
 execute:
     if (inst & VM_UOPS) {
@@ -239,9 +221,9 @@ execute:
             case VMU_TWOSTAR:   t <<= 1;                            break;
             case VMU_DUP:       DDUP();                             break;
             case VMU_DROP:      DDROP();                            break;
-            case VMU_FETCHA:    DDUP();  MEMOP(ior = fetch(a, &n));  t = n;  break;
+            case VMU_FETCHA:    DDUP();  MEMOP(ior = vmFetch(a, &n));  t = n;  break;
             case VMU_FETCHAPLUS:
-                DDUP();  MEMOP(ior = fetch(a, &n));  t = n;  a = fieldPlus(a);  break;
+                DDUP();  MEMOP(ior = vmFetch(a, &n));  t = n;  a = vmFieldPlus(a);  break;
             case VMU_R:         DDUP();  t = r;                     break;
             case VMU_POP:       DDUP();  t = r;  RDROP();           break;
             case VMU_TWODIVC: { // rotate right through carry
@@ -254,7 +236,7 @@ execute:
                 break;
             case VMU_FETCHASIGN: {  // @a, sign-extending a slice
                 DDUP();
-                MEMOP(ior = fetch(a, &n));
+                MEMOP(ior = vmFetch(a, &n));
                 uint32_t bsize = a >> 27;
                 if (bsize) {
                     uint32_t sign = 1u << (bsize - 1);
@@ -263,12 +245,12 @@ execute:
                 t = n;
             }                                                       break;
             case VMU_USTORE:    n = t;  DDROP();  u = n;            break;
-            case VMU_STOREA:    n = t;  DDROP();  MEMOP(ior = store(a, n));  break;
+            case VMU_STOREA:    n = t;  DDROP();  MEMOP(ior = vmStore(a, n));  break;
             case VMU_STOREAPLUS:
-                n = t;  DDROP();  MEMOP(ior = store(a, n));  a = fieldPlus(a);  break;
-            case VMU_STOREB:    n = t;  DDROP();  MEMOP(ior = store(b, n));  break;
+                n = t;  DDROP();  MEMOP(ior = vmStore(a, n));  a = vmFieldPlus(a);  break;
+            case VMU_STOREB:    n = t;  DDROP();  MEMOP(ior = vmStore(b, n));  break;
             case VMU_STOREBPLUS:
-                n = t;  DDROP();  MEMOP(ior = store(b, n));  b = fieldPlus(b);  break;
+                n = t;  DDROP();  MEMOP(ior = vmStore(b, n));  b = vmFieldPlus(b);  break;
             case VMU_SWAP:
                 n = datastack[dsp];  datastack[dsp] = t;  t = n;    break;
             case VMU_PLUSSTAR: { // multiply step: T:A >> 1, adding N if A odd
@@ -281,9 +263,9 @@ execute:
             }                                                       break;
             case VMU_B:         DDUP();  t = b;                     break;
             case VMU_BSTORE:    n = t;  DDROP();  b = n;            break;
-            case VMU_FETCHB:    DDUP();  MEMOP(ior = fetch(b, &n));  t = n;  break;
+            case VMU_FETCHB:    DDUP();  MEMOP(ior = vmFetch(b, &n));  t = n;  break;
             case VMU_FETCHBPLUS:
-                DDUP();  MEMOP(ior = fetch(b, &n));  t = n;  b = fieldPlus(b);  break;
+                DDUP();  MEMOP(ior = vmFetch(b, &n));  t = n;  b = vmFieldPlus(b);  break;
             case VMU_A:         DDUP();  t = a;                     break;
             case VMU_CY:        DDUP();  t = c;                     break;
             default:            UNREACHABLE();  // all 32 are cases
@@ -324,7 +306,7 @@ execute:
             switch (imm) {
             case VMS_SHR: t >>= shift_size;  break;
             case VMS_SHL: t <<= shift_size;  break;
-            case VMS_FIELDPLUS: t = fieldPlus(t);  break;
+            case VMS_FIELDPLUS: t = vmFieldPlus(t);  break;
             case VMS_GETUSEC: {
                 uint64_t usec = lfGetTimeMicroSec();
                 Y = (uint32_t)(usec >> 32);

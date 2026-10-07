@@ -58,7 +58,7 @@ decimal
 
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 : 0<>       ( x -- flag )   0= inv ;
-: execute   ( xt -- )       dup 0= -21 and yeet >r ;
+: execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;
 
 ( Define a `pause` that quickly passes over a sleeping task.                )
 :noname     ( next a -- )   drop u! ; constant asleep
@@ -71,6 +71,7 @@ decimal
 
 _udata here 3 allot constant operator
 
+( This gets called first, before any activate, to launch the multitasker.   )
 : multitask  ( -- ) ( R: ra -- )
     operator                              ( this bulky literal is used once ) 
     dup u! dup a! !a+  awake !a+     ( ix |R: ra \ populate next and action )
@@ -81,6 +82,7 @@ hex
 _idata variable stackused  300030 stackused !  ( reserved for terminal task )
 decimal
 
+( Create a new task )
 : task  ( user_cells data_stack return_stack <name> -- )
     _idata create  16 lshift +                                     ( uc r:d )
     stackused a! @a  swap over +                               ( uc r:d new )
@@ -89,13 +91,7 @@ decimal
     swap 3 + allot  _idata ,  _udata    ( CELL 1 = address of the user area )
 ;
 
-( Add a task to the ring after the current one. The rest of the word that   )
-( calls `activate` becomes the task, and the caller of that word goes on:   )
-( : launch  t1 activate begin {your code} pause again ;                     )
-
-( `task[` on the new task's stacks puts ra on top of its return stack, as   )
-( `multitask` does for the operator, so `awake` resumes it at ra.           )
-
+( Activate a task, starting immediately after 'activate'.                   )
 : activate  ( task -- )  ( R: ra -- )
     a! @a+ @a+                                                   ( r:d user )
     [ _user ,inst ] a 0= -121 and yeet          ( the task queue must exist )

@@ -9,31 +9,50 @@
 /* Forces code straight into the Instruction Tightly Coupled Memory section */
 #define PLACE_IN_ITCM /* __attribute__((section(".itcm"))) */
 
-// The top two data stack items are cached in T and N; datastack holds the
-// rest. A push moves N to memory and T to N; the caller then sets T.
+// Global data stack moves (vm.c). With TWO_REGISTER_TOS (vm.h) the top two
+// items are cached in T and N: a push moves N to memory and T to N. Without
+// it, only T is cached. Either way the caller then sets T.
+#ifdef TWO_REGISTER_TOS
 #define VM_DDUP do {                    \
     sp = (sp + 1) & STACK_MASK;         \
     datastack[sp] = N;                  \
     N = T;                              \
-} while(0)      
+} while(0)
+#else
+#define VM_DDUP do {                    \
+    sp = (sp + 1) & STACK_MASK;         \
+    datastack[sp] = T;                  \
+} while(0)
+#endif
 
 #define VM_RDUP do {                    \
     rp = (rp + 1) & STACK_MASK;         \
     returnstack[rp] = R;                \
 } while(0)      
 
+#ifdef TWO_REGISTER_TOS
 #define VM_DDROP do {                   \
     T = N;                              \
     N = datastack[sp];                  \
     sp = (sp - 1) & STACK_MASK;         \
-} while(0)      
+} while(0)
+#else
+#define VM_DDROP do {                   \
+    T = datastack[sp];                  \
+    sp = (sp - 1) & STACK_MASK;         \
+} while(0)
+#endif
 
 #define VM_RDROP do {                   \
     R = returnstack[rp];                \
     rp = (rp - 1) & STACK_MASK;         \
 } while(0)    
 
+#ifdef TWO_REGISTER_TOS
 #define NOS N
+#else
+#define NOS datastack[sp]
+#endif
 #define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
 
 // slot assignments for 16-bit instruction

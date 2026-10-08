@@ -23,7 +23,9 @@ PLACE_IN_DTCM;
 static uint32_t datastack[STACK_CAPACITY];
 static uint32_t returnstack[STACK_CAPACITY];
 static uint32_t T = 0;  // Top of Data Stack
+#ifdef TWO_REGISTER_TOS
 static uint32_t N = 0;  // Next on the Data Stack (datastack holds the rest)
+#endif
 static uint32_t PC = 0;  // Program Counter
 static uint32_t R = 0;  // Top of Return Stack
 static uint32_t A = 0;  // Address A
@@ -95,23 +97,44 @@ int vmStore(uint32_t addr, uint32_t data) {
  */
 static uint32_t shift_size = 0;              // set by shft[ for ]shl and ]shr
 
+/*
+ * `nos` is the second data stack item: with TWO_REGISTER_TOS a local copy
+ * of N, otherwise datastack[dsp] itself. The micro-ops use it either way.
+ */
+#ifdef TWO_REGISTER_TOS
+#define LOAD_N()  nos = N
+#define SAVE_N()  N = nos
+#else
+#define nos       datastack[dsp]
+#define LOAD_N()  ((void)0)
+#define SAVE_N()  ((void)0)
+#endif
+
 #define VM_LOAD() do {                                          \
-    t = T;  nos = N;  r = R;  a = A;  b = B;  u = U;  pc = PC;  \
+    t = T;  LOAD_N();  r = R;  a = A;  b = B;  u = U;  pc = PC; \
     dsp = sp & STACK_MASK;  rsp = rp & STACK_MASK;              \
     c = cy & 1;  pfx = prefix;                                  \
 } while (0)
 
 #define VM_SAVE() do {                                          \
-    T = t;  N = nos;  R = r;  A = a;  B = b;  U = u;  PC = pc;  \
+    T = t;  SAVE_N();  R = r;  A = a;  B = b;  U = u;  PC = pc; \
     sp = (uint8_t)dsp;  rp = (uint8_t)rsp;                      \
     cy = (uint8_t)c;  prefix = pfx;                             \
 } while (0)
 
 // Stack moves on the local copies (VM_DDUP etc. in vm_labels.h use globals).
-// T and N (t, nos) are the top two items; datastack[dsp] is the third.
-// DDUP makes room for a new T (the caller sets t); DDROP pops T.
+// DDUP makes room for a new T (the caller sets t); DDROP pops T. With
+// TWO_REGISTER_TOS, t and nos are the top two items and datastack[dsp] the
+// third; otherwise datastack[dsp] is the second.
+#ifdef TWO_REGISTER_TOS
 #define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = nos; nos = t; } while (0)
 #define DDROP() do { t = nos; nos = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#define NIP()   do { nos = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#else
+#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = t; } while (0)
+#define DDROP() do { t = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#define NIP()   do { dsp = (dsp - 1) & STACK_MASK; } while (0)
+#endif
 #define RDUP()  do { rsp = (rsp + 1) & STACK_MASK; returnstack[rsp] = r; } while (0)
 #define RDROP() do { r = returnstack[rsp]; rsp = (rsp - 1) & STACK_MASK; } while (0)
 
@@ -129,7 +152,10 @@ static uint32_t shift_size = 0;              // set by shft[ for ]shl and ]shr
 #define TERMINATOR 0xDEADC0DEu          // return address that ends a word call
 
 static int32_t vmExec(int once, uint32_t inst, uint32_t address) {
-    uint32_t t, nos, r, a, b, u, pc, pfx;   // T, N, R, A, B, U, PC, prefix
+#ifdef TWO_REGISTER_TOS
+    uint32_t nos;                       // N
+#endif
+    uint32_t t, r, a, b, u, pc, pfx;    // T, R, A, B, U, PC and prefix
     uint32_t dsp, rsp, c;               // sp, rp and cy
     VM_LOAD();
 
@@ -200,8 +226,7 @@ execute:
             case VMU_PLUS: {    // cy = carry out of bit 31
                 uint32_t sum = t + nos;
                 c = sum < t;
-                nos = datastack[dsp];
-                dsp = (dsp - 1) & STACK_MASK;
+                NIP();
                 t = sum;
             }                                                       break;
             case VMU_AND:       n = t;  DDROP();  t &= n;           break;
@@ -392,6 +417,10 @@ byee:
     return ior;
 }
 
+#ifndef TWO_REGISTER_TOS
+#undef nos
+#endif
+
 /*
  * vmRun (documented in vm.h).
  * Calling a word can re-enter vmRun: an API call such as LOAD interprets a
@@ -423,7 +452,9 @@ int32_t vmPeek(int reg) {
     }
     switch (reg) {
         case 0:         x = T;  break;
+#ifdef TWO_REGISTER_TOS
         case 1:         x = N;  break;
+#endif
         case VM_REG_PC: x = PC; break;
         case VM_REG_R : x = R;  break;
         case VM_REG_A : x = A;  break;
@@ -434,7 +465,7 @@ int32_t vmPeek(int reg) {
         case VM_REG_rp: x = rp; break;
         default:
         if (reg < STACK_MASK) {
-            x = datastack[(sp + 2 - reg) & STACK_MASK];
+            x = datastack[(sp + TOS_REGISTERS - reg) & STACK_MASK];
             break;
         }   return -1;
     }
@@ -449,7 +480,9 @@ int32_t vmPoke(int reg, int32_t value) {
     }
     switch (reg) {
         case 0:         T = data; break;
+#ifdef TWO_REGISTER_TOS
         case 1:         N = data; break;
+#endif
         case VM_REG_PC: PC = data; break;
         case VM_REG_R : R = data; break;
         case VM_REG_A : A = data; break;
@@ -460,7 +493,7 @@ int32_t vmPoke(int reg, int32_t value) {
         case VM_REG_rp: rp = data & STACK_MASK; break;
         default:
         if (reg < STACK_MASK) {
-            datastack[(sp + 2 - reg) & STACK_MASK] = data;
+            datastack[(sp + TOS_REGISTERS - reg) & STACK_MASK] = data;
             break;
         }   return -1;
     }
@@ -473,7 +506,9 @@ int32_t vmReset(void) {
     }
     R = TERMINATOR;    // empty return stack marker
     T = VM_EMPTYSTACK; // empty data stack markers
+#ifdef TWO_REGISTER_TOS
     N = VM_EMPTYSTACK;
+#endif
     return 0;
 }
 

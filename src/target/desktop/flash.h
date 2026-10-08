@@ -12,7 +12,7 @@
  * mem: receives a pointer to the statically allocated flash array.
  * Returns 0 if okay, or an explicit negative error code on failure.
  */
-int flash_init(char *filename, int32_t** mem);
+int flash_init(char *filename, uint32_t** mem);
 
 /**
  * Copies FLASH_PAGE_CELLS elements from source buffer 'm' into flash page 'page'.

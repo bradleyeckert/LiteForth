@@ -182,8 +182,8 @@ static int stardivmod(void) {
 }
 
 int openpage = -1;
-int32_t* cache = NULL;
-int32_t* flash = NULL;
+uint32_t* cache = NULL;
+uint32_t* flash = NULL;
 
 /* CLOSE-FLASH  ( -- ) */
 static int flashClose(void) {
@@ -192,20 +192,20 @@ static int flashClose(void) {
     if (flash == NULL) return ERR_FLASH_INVALID_SECTOR;
 
     // 1. The backing flash page that open-flash saved
-    int32_t* flash_page_ptr = flash;
+    uint32_t* flash_page_ptr = flash;
 
     // 2. Restore vm_memory page pointer back to backing flash memory
     vm_memory[openpage] = flash_page_ptr;
     vm_memory_wp_limit[openpage] = FLASH_PAGE_CELLS; // write-protect
 
     // 3. Persist RAM cache contents to disk/flashmem
-    int ior = flash_program((uint32_t*)cache, openpage);
+    int ior = flash_program(cache, openpage);
 
     openpage = -1;
 
     // 4. Burn (zero-fill) the cache buffer before freeing
     if (cache != NULL) {
-        memset(cache, 0, FLASH_PAGE_CELLS * sizeof(int32_t));
+        memset(cache, 0, FLASH_PAGE_CELLS * sizeof(uint32_t));
     }
 
     // 5. Free allocated cache memory and check for errors
@@ -239,7 +239,7 @@ static int flashOpen(void) {
     flash = vm_memory[page]; // the backing flash page, restored by close-flash
 
     // Copy backing flash memory contents into RAM cache
-    memcpy(cache, flash, FLASH_PAGE_CELLS * sizeof(int32_t));
+    memcpy(cache, flash, FLASH_PAGE_CELLS * sizeof(uint32_t));
 
     // Point vm_memory page to RAM cache and remove write protection
     vm_memory[page] = cache;

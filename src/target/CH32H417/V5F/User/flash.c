@@ -24,9 +24,9 @@ extern const uint8_t  __lf_flash_size[];
 
 #define PAGE_BYTES  (FLASH_PAGE_CELLS * sizeof(uint32_t))
 
-int flash_init(char *filename, int32_t** mem) {
+int flash_init(char *filename, uint32_t** mem) {
     (void)filename;
-    *mem = (int32_t *)__lf_flash_start;
+    *mem = (uint32_t *)__lf_flash_start;
     if ((uint32_t)RAM_PAGE * PAGE_BYTES > (uint32_t)__lf_flash_size) {
         return ERR_FLASH_INVALID_SECTOR; /* options.h and the linker disagree */
     }

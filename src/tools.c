@@ -256,7 +256,7 @@ int32_t vmPop(void) {
 }
 
 int lfSTATEfetch(void) {
-    int32_t result;
+    uint32_t result;
     vmFetch(LF_STATE, &result);
     return result;
 }
@@ -266,7 +266,7 @@ int lfSTATEstore(int state) {
 }
 
 int lfBASEfetch(void) {
-    int32_t result;
+    uint32_t result;
     vmFetch(LF_BASE, &result);
     return result;
 }
@@ -276,13 +276,13 @@ int lfBASEstore(int base) {
 }
 
 int lfTpFetch(int32_t* tp) {
-    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t* mem = vm_memory[RAM_PAGE];
     *tp = mem[F_PTRS_TP];
     return 0;
 }
 
 int lfTpStore(int32_t tp) {
-    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t* mem = vm_memory[RAM_PAGE];
     uint32_t tp_max = mem[F_PTRS_TP + 1];
     if (((unsigned)tp & 0x3FFFFF) >= tp_max) return ERR_DICTIONARY_OVERFLOW;
     mem[F_PTRS_TP] = tp;

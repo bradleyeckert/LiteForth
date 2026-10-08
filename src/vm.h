@@ -23,7 +23,7 @@ which rejects the gaps between peripherals.
 These pointers take 256 bytes of RAM if VM_SEGMENTS = 8.
 */
 
-extern int32_t* vm_memory[VM_MEM_PAGES];           
+extern uint32_t* vm_memory[VM_MEM_PAGES];           
 extern uint32_t vm_memory_rd_limit[VM_MEM_PAGES];  
 extern uint32_t vm_memory_wp_limit[VM_MEM_PAGES];  
 extern uint32_t vm_memory_executable[VM_MEM_PAGES];
@@ -71,7 +71,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address);
  * @param data Pointer to destination of the read data
  * @return ior, 0 if okay, or ERR_INVALID_ADDRESS at or past the page's read limit
  */
-int vmFetch(uint32_t addr, int32_t* data);
+int vmFetch(uint32_t addr, uint32_t* data);
 
 /**
  * @brief Writes to the memory space
@@ -83,7 +83,7 @@ int vmFetch(uint32_t addr, int32_t* data);
  * @return ior, 0 if okay, ERR_INVALID_ADDRESS at or past the page's read limit,
  *         or ERR_WRITE_PROTECTED below the page's write-protect limit
  */
-int vmStore(uint32_t addr, int32_t data);
+int vmStore(uint32_t addr, uint32_t data);
 
 /**
  * @brief Calculates the next RAM address
@@ -94,7 +94,7 @@ int vmStore(uint32_t addr, int32_t data);
  * @param addr Cell or bitfield address
  * @return Next cell or bitfield address
  */
-int32_t vmFieldPlus(int32_t addr);
+uint32_t vmFieldPlus(uint32_t addr);
 
 /**
  * @brief Reads a VM register or data stack item.

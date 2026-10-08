@@ -30,7 +30,7 @@ static void test_ranges(void) {
 }
 
 static void test_fetch_store(void) {
-    int32_t x = 0;
+    uint32_t x = 0;
     assert(vmFetch(IO(0x10800), &x) == 0);
     assert(vmStore(IO(0x10800), 0x12345678) == 0);
     assert(vmFetch(IO(0x10800), &x) == 0 && x == 0x12345678);

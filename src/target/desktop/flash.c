@@ -6,7 +6,7 @@
 #include "options.h"
 
 #define FLASH_CELLS (FLASH_PAGE_CELLS * RAM_PAGE)
-int32_t flashmem[FLASH_CELLS];
+uint32_t flashmem[FLASH_CELLS];
 
 static char current_filename[256] = { 0 };
 
@@ -23,7 +23,7 @@ static inline FILE* safe_fopen(const char* filename, const char* mode) {
 #endif
 }
 
-int flash_init(char* filename, int32_t** mem) {
+int flash_init(char* filename, uint32_t** mem) {
     *mem = flashmem;
     FILE* file = NULL;
     char* target_file = (filename && filename[0] != '\0') ? filename : FLASHFILENAME;

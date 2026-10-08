@@ -17,13 +17,13 @@ uint32_t lfCreatedName; // used by api0.c
 ===========================================================================*/
 
 static int cpFetch(int32_t* cp) {
-    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t* mem = vm_memory[RAM_PAGE];
     *cp = mem[F_PTRS_CP];
     return 0;
 }
 
 static int cpStore(int32_t cp) {
-    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t* mem = vm_memory[RAM_PAGE];
     uint32_t cp_max = mem[F_PTRS_CP + 1];
     if (((unsigned)cp & 0x3FFFFF) >= cp_max) return ERR_DICTIONARY_OVERFLOW;
     mem[F_PTRS_CP] = cp;
@@ -223,7 +223,7 @@ static int CompExit(void) {
     }
     if (lastcall) {
         int ior = 0;
-        int32_t callInst = 0;
+        uint32_t callInst = 0;
         vmFetch(lastcall, &callInst);
         callInst &= ~VMI_CALL; // call -> jump
         ior = vmStore(lastcall, callInst);
@@ -327,15 +327,15 @@ int lfAPI_constant(void) {
 }
 
 // point to the current HERE pointer
-static int32_t* herePtr(void) {
-    int32_t space = 0; // ud,id,c,h
+static uint32_t* herePtr(void) {
+    uint32_t space = 0; // ud,id,c,h
     vmFetch(LF_MSPACE, &space);
     return &vm_memory[RAM_PAGE][F_PTRS + (space << 1)];
 }
 
 /* BITS  ( n <name> -- ) */
 int lfAPI_bits(void) {
-    int32_t* ptr = herePtr(); 
+    uint32_t* ptr = herePtr(); 
     int32_t here = *ptr;
     int32_t bits = vmPop();
     if ((bits < 1) || (bits > 32)) return ERR_TOO_MANY_BITS;
@@ -380,7 +380,7 @@ int lfAPI_dotDoes(void) {
 int lfAPI_toBody(void) {
     uint32_t xt = vmPop();
     uint32_t cp = (16 << 27) | (xt >> 1) | ((xt & 1) << 26);
-    int32_t inst = 0;
+    uint32_t inst = 0;
     int32_t acc = 0;
     int ior = 0;
     int i = 4;

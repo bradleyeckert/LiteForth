@@ -37,7 +37,7 @@ extern uint32_t g_block_capacity;
 
 // The total idata and udata spans RAM_PAGE_CELLS cells
 int lfInitPointers(void) {
-    int32_t* mem = vm_memory[RAM_PAGE];
+    uint32_t* mem = vm_memory[RAM_PAGE];
     if (mem == NULL) return ERR_ALLOCATE_FAILED;
     // udata space origin and limit
     mem[F_PTRS + 0] = LF_HERE0 + 0x400;
@@ -59,10 +59,10 @@ int lfInitPointers(void) {
 /* Sets up LiteForth's memory: flash pages 0..RAM_PAGE-1 in the code flash,
    the RAM page from the pool, the peripheral registers in VM_IO_PAGE, and
    the rest unmapped. Returns an ior. */
-static int lfMapMemory(int32_t** flash)
+static int lfMapMemory(uint32_t** flash)
 {
     pool_reset();
-    int32_t* ram = pool_alloc(RAM_PAGE_CELLS);
+    uint32_t* ram = pool_alloc(RAM_PAGE_CELLS);
     if (ram == NULL) return ERR_ALLOCATE_FAILED;
 
     int ior = flash_init(NULL, flash);
@@ -90,7 +90,7 @@ static int lfMapMemory(int32_t** flash)
         else if (i == VM_IO_PAGE) {
             // The peripheral registers: writable, not executable. vmFetch
             // and vmStore check each access with vmIoValid (iopage.c).
-            vm_memory[i] = (int32_t*)IO_BASE;
+            vm_memory[i] = (uint32_t*)IO_BASE;
             vm_memory_name[i] = "I/O";
             vm_memory_rd_limit[i] = IO_CELLS;
             vm_memory_wp_limit[i] = 0;
@@ -150,7 +150,7 @@ static void LiteForth(void)
     // lfMapMemory can take a second or more to bring up the SD card.
     serial_open(NULL, 0);
 
-    int32_t* flash = NULL;
+    uint32_t* flash = NULL;
     int ior = lfMapMemory(&flash);
     if (ior) {
         printf("V5F: LiteForth memory setup failed, ior=%d\r\n", ior);

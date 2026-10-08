@@ -154,7 +154,7 @@ int lfAPI_dump(void) {
         lf_puts(": ");
 
         int cells_in_line = (length - tally < 4) ? (length - tally) : 4;
-        int32_t line_data[4] = { 0 };
+        uint32_t line_data[4] = { 0 };
 
         // Fetch up to 4 cells for current line
         for (int i = 0; i < cells_in_line; i++) {
@@ -309,7 +309,7 @@ int lfAPI_dasm(void) {
         lfSpaces(2);
         lfDotB(addr, 16, 0, 6);
         lfSpace();
-        int32_t inst = 0;
+        uint32_t inst = 0;
         int ior = vmFetch((addr >> 1), &inst);
         if (ior) return ior;
         if (addr & 1) inst >>= 16;

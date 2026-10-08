@@ -10,3 +10,12 @@ src/target/desktop/unit_tests/unity/** linguist-vendored
 makefile text eol=lf
 Makefile text eol=lf
 src/target/desktop/unit_tests/*/expected.txt -text
+
+# Block files (4 KB blocks of text, no line structure): never convert line
+# endings (block 0's header holds a newline, and a CR would shift every
+# block), collapse them in GitHub's diffs, and diff them locally as text
+# through scripts/getblocks.py once this clone has
+#     git config diff.fb4.textconv "python3 scripts/getblocks.py -0"
+# Flash images are binary.
+*.fb4 -text diff=fb4 linguist-generated
+*.bin binary

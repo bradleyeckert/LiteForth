@@ -114,6 +114,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `scripts/regression.f` | Regression script run by `make test` |
 | `scripts/putblocks.py` | Writes a source file into blocks: each `( BLOCK n )` line starts block n, lines padded to 128 columns, 32 rows. Needs an existing signed block file (or partition device); never writes block 0 (`unit_tests/putblocks`) |
+| `scripts/getblocks.py` | The reverse: dumps a block file as `( BLOCK n )` text (stdout or `-o`). `putblocks.py` writes the dump back byte for byte. Also the git diff driver for `*.fb4` (`.gitattributes`): run `git config diff.fb4.textconv "python3 scripts/getblocks.py -0"` once per clone so `git diff` shows blocks as text; GitHub can't use it and collapses `.fb4` diffs |
 
 ## Conventions
 

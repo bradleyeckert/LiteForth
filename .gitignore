@@ -30,5 +30,8 @@ src/target/CH32H417/*/obj/
 src/target/CH32H417/.mrs/
 src/target/desktop/unit_tests/blocks/got.txt
 
-# The blocks file (a "blob" often changed by ./scripts/build.bat)
+# The blocks file, a "blob" often changed by ./scripts/build.bat
 bin/lfblocks.fb4
+
+# The flash memory file, a "blob" often changed by lfblocks.fb4 or go.f
+bin/lfflash.bin

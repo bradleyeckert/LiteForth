@@ -40,6 +40,7 @@ hex
 : lshift    ( u1 u2 -- u3 ) shft[ ]shl ;                                        // left shift u1 by u2 to produce u3
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;                                        // right shift u1 by u2 to produce u3
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;                     // convert instruction address to linear format
+: [char]    ( <char> -- )   char  postpone literal ; immediate                  // compile a character as a literal
 decimal
 ( BLOCK 12 )
 ( control structures ) hex
@@ -58,14 +59,9 @@ decimal
 : for       ( -- a )        postpone >r  chere ; immediate                      // for ... next
 : next      ( a -- )        _next _again ; immediate                            // for ... next
 decimal
-
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 : 0<>       ( x -- flag )   0= inv ;
-: =         ( n1 n2 -- flag ) xor 0= ;
 : execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;  // safe execute, may remove limits later
-: or        ( n1 n2 -- n3 ) inv swap inv and inv ;
-: _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        // a multiply that does not use the API
-: 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 // true if n < 0
 
 ( BLOCK 13 )
 ( Multitasking )
@@ -110,50 +106,63 @@ decimal _udata here 3 allot constant operator                                   
 10 20 20 task t2
 
 ( BLOCK 15 )
-( string output )
-: @+        ( a -- a+1 n )  a! @a+ a swap ;                                     // fetch next cell or slice in a stream
+( math )
+: =         ( n1 n2 -- flag ) xor 0= ;
+: or        ( n1 n2 -- n3 ) inv swap inv and inv ;
+: _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        // a multiply that does not use the API
+: 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 // true if n < 0
+: dnegate   ( d -- -d )     inv swap inv 1 + swap cy + ;
+: abs       ( u -- n )      -if negate then ; 
+: dabs      ( ud -- d )     -if dnegate then ;
+: -         ( n -- -n )     negate + ;                                          // subtract
 : 1+        ( n1 -- n2 )    1 + ;
 : 1-        ( n1 -- n2 )    -1 + ;
+: +!        ( n a -- )      a! @a + !a ;                                        // add n to cell at a
+: *         ( n1 n2 -- n3 ) um* drop ;                                          // multiply
+: s>d       ( n -- d )      dup 0< ;                                            // convert single to double
+: min       ( n1 n2 -- n3 ) 2dup - -if 2drop exit then drop nip ;
+: max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;
+: rot       ( abc -- bca )  b! swap b swap ;
+
+( BLOCK 16 )
+( string output )
+: @+        ( a -- a+1 n )  a! @a+ a swap ;                                     // fetch next cell or slice in a stream
 : goodN     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 // exit the caller if there is nothing to do
 : goodAN    ( n1 n2 -- | n1 n2) 1- -if 2drop r> drop exit then 1+ ;             // exit the caller if there is nothing to do
 : type      ( ca n -- )     goodAN for @+ emit next drop ;                      // output a string using emit
 : $type     ( ca -- )       @+ type ;                                           // output counted string
 : ."        ( string" -- )  _," postpone literal  postpone $type ; immediate    // compile a string to type at run time
-: +!        ( n a -- )      a! @a + !a ;                                        // add n to cell at a
-: -         ( n -- -n )     negate + ;                                          // subtract
+: digit     ( n -- char )   dup -10 + 0< -7 and + [char] 7 + ;                  // convert to ASCII digit
+: space     ( -- )          32 emit ;                                           // send a space
+: spaces    ( n -- )        goodN for space next ;                              // send 0 or more spaces
 
-\ Numeric conversion. `d.r` uses frame stack protection to prevent overflow
-\ when the stacks have significant content. Since `d.r` ia typically at the
-\ end of a definition, its tail call doesn't increase the stack.
+: chars     ( a n -- a' )                                                       // skip forward n chars, chars must be 8-bit
+    over 25 rshift 3 and +  ( a bytepos )
+    3 over and >r  2/ 2/ + amask  r> 25 lshift +    ( a' )
+    [ 8 27 lshift ] literal + 
+;
 
-// : digit   dup -10 + 0< -7 and           \ 2.3180 n -- char
-//           + [char] 7 + ;
-// : <#      numbuf  hld ! ;               \ 2.3190 ud1 -- ud1
-// : hold    hld dup >r @ 1- dup r> ! c! ; \ 2.3200 char --
-// : _#_     um/mod swap digit hold ;      \ ud base -- u/base
-// : #       dup  base @ >r  if            \ 2.3210 ud1 -- ud2
-//               0 r@ um/mod r> swap
-//               >r _#_ r> exit
-//           then  r> _#_ 0
-// ;
-// : #s      begin # 2dup or 0= until ;    \ 2.3220 ud1 -- ud2
-// : sign    0< if [char] - hold then ;    \ 2.3230 n --
-// : #>      2drop hld @ numbuf  over - ;  \ 2.3240 ud -- c-addr u
-// : s.r     over - spaces type ;          \ length width --
-// : d.r     3 stack(  >r dup >r dabs      \ 2.3250 d width --
-//           <# #s r> sign #> r> s.r )stack ;
-// : u.r     0 swap d.r ;                  \ 2.3260 u width --
-// : .r      >r s>d r> d.r ;               \ 2.3270 n width --
-// : d.      0 d.r space ;                 \ 2.3280 d --
-// : u.      0 d. ;                        \ 2.3290 u --
-// : ?       @ [ ;                         \ 2.3310 a --
-// : .       s>d d. ;                      \ 2.3300 n --
-// : <#>     >r  <# begin # next #s #> ;   \ ud digits-1
-// : h.2     1 [ ;
-// : h.x     base @ >r hex  0 swap <#> r>  \ 2.3320 u n --
-//           base !  type space ;
+( BLOCK 17 )
+( numeric output )
+_udata variable hld  create numbuf 10 allot
+: <#        ( ud -- ud )    40  hld ! ;                                         // start numeric conversion
+: #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars  swap negate 40 + ;  // end numeric conversion
+: hold      ( c -- )                                                            // append to conversion buffer       
+    hld a! @a 1-  dup 0< -17 and yeet  dup !a
+    numbuf swap chars !
+;
+: #         ( ud1 -- ud2 )  base @ mu/mod rot digit hold ;
+: #s        ( ud -- 0 )     begin # 2dup or 0= until ;
+: sign      ( n -- )        -if [char] - hold exit then drop ;                  // append minus sign if negative
+: s.r       ( length width --) over - spaces type ;        
+: d.r       ( d width -- )  >r dup >r dabs  <# #s r> sign #> r> s.r ;     
+: u.r       ( u width -- )  0 swap d.r ;                  
+: .r        ( n width -- )  >r s>d r> d.r ;               
+: d.        ( d -- )        0 d.r space ;                 
+: u.        ( u -- )        0 d. ;                        
 
-
+( BLOCK 18 )
+( system stats )
 : _.map     ( -- )
     here . ." to " 'here 1+ @ . ." unused " unused . ." cells" cr
 ;
@@ -161,11 +170,21 @@ decimal _udata here 3 allot constant operator                                   
     _udata ." _udata " _.map  _idata ." _idata " _.map
     _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
 ;
-: list-line ( a line -- )   .  8 bit  128 type cr ;
-: list      ( n -- )	    
-    block 32 for  32 r@ negate +  over swap list-line  32 + amask  next drop    // list a block
+
+: -utrailing  ( a len -- a len' )                                               // trim trailing blank cells
+    begin dup 1- swap while
+        2dup + amask @  538976288 xor  if exit then
+    repeat dup xor
 ;
-( BLOCK 16 )
+
+: list      ( n -- )	    
+    block |block| -utrailing
+    begin dup while
+        over 8 bit  over 32 min  dup >r 2* 2* type cr
+        r@ - swap r> + swap
+    repeat  2drop
+;
+( BLOCK 19 )
 ( idata save and restore )
 : save-idata  ( -- )                                                            // compile idata initialization structure
     _idata here  dp[] tuck - amask
@@ -182,7 +201,7 @@ decimal _udata here 3 allot constant operator                                   
    r> 'here ! _udata
 ;
 
-( BLOCK 17 )
+( BLOCK 20 )
 ( demo )
 
 : hi  ." 学如不及，犹恐失之 " ;
@@ -209,7 +228,7 @@ variable ctr
     begin  break  again         ( park the app until the next `cold` )
 ; hex 80000002 ,jump decimal
 
-( BLOCK 18 )
+( BLOCK 21 )
 ( finish app )
 
 _text here 32 bit  1 !  ( Boot structure at end of text )

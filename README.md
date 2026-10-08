@@ -134,7 +134,7 @@ see min
 ```
 That is a 75% reduction in code size.
 
-Half is due to using 16-bit tokens rather than 32-bit instructions
+Half is due to using 16-bit rather than 32-bit instructions
 and another half is because of MISC-like instructions.
 
 ## Data size reduction
@@ -233,14 +233,15 @@ The µops (note - they don't take immediate data) are:
 | user   |  9 | A \= U \+ u9 |
 |***sys>***| 10 | sys instructions that push to the stack |
 |        | 11 | |
-| pfx    | 12 | Prefix: lex \= (lex\<\<9) + u9 |
-| pfx1   | 13 | Prefix: lex \= (lex\<\<9) + u9 + 0x200 |
+| pfx    | 12 | Prefix: lex \= (lex\<\<10) + u9 |
+| pfx1   | 13 | Prefix: lex \= (lex\<\<10) + u9 + 0x200 |
 | RFcall | 14 | Call root function in VM |
 | AFcall | 15 | Call app function in VM |
 
 The lex register supplies upper bits for literals and long calls/jumps.
-It is 19 bits wide. N `pfx` instructions add 9N bits to the usual 13-bit `imm` data.
+It is 19 bits wide. N `pfx` instructions add 10N bits to the usual 13-bit `imm` data.
 A 22-bit literal, jump, or call takes two instructions.
+The longest, 32-bit literal takes 3 instructions.
 
 `sys`, `>sys`, and `sys>` instructions are for everything else. They include:
 

@@ -29,4 +29,6 @@ src/target/desktop/unit_tests/api0/got.txt
 src/target/CH32H417/*/obj/
 src/target/CH32H417/.mrs/
 src/target/desktop/unit_tests/blocks/got.txt
+
+# The blocks file (a "blob" often changed by ./scripts/build.bat)
 bin/lfblocks.fb4

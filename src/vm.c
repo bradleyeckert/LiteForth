@@ -332,6 +332,9 @@ execute:
             case VMS_TASK: // ]task
                 dsp = t & STACK_MASK;
                 rsp = (t >> 16) & STACK_MASK;
+#ifdef TWO_REGISTER_TOS
+                nos = datastack[(dsp + 1) & STACK_MASK];  // N, saved by task[
+#endif
                 break;
             case VMS_BREAK:
                 lfWatchdogPing();   // the app is alive: it reached a `break`
@@ -355,6 +358,11 @@ execute:
             switch (imm) {
             case VMSFROM_TASK:  // task[
                 RDUP();
+#ifdef TWO_REGISTER_TOS
+                // N goes in the cell above sp, where ]task reloads it, so
+                // rp:sp captures the whole stack as with one register
+                datastack[(dsp + 1) & STACK_MASK] = nos;
+#endif
                 t = (rsp << 16) | dsp;
                 break;
             case VMSFROM_X: t = X; break;

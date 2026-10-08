@@ -18,6 +18,12 @@ The focus is on a lightweight `pause`, especially past sleeping tasks.
 | `n _user + ,inst` | `user` n | `( -- )` | A = U + n |
 | `u!` | micro-op | `( a -- )` | U = a |
 
+With `TWO_REGISTER_TOS` (`vm.h`), the top two data stack items are in
+registers T and N. `task[` then also writes N to the cell just above `sp`,
+and `]task` reloads N from the cell above its new `sp`, so a task's `rp:sp`
+still captures its whole stack and the words below work unchanged in both
+builds.
+
 `]task` doesn't pop because changing the stack pointers and popping a stack
 in the same instruction doesn't map well to hardware (Verilog).
 

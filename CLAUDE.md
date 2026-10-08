@@ -169,9 +169,9 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   pop does the reverse. `sp` still counts the items, so depth checks and
   `.s` are unchanged; `vmPeek(1)`/`vmPoke(1)` reach N and item k >= 2 is
   `datastack[sp + TOS_REGISTERS - k]`. In `vmExec`, `nos` is the second item
-  either way (a local, or a macro for `datastack[dsp]`). `]task`/`task[` and
-  the multitasker don't save N yet: their tests in `regression.f` are
-  commented out as `N-PENDING` (they pass with the one-register VM).
+  either way (a local, or a macro for `datastack[dsp]`). `task[` also writes N
+  to `datastack[sp + 1]` and `]task` reloads N from there, so the
+  multitasker works unchanged in both builds.
 - **vmRun is re-entrant when calling a word** (`vmRun(0, 0, addr)`): it saves
   `PC` and restores it after a normal return, so a word can call `load`, which
   runs more words. Single-instruction and step modes don't touch `PC`.

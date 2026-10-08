@@ -5,7 +5,10 @@ Usage: putblocks.py [-n] source.f [blockfile]
 
 The source is split at lines that start with `( BLOCK n )`: the lines after
 it, up to the next marker, become block n. The marker line itself (all of
-it) isn't written; getblocks.py makes the markers again. A block is 4096
+it) isn't written; getblocks.py makes the markers again. `( BLOCK n +)`
+also puts `-->` at the end of the block (the last 3 columns of its last
+row), so loading block n goes on to block n+1; such a block holds at most
+31 lines. A block is 4096
 bytes shown as 32 rows of 128 columns (SCREEN_COLUMNS), so each line is
 padded with spaces to 128 bytes, and the rows after the last line are
 spaces. `//` comments rely on this: they skip to the next 128-byte row.
@@ -17,7 +20,7 @@ it for notes, or to keep code in the source without putting it in a block.
 Text before the first marker is ignored the same way. Either gives a note
 with the number of non-blank lines skipped. A line longer than
 128 bytes, more than 32 lines in a block, or the same block twice is an
-error, and nothing is written.
+error (31 lines with `+`), and nothing is written.
 
 The block file defaults to lfblocks.fb4 in the current directory, as for
 `lf`. It must already exist and start with the signature LITEFORTH, the way
@@ -26,8 +29,9 @@ signature) is never written. A block past the end of a regular file
 extends the file with blank (space) blocks; a device, such as a partition
 (/dev/sdb2), is never extended.
 
-It lists each block it writes with its line count and its first line,
-which by convention is a comment saying what the block holds.
+It lists each block it writes (n+ for one that ends with -->) with its line
+count and its first line, which by convention is a comment saying what the
+block holds.
 
 -n  only show what would be written.
 """
@@ -40,7 +44,8 @@ BLOCK_BYTES = 4096
 COLUMNS = 128
 ROWS = BLOCK_BYTES // COLUMNS           # 32
 SIGNATURE = b"LITEFORTH"
-MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\)")
+CHAIN_ROW = b"-->".rjust(COLUMNS, b" ")  # the last row of a `+` block
+MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*(\+?)\s*\)")
 IGNORE = re.compile(rb"^\(\s*BLOCK\s+IGNORE\s*\)")
 
 
@@ -49,12 +54,14 @@ class SourceError(Exception):
 
 
 def parse(path):
-    """Returns {block number: [line bytes, ...]} from the source file."""
+    """Returns ({block number: [line bytes, ...]}, {numbers of the blocks
+    that end with -->}) from the source file."""
     with open(path, "rb") as f:
         data = f.read()
     if data.startswith(b"\xef\xbb\xbf"):            # UTF-8 BOM
         data = data[3:]
     blocks = {}
+    chained = set()
     current = None
     skipped = 0
     errors = []
@@ -66,6 +73,8 @@ def parse(path):
             if current in blocks:
                 errors.append(f"{path}:{lineno}: block {current} appears twice")
             blocks[current] = []
+            if m.group(2):
+                chained.add(current)
             continue                            # the marker isn't stored
         if IGNORE.match(line):
             current = None                      # skip to the next marker
@@ -78,9 +87,11 @@ def parse(path):
             errors.append(f"{path}:{lineno}: line is {len(line)} bytes, "
                           f"more than {COLUMNS}")
         blocks[current].append(line)
-        if len(blocks[current]) == ROWS + 1:
+        rows = ROWS - 1 if current in chained else ROWS
+        if len(blocks[current]) == rows + 1:
             errors.append(f"{path}:{lineno}: block {current} has more than "
-                          f"{ROWS} lines")
+                          f"{rows} lines" + (" (the last row holds -->)"
+                                             if current in chained else ""))
     if skipped:
         print(f"note: {skipped} non-blank line(s) outside blocks ignored "
               f"(before the first `( BLOCK n )` or after `( BLOCK IGNORE )`)",
@@ -89,13 +100,15 @@ def parse(path):
         errors.append(f"{path}: block 0 holds the signature and isn't written")
     if errors:
         raise SourceError("\n".join(errors))
-    return blocks
+    return blocks, chained
 
 
-def render(lines):
-    """Returns the 4096-byte image of a block."""
+def render(lines, chain=False):
+    """Returns the 4096-byte image of a block, ending with --> if chain."""
     rows = [line.ljust(COLUMNS, b" ") for line in lines]
     rows += [b" " * COLUMNS] * (ROWS - len(rows))
+    if chain:
+        rows[-1] = CHAIN_ROW
     return b"".join(rows)
 
 
@@ -117,7 +130,7 @@ def main(argv):
     target = args[1] if len(args) > 1 else "lfblocks.fb4"
 
     try:
-        blocks = parse(source)
+        blocks, chained = parse(source)
     except (SourceError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
@@ -147,7 +160,8 @@ def main(argv):
             lines = blocks[n]
             count = f"{len(lines)} line{'' if len(lines) == 1 else 's'}"
             title = " ".join(lines[0].decode("utf-8", "replace").split()) if lines else ""
-            print(f"block {n:<4} {count:<9} {title}".rstrip())
+            label = f"{n}+" if n in chained else str(n)
+            print(f"block {label:<4} {count:<9} {title}".rstrip())
         if dry:
             print(f"(-n: {target} not changed)")
             return 0
@@ -157,7 +171,7 @@ def main(argv):
             print(f"{target}: extended from {capacity} to {last + 1} blocks")
         for n in sorted(blocks):
             f.seek(n * BLOCK_BYTES)
-            f.write(render(blocks[n]))
+            f.write(render(blocks[n], n in chained))
         f.flush()
         os.fsync(f.fileno())
     print(f"{target}: wrote {len(blocks)} block(s)")

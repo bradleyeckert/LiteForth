@@ -1,14 +1,20 @@
 note: 2 non-blank line(s) outside blocks ignored (before the first `( BLOCK n )` or after `( BLOCK IGNORE )`)
-block 3    2 lines   .( three ) cr ( a comment )
+block 3+   2 lines   .( three ) cr ( a comment )
+block 4    1 line    .( four, after --> ) cr
 block 70   1 line    .( seventy, past the end of the file ) cr
 lfblocks.fb4: extended from 64 to 71 blocks
-lfblocks.fb4: wrote 2 block(s)
+lfblocks.fb4: wrote 3 block(s)
 71 three 
 three again 
+four, after --> 
 seventy, past the end of the file 
 round trip: same blocks
-2
+( BLOCK 3 +)
+( BLOCK 4 )
+( BLOCK 70 )
 error: long.f:2: line is 129 bytes, more than 128
+(exit 1)
+error: full.f:33: block 5 has more than 31 lines (the last row holds -->)
 (exit 1)
 error: zero.f: block 0 holds the signature and isn't written
 (exit 1)

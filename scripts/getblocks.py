@@ -6,7 +6,9 @@ Usage: getblocks.py [-0] [-o out.f] [blockfile]
 Each block that isn't blank becomes a `( BLOCK n )` marker line followed by
 its 32 rows of 128 columns as lines, trailing spaces and trailing empty rows
 removed. putblocks.py drops the markers, so `putblocks.py out.f` writes the
-same blocks back. A block whose first row is its own `( BLOCK n )` (written
+same blocks back. A block whose last row is just `-->` at the far right
+(as putblocks.py writes for `( BLOCK n +)`) gets the marker `( BLOCK n +)`
+instead, without that row. A block whose first row is its own `( BLOCK n )` (written
 by an older putblocks.py, which kept the marker) shows that row as the
 marker, with a note on stderr.
 
@@ -29,8 +31,9 @@ import sys
 
 BLOCK_BYTES = 4096
 COLUMNS = 128
-MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\)")
-ANY_MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+|IGNORE)\s*\)")
+MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\+?\s*\)")
+ANY_MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+\s*\+?|IGNORE)\s*\)")
+CHAIN_ROW = b"-->".rjust(COLUMNS, b" ")  # putblocks.py's `( BLOCK n +)`
 
 
 def block_lines(block, n):
@@ -58,7 +61,8 @@ def dump(data, with_header):
     old_style = []
     count = len(data) // BLOCK_BYTES
     for n in range(0 if with_header else 1, count):
-        lines = block_lines(data[n * BLOCK_BYTES:(n + 1) * BLOCK_BYTES], n)
+        block = data[n * BLOCK_BYTES:(n + 1) * BLOCK_BYTES]
+        lines = block_lines(block, n)
         if lines is None:
             continue
         if n == 0:
@@ -67,7 +71,12 @@ def dump(data, with_header):
                 out.extend(lines)
                 out.append(b"")
             continue
-        m = MARKER.match(lines[0])
+        chain = block.endswith(CHAIN_ROW)
+        if chain:
+            lines = lines[:-1]                  # drop the --> row
+            while lines and not lines[-1]:
+                lines.pop()
+        m = MARKER.match(lines[0]) if lines else None
         if m and int(m.group(1)) == n:          # written by an older putblocks.py
             lines = lines[1:]
             old_style.append(n)
@@ -76,7 +85,7 @@ def dump(data, with_header):
                 print(f"warning: block {n} has a row that starts with "
                       f"`( BLOCK`; putblocks.py would end the block there",
                       file=sys.stderr)
-        out.append(b"( BLOCK %d )" % n)
+        out.append(b"( BLOCK %d +)" % n if chain else b"( BLOCK %d )" % n)
         out.extend(lines)
     if old_style:
         print(f"note: block(s) {', '.join(map(str, old_style))} start with their "

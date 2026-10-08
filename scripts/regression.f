@@ -150,14 +150,12 @@ T{ 3 SHFT[ 44 ]SHR -> 5 }T
 T{ 30 SHFT[ -1 ]SHR -> 3 }T
 T{ 0 SHFT[ 7 ]SHR -> 7 }T
 
-( N-PENDING: with N cached, ]task and the multitasker need updating. )
-( The tests marked N-PENDING are off until then.                      )
 ( task[ pushes rp:sp and copies R to the return stack )
 : sp@  ( -- sp ) task[ r> drop 65535 and ;
 T{ sp@ sp@ swap invert 1 + + -> 1 }T
 ( ]task sets rp:sp from T and keeps T: here, sp two cells lower )
 : tdrop2  ( a b c -- a ) task[ r> drop 65538 inv 1 + + ]task drop ;
-( N-PENDING T{ 1 2 3 4 tdrop2 -> 1 2 }T )
+T{ 1 2 3 4 tdrop2 -> 1 2 }T
 
 
 ( ===================================================================== )
@@ -473,12 +471,12 @@ _data here 3 allot constant operator
 T{ multitask  u@  operator @  operator 1 + @ -> operator operator awake }T
 ( pause swaps the task out and back in: R and the stacks survive )
 : mt-spin  ( n -- ) for pause next ;
-( N-PENDING T{ 11 22 33  5 mt-spin -> 11 22 33 }T )
+T{ 11 22 33  5 mt-spin -> 11 22 33 }T
 : mt-count  ( -- n ) 0  5 for 1 + pause next ;
-( N-PENDING T{ mt-count -> 5 }T )
+T{ mt-count -> 5 }T
 ( stop makes the task's ACTION asleep; pause then just moves U on )
-( N-PENDING T{ stop  operator 1 + @  u@ -> asleep operator }T )
-( N-PENDING T{ 3 mt-spin  7 -> 7 }T )
+T{ stop  operator 1 + @  u@ -> asleep operator }T
+T{ 3 mt-spin  7 -> 7 }T
 awake operator 1 + !
 : activate  ( task -- )  ( R: ra -- )
     a! @a+ @a+  [ _user ,inst ] a 0= -121 and yeet
@@ -493,10 +491,10 @@ _data here 2 allot constant mt-task
 _data here 1 allot constant mt-ctr  0 mt-ctr !
 : mt-launch  ( -- ) mt-task activate  begin 1 mt-ctr +! pause again ;
 ( activate links the task in after the terminal and returns to our caller )
-( N-PENDING T{ 11 22 mt-launch 33 -> 11 22 33 }T )
-( N-PENDING T{ operator @  mt-user @  mt-user 1 + @ -> mt-user operator awake }T )
+T{ 11 22 mt-launch 33 -> 11 22 33 }T
+T{ operator @  mt-user @  mt-user 1 + @ -> mt-user operator awake }T
 ( the rest of mt-launch runs as the task, once per pause of the terminal )
-( N-PENDING T{ 11 22 33  3 mt-spin  mt-ctr @ -> 11 22 33 3 }T )
+T{ 11 22 33  3 mt-spin  mt-ctr @ -> 11 22 33 3 }T
 operator operator !  ( back to a ring of one )
 
 ( label declares a word for a forward reference; a later : resolves it )

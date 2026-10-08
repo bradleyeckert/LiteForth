@@ -40,9 +40,9 @@ hex
 : lshift    ( u1 u2 -- u3 ) shft[ ]shl ;                                        // left shift u1 by u2 to produce u3
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;                                        // right shift u1 by u2 to produce u3
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;                     // convert instruction address to linear format
-
+decimal
 ( BLOCK 12 )
-( control structures )
+( control structures ) hex
 : _again    ( a inst -- )   >r iaddr  chere iaddr inv + 1FF and r> + ,inst ;    // compile a backward control branch
 : then      ( a -- )        chere iaddr  over iaddr inv +  swap                 // resolve a forward branch
                             a! 1FF and @a + !a ; immediate

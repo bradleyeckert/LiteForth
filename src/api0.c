@@ -296,6 +296,14 @@ static int coldboot(void) {
     return 0;
 }
 
+/* CHAR  ( <name> -- c )  The first byte of the next word (no UTF-8 decoding) */
+static int charword(void) {
+    char token[2];
+    lfParseWord(token, sizeof(token));  // a longer word is truncated: fine
+    if (token[0] == '\0') return ERR_ZERO_LENGTH_NAME;
+    return vmPush((uint8_t)token[0]);
+}
+
 /* `X'` ( <name> -- w aux ) */
 static int extick(void) {
     const struct s_head* word = lfTickWord();

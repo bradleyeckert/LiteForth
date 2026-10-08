@@ -29,3 +29,4 @@ src/target/desktop/unit_tests/api0/got.txt
 src/target/CH32H417/*/obj/
 src/target/CH32H417/.mrs/
 src/target/desktop/unit_tests/blocks/got.txt
+bin/lfblocks.fb4

@@ -113,6 +113,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (a raw type-DA partition on the microSD card via WCH's `sdio.c`; see doc/sdcard.md), `options.h` (4 x 64K flash pages, RAM_PAGE 4, `VM_IO_PAGE` 5: the peripheral registers at `IO_BASE`, mapped by `main.c`), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
 | `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `scripts/regression.f` | Regression script run by `make test` |
+| `scripts/putblocks.py` | Writes a source file into blocks: each `( BLOCK n )` line starts block n, lines padded to 128 columns, 32 rows. Needs an existing signed block file (or partition device); never writes block 0 (`unit_tests/putblocks`) |
 
 ## Conventions
 

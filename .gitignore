@@ -10,7 +10,6 @@ src/target/desktop/unit_tests/flash/test_flash
 src/target/desktop/unit_tests/flash/test_flash.bin
 src/target/desktop/unit_tests/flash/lfflash.bin
 src/target/desktop/unit_tests/memalloc/test_memalloc
-src/target/desktop/unit_tests/iopage/test_iopage
 src/target/desktop/unit_tests/rawdisk/test_rawdisk
 src/target/desktop/unit_tests/rawdisk/test_rawdisk.img
 src/target/desktop/unit_tests/serial_io/test_serial_io

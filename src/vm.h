@@ -131,6 +131,17 @@ int32_t vmReset(void);
 // 2 = yeet address
 #define VM_YEET_ADDRESS  2
 
+// Data stack caching. With TWO_REGISTER_TOS, the top two data stack items
+// are kept in registers T and N, and datastack holds the third and below.
+// Without it, only T is a register and datastack[sp] is the second item.
+// Either way sp counts the items. Comment it out for the one-register VM.
+#define TWO_REGISTER_TOS
+#ifdef TWO_REGISTER_TOS
+#define TOS_REGISTERS         2
+#else
+#define TOS_REGISTERS         1
+#endif
+
 // Check the stack configuration
 #define STACK_MASK            (STACK_CAPACITY - 1)
 #if (STACK_CAPACITY <= 0) || ((STACK_CAPACITY & STACK_MASK) != 0)

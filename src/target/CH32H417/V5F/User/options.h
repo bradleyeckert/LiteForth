@@ -22,7 +22,9 @@
 #define FLASH_PAGE_CELLS  16384 // Flash memory page size [1] CH32H417: 64KB, one erase block
 #define RAM_PAGE              4 // The memory page used by system variables. CH32H417: 4 flash pages, 256KB
 #define RAM_PAGE_CELLS     4096 // RAM page size [2]
-#define VM_IO_PAGE            5 // CH32H417: the peripheral registers (iopage.h)
+#define VM_IO_PAGE            5 // CH32H417: the peripheral registers [4]
+#define IO_BASE      0x40000000u // CH32H417: PERIPH_BASE in ch32h417.h
+#define IO_CELLS  (0x38400u / 4) // CH32H417: the peripheral block, through UHSIF
 // memalloc.c
 #define POOL_CAPACITY     24576 // cells of the system memory pool. CH32H417: RAM page + open-flash cache [3]
 // flash.c: the flash lives at __lf_flash_start (V5F linker script). Unused.
@@ -43,6 +45,11 @@
 [3] open-flash allocates a FLASH_PAGE_CELLS cache from the pool while a
     flash page is open, on top of the RAM page. The pool is a static array
     in the V5F's 256KB DTCM.
+
+[4] main.c maps page VM_IO_PAGE onto the peripheral registers: the register
+    at IO_BASE + 4c is at VM address (VM_IO_PAGE << 19) + c, so GPIOA
+    (0x40010800) is 0x284200. Reads and writes are whole 32-bit words, and
+    nothing checks for the gaps between peripherals.
 
 CH32H417: flash pages 0..RAM_PAGE-1 are FLASH_PAGE_CELLS*4 bytes each,
 starting at __lf_flash_start. flash.c erases and programs a whole page at

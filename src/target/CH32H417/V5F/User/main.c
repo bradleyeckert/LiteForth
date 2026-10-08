@@ -22,7 +22,6 @@
 #include "flash.h"
 #include "blocks.h"
 #include "lftime.h"
-#include "iopage.h"
 #include "main.h"
 
 /*********************************************************************
@@ -88,8 +87,7 @@ static int lfMapMemory(uint32_t** flash)
         }
 #ifdef VM_IO_PAGE
         else if (i == VM_IO_PAGE) {
-            // The peripheral registers: writable, not executable. vmFetch
-            // and vmStore check each access with vmIoValid (iopage.c).
+            // The peripheral registers: writable, not executable
             vm_memory[i] = (uint32_t*)IO_BASE;
             vm_memory_name[i] = "I/O";
             vm_memory_rd_limit[i] = IO_CELLS;

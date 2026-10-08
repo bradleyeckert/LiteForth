@@ -12,7 +12,6 @@ it holds two projects, `V3F` and `V5F`, one per core.
 | `SRC/` | WCH's SDK, copied from [openwch/ch32h417 `EVT/EXAM/SRC`](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/SRC) (commit 6d1e469): `Core/`, `Debug/`, `Ld/` (linker scripts), `Peripheral/` (standard peripheral library), `Startup/` |
 | `V5F/User/serial_io.c/.h` | LiteForth's terminal I/O for the V5F, over the shared rings (below) |
 | `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage on the microSD card, and options for the V5F (below) |
-| `V5F/User/iopage.c/.h` | The peripheral registers as VM page 5 (`VM_IO_PAGE`), with the table of peripheral address ranges (below) |
 | `V5F/User/sdio.c/.h` | WCH's SD card driver for the SDIO peripheral, copied unmodified from `EVT/EXAM/SDIO/SDIO_SD` (commit 3924a05) |
 | `V5F/User/main.c/.h`, `lftime.c/.h`, `lf_*.c` | LiteForth on the V5F: startup, the microsecond time base, and one-line wrappers that compile LiteForth's `src/*.c` into the project (below) |
 
@@ -184,16 +183,14 @@ cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
 of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 
 **Peripheral registers in page 5.** `VM_IO_PAGE` = 5 in `options.h` maps
-the peripheral block at `0x40000000` (through UHSIF, `0x38400` bytes) as
-VM page 5: writable, not executable. A register at `0x40000000 + o` is at
-VM address `0x280000 + o/4`, so GPIOA's first register (`0x40010800`) is
-`0x284200`. The block has gaps with no peripheral behind them, where an
-access may fault the bus; `vmIoValid` (`iopage.c`) allows only the 1 KB
-slots that hold a peripheral, so `@` or `dump` in a gap fails with
-ior -9 (invalid address) instead. Reading a register can have side effects
-(a data register pops its FIFO), and a bit-field store reads, modifies and
-writes the whole register, so use whole-cell `!` on write-1-to-clear flags.
-`unit_tests/iopage` (desktop) checks the range table.
+the peripheral block at `0x40000000` (`IO_BASE`, through UHSIF, `0x38400`
+bytes) as VM page 5: writable, not executable. A register at
+`0x40000000 + o` is at VM address `0x280000 + o/4`, so GPIOA's first
+register (`0x40010800`) is `0x284200`. Nothing checks the gaps between
+peripherals, so stay on real registers. Reading a register can have side
+effects (a data register pops its FIFO), and a bit-field store reads,
+modifies and writes the whole register, so use whole-cell `!` on
+write-1-to-clear flags.
 
 **Downloading erases it.** The download settings erase the whole chip
 (`"erase": true`, `"clearcodeflash": true` in the `.wvproj`; "Erase All" in

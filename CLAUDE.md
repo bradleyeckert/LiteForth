@@ -162,6 +162,12 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   default so the jump tables have no range check. Judge speed changes by
   RV32 instruction counts (clang `--target=riscv32-unknown-elf`), not by
   desktop timings, which are noisy.
+- **T and N cache the top two data stack items**; `datastack[sp]` is the
+  third. A push stores N to memory and moves T to N (`DDUP`, `VM_DDUP`); a
+  pop does the reverse. `sp` still counts the items, so depth checks and
+  `.s` are unchanged; `vmPeek(1)`/`vmPoke(1)` reach N and item k >= 2 is
+  `datastack[sp + 2 - k]`. `]task`/`task[` and the multitasker don't save N
+  yet: their tests in `regression.f` are commented out as `N-PENDING`.
 - **vmRun is re-entrant when calling a word** (`vmRun(0, 0, addr)`): it saves
   `PC` and restores it after a normal return, so a word can call `load`, which
   runs more words. Single-instruction and step modes don't touch `PC`.

@@ -7,7 +7,7 @@ lfblocks.fb4: wrote 2 block(s)
 three again 
 seventy, past the end of the file 
 round trip: same blocks
-11
+2
 error: long.f:2: line is 129 bytes, more than 128
 (exit 1)
 error: zero.f: block 0 holds the signature and isn't written

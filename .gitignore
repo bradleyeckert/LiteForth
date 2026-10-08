@@ -4,6 +4,7 @@ build/
 *.d
 bin/lf
 bin/lf.exe
+bin/lf.pdb
 
 # Unit test executables and scratch files
 src/target/desktop/unit_tests/flash/test_flash

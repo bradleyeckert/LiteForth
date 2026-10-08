@@ -11,7 +11,8 @@ The code compiled by LiteForth will run in a real Forth chip, but it would have 
 ## stacks
 
 The stacks are based on small memories, like 128-cell or 256-cell each. Each stack is addressed by
-a stack pointer. The top of the stack is kept in a register (T or R). The stack can be implemented
+a stack pointer. The top two data stack items are kept in registers (T and N), and the top of the
+return stack in R. The stack can be implemented
 with synchronous memories. Due their small size, the stacks are fast.
 
 ## memory access

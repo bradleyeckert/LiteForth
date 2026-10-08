@@ -36,7 +36,7 @@ cp "$ROOT/bin/lfblocks.fb4" again.fb4
 python3 "$PUT" dump.f again.fb4 > /dev/null 2>&1
 dd if=again.fb4 of=again71.fb4 bs=4096 count=71 2>/dev/null
 cmp -s lfblocks.fb4 again71.fb4 && echo "round trip: same blocks"
-grep -c 'BLOCK' dump.f
+grep -c '^( BLOCK \(3\|70\) )' dump.f     # the blocks written here, whatever else bin/ holds
 
 cp lfblocks.fb4 before.bin
 python3 -c "print('( BLOCK 4 )'); print('x' * 129)" > long.f

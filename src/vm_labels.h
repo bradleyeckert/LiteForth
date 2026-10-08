@@ -9,9 +9,12 @@
 /* Forces code straight into the Instruction Tightly Coupled Memory section */
 #define PLACE_IN_ITCM /* __attribute__((section(".itcm"))) */
 
+// The top two data stack items are cached in T and N; datastack holds the
+// rest. A push moves N to memory and T to N; the caller then sets T.
 #define VM_DDUP do {                    \
     sp = (sp + 1) & STACK_MASK;         \
-    datastack[sp] = T;                  \
+    datastack[sp] = N;                  \
+    N = T;                              \
 } while(0)      
 
 #define VM_RDUP do {                    \
@@ -20,7 +23,8 @@
 } while(0)      
 
 #define VM_DDROP do {                   \
-    T = datastack[sp];                  \
+    T = N;                              \
+    N = datastack[sp];                  \
     sp = (sp - 1) & STACK_MASK;         \
 } while(0)      
 
@@ -29,7 +33,7 @@
     rp = (rp - 1) & STACK_MASK;         \
 } while(0)    
 
-#define NOS datastack[sp]
+#define NOS N
 #define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
 
 // slot assignments for 16-bit instruction

@@ -23,6 +23,7 @@ PLACE_IN_DTCM;
 static uint32_t datastack[STACK_CAPACITY];
 static uint32_t returnstack[STACK_CAPACITY];
 static uint32_t T = 0;  // Top of Data Stack
+static uint32_t N = 0;  // Next on the Data Stack (datastack holds the rest)
 static uint32_t PC = 0;  // Program Counter
 static uint32_t R = 0;  // Top of Return Stack
 static uint32_t A = 0;  // Address A
@@ -95,20 +96,22 @@ int vmStore(uint32_t addr, uint32_t data) {
 static uint32_t shift_size = 0;              // set by shft[ for ]shl and ]shr
 
 #define VM_LOAD() do {                                          \
-    t = T;  r = R;  a = A;  b = B;  u = U;  pc = PC;            \
+    t = T;  nos = N;  r = R;  a = A;  b = B;  u = U;  pc = PC;  \
     dsp = sp & STACK_MASK;  rsp = rp & STACK_MASK;              \
     c = cy & 1;  pfx = prefix;                                  \
 } while (0)
 
 #define VM_SAVE() do {                                          \
-    T = t;  R = r;  A = a;  B = b;  U = u;  PC = pc;            \
+    T = t;  N = nos;  R = r;  A = a;  B = b;  U = u;  PC = pc;  \
     sp = (uint8_t)dsp;  rp = (uint8_t)rsp;                      \
     cy = (uint8_t)c;  prefix = pfx;                             \
 } while (0)
 
-// Stack moves on the local copies (VM_DDUP etc. in vm_labels.h use globals)
-#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = t; } while (0)
-#define DDROP() do { t = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+// Stack moves on the local copies (VM_DDUP etc. in vm_labels.h use globals).
+// T and N (t, nos) are the top two items; datastack[dsp] is the third.
+// DDUP makes room for a new T (the caller sets t); DDROP pops T.
+#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = nos; nos = t; } while (0)
+#define DDROP() do { t = nos; nos = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
 #define RDUP()  do { rsp = (rsp + 1) & STACK_MASK; returnstack[rsp] = r; } while (0)
 #define RDROP() do { r = returnstack[rsp]; rsp = (rsp - 1) & STACK_MASK; } while (0)
 
@@ -126,7 +129,7 @@ static uint32_t shift_size = 0;              // set by shft[ for ]shl and ]shr
 #define TERMINATOR 0xDEADC0DEu          // return address that ends a word call
 
 static int32_t vmExec(int once, uint32_t inst, uint32_t address) {
-    uint32_t t, r, a, b, u, pc, pfx;    // T, R, A, B, U, PC and prefix
+    uint32_t t, nos, r, a, b, u, pc, pfx;   // T, N, R, A, B, U, PC, prefix
     uint32_t dsp, rsp, c;               // sp, rp and cy
     VM_LOAD();
 
@@ -191,12 +194,13 @@ execute:
             switch (uop) {
             case VMU_NOP:                                           break;
             case VMU_INV:       t = ~t;                             break;
-            case VMU_OVER:      DDUP();  t = datastack[(dsp - 1) & STACK_MASK]; break;
+            case VMU_OVER:      n = nos;  DDUP();  t = n;           break;
             case VMU_ASTORE:    n = t;  DDROP();  a = n;            break;
             case VMU_XOR:       n = t;  DDROP();  t ^= n;           break;
             case VMU_PLUS: {    // cy = carry out of bit 31
-                uint32_t sum = t + datastack[dsp];
+                uint32_t sum = t + nos;
                 c = sum < t;
+                nos = datastack[dsp];
                 dsp = (dsp - 1) & STACK_MASK;
                 t = sum;
             }                                                       break;
@@ -239,11 +243,11 @@ execute:
             case VMU_STOREBPLUS:
                 n = t;  DDROP();  MEMOP(ior = vmStore(b, n));  b = vmFieldPlus(b);  break;
             case VMU_SWAP:
-                n = datastack[dsp];  datastack[dsp] = t;  t = n;    break;
+                n = nos;  nos = t;  t = n;                          break;
             case VMU_PLUSSTAR: { // multiply step: T:A >> 1, adding N if A odd
                 uint64_t sum = t;           // the adder inputs are T and N
                 if (a & 1) {
-                    sum += datastack[dsp];  // result = carry:sum[31:0]:a
+                    sum += nos;             // result = carry:sum[31:0]:a
                 }
                 t = (uint32_t)(sum >> 1);
                 a = ((uint32_t)sum << 31) | (a >> 1);
@@ -419,6 +423,7 @@ int32_t vmPeek(int reg) {
     }
     switch (reg) {
         case 0:         x = T;  break;
+        case 1:         x = N;  break;
         case VM_REG_PC: x = PC; break;
         case VM_REG_R : x = R;  break;
         case VM_REG_A : x = A;  break;
@@ -429,7 +434,7 @@ int32_t vmPeek(int reg) {
         case VM_REG_rp: x = rp; break;
         default:
         if (reg < STACK_MASK) {
-            x = datastack[(sp + 1 - reg) & STACK_MASK];
+            x = datastack[(sp + 2 - reg) & STACK_MASK];
             break;
         }   return -1;
     }
@@ -444,6 +449,7 @@ int32_t vmPoke(int reg, int32_t value) {
     }
     switch (reg) {
         case 0:         T = data; break;
+        case 1:         N = data; break;
         case VM_REG_PC: PC = data; break;
         case VM_REG_R : R = data; break;
         case VM_REG_A : A = data; break;
@@ -454,7 +460,7 @@ int32_t vmPoke(int reg, int32_t value) {
         case VM_REG_rp: rp = data & STACK_MASK; break;
         default:
         if (reg < STACK_MASK) {
-            datastack[(sp + 1 - reg) & STACK_MASK] = data;
+            datastack[(sp + 2 - reg) & STACK_MASK] = data;
             break;
         }   return -1;
     }
@@ -466,7 +472,8 @@ int32_t vmReset(void) {
         vmPoke(i, 0);
     }
     R = TERMINATOR;    // empty return stack marker
-    T = VM_EMPTYSTACK; // empty data stack marker
+    T = VM_EMPTYSTACK; // empty data stack markers
+    N = VM_EMPTYSTACK;
     return 0;
 }
 

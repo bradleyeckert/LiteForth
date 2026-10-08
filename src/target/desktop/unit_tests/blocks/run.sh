@@ -20,23 +20,23 @@ run() {  # run "label": the label, then lf's output without its banner
 {
 # lf creates a blank, signed file of SIMNUMBLOCKS blocks
 printf 'capacity .\nbye\n' | run fresh
-head -c 9 lfblocks.bin; echo
+head -c 9 lfblocks.fb4; echo
 
 # a signed file is padded to whole blocks, and every block can be written
-printf 'LITEFORTH' > lfblocks.bin
-printf '%-4991s' '' >> lfblocks.bin              # 5000 bytes in all
+printf 'LITEFORTH' > lfblocks.fb4
+printf '%-4991s' '' >> lfblocks.fb4              # 5000 bytes in all
 printf 'capacity .\n1 block drop update flush .( wrote-1 )\nbye\n' | run signed
-wc -c < lfblocks.bin | tr -d ' '
+wc -c < lfblocks.fb4 | tr -d ' '
 
 # without the signature: capacity 1, block 0 readable, nothing writable
-printf 'not a LiteForth file' > lfblocks.bin
-printf '%-8172s' '' >> lfblocks.bin              # 8192 bytes, 2 blocks
-cp lfblocks.bin before.bin
+printf 'not a LiteForth file' > lfblocks.fb4
+printf '%-8172s' '' >> lfblocks.fb4              # 8192 bytes, 2 blocks
+cp lfblocks.fb4 before.bin
 printf 'capacity .\n0 block drop .( read-0 )\n1 block drop\n0 block drop update flush\nbye\n' | run foreign
-cmp -s before.bin lfblocks.bin && echo untouched
+cmp -s before.bin lfblocks.fb4 && echo untouched
 
 # without the signature and shorter than a block: nothing to read
-printf 'short' > lfblocks.bin
+printf 'short' > lfblocks.fb4
 printf 'capacity .\nbye\n' | run short
 } > got.txt 2>&1 || true
 # --strip-trailing-cr: a Windows checkout may have given expected.txt CRLF endings

@@ -11,7 +11,7 @@ cd "$WORK"
 # Let lf create blank block and flash files, then write test screens.
 echo bye | "$LF" -o 3 > /dev/null
 blk() {  # blk n "text": write a screen, padded with spaces to 4096 bytes
-    printf '%-4096s' "$2" | dd of=lfblocks.bin bs=4096 seek="$1" conv=notrunc 2>/dev/null
+    printf '%-4096s' "$2" | dd of=lfblocks.fb4 bs=4096 seek="$1" conv=notrunc 2>/dev/null
 }
 blk 1 '.( [1] )'
 blk 2 '.( <2 ) 3 load .( 2> )'           # nesting deeper than the

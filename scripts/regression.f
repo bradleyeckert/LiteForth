@@ -1,7 +1,7 @@
 .( Testing Forth primitives ) 0 >options 39 >options ( validation mode )
 cr  ( This file is intended to replace stdin on a console app. )
 ( `make test` runs it as `lf -o 39` in a temp directory holding copies )
-( of bin/lfflash.bin and bin/lfblocks.bin. The first failed            )
+( of bin/lfflash.bin and bin/lfblocks.fb4. The first failed            )
 ( T{ ... -> ... }T stops lf and prints the line.                       )
 
 0 open-flash  ( map flash page 0 to a RAM buffer so it can be compiled to )

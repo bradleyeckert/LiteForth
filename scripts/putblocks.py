@@ -11,7 +11,11 @@ padded with spaces to 128 bytes, and the rows after the last line are
 spaces. `//` comments rely on this: they skip to the next 128-byte row.
 Lines are counted in UTF-8 bytes, as LiteForth sees them.
 
-Text before the first marker is ignored (with a note). A line longer than
+A line that starts with `( BLOCK IGNORE )` ends the current block; the
+lines after it, up to the next `( BLOCK n )`, aren't written anywhere. Use
+it for notes, or to keep code in the source without putting it in a block.
+Text before the first marker is ignored the same way. Either gives a note
+with the number of non-blank lines skipped. A line longer than
 128 bytes, more than 32 lines in a block, or the same block twice is an
 error, and nothing is written.
 
@@ -37,6 +41,7 @@ COLUMNS = 128
 ROWS = BLOCK_BYTES // COLUMNS           # 32
 SIGNATURE = b"LITEFORTH"
 MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\)")
+IGNORE = re.compile(rb"^\(\s*BLOCK\s+IGNORE\s*\)")
 
 
 class SourceError(Exception):
@@ -62,6 +67,9 @@ def parse(path):
                 errors.append(f"{path}:{lineno}: block {current} appears twice")
             blocks[current] = []
             continue                            # the marker isn't stored
+        if IGNORE.match(line):
+            current = None                      # skip to the next marker
+            continue
         if current is None:
             if line.strip():
                 skipped += 1
@@ -74,8 +82,9 @@ def parse(path):
             errors.append(f"{path}:{lineno}: block {current} has more than "
                           f"{ROWS} lines")
     if skipped:
-        print(f"note: {skipped} non-blank line(s) before the first "
-              f"`( BLOCK n )` ignored", file=sys.stderr)
+        print(f"note: {skipped} non-blank line(s) outside blocks ignored "
+              f"(before the first `( BLOCK n )` or after `( BLOCK IGNORE )`)",
+              file=sys.stderr)
     if 0 in blocks:
         errors.append(f"{path}: block 0 holds the signature and isn't written")
     if errors:

@@ -1,6 +1,6 @@
 note: 1 non-blank line(s) before the first `( BLOCK n )` ignored
-block 3: 3 lines
-block 70: 2 lines
+block 3: 2 lines
+block 70: 1 line
 lfblocks.fb4: extended from 64 to 71 blocks
 lfblocks.fb4: wrote 2 block(s)
 71 three 

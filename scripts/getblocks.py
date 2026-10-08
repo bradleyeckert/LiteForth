@@ -3,10 +3,12 @@
 
 Usage: getblocks.py [-0] [-o out.f] [blockfile]
 
-Each block that isn't blank becomes a `( BLOCK n )` section: its 32 rows of
-128 columns as lines, trailing spaces and trailing empty rows removed. The
-first row of a block written by putblocks.py is already its marker line, so
-it isn't repeated. `putblocks.py out.f` writes the same blocks back.
+Each block that isn't blank becomes a `( BLOCK n )` marker line followed by
+its 32 rows of 128 columns as lines, trailing spaces and trailing empty rows
+removed. putblocks.py drops the markers, so `putblocks.py out.f` writes the
+same blocks back. A block whose first row is its own `( BLOCK n )` (written
+by an older putblocks.py, which kept the marker) shows that row as the
+marker, with a note on stderr.
 
 Block 0 holds the file's signature and header and is skipped, unless -0 is
 given: then its text comes first, before any marker, where putblocks.py
@@ -52,6 +54,7 @@ def block_lines(block, n):
 
 def dump(data, with_header):
     out = []
+    old_style = []
     count = len(data) // BLOCK_BYTES
     for n in range(0 if with_header else 1, count):
         lines = block_lines(data[n * BLOCK_BYTES:(n + 1) * BLOCK_BYTES], n)
@@ -64,14 +67,21 @@ def dump(data, with_header):
                 out.append(b"")
             continue
         m = MARKER.match(lines[0])
-        if not (m and int(m.group(1)) == n):
-            out.append(b"( BLOCK %d )" % n)
-            # the row count must still fit in 32 for putblocks.py
-            if len(lines) == BLOCK_BYTES // COLUMNS:
-                print(f"warning: block {n} has a full 32 rows and no marker; "
-                      f"putblocks.py will reject the extra line",
+        if m and int(m.group(1)) == n:          # written by an older putblocks.py
+            lines = lines[1:]
+            old_style.append(n)
+        for row in lines:
+            if MARKER.match(row):
+                print(f"warning: block {n} has a row that starts with "
+                      f"`( BLOCK`; putblocks.py would start a block there",
                       file=sys.stderr)
+        out.append(b"( BLOCK %d )" % n)
         out.extend(lines)
+    if old_style:
+        print(f"note: block(s) {', '.join(map(str, old_style))} start with their "
+              f"own `( BLOCK n )` row (an older putblocks.py); it is shown as "
+              f"the marker, so writing the dump back moves their rows up one",
+              file=sys.stderr)
     return b"\n".join(out) + (b"\n" if out else b"")
 
 

@@ -69,6 +69,7 @@ Name lookup ignores case.
 | `bye` | `( -- )` | Leaves QUIT (and exits `lf`). |
 | `capacity` | `( -- u )` | Number of blocks in the block file. |
 | `capusec` | `( -- )` | Captures the free-running microsecond counter: `Y` gets the upper 32 bits and `X` the lower 32 (read them with `y@` and `x@`). The counter's starting point is unknown, so only differences between captures are meaningful. |
+| `char` | `( <name> -- c )` | The first byte of the next word in the input. Bytes, not characters: a UTF-8 character gives its first byte. Fails with ior -16 if the input is empty. |
 | `close-flash` | `( -- )` | Programs the open flash page from its RAM buffer, write-protects it, and frees the buffer. |
 | `cold` | `( -- )` | Resets the VM (registers and stacks) and starts the app: sets `SYS_OPTION_RUNNING`, so while QUIT waits for input it runs VM code from address 0 until each `break`. See `doc/flashmem.md`. |
 | `constant` | `( n <name> -- )` | Defines `<name>`, which returns `n`. |

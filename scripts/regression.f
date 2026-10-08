@@ -256,6 +256,10 @@ T{ seven -> 7 }T
 T{ 4 dup2 -> 4 4 }T
 T{ x' ADD_TEN nip -> 0 }T
 
+( char: the first byte of the next word, no UTF-8 decoding )
+T{ char A -> 65 }T
+T{ char xyz -> 120 }T
+
 ( postpone a normal word: compiles code that compiles it )
 : comp-dup postpone dup ; immediate
 : dd 3 comp-dup ;

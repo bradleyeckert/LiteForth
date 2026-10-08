@@ -83,7 +83,8 @@
     X(API_EXECUTE,          execute)            \
     X(API_SAVE_WIDS,        lfAPI_saveWids)     \
     X(API_LABEL,            lfAPI_label)        \
-    X(API_TOAUX,            toaux)
+    X(API_TOAUX,            toaux)              \
+    X(API_CHAR,             charword)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

@@ -65,6 +65,7 @@ decimal
 : execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;  // safe execute, may remove limits later
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;
 : _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        // a multiply that does not use the API
+: 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 // true if n < 0
 
 ( BLOCK 13 )
 ( Multitasking )
@@ -121,6 +122,38 @@ decimal _udata here 3 allot constant operator                                   
 : +!        ( n a -- )      a! @a + !a ;                                        // add n to cell at a
 : -         ( n -- -n )     negate + ;                                          // subtract
 
+\ Numeric conversion. `d.r` uses frame stack protection to prevent overflow
+\ when the stacks have significant content. Since `d.r` ia typically at the
+\ end of a definition, its tail call doesn't increase the stack.
+
+// : digit   dup -10 + 0< -7 and           \ 2.3180 n -- char
+//           + [char] 7 + ;
+// : <#      numbuf  hld ! ;               \ 2.3190 ud1 -- ud1
+// : hold    hld dup >r @ 1- dup r> ! c! ; \ 2.3200 char --
+// : _#_     um/mod swap digit hold ;      \ ud base -- u/base
+// : #       dup  base @ >r  if            \ 2.3210 ud1 -- ud2
+//               0 r@ um/mod r> swap
+//               >r _#_ r> exit
+//           then  r> _#_ 0
+// ;
+// : #s      begin # 2dup or 0= until ;    \ 2.3220 ud1 -- ud2
+// : sign    0< if [char] - hold then ;    \ 2.3230 n --
+// : #>      2drop hld @ numbuf  over - ;  \ 2.3240 ud -- c-addr u
+// : s.r     over - spaces type ;          \ length width --
+// : d.r     3 stack(  >r dup >r dabs      \ 2.3250 d width --
+//           <# #s r> sign #> r> s.r )stack ;
+// : u.r     0 swap d.r ;                  \ 2.3260 u width --
+// : .r      >r s>d r> d.r ;               \ 2.3270 n width --
+// : d.      0 d.r space ;                 \ 2.3280 d --
+// : u.      0 d. ;                        \ 2.3290 u --
+// : ?       @ [ ;                         \ 2.3310 a --
+// : .       s>d d. ;                      \ 2.3300 n --
+// : <#>     >r  <# begin # next #s #> ;   \ ud digits-1
+// : h.2     1 [ ;
+// : h.x     base @ >r hex  0 swap <#> r>  \ 2.3320 u n --
+//           base !  type space ;
+
+
 : _.map     ( -- )
     here . ." to " 'here 1+ @ . ." unused " unused . ." cells" cr
 ;
@@ -128,8 +161,10 @@ decimal _udata here 3 allot constant operator                                   
     _udata ." _udata " _.map  _idata ." _idata " _.map
     _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
 ;
-
-
+: list-line ( a line -- )   .  8 bit  128 type cr ;
+: list      ( n -- )	    
+    block 32 for  32 r@ negate +  over swap list-line  32 + amask  next drop    // list a block
+;
 ( BLOCK 16 )
 ( idata save and restore )
 : save-idata  ( -- )                                                            // compile idata initialization structure

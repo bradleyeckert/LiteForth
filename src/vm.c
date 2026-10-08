@@ -227,7 +227,7 @@ execute:
                 uint32_t bsize = a >> 27;
                 if (bsize) {
                     uint32_t sign = 1u << (bsize - 1);
-                    if (n & sign) n |= -sign;   // set the bits above it
+                    if (n & sign) n |= (~(sign - 1));   // set the bits above it
                 }
                 t = n;
             }                                                       break;

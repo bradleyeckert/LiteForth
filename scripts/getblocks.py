@@ -30,6 +30,7 @@ import sys
 BLOCK_BYTES = 4096
 COLUMNS = 128
 MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\)")
+ANY_MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+|IGNORE)\s*\)")
 
 
 def block_lines(block, n):
@@ -71,9 +72,9 @@ def dump(data, with_header):
             lines = lines[1:]
             old_style.append(n)
         for row in lines:
-            if MARKER.match(row):
+            if ANY_MARKER.match(row):
                 print(f"warning: block {n} has a row that starts with "
-                      f"`( BLOCK`; putblocks.py would start a block there",
+                      f"`( BLOCK`; putblocks.py would end the block there",
                       file=sys.stderr)
         out.append(b"( BLOCK %d )" % n)
         out.extend(lines)

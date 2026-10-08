@@ -1,6 +1,6 @@
 #!/bin/sh
 # scripts/putblocks.py and getblocks.py test: writes a source with `( BLOCK n )` markers into
-# a fresh 64-block file, has bin/lf load the blocks, dumps them
+# a fresh 64-block file (skipping a `( BLOCK IGNORE )` part), has bin/lf load the blocks, dumps them
 # with getblocks.py and writes the dump back to get the same blocks, and
 # checks that bad sources (line too long, block 0) change nothing. Compares
 # the output with expected.txt. Usage: run.sh path/to/lf
@@ -28,6 +28,9 @@ text before the first marker is ignored
 ( BLOCK 3 )
 .( three ) cr  ( a comment )
 .( three again ) cr
+( BLOCK IGNORE )
+.( ignored: not in any block ) cr
+
 ( BLOCK 70 )
 .( seventy, past the end of the file ) cr
 F

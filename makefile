@@ -75,7 +75,7 @@ test: $(TARGET)
 	@if exist $(WIN_RT) rmdir /s /q $(WIN_RT)
 	@mkdir $(WIN_RT)
 	@copy /y $(BIN_DIR)\lfflash.bin $(WIN_RT) >NUL
-	@copy /y $(BIN_DIR)\lfblocks.bin $(WIN_RT) >NUL
+	@copy /y $(BIN_DIR)\lfblocks.fb4 $(WIN_RT) >NUL
 	cd $(WIN_RT) && ..\..\$(BIN_DIR)\lf.exe -o 39 < ..\..\scripts\regression.f
 	@rmdir /s /q $(WIN_RT)
 	@echo Unit tests skipped: they need a Unix shell (WSL or MSYS2).
@@ -89,7 +89,7 @@ else
 # regression.f runs in a temp directory on copies of the flash and block
 # images in bin/, so the tracked images are never modified.
 test: $(TARGET)
-	@tmp=$$(mktemp -d) && cp $(BIN_DIR)/lfflash.bin $(BIN_DIR)/lfblocks.bin $$tmp/ && \
+	@tmp=$$(mktemp -d) && cp $(BIN_DIR)/lfflash.bin $(BIN_DIR)/lfblocks.fb4 $$tmp/ && \
 	echo "cd $$tmp && $(CURDIR)/$(TARGET) -o 39 < scripts/regression.f" && \
 	(cd $$tmp && $(CURDIR)/$(TARGET) -o 39 < $(CURDIR)/scripts/regression.f); \
 	status=$$?; rm -rf $$tmp; [ $$status -eq 0 ] || { echo "regression.f failed (exit $$status)"; exit 1; }

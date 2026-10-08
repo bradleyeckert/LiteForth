@@ -31,7 +31,7 @@ make clean      # leaves the tracked bin/*.bin images alone
   `src/target/desktop/unit_tests/` with a `makefile` that has a `test` target.
   Unity is vendored in `unit_tests/unity/` (don't edit it).
 - `unit_tests/load/` and `unit_tests/quit/` are script-driven tests: `run.sh`
-  runs `bin/lf -o 3` in a temp dir (load also builds a scratch `lfblocks.bin`
+  runs `bin/lf -o 3` in a temp dir (load also builds a scratch `lfblocks.fb4`
   with `dd`) and diffs the output, minus the banner line, against
   `expected.txt`. On failure it leaves `got.txt`. Use the same pattern for
   other interpreter-level tests.
@@ -41,7 +41,7 @@ make clean      # leaves the tracked bin/*.bin images alone
   assertions. `make test` runs it with `-o 39` (validation, so the first
   failure stops lf and prints its line number; 32 = ignore CR, so Windows
   CRLF checkouts work and line numbers stay right) in a temp dir on copies of
-  `bin/lfflash.bin` and `bin/lfblocks.bin`. It opens flash at the start,
+  `bin/lfflash.bin` and `bin/lfblocks.fb4`. It opens flash at the start,
   closes it at the end, and copies in the `go.f` definitions it tests.
 - `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
 - For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
@@ -79,11 +79,11 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   relocating, because headers in VM memory hold VM values (see the header
   links note below). Without
   a matching `close-flash`, lf exits with code 196 (pool_free fails in main).
-- lf reads (or, if missing, creates) `lfblocks.bin` / `lfflash.bin` in the
+- lf reads (or, if missing, creates) `lfblocks.fb4` / `lfflash.bin` in the
   current directory, unless `-k` / `-f` name other files. The repo tracks both in `bin/` only; keep them, never
   delete or regenerate them. Running lf in the repo root creates untracked
   copies there, so don't. `lfflash.bin` mimics an MCU's
-  flash memory; `lfblocks.bin` will hold source code and other data, and
+  flash memory; `lfblocks.fb4` will hold source code and other data, and
   code to write flash to blocks is planned. `make test` uses copies of the
   `bin/` images. Run experiments in the scratchpad, not the repo, so the
   tracked images aren't modified.

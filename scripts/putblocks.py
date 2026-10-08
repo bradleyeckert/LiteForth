@@ -14,7 +14,7 @@ Text before the first marker is ignored (with a note). A line longer than
 128 bytes, more than 32 lines in a block, or the same block twice is an
 error, and nothing is written.
 
-The block file defaults to lfblocks.bin in the current directory, as for
+The block file defaults to lfblocks.fb4 in the current directory, as for
 `lf`. It must already exist and start with the signature LITEFORTH, the way
 lf requires before it writes a block, and block 0 (which holds the
 signature) is never written. A block past the end of a regular file
@@ -100,7 +100,7 @@ def main(argv):
         print("usage: putblocks.py [-n] source.f [blockfile]", file=sys.stderr)
         return 2
     source = args[0]
-    target = args[1] if len(args) > 1 else "lfblocks.bin"
+    target = args[1] if len(args) > 1 else "lfblocks.fb4"
 
     try:
         blocks = parse(source)

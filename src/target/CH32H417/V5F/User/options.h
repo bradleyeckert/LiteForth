@@ -30,7 +30,7 @@
 // flash.c: the flash lives at __lf_flash_start (V5F linker script). Unused.
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c: no block storage yet, so these only size the buffers
-#define BLOCKFILENAME     "lfblocks.bin"
+#define BLOCKFILENAME     "lfblocks.fb4"
 #define BLOCK_SIZE_CELLS   1024 // block size in cells
 #define SYSTEM_BLOCKS         2 // number of block buffers in the system
 #define SIMNUMBLOCKS          0 // CH32H417: no blocks

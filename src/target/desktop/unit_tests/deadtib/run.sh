@@ -13,7 +13,7 @@ ROOT=$HERE/../../../../..
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 cd "$WORK"
-cp "$ROOT/bin/lfblocks.bin" .
+cp "$ROOT/bin/lfblocks.fb4" .
 
 # A hang is the failure this guards against: give up after a while
 TIMEOUT=""

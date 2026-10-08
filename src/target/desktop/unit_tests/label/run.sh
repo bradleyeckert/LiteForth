@@ -11,7 +11,7 @@ ROOT=$HERE/../../../../..
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 cd "$WORK"
-cp "$ROOT/bin/lfflash.bin" "$ROOT/bin/lfblocks.bin" .
+cp "$ROOT/bin/lfflash.bin" "$ROOT/bin/lfblocks.fb4" .
 
 status=0
 "$LF" -o 3 > out.txt 2>&1 <<'F' || status=$?

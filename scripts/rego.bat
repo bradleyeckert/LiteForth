@@ -1,1 +1,1 @@
-py putblocks.py go.f ../bin/lfblocks.bin
+py putblocks.py go.f ../bin/lfblocks.fb4

@@ -262,7 +262,7 @@ partition's size in blocks (16384 for 64 MiB) instead of 1.
 ## Using the card with lf on Windows
 
 The desktop `lf` can use the card's block partition instead of
-`lfblocks.bin`: give the card's drive letter (the FAT partition's) as the
+`lfblocks.fb4`: give the card's drive letter (the FAT partition's) as the
 block file.
 
 ```

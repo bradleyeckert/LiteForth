@@ -12,7 +12,7 @@ ROOT=$HERE/../../../../..
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 cd "$WORK"
-cp "$ROOT/bin/lfblocks.bin" .
+cp "$ROOT/bin/lfblocks.fb4" .
 
 # 1. No boot record: lf creates a blank lfflash.bin.
 printf '.( no-record ) cr\nbye\n' | "$LF" -o 11 > out.txt 2>&1 || true

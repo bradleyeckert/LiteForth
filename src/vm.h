@@ -135,7 +135,7 @@ int32_t vmReset(void);
 // are kept in registers T and N, and datastack holds the third and below.
 // Without it, only T is a register and datastack[sp] is the second item.
 // Either way sp counts the items. Comment it out for the one-register VM.
-#define TWO_REGISTER_TOS
+//#define TWO_REGISTER_TOS
 #ifdef TWO_REGISTER_TOS
 #define TOS_REGISTERS         2
 #else

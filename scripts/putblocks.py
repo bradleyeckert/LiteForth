@@ -22,6 +22,9 @@ signature) is never written. A block past the end of a regular file
 extends the file with blank (space) blocks; a device, such as a partition
 (/dev/sdb2), is never extended.
 
+It lists each block it writes with its line count and its first line,
+which by convention is a comment saying what the block holds.
+
 -n  only show what would be written.
 """
 import os
@@ -133,7 +136,9 @@ def main(argv):
             return 1
         for n in sorted(blocks):
             lines = blocks[n]
-            print(f"block {n}: {len(lines)} line{'' if len(lines) == 1 else 's'}")
+            count = f"{len(lines)} line{'' if len(lines) == 1 else 's'}"
+            title = " ".join(lines[0].decode("utf-8", "replace").split()) if lines else ""
+            print(f"block {n:<4} {count:<9} {title}".rstrip())
         if dry:
             print(f"(-n: {target} not changed)")
             return 0

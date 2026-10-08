@@ -1,6 +1,6 @@
 note: 1 non-blank line(s) before the first `( BLOCK n )` ignored
-block 3: 2 lines
-block 70: 1 line
+block 3    2 lines   .( three ) cr ( a comment )
+block 70   1 line    .( seventy, past the end of the file ) cr
 lfblocks.fb4: extended from 64 to 71 blocks
 lfblocks.fb4: wrote 2 block(s)
 71 three 

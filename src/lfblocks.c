@@ -6,6 +6,7 @@
 #include "vm.h"
 #include "forth.h"
 #include "lfblocks.h"
+#include "api0.h"
 #include "tools.h"
 
 static BlockBufferState buf_state[SYSTEM_BLOCKS];
@@ -88,10 +89,8 @@ static int find_or_allocate_buffer(uint32_t blk, int* out_idx) {
     return 0;
 }
 
-extern uint32_t g_block_capacity; // maximum number of blocks available
-
 int lfAssignBlock(uint32_t blk, int32_t* f_addr) {
-    if (blk >= g_block_capacity) return ERR_INVALID_BLOCK_NUMBER;
+    if (blk >= g_block_capacity) return ERR_BLK_BOUNDS;   // before evicting a buffer
 
     // Check if block is already loaded in RAM
     if (initialized) {

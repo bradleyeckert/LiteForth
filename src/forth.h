@@ -302,10 +302,9 @@ int lfAPI_words(void);
  * @brief Forth word `-->`  ( -- )
  * Stops interpreting the current block and continues with block BLK+1.
  * The next block replaces the current one, so chains of any length do not
- * use up `load` nesting.
+ * use up `load` nesting. Does nothing in terminal mode (BLK = 0).
  *
- * @return 0 on success, ERR_INVALID_BLOCK_NUMBER if not interpreting a
- *         block, or an error from `load`.
+ * @return 0 on success, or an error from lfAssignBlock.
  */
 int lfAPI_nextBlock(void);
 

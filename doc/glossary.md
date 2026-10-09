@@ -24,7 +24,7 @@ Name lookup ignores case.
 | `+*` | `( n1 n2 -- n1 n3 )` | Multiply step: if `A` is odd, adds `n1` to `n2`; then shifts `n3:A` right by one bit. 32 steps multiply `n1` by the original `A`. |
 | `,compile` | `( xt -- )` | Compiles an execution token: inline micro-ops for a primitive, otherwise a call. The run-time half of `postpone`. |
 | `,inst` | `( inst -- )` | Compiles a raw 16-bit VM instruction. |
-| `-->` | `( -- )` | Stops interpreting the current block and continues with block `BLK`+1. |
+| `-->` | `( -- )` | Stops interpreting the current block and continues with block `BLK`+1. Does nothing at the terminal (`BLK` = 0). |
 | `->` | `( ? -- )` | † Separates the tested code from the expected results in `t{ ... -> ... }t`. |
 | `.` | `( n -- )` | † Prints `n` in the current base, followed by a space. |
 | `.(` | `( -- )` | Prints the following text up to `)`. |

@@ -25,6 +25,12 @@ enum api0_index {
     API0_COUNT
 };
 
+/**
+ * The number of blocks in block storage, set by the target's main from
+ * blk_init. `capacity` returns it, and lfAssignBlock refuses blocks past it.
+ */
+extern uint32_t g_block_capacity;
+
 /* The API0 instruction carries the index in a 9-bit field. */
 typedef char api0_count_fits_9_bits[(API0_COUNT <= 512) ? 1 : -1];
 

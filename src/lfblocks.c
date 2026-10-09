@@ -88,7 +88,10 @@ static int find_or_allocate_buffer(uint32_t blk, int* out_idx) {
     return 0;
 }
 
+extern uint32_t g_block_capacity; // maximum number of blocks available
+
 int lfAssignBlock(uint32_t blk, int32_t* f_addr) {
+    if (blk >= g_block_capacity) return ERR_INVALID_BLOCK_NUMBER;
 
     // Check if block is already loaded in RAM
     if (initialized) {

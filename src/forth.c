@@ -1181,14 +1181,15 @@ static void printTraceLine(void) {
  * The next block replaces the current one in place (a tail call), so a
  * chain of screens does not use up LOAD nesting. The LOAD that is running
  * restores its caller when the last block of the chain ends.
+ * Ignored in terminal mode (BLK = 0).
  */
 int lfAPI_nextBlock(void) {
-    if (BLK == 0) {
-        return ERR_INVALID_BLOCK_NUMBER;
+	uint32_t blk = BLK;
+    if (blk) {
+        int32_t f_addr = 0;
+        int ior = lfAssignBlock(blk + 1, &f_addr);
+        if (ior) return ior;
+        setBlockSource(blk + 1, f_addr);
     }
-    int32_t f_addr = 0;
-    int ior = lfAssignBlock(BLK + 1, &f_addr);
-    if (ior) return ior;
-    setBlockSource(BLK + 1, f_addr);
     return 0;
 }

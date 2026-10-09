@@ -1,20 +1,17 @@
-﻿( BLOCK 1 )
-( LiteForth load screen )
+﻿( BLOCK IGNORE )
+
 0 open-flash
-( 2 14 thru )
-( close-flash )
 
 ( BLOCK 2 )
-( LiteForth boot code )
+( LiteForth configuration _____________________________________ 10/9/26 BNE )
 empty only forth  
 : \         ( -- )          >in @ 128 + -128 and >in ! ; immediate              \ comment to next row in a 128*32 block
 : base!     ( n -- )        base ! ;                                            \ `base` is a 3-instruction literal
 : decimal   ( -- )          10 base! ;                                          \ so `base!` saves some space
 : hex       ( -- )          16 base! ;
-
-
+-->
 ( BLOCK 3 )
-( dictionary )
+( Basic compilation ___________________________________________ 10/9/26 BNE )
 hex
 : definitions  ( -- )       context @ current ! ;                               \ top of the context list (8-bit wid)
 : variable  ( -- )          20 bits ;                                           \ a Forth variable is a 32-bit slice
@@ -37,9 +34,10 @@ hex
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;                                        \ right shift u1 by u2 to produce u3
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;                     \ convert instruction address to linear format
 : [char]    ( <char> -- )   char  postpone literal ; immediate                  \ compile a character as a literal
-decimal
+decimal -->
 ( BLOCK 4 )
-( control structures ) hex
+( Control structures __________________________________________ 10/9/26 BNE )
+hex
 : _again    ( a inst -- )   >r iaddr  chere iaddr inv + 1FF and r> + ,inst ;    \ compile a backward control branch
 : then      ( a -- )        chere iaddr  over iaddr inv +  swap                 \ resolve a forward branch
                             a! 1FF and @a + !a ; immediate
@@ -58,9 +56,9 @@ decimal
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 : 0<>       ( x -- flag )   0= inv ;
 : execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;  \ safe execute, may remove limits later
-
+-->
 ( BLOCK 5 )
-( Multitasking 1/2 )
+( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
 :noname     ( next a -- )   drop u! ; constant asleep                           \ sleeping task does nothing
 : pause     ( -- next a )   [ _user ,inst ] @a+ @a+ >r a ;                      \ skip to the next task
 : stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;               \ stop the current task
@@ -85,9 +83,9 @@ decimal _udata here 3 allot constant operator                                   
     swap a swap  , !  ( uc )  _udata here       ( CELL 0 = stack base rp:sp )   \ compile stack base to idata
     swap 3 + allot  _idata ,  _udata    ( CELL 1 = address of the user area )   \ allocate uninitialized data space for task
 ;
-
+-->
 ( BLOCK 6 )
-( Multitasking 2/2 )
+( Multitasking 2/2 ____________________________________________ 10/9/26 BNE )
 : activate  ( task -- )  ( R: ra -- )                               \ Activate a task, starting immediately after 'activate'.
     a! @a+ @a+                                                   ( r:d user )   \ get task parameters
     [ _user ,inst ] a 0= -121 and yeet          ( the task queue must exist )   \ make sure multitask has set up the task loop
@@ -98,11 +96,9 @@ decimal _udata here 3 allot constant operator                                   
     r> drop drop drop  r> drop         ( drop ra: return to caller's caller )
 ;
 
-20 32 32 task t1                                                                \ sample tasks
-10 20 20 task t2
-
+-->
 ( BLOCK 7 )
-( math )
+( Basic math __________________________________________________ 10/9/26 BNE )
 : -         ( n -- -n )     negate + ;                                          \ subtract
 : 1+        ( n1 -- n2 )    1 + ;
 : 1-        ( n1 -- n2 )    -1 + ;
@@ -120,9 +116,9 @@ decimal _udata here 3 allot constant operator                                   
 : max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;
 : rot       ( abc -- bca )  b! swap b swap ;
 : u<=       ( u1 u2 -- flag) swap - drop cy ;                                   \ unsigned less than or equal
-
+-->
 ( BLOCK 8 )
-( string output )
+( String output _______________________________________________ 10/9/26 BNE )
 : emit      ( c -- )        t_tx! ;                                             \ dumb emit may block
 : emit?     ( -- flag )     t_tx? ;                                             \ a smarter emit would pause while `emit?`
 : key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
@@ -142,9 +138,9 @@ decimal _udata here 3 allot constant operator                                   
     3 over and >r  2/ 2/ + amask  r> 25 lshift +    ( a' )
     [ 8 27 lshift ] literal +
 ;
-
+-->
 ( BLOCK 9 )
-( numeric output )
+( Numeric output ______________________________________________ 10/9/26 BNE )
 _udata variable hld  create numbuf 10 allot
 : <#        ( ud -- ud )    40  hld ! ;                                         \ start numeric conversion
 : #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars  swap negate 40 + ;  \ end numeric conversion
@@ -161,21 +157,12 @@ _udata variable hld  create numbuf 10 allot
 : .r        ( n width -- )  >r s>d r> d.r ;
 : d.        ( d -- )        0 d.r space ;
 : u.        ( u -- )        0 d. ;
-
+-->
 ( BLOCK 10 )
-( system stats )
-: _.map     ( -- )
-    here . ." to " 'here 1+ @ . ." unused " unused . ." cells" cr
-;
-: .map      ( -- )                                                              \ display map of all sections
-    _udata ." _udata " _.map  _idata ." _idata " _.map
-    _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
-;
-( BLOCK 11 )
-( Block support )
+( Block support _______________________________________________ 10/9/26 BNE )
 : -utrailing  ( a len -- a len' )                                               \ trim trailing blank cells
-    begin dup 1- swap while
-        2dup + amask @  538976288 xor  if exit then
+    begin dup while
+        2dup + amask 1- @  538976288 xor  if exit then  1-        
     repeat dup xor
 ;
 : list      ( n -- )
@@ -188,9 +175,9 @@ _udata variable hld  create numbuf 10 allot
 : _index    ( blk -- )      block 32 -utrailing swap 8 bit swap 2* 2* type cr ; \ display the block index
 : thru      ( u1 u2 -- )    over - 1+ goodAN  for dup load 1+ next drop ;       \ load a sequence of blocks
 : index     ( u1 u2 -- )    over - 1+ goodAN  for dup _index 1+ next drop ;     \ display an index of blocks
-
-( BLOCK 12 )
-( idata save and restore )
+-->
+( BLOCK 11 )
+( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata  ( -- )                                                            \ compile idata initialization structure
     _idata here  dp[] tuck - amask
     _text dup , ( 'src len )  for  @+ ,  next  drop                             \ first the length, then the data
@@ -205,9 +192,19 @@ _udata variable hld  create numbuf 10 allot
    _code here >r  'here ! ,compile  postpone exit
    r> 'here ! _udata
 ;
-
+-->
+( BLOCK 12 )
+( System stats ________________________________________________ 10/9/26 BNE )
+: _.map     ( -- )
+    hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr
+;
+: .map      ( -- )                                                              \ display map of all sections
+    _udata ." _udata " _.map  _idata ." _idata " _.map
+    _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
+;
+-->
 ( BLOCK 13 )
-( demo )
+( Demo ________________________________________________________ 10/9/26 BNE )
 
 : hi  ." 学如不及，犹恐失之 " ;
 
@@ -217,6 +214,8 @@ variable counter
     1 counter +!
 ;
 
+20 32 32 task t1                                                                \ sample tasks
+10 20 20 task t2
 
 variable ctr
 
@@ -232,9 +231,9 @@ variable ctr
     cr ." App error " y@ .  ." at " x@ hex . decimal cr
     begin  break  again         ( park the app until the next `cold` )
 ; hex 80000002 ,jump decimal
-
+-->
 ( BLOCK 14 )
-( finish app )
+( Resolve startup _____________________________________________ 10/9/26 BNE )
 
 _text here 32 bit  1 !  ( Boot structure at end of text )
 save-wids save-idata
@@ -243,6 +242,8 @@ _udata  ( leave data space selected: `variable` in text space corrupts headers )
 ( Cell 0: 1 or 2 instructions for jump to application )
 ( Cell 1: address of system initialization data {TBD} )
 ( Cell 2: 1 or 2 instructions for jump to yeet handler )
+
+( BLOCK IGNORE )
 
 close-flash
 

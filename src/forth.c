@@ -1184,7 +1184,7 @@ static void printTraceLine(void) {
  * Ignored in terminal mode (BLK = 0).
  */
 int lfAPI_nextBlock(void) {
-	uint32_t blk = BLK;
+    uint32_t blk = BLK;
     if (blk) {
         int32_t f_addr = 0;
         int ior = lfAssignBlock(blk + 1, &f_addr);

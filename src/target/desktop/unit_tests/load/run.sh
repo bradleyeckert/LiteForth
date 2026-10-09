@@ -31,6 +31,7 @@ blk 50 '.( [50] ) bye .( never )'
 foo 7 .
 2 load
 10 load .( chain-done )
+--> .( arrow-at-terminal-ignored )
 30 load
 .( recovered )
 40 load

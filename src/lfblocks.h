@@ -91,8 +91,9 @@ int lfAPI_emptyBuffers(void);
  *
  * @param blk Block number.
  * @param f_addr Receives the Forth address of the buffer in the RAM page.
- * @return 0 on success, ERR_BLOCK_READ_ERROR if a modified buffer could not be
- *         saved to make room, or the error from blk_read.
+ * @return 0 on success, ERR_BLK_BOUNDS if blk >= g_block_capacity (checked
+ *         before any buffer is evicted), ERR_BLOCK_READ_ERROR if a modified
+ *         buffer could not be saved to make room, or the error from blk_read.
  */
 int lfAssignBlock(uint32_t blk, int32_t* f_addr);
 

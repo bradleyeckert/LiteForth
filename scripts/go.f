@@ -60,7 +60,7 @@ decimal
 ( BLOCK 5 )
 ( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
 :noname     ( next a -- )   drop u! ; constant asleep                           \ sleeping task does nothing
-: pause     ( -- next a | ) [ _user ,inst ] a if @a+ @a+ >r a exit 2drop ;      \ skip to the next task, or nothing if no task
+: pause     ( -- next a | ) [ _user ,inst ] a if @a+ @a+ >r a exit then ;       \ skip to the next task, or nothing if no task
 : stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;               \ stop the current task
 :noname     ( next a -- )                                                       \ an awake task
     a! u! task[ dup !a                 ( ix r:d |R: ra ? \ save current r:d )   \ saves the current task's stack window
@@ -134,27 +134,28 @@ decimal _udata here 3 allot constant operator                                   
 -->
 ( BLOCK 9 )
 ( String support ______________________________________________ 10/10/26 BNE )
-: bytepos   ( a pos -- a' )                                                     \ set the byte offset for a byte address
-    25 lshift  swap amask
-    [ 8 27 lshift ] literal + +
+: bytepos   ( a -- n )                                                          \ get the byte offset
+    25 rshift 3 and
+;
+: posbyte   ( a pos -- a' )                                                     \ set the byte offset for a byte address
+    25 lshift  swap amask  [ 8 27 lshift ] literal + +
 ;
 : chars+    ( a n -- a' )                                                       \ skip forward n chars, chars must be 8-bit
-    over 25 rshift 3 and +  ( a bytepos )                                       \ Equivalent to ANS "chars +" for portability,
-    3 over and >r  2/ 2/ + amask  r> 25 lshift +    ( a' )                      \ so string code might run on an ANS system.
-    [ 8 27 lshift ] literal +
+    over bytepos + 3 over and >r  2/ 2/ +  r> posbyte                           \ Equivalent to ANS "chars +" for portability,
 ;
 : char-     ( a -- a' )                                                         \ step a byte address backward
-    dup 25 rshift 3 and  1-  ( a pos' )
-    -if  drop 3  swap 1- swap  then
-    25 lshift  swap amask +
-    [ 8 27 lshift ] literal +
+    dup bytepos  1-  ( a pos' )  -if  drop 3  swap 1- swap  then  posbyte
 ;
--->
+: bytespan  ( a1 a0 -- n )                                                      \ number of bytes within cell addresses
+    over bytepos  over bytepos  - >r
+    - amask 2* 2* r> +
+;
+--> 
 ( BLOCK 10 )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
 _udata variable hld  create numbuf 10 allot
 : <#        ( ud -- ud )    40  hld ! ;                                         \ start numeric conversion
-: #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars  swap negate 40 + ;  \ end numeric conversion
+: #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars+  swap negate 40 + ; \ end numeric conversion
 : hold      ( c -- )                                                            \ append to conversion buffer
     hld a! @a 1-  dup 0< -17 and yeet  dup !a                                   \ check for buffer overflow
     numbuf swap chars+ !
@@ -168,22 +169,27 @@ _udata variable hld  create numbuf 10 allot
 : .r        ( n width -- )  >r s>d r> d.r ;
 : d.        ( d -- )        0 d.r space ;
 : u.        ( u -- )        0 d. ;
--->
+--> 
 ( BLOCK 11 )
 ( Block support _______________________________________________ 10/9/26 BNE )
-: -utrailing  ( a len -- a len' )                                               \ trim trailing blank cells
-    begin dup while
-        2dup + amask 1- @  538976288 xor  if exit then  1-        
-    repeat dup xor
+: -trailing  ( a len -- a' len' )                                               \ trim trailing blank bytes
+    >r 8 bit dup r> chars+  ( a0 a1 )                                           \ convert to byte addresses
+    begin 2dup xor while     
+        char- dup @  32 xor  if  over bytespan 1+ exit then                     \ seek backward for nonblank
+    repeat dup xor 
 ;
+_udata  variable listcnt  variable scr
+: listline  ( ca u -- )    listcnt @ 2 u.r space type cr ;
 : list      ( n -- )
-    block |block| -utrailing
+    0 listcnt !  dup scr !
+    block [ |block| 2* 2* ] literal -trailing                                   \ trim trailing rows
     begin dup while
-        over 8 bit  over 32 min  dup >r 2* 2* type cr
-        r@ - swap r> + swap
+        2dup 128 min dup >r  -trailing listline                                 \ trim trailing columns
+        r@ - swap r> 2/ 2/ + swap                                               \ step address in cells, count in bytes
+        1 listcnt +!
     repeat  2drop
 ;
-: _index    ( blk -- )      block 32 -utrailing swap 8 bit swap 2* 2* type cr ; \ display the block index
+: _index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
 : thru      ( u1 u2 -- )    over - 1+ goodAN  for dup load 1+ next drop ;       \ load a sequence of blocks
 : index     ( u1 u2 -- )    over - 1+ goodAN  for dup _index 1+ next drop ;     \ display an index of blocks
 -->

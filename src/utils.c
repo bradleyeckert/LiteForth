@@ -210,7 +210,7 @@ static int lfDotHex(int32_t n) {
     return lfSpace();
 }
 
-// Disassemblea an Insn, returns any destination jump
+// Disassemblea an Insn, returns destination jump if any
 static int32_t DisassembleInsn(uint16_t inst, char* tag) {
     static uint32_t lex;
     int32_t _lex = -1;
@@ -248,7 +248,8 @@ static int32_t DisassembleInsn(uint16_t inst, char* tag) {
                     lfSpace();
                     lf_putc(last);
                     break;
-                } lfDotHex(immex); break;
+                } lf_puts("word:");
+                lfDotHex(immex); break;
             case 2: lfDot(immex); break;
             default: {
                 uint32_t imm = inst & ((1 << 9) - 1);
@@ -274,10 +275,14 @@ static int32_t DisassembleInsn(uint16_t inst, char* tag) {
                     else {
                         lfDotHex(simm);
                     } break;
+                case VMO_BRAN:
+                case VMO_ZBRAN:
+                case VMO_PBRAN:
+                    branch_offset = simm;
+					FALLTHROUGH;
                 default:
                     lfDot(simm);
                     lf_puts(immName[opcode]);
-                    branch_offset = simm;
                 }
             }
         }

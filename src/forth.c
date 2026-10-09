@@ -420,7 +420,7 @@ static const struct s_head* search_wordlist(int wid_index, const char *target_na
             if (found_name != NULL) *found_name = name;
             return link;
         }
-        g_neighbor_w = link->w;
+		if ((link->aux & A_CONSTANT) == 0) g_neighbor_w = link->w;
         link = lfFollow(link->link, &name);
     }
     return NULL;
@@ -1148,8 +1148,8 @@ int lfAPI_load(void) {
 static void printTraceLine(void) {
     int toin = lfTOINfetch();
     if (toin > source_len) toin = source_len;
-    int row = (toin / SCREEN_COLUMNS) + 1;
-    int col = (toin % SCREEN_COLUMNS) + 1;
+    int row = toin / SCREEN_COLUMNS;
+    int col = toin % SCREEN_COLUMNS;
 
     int line_start = toin;
     while (line_start > 0 && source[line_start - 1] != '\n' && source[line_start - 1] != '\r') {

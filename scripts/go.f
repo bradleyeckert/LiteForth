@@ -60,7 +60,7 @@ decimal
 ( BLOCK 5 )
 ( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
 :noname     ( next a -- )   drop u! ; constant asleep                           \ sleeping task does nothing
-: pause     ( -- next a )   [ _user ,inst ] @a+ @a+ >r a ;                      \ skip to the next task
+: pause     ( -- next a | ) [ _user ,inst ] a if @a+ @a+ >r a exit 2drop ;      \ skip to the next task, or nothing if no task
 : stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;               \ stop the current task
 :noname     ( next a -- )                                                       \ an awake task
     a! u! task[ dup !a                 ( ix r:d |R: ra ? \ save current r:d )   \ saves the current task's stack window
@@ -75,14 +75,6 @@ decimal _udata here 3 allot constant operator                                   
     dup u! dup a! !a+  awake !a+     ( ix |R: ra \ populate next and action )   \ Create a task loop with a single task in it
     task[  !a+ r> drop       ( capture the operator's r:d and start address )   \ and assign it to the operator.
 ;
-
-: task  ( user_cells data_stack return_stack <name> -- )                        \ Create a new task
-    _idata create  16 lshift +                                     ( uc r:d )   \ in the idata section
-    stackused a! @a  swap over +                               ( uc r:d new )   \ the stacks grow upward
-    dup stack-masks inv and 0<> -118 and yeet  ( check against upper limits )   \ yeet if not enough room in the stack space
-    swap a swap  , !  ( uc )  _udata here       ( CELL 0 = stack base rp:sp )   \ compile stack base to idata
-    swap 3 + allot  _idata ,  _udata    ( CELL 1 = address of the user area )   \ allocate uninitialized data space for task
-;
 -->
 ( BLOCK 6 )
 ( Multitasking 2/2 ____________________________________________ 10/9/26 BNE )
@@ -96,6 +88,13 @@ decimal _udata here 3 allot constant operator                                   
     r> drop drop drop  r> drop         ( drop ra: return to caller's caller )
 ;
 
+: task  ( user_cells data_stack return_stack <name> -- )                        \ Create a new task
+    _idata create  16 lshift +                                     ( uc r:d )   \ in the idata section
+    stackused a! @a  swap over +                               ( uc r:d new )   \ the stacks grow upward
+    dup stack-masks inv and 0<> -118 and yeet  ( check against upper limits )   \ yeet if not enough room in the stack space
+    swap a swap  , !  ( uc )  _udata here       ( CELL 0 = stack base rp:sp )   \ compile stack base to idata
+    swap 3 + allot  _idata ,  _udata    ( CELL 1 = address of the user area )   \ allocate uninitialized data space for task
+;
 -->
 ( BLOCK 7 )
 ( Basic math __________________________________________________ 10/9/26 BNE )
@@ -132,21 +131,33 @@ decimal _udata here 3 allot constant operator                                   
 : digit     ( n -- char )   dup -10 + 0< -7 and + [char] 7 + ;                  \ convert to ASCII digit
 : space     ( -- )          32 emit ;                                           \ send a space
 : spaces    ( n -- )        goodN for space next ;                              \ send 0 or more spaces
-
-: chars     ( a n -- a' )                                                       \ skip forward n chars, chars must be 8-bit
-    over 25 rshift 3 and +  ( a bytepos )
-    3 over and >r  2/ 2/ + amask  r> 25 lshift +    ( a' )
+-->
+( BLOCK 9 )
+( String support ______________________________________________ 10/10/26 BNE )
+: bytepos   ( a pos -- a' )                                                     \ set the byte offset for a byte address
+    25 lshift  swap amask
+    [ 8 27 lshift ] literal + +
+;
+: chars+    ( a n -- a' )                                                       \ skip forward n chars, chars must be 8-bit
+    over 25 rshift 3 and +  ( a bytepos )                                       \ Equivalent to ANS "chars +" for portability,
+    3 over and >r  2/ 2/ + amask  r> 25 lshift +    ( a' )                      \ so string code might run on an ANS system.
+    [ 8 27 lshift ] literal +
+;
+: char-     ( a -- a' )                                                         \ step a byte address backward
+    dup 25 rshift 3 and  1-  ( a pos' )
+    -if  drop 3  swap 1- swap  then
+    25 lshift  swap amask +
     [ 8 27 lshift ] literal +
 ;
 -->
-( BLOCK 9 )
+( BLOCK 10 )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
 _udata variable hld  create numbuf 10 allot
 : <#        ( ud -- ud )    40  hld ! ;                                         \ start numeric conversion
 : #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars  swap negate 40 + ;  \ end numeric conversion
 : hold      ( c -- )                                                            \ append to conversion buffer
-    hld a! @a 1-  dup 0< -17 and yeet  dup !a
-    numbuf swap chars !
+    hld a! @a 1-  dup 0< -17 and yeet  dup !a                                   \ check for buffer overflow
+    numbuf swap chars+ !
 ;
 : #         ( ud1 -- ud2 )  base @ mu/mod rot digit hold ;
 : #s        ( ud -- 0 )     begin # 2dup or 0= until ;
@@ -158,7 +169,7 @@ _udata variable hld  create numbuf 10 allot
 : d.        ( d -- )        0 d.r space ;
 : u.        ( u -- )        0 d. ;
 -->
-( BLOCK 10 )
+( BLOCK 11 )
 ( Block support _______________________________________________ 10/9/26 BNE )
 : -utrailing  ( a len -- a len' )                                               \ trim trailing blank cells
     begin dup while
@@ -176,7 +187,7 @@ _udata variable hld  create numbuf 10 allot
 : thru      ( u1 u2 -- )    over - 1+ goodAN  for dup load 1+ next drop ;       \ load a sequence of blocks
 : index     ( u1 u2 -- )    over - 1+ goodAN  for dup _index 1+ next drop ;     \ display an index of blocks
 -->
-( BLOCK 11 )
+( BLOCK 12 )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata  ( -- )                                                            \ compile idata initialization structure
     _idata here  dp[] tuck - amask
@@ -193,7 +204,7 @@ _udata variable hld  create numbuf 10 allot
    r> 'here ! _udata
 ;
 -->
-( BLOCK 12 )
+( BLOCK 13 )
 ( System stats ________________________________________________ 10/9/26 BNE )
 : _.map     ( -- )
     hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr
@@ -202,8 +213,12 @@ _udata variable hld  create numbuf 10 allot
     _udata ." _udata " _.map  _idata ." _idata " _.map
     _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
 ;
--->
-( BLOCK 13 )
+
+
+
+
+
+( BLOCK 20 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
 
 : hi  ." 学如不及，犹恐失之 " ;
@@ -232,7 +247,7 @@ variable ctr
     begin  break  again         ( park the app until the next `cold` )
 ; hex 80000002 ,jump decimal
 -->
-( BLOCK 14 )
+( BLOCK 21 )
 ( Resolve startup _____________________________________________ 10/9/26 BNE )
 
 _text here 32 bit  1 !  ( Boot structure at end of text )

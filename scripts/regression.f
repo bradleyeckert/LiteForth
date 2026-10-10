@@ -290,7 +290,7 @@ T{ wordlist wordlist swap invert 1 + + -> 1 }T
 
 
 ( ===================================================================== )
-( Words from go.f, compiled and tested here                             )
+( Words from core.f, compiled and tested here                             )
 ( ===================================================================== )
 
 : cells ; immediate
@@ -433,13 +433,13 @@ T{ ram-base 40 + a! 7 !a+ 8 !a ram-base 40 + @+ nip -> 7 }T
 T{ ram-base 40 + @+ drop @+ nip -> 8 }T
 
 ( ===================================================================== )
-( Multitasker, copied from go.f, with the helpers it and later tests use )
+( Multitasker, copied from core.f, with the helpers it and later tests use )
 ( ===================================================================== )
 : ,         ( n -- )        'here @ a! !a+ a 'here ! ;
 : '         ( <name> -- xt) x' drop ;
 : lshift    ( u1 u2 -- u3 ) shft[ ]shl ;
 : 0=        ( x -- flag )   if 0 exit then -1 ;
-( execute, copied from go.f: calls colon or :noname code. An xt of 0 )
+( execute, copied from core.f: calls colon or :noname code. An xt of 0 )
 ( or with bits above the 22-bit address [a primitive, macro or API   )
 ( word] yeets -21.                                                    )
 : 0<>       ( x -- flag )   0= inv ;

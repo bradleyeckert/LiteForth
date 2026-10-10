@@ -255,7 +255,7 @@ LiteForth's memory as the desktop `main.c` does (flash pages 0-3 in the
 code flash, the RAM page from the pool, the block partition on the SD
 card, the rest unmapped), and runs
 `lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
-the boot record pointer that `go.f` stores, isn't `0xE339E339` or
+the boot record pointer that `core.f` stores, isn't `0xE339E339` or
 `0xFFFFFFFF`), it boots from it
 (`SYS_OPTION_BOOTING`). `bye` restarts `lfQuit`. USART1 shows
 `V5F: LiteForth starting, booting from flash` or `..., flash is blank`.
@@ -271,9 +271,9 @@ Open the COM port with **local echo on**: LiteForth doesn't echo what you
 type. Enter ends a line; a terminal that sends CR LF gets an extra empty
 line, which is harmless. LiteForth doesn't handle Backspace in a line yet.
 
-The flash starts blank, so the first thing to do is load `scripts/go.f`
+The flash starts blank, so the first thing to do is load `forth/core.f`
 by sending it as a text file from the terminal. USB flow control makes
-the host wait while LiteForth works, so it can go at full speed. `go.f`
+the host wait while LiteForth works, so it can go at full speed. `core.f`
 compiles into flash page 0 and saves a boot image; after the next reset
 the V5F boots it. Remember that a MounRiver download erases it (see
 *Flash* above).

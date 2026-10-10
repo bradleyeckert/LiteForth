@@ -18,7 +18,7 @@ cp "$ROOT/bin/lfblocks.fb4" .
 printf '.( no-record ) cr\nbye\n' | "$LF" -o 11 > out.txt 2>&1 || true
 
 # 2. Build a flash image with a boot record. The app and yeet handler just
-#    `break` in a loop, so they print nothing. (Definitions from go.f.)
+#    `break` in a loop, so they print nothing. (Definitions from core.f.)
 "$LF" -o 3 > /dev/null 2>&1 <<'F'
 0 open-flash
 : cells ; immediate

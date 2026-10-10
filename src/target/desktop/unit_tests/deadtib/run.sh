@@ -1,6 +1,6 @@
 #!/bin/sh
 # stop-tib test: a running app with `stop-tib` set gets the keyboard.
-# After go.f, an app is compiled that echoes every key and, on `q`, loops
+# After core.f, an app is compiled that echoes every key and, on `q`, loops
 # without `break` until the VM times out and stops it. `cold` and `1 stop-tib !`
 # start it with more lines still waiting on stdin: the app must echo them
 # (rather than lf spinning with a key waiting that nobody reads), and once
@@ -20,7 +20,7 @@ TIMEOUT=""
 if command -v timeout > /dev/null 2>&1; then TIMEOUT="timeout 60"; fi
 
 {
-cat "$ROOT/scripts/go.f"
+cat "$ROOT/forth/core.f"
 cat <<'F'
 
 3 >options

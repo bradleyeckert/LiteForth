@@ -42,7 +42,7 @@ make clean      # leaves the tracked bin/*.bin images alone
   failure stops lf and prints its line number; 32 = ignore CR, so Windows
   CRLF checkouts work and line numbers stay right) in a temp dir on copies of
   `bin/lfflash.bin` and `bin/lfblocks.fb4`. It opens flash at the start,
-  closes it at the end, and copies in the `go.f` definitions it tests.
+  closes it at the end, and copies in the `core.f` definitions it tests.
 - `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
 - For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
   first and `cmp` them afterwards; gcc output is reproducible here.
@@ -72,7 +72,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   partition logic on image files, since the container can't run Windows;
   `rawdisk.c`'s Windows half can only be syntax-checked here (clang
   `-target x86_64-w64-mingw32` with mingw-w64 headers). Use `-o 3` when a test must keep going after errors.
-- Compiling colon definitions needs `0 open-flash` first (as `scripts/go.f`
+- Compiling colon definitions needs `0 open-flash` first (as `forth/core.f`
   does); flash is write-protected otherwise and `:` fails with ior -20.
 - `open-flash` maps the flash page to a RAM buffer from the memory pool.
   `close-flash` programs the page and frees the buffer; nothing needs
@@ -111,7 +111,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
 | `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (a raw type-DA partition on the microSD card via WCH's `sdio.c`; see doc/sdcard.md), `options.h` (4 x 64K flash pages, RAM_PAGE 4, `VM_IO_PAGE` 5: the peripheral registers at `IO_BASE`, mapped by `main.c`), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
-| `scripts/go.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
+| `forth/core.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
+| `forth/block1.f`, `forth/build.bat` | More Forth source; `build.bat` (Windows, run in `forth/`) writes `core.f` and `block1.f` into `bin/lfblocks.fb4` with `putblocks.py` |
 | `scripts/regression.f` | Regression script run by `make test` |
 | `scripts/putblocks.py` | Writes a source file into blocks: each `( BLOCK n )` line starts block n (the marker line itself isn't stored) and `( BLOCK IGNORE )` skips the lines up to the next marker, lines padded to 128 columns, 32 rows. Needs an existing signed block file (or partition device); never writes block 0 (`unit_tests/putblocks`) |
 | `scripts/getblocks.py` | The reverse: dumps a block file as text (stdout or `-o`), writing a `( BLOCK n )` marker before each non-blank block. `putblocks.py` writes the dump back byte for byte. Also the git diff driver for `*.fb4` (`.gitattributes`): run `git config diff.fb4.textconv "python3 scripts/getblocks.py -0"` once per clone so `git diff` shows blocks as text; GitHub can't use it and collapses `.fb4` diffs |
@@ -135,7 +136,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - Tunables (`MAX_LOAD_NESTING`, `SYSTEM_BLOCKS`, `SCREEN_COLUMNS`, ...) are in
   `src/target/desktop/options.h`.
 - File encodings are mixed. Preserve them byte-for-byte when editing:
-  `forth.c` and `go.f` are UTF-8 with a BOM, `forth.h` is Windows-1252 (en
+  `forth.c` and `core.f` are UTF-8 with a BOM, `forth.h` is Windows-1252 (en
   dashes in comments). Read/write with latin-1 in scripts, or use the Edit tool.
 - `.gitattributes` forces `*.h` to C and marks Unity vendored for GitHub's
   language stats (some headers mention `__cplusplus`).
@@ -151,6 +152,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   chains don't consume nesting.
 - **Error traces** print as the error unwinds: each `load` prints its line
   (innermost first) and `lfInterpret` prints the `Terminal` line last.
+  Positions are `[row:column]`, both counted from 0.
 - **vmExec keeps the VM registers in locals** (`VM_LOAD`/`VM_SAVE`) so the
   compiler can hold them in CPU registers; save around anything that reads
   or changes the globals (API calls) and at every return. Each micro-op does
@@ -197,7 +199,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   `interpretSource` to `lfQuit`; they never touch the app's PC. The exception is
   `ERR_VM_TIMEOUT` (`VM_STEP_LIMIT` steps without a `break`): the app is
   stopped and `loadTIB(int* length)` returns it for QUIT to report; otherwise
-  `loadTIB` returns 0 or `ERR_TIB_OVERFLOW`. `go.f` puts the app's entry jump at code
+  `loadTIB` returns 0 or `ERR_TIB_OVERFLOW`. `core.f` puts the app's entry jump at code
   cell 0 and the handler's at cell 2 with `,jump`.
   `serial_ready` never blocks: in stdio mode a reader thread (`serial_io.c`,
   pthreads or Win32) reads fd 0 into a ring buffer, so the app runs while a
@@ -213,14 +215,14 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   name's VM byte address. Walk lists with `lfFollow` (forth.c), never
   `->link`/`->name` directly. So flash holds no C addresses: no rebase at
   `close-flash`, and the image boots wherever it's mapped.
-- **Booting** (`-o 8`, `SYS_OPTION_BOOTING`): `go.f` ends with
+- **Booting** (`-o 8`, `SYS_OPTION_BOOTING`): `core.f` ends with
   `_text here 32 bit 1 !` then `save-wids save-idata`, so cell 1 points to a
   record (skip address, wordlist count, raw `wids` table; offsets
   `WIDS_RECORD_*` in `forth.h`), followed by the saved IDATA.
   At startup `lfQuit` calls `lfBootFromFlash` to restore `wids`, then resets
   the VM and sets `SYS_OPTION_RUNNING`. A head that isn't a valid link
   (e.g. a C pointer in an image from an older build) becomes NULL.
-- **Multitasker** (`go.f`, `doc/multitasking.md`): user areas of 3 cells
+- **Multitasker** (`core.f`, `doc/multitasking.md`): user areas of 3 cells
   (NEXT, ACTION, R:D). `pause` jumps to the running task's ACTION: `awake`
   saves its `rp:sp` and switches to NEXT with `]task`; `asleep` only moves U.
   `multitask` makes a ring of one, the terminal (`operator`). `task[` (`sys>`)

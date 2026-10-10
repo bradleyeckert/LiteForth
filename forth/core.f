@@ -13,7 +13,6 @@ empty only forth
 ( BLOCK 3 )
 ( Basic compilation ___________________________________________ 10/9/26 BNE )
 hex
-: definitions  ( -- )       context @ current ! ;                               \ top of the context list (8-bit wid)
 : variable  ( -- )          20 bits ;                                           \ a Forth variable is a 32-bit slice
 : _section  ( n -- )        dp^ ! ;                                             \ dp^ is a 2-bit value (see forth.h)
 : _udata    ( -- )          0 _section ;                                        \ use uninitialized data section
@@ -33,10 +32,12 @@ hex
 : lshift    ( u1 u2 -- u3 ) shft[ ]shl ;                                        \ left shift u1 by u2 to produce u3
 : rshift    ( u1 u2 -- u3 ) shft[ ]shr ;                                        \ right shift u1 by u2 to produce u3
 : iaddr     ( a1 -- a2 )    dup 2* swap 1A rshift 1 and + ;                     \ convert instruction address to linear format
+: caddr     ( a1 -- a2 )    1 over and 1A lshift  swap 2/ amask + 80000000 + ;  \ convert instruction address to normal format
 : [char]    ( <char> -- )   char  postpone literal ; immediate                  \ compile a character as a literal
+: @+        ( a -- a+1 n )  a! @a+ a swap ;                                     \ fetch next cell or slice in a stream
 decimal -->
 ( BLOCK 4 )
-( Control structures __________________________________________ 10/9/26 BNE )
+( Control structures __________________________________________ 10/10/26 BNE )
 hex
 : _again    ( a inst -- )   >r iaddr  chere iaddr inv + 1FF and r> + ,inst ;    \ compile a backward control branch
 : then      ( a -- )        chere iaddr  over iaddr inv +  swap                 \ resolve a forward branch
@@ -52,10 +53,18 @@ hex
 : repeat    ( a1 a2 -- )    postpone again  postpone then ; immediate           \ begin ... while ... repeat
 : for       ( -- a )        postpone >r  chere ; immediate                      \ for ... next
 : next      ( a -- )        _next _again ; immediate                            \ for ... next
-decimal
 : 0=        ( x -- flag )   if 0 exit then -1 ;
 : 0<>       ( x -- flag )   0= inv ;
-: execute   ( xt -- )       dup 0=  over -4194304 and 0<> +  -21 and yeet >r ;  \ safe execute, may remove limits later
+: =         ( n1 n2 -- flag ) xor 0= ;
+: execute   ( xt -- )       dup 0=  over 3FFFFF inv and + 0<> -15 and yeet >r ; \ safe execute, may remove limits later
+: ,jump     ( xt ta -- )    _code here >r  'here ! ,compile  postpone exit      \ compile a jump to xt at ta
+                            r> 'here ! _udata ;
+: (does)    ( -- |R ra -- ) r> created @  ,jump ;                               \ run-time part of `does>`
+: does>     ( -- )          postpone (does) ; immediate                         \ create ... does>
+: >body     ( xt -- a )     0 swap caddr  begin  @+     ( acc a inst )          \ extract body address from code
+    dup E000 and _lit = if 1FFF and nip swap 0D lshift + exit then              \ trailing lit instruction detected  
+    3FF and >r  swap 0A lshift r> + swap  ( acc a )  again ;                    \ otherwise, assume prefix instructions
+decimal
 -->
 ( BLOCK 5 )
 ( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
@@ -89,7 +98,7 @@ decimal _udata here 3 allot constant operator                                   
 ;
 
 : task  ( user_cells data_stack return_stack <name> -- )                        \ Create a new task
-    _idata create  16 lshift +                                     ( uc r:d )   \ in the idata section
+    _idata align create  16 lshift +                               ( uc r:d )   \ in the idata section
     stackused a! @a  swap over +                               ( uc r:d new )   \ the stacks grow upward
     dup stack-masks inv and 0<> -118 and yeet  ( check against upper limits )   \ yeet if not enough room in the stack space
     swap a swap  , !  ( uc )  _udata here       ( CELL 0 = stack base rp:sp )   \ compile stack base to idata
@@ -101,7 +110,6 @@ decimal _udata here 3 allot constant operator                                   
 : -         ( n -- -n )     negate + ;                                          \ subtract
 : 1+        ( n1 -- n2 )    1 + ;
 : 1-        ( n1 -- n2 )    -1 + ;
-: =         ( n1 n2 -- flag ) xor 0= ;
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;
 : _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        \ a multiply that does not use the API
 : 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 \ true if n < 0
@@ -122,44 +130,34 @@ decimal _udata here 3 allot constant operator                                   
 : emit?     ( -- flag )     t_tx? ;                                             \ a smarter emit would pause while `emit?`
 : key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
 : key?      ( -- flag )     t_rx? ;                                             \ a smarter key would pause while `key?`
-: @+        ( a -- a+1 n )  a! @a+ a swap ;                                     \ fetch next cell or slice in a stream
-: goodN     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 \ exit the caller if there is nothing to do
-: goodAN    ( n1 n2 -- | n1 n2) 1- -if 2drop r> drop exit then 1+ ;             \ exit the caller if there is nothing to do
-: type      ( ca n -- )     goodAN for @+ emit next drop ;                      \ output a string using emit
+: 1parm     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 \ exit the caller if there is nothing to do
+: 2parms    ( n1 n2 -- | n1 n2) 1- -if drop r> drop drop exit then 1+ ;         \ exit the caller if there is nothing to do
+: type      ( ca n -- )     2parms for @+ emit next drop ;                      \ output a string using emit
 : $type     ( ca -- )       @+ type ;                                           \ output counted string
 : ."        ( string" -- )  _," postpone literal  postpone $type ; immediate    \ compile a string to type at run time
 : digit     ( n -- char )   dup -10 + 0< -7 and + [char] 7 + ;                  \ convert to ASCII digit
 : space     ( -- )          32 emit ;                                           \ send a space
-: spaces    ( n -- )        goodN for space next ;                              \ send 0 or more spaces
+: spaces    ( n -- )        1parm for space next ;                              \ send 0 or more spaces
 -->
 ( BLOCK 9 )
 ( String support ______________________________________________ 10/10/26 BNE )
-: bytepos   ( a -- n )                                                          \ get the byte offset
-    25 rshift 3 and
-;
-: posbyte   ( a pos -- a' )                                                     \ set the byte offset for a byte address
-    25 lshift  swap amask  [ 8 27 lshift ] literal + +
-;
-: chars+    ( a n -- a' )                                                       \ skip forward n chars, chars must be 8-bit
-    over bytepos + 3 over and >r  2/ 2/ +  r> posbyte                           \ Equivalent to ANS "chars +" for portability,
-;
-: char-     ( a -- a' )                                                         \ step a byte address backward
-    dup bytepos  1-  ( a pos' )  -if  drop 3  swap 1- swap  then  posbyte
-;
-: bytespan  ( a1 a0 -- n )                                                      \ number of bytes within cell addresses
-    over bytepos  over bytepos  - >r
-    - amask 2* 2* r> +
-;
+: bytepos   ( a -- n )      25 rshift 3 and ;                                   \ get the byte offset
+: posbyte   ( a pos -- a' ) 25 lshift  swap amask [ 8 27 lshift ] literal + + ; \ set the byte offset for a byte address
+: chars+    ( a n -- a' )   over bytepos + 3 over and >r  2/ 2/ +  r> posbyte ; \ skip forward n chars, chars must be 8-bit
+: char-     ( a -- a' )   dup bytepos 1- -if drop 3 swap 1- swap then posbyte ; \ step a byte address backward
+: bytespan  ( a1 a0 -- n ) over bytepos  over bytepos - >r - amask 2* 2* r> + ; \ number of bytes within cell addresses
+: 3parms    ( abc -- | abc) 1- -if drop r> drop 2drop exit then 1+ ;            \ exit the caller if there is nothing to do
+: cmove     ( a1 a2 n -- )  3parms >r b! a! |inst @a+ !b+ unext ;               \ move cells or slices
+: cmove>    ( a1 a2 n -- )  3parms dup >r chars+  swap r@ chars+ ( a1 a2 | n )  \ move bytes forward by small offset
+                            begin  dup b! over a! @a !b  char- swap char- swap  again ;
 --> 
 ( BLOCK 10 )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
 _udata variable hld  create numbuf 10 allot
 : <#        ( ud -- ud )    40  hld ! ;                                         \ start numeric conversion
 : #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars+  swap negate 40 + ; \ end numeric conversion
-: hold      ( c -- )                                                            \ append to conversion buffer
-    hld a! @a 1-  dup 0< -17 and yeet  dup !a                                   \ check for buffer overflow
-    numbuf swap chars+ !
-;
+: hold      ( c -- )        hld a! @a 1-  dup 0< -17 and yeet  dup !a           \ append to conversion buffer,
+                            numbuf swap chars+ ! ;                              \ checking for buffer overflow
 : #         ( ud1 -- ud2 )  base @ mu/mod rot digit hold ;
 : #s        ( ud -- 0 )     begin # 2dup or 0= until ;
 : sign      ( n -- )        -if [char] - hold exit then drop ;                  \ append minus sign if negative
@@ -171,6 +169,21 @@ _udata variable hld  create numbuf 10 allot
 : u.        ( u -- )        0 d. ;
 --> 
 ( BLOCK 11 )
+( Search order ________________________________________________ 10/10/26 BNE )
+: definitions  ( -- )       context @ current ! ;                               \ top of the context list (8-bit wid)
+: contexts  ( -- n )        0 context begin @+ 128 and 0= while swap 1+ swap repeat drop ;
+: previous  ( -- )          contexts 1parm >r context dup slice+ swap r> cmove ; \ drop top of context stack
+: also      ( -- )          context dup slice+  contexts 1+ cmove>              \ duplicate top of context stack
+                            255 [ context |context| 1- chars+ ] literal ! ;     \ backstop the terminator
+: vocabulary  ( <name> -- ) _text align create wordlist , does> @ context ! ;   \ create a new vocabulary
+: _contexts ( -- )          context contexts 2parms for @+ .wid next drop ;     \ list contexts with first on the left
+: order     ( -- )          ." Context: " _contexts cr  ." Current: " current @ .wid ; \ list the search order
+
+: value  _idata align create , does> @ ;
+hex 0A value ten decimal
+
+--> 
+( BLOCK 12 )
 ( Block support _______________________________________________ 10/9/26 BNE )
 : -trailing  ( a len -- a' len' )                                               \ trim trailing blank bytes
     >r 8 bit dup r> chars+  ( a0 a1 )                                           \ convert to byte addresses
@@ -190,10 +203,10 @@ _udata  variable listcnt  variable scr
     repeat  2drop
 ;
 : _index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
-: thru      ( u1 u2 -- )    over - 1+ goodAN  for dup load 1+ next drop ;       \ load a sequence of blocks
-: index     ( u1 u2 -- )    over - 1+ goodAN  for dup _index 1+ next drop ;     \ display an index of blocks
+: thru      ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
+: index     ( u1 u2 -- )    over - 1+ 2parms  for dup _index 1+ next drop ;     \ display an index of blocks
 -->
-( BLOCK 12 )
+( BLOCK 13 )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata  ( -- )                                                            \ compile idata initialization structure
     _idata here  dp[] tuck - amask
@@ -204,13 +217,8 @@ _udata  variable listcnt  variable scr
     1 @ @  @+ >r  a! dp[] b!                                                    \ load idata from idata structure
     |inst @a+ !b+ unext
 ;
-
-: ,jump  ( xt addr -- )                                                         \ compile a jump at addr
-   _code here >r  'here ! ,compile  postpone exit
-   r> 'here ! _udata
-;
 -->
-( BLOCK 13 )
+( BLOCK 14 )
 ( System stats ________________________________________________ 10/9/26 BNE )
 : _.map     ( -- )
     hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr
@@ -219,10 +227,6 @@ _udata  variable listcnt  variable scr
     _udata ." _udata " _.map  _idata ." _idata " _.map
     _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
 ;
-
-
-
-
 
 ( BLOCK 20 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
@@ -266,10 +270,10 @@ _udata  ( leave data space selected: `variable` in text space corrupts headers )
 
 ( BLOCK IGNORE )
 
-close-flash
-
-.( A demo application has now been compiled to flash. At this point, you can:) cr
-.( - Enter `cold` to boot it up and `counter @ .` to see it working. ) cr
-.( - `bye` and then `./lf -o 8` to boot and run from flash. ) cr
+\ close-flash
+\ 
+\ .( A demo application has now been compiled to flash. At this point, you can:) cr
+\ .( - Enter `cold` to boot it up and `counter @ .` to see it working. ) cr
+\ .( - `bye` and then `./lf -o 8` to boot and run from flash. ) cr
 
 0 >options

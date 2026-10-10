@@ -46,7 +46,6 @@
     X(API_EMPTY,            lfAPI_empty)        \
     X(API_PAREN,            parenthesis)        \
     X(API_DOTPAREN,         dotParen)           \
-    X(API_DOES,             lfAPI_dotDoes)      \
     X(API_CREATE,           lfAPI_dotCreate)    \
     X(API_CR,               lfCR)               \
     X(API_LITERAL,          lfAPI_literal)      \
@@ -61,7 +60,6 @@
     X(API_EXIT,             lfAPI_exit)         \
     X(API_CONSTANT,         lfAPI_constant)     \
     X(API_BITS,             lfAPI_bits)         \
-    X(API_TOBODY,           lfAPI_toBody)       \
     X(API_COMMAQUOTE,       commaQ)             \
     X(API_BIT,              lfAPI_bit)          \
     X(API_COMMAINST,        lfAPI_inst)         \

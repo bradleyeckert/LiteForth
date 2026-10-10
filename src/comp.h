@@ -146,16 +146,6 @@ int lfAPI_bits(void);
 int lfAPI_dotCreate(void);
 
 /**
- * @brief Forth word `does>`  ( -- )  immediate
- * Patches the most recent `create`d word so that, after pushing its
- * address, it jumps to the code that follows `does>`.
- *
- * @return 0 on success, or ERR_UNSUPPORTED_OPERATION if there is no
- *         pending `create`.
- */
-int lfAPI_dotDoes(void);
-
-/**
  * @brief Forth word `>body`  ( xt -- addr )
  * Returns the data address of a word made by `create`, by decoding the
  * `pfx`/`lit` instructions at the start of its code.

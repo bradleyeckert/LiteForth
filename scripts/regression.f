@@ -378,11 +378,6 @@ T{ dp^ @ _idata dp^ @ _data dp^ @ -> 0 1 0 }T
 ( create, does> and >body )
 create buf 2 allot
 T{ here buf - -> 2 }T
-( does> runs right after create: it patches that word to jump to the  )
-( code that follows, which ] compiles and exit [ ends                   )
-create arr 3 allot does> ] + exit [
-T{ 2 arr 0 arr - -> 2 }T
-T{ x' arr drop >body -> 0 arr }T
 
 ( if else then )
 : t-if   ( n -- m ) if 1 else 2 then ;

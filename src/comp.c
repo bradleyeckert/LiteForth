@@ -16,13 +16,13 @@ uint32_t lfCreatedName; // used by api0.c
 * Dictionary pointer functions (F_PTRS in RAM page)
 ===========================================================================*/
 
-static int cpFetch(int32_t* cp) {
+static int cpFetch(uint32_t* cp) {
     uint32_t* mem = vm_memory[RAM_PAGE];
     *cp = mem[F_PTRS_CP];
     return 0;
 }
 
-static int cpStore(int32_t cp) {
+static int cpStore(uint32_t cp) {
     uint32_t* mem = vm_memory[RAM_PAGE];
     uint32_t cp_max = mem[F_PTRS_CP + 1];
     if (((unsigned)cp & 0x3FFFFF) >= cp_max) return ERR_DICTIONARY_OVERFLOW;
@@ -32,7 +32,7 @@ static int cpStore(int32_t cp) {
 
 // Code space is a half-cell-addressed, convert to linear address.
 static uint32_t cpPC(void) {
-    int32_t cp = 0;
+    uint32_t cp = 0;
     cpFetch(&cp);
     cp = lfSetSliceWidth(cp, 16);
     cpStore(cp); // enforce 16-bit addressing
@@ -60,8 +60,8 @@ static int UsesRetStack(uint16_t inst) {
 }
 
 static int slot = SLOT0_POSITION;
-static int32_t instruction;
-static int32_t lastcall = 0;
+static uint32_t instruction;
+static uint32_t lastcall = 0;
 
 static void freshSlots(void) {
     instruction = 0;
@@ -71,7 +71,7 @@ static void freshSlots(void) {
 // Compile to code space. The data size is determined by the upper bits of cp.
 // cp is assumed to address 16-bit words.
 static int commaCode(uint32_t inst) {
-    int32_t cp = 0;
+    uint32_t cp = 0;
     int ior = cpFetch(&cp);
     if (ior) return ior;
     ior = vmStore(cp, inst);
@@ -240,7 +240,6 @@ ex: instruction |= VM_UOPS | VM_RET;
 * Words
 =========================================================================*/
 
-static int32_t created = 0;
 static int noname = 0;  // the definition being compiled has no header (:noname)
 
 // The 16-bit slot address of code address pc (see cpPC)
@@ -263,7 +262,6 @@ static int storeJump(int32_t slot, uint32_t pc) {
 /* :  ( <name> -- ) */
 int lfAPI_colon(void) {
     freshSlots();               // start a new instruction
-    created = 0;
     noname = 0;
     const struct s_head* label = lfParseLabel();
     if (label != NULL) {        // resolve a `label`: jump from it to here
@@ -296,7 +294,6 @@ int lfAPI_label(void) {
 /* :NONAME  ( -- xt ) */
 int lfAPI_noname(void) {
     freshSlots();               // start a new instruction
-    created = 0;
     noname = 1;
     int ior = vmPush((int32_t)cpPC());
     if (ior) return ior;
@@ -348,56 +345,17 @@ int lfAPI_bits(void) {
 
 /* CREATE  ( <name> -- ) */
 int lfAPI_dotCreate(void) {
-    freshSlots();               // start a new instruction
+    freshSlots();           // start a new instruction
     int ior = lfHeader(cpPC(), 0, &lfCreatedName);
     if (ior) return ior;
-    int32_t here = *herePtr();
+    uint32_t here = *herePtr();
     ior = CompUlit(here);
     if (ior) return ior;
-    cpFetch(&created);
+	uint32_t cp = 0;
+	cpFetch(&cp);           // tag the created word with the current code pointer, for DOES> to patch
+	vmStore(LF_CREATED, cp);
     CompExit();
-    return commaCode(-1); // leave space for patch
-}
-
-/* DOES>  ( -- )  immediate
-* 
-* CREATE compiles a literal followed by a ;.
-* DOES> replaces the ; with a jump.
-*/
-int lfAPI_dotDoes(void) {
-    if (created == 0) return ERR_CANNOT_DOES;
-    uint32_t pc = cpPC();   // instruction address of the code after does>
-    int ior = storeJump(created, pc);
-    created = 0;
-    lfCreatedName = 0;
-    return ior;
-}
-
-/* >BODY  ( xt -- addr )  
-*
-* Analyzes the code created by CREATE (pfx ... lit) to extract addr.
-*/
-int lfAPI_toBody(void) {
-    uint32_t xt = vmPop();
-    uint32_t cp = (16 << 27) | (xt >> 1) | ((xt & 1) << 26);
-    uint32_t inst = 0;
-    int32_t acc = 0;
-    int ior = 0;
-    int i = 4;
-    while (i--) {
-        ior = vmFetch(cp, &inst);   // either pfx or lit expected
-        if (ior) return ior;
-        cp = vmFieldPlus(cp);
-        if ((inst & VMI_MASK) == VMI_PFX) {
-            acc = (acc << VM_IMM_BITS) | (inst & VM_IMM_MASK);
-        }
-        else if ((inst & 0xE000) == VMI_LIT) {
-            acc = (acc << VM_LIMM_BITS) | (inst & VM_LIMM_MASK);
-            return vmPush(acc);
-        }
-        else break;
-    }
-    return ERR_BODY_ON_NON_CREATE;
+    return commaCode(0);    // leave space for patch
 }
 
 /* BIT  ( addr n -- addr' ) 

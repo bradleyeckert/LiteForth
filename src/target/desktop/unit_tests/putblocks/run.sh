@@ -1,6 +1,6 @@
 #!/bin/sh
 # scripts/putblocks.py and getblocks.py test: writes a source with `( BLOCK n )` markers into
-# a fresh 64-block file (skipping a `( BLOCK IGNORE )` part, then `( BLOCK ++ )`), has bin/lf load the blocks, dumps them
+# a fresh 64-block file (skipping a `( BLOCK IGNORE )` part, then `( BLOCK++ )`), has bin/lf load the blocks, dumps them
 # with getblocks.py and writes the dump back to get the same blocks, and
 # checks that bad sources (line too long, block 0) change nothing. Compares
 # the output with expected.txt. Usage: run.sh path/to/lf
@@ -31,7 +31,7 @@ text before the first marker is ignored
 ( BLOCK IGNORE )
 .( ignored: not in any block ) cr
 
-( BLOCK ++ )
+( BLOCK++ )
 .( four: the block after 3 ) cr
 ( BLOCK 70 )
 .( seventy, past the end of the file ) cr
@@ -50,7 +50,7 @@ grep -c '^( BLOCK \(3\|4\|70\) )' dump.f     # one marker per block
 cp lfblocks.fb4 before.bin
 python3 -c "print('( BLOCK 4 )'); print('x' * 129)" > long.f
 python3 "$PUT" long.f 2>&1 || echo "(exit $?)"
-printf '( BLOCK ++ )\nx\n' > first.f
+printf '( BLOCK++ )\nx\n' > first.f
 python3 "$PUT" first.f 2>&1 || echo "(exit $?)"
 printf '( BLOCK 0 )\n' > zero.f
 python3 "$PUT" zero.f 2>&1 || echo "(exit $?)"

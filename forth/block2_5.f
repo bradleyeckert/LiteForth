@@ -60,7 +60,7 @@
 ( u1 u2 -- ud )                 \ Multiply u1 by u2, giving the unsigned double-cell product ud.
 ( n1 n2 -- d )                  \ d is the signed product of n1 times n2.
 ( ud1 u1 -- u2 ud2 )            \ Unsigned divide ud1 by u1, u2 is the remainder, ud2 is the quotient.
-( n1 n2 n3 -- n4 n5 )           \ Multiply n1 by n2 producing d, then divide by n3 producing remainder n4 and quotient n5. 
+( n1 n2 n3 -- n4 n5 )           \ Multiply n1 by n2 producing d, then divide by n3 producing remainder n4 and quotient n5.
 ( -- flag )                     \ True if a byte is in the receive buffer.
 ( -- c )                        \ Get the next byte from the terminal, block if there isn't one.
 ( c -- )                        \ Transmit one byte to the terminal.
@@ -78,7 +78,7 @@
 ( -- )                          \ Cause subsequent output to appear at the beginning of the next line.
 ( x -- )                        \ Compile literal x as code
 ( wid -- )                      \ Display the name of a wid (used by `order`)
-( "<spaces>name" -- xt aux )    \ Find name and return its xt and aux value. 
+( "<spaces>name" -- xt aux )    \ Find name and return its xt and aux value.
 ( x -- )                        \ XOR x with the aux value of the most recent definition.
 ( "<spaces>name" -- char )      \ Parse name delimited by a space. Put the value of its first character onto the stack.
 ( page -- addr )                \ Return the base address of a memory page.
@@ -90,7 +90,7 @@
 ( -- )                          \ Compile an exit or tail-recurse.
 ( x "<spaces>name" -- )         \ Parse name, create a definition for name that places x on the stack.
 ( x "<spaces>name" -- )         \ Parse name, create a definition for name that returns a slice variable of x bits.
-( "ccc<quote>" -- )             \ Compile ccc, with some `\` sequences allowed, to text space with a leading count. 
+( "ccc<quote>" -- )             \ Compile ccc, with some `\` sequences allowed, to text space with a leading count.
 ( a1 -- a2 )                    \ Set a new slice size for a1 and align its position to the next valid slice.
 ( inst16 -- )                   \ Compile a 16-bit instruction to code space.
 ( -- )                          \ Make the most recent definition an immediate word.

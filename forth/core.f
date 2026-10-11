@@ -18,7 +18,7 @@
 
 ( BLOCK 6 )
 ( LiteForth configuration _____________________________________ 10/9/26 BNE )
-empty only forth  
+empty only forth
 : \         ( -- )          >in @ 128 + -128 and >in ! ; immediate              \ comment to next row in a 128*32 block
 : base!     ( n -- )        base ! ;                                            \ `base` is a 3-instruction literal
 : decimal   ( -- )          10 base! ;                                          \ set base to 10
@@ -35,7 +35,7 @@ hex
 : _text     ( -- )          3 _section ;                                        \ use text section, read-only data
 : 'here     ( -- a )        dp^ @ 2* dp[] + ;                                   \ address of the currently selected here
 : ,         ( n -- )        'here @ a! !a+ a 'here ! ;                          \ compile a cell or slice to the section
-: '         ( <name> -- xt) x' drop ;                                           \ look up the xt of a word
+: '         ( <name> -- xt ) x' drop ;                                          \ look up the xt of a word
 : here      ( -- a )        'here @ ;                                           \ address of first free cell or slice
 : align     ( -- )          here 20 bit 'here ! ;                               \ convert here to a cell address
 : allot     ( n -- )        align here + 'here ! ;                              \ allot n cells in the section
@@ -54,19 +54,19 @@ decimal -->
 ( Control structures __________________________________________ 10/10/26 BNE )
 hex
 : _again    ( a inst -- )   >r iaddr  chere iaddr inv + 1FF and r> + ,inst ;    \ compile a backward control branch
-: then      ( a -- )        chere iaddr  over iaddr inv +  swap                 \ resolve a forward branch
+: then      ( C: a -- )     chere iaddr  over iaddr inv +  swap                 \ resolve a forward branch
                             a! 1FF and @a + !a ; immediate
-: -if       ( -- a )        chere _pbran ,inst ; immediate                      \ -if does not swallow the flag
-: if        ( -- a )        chere _0bran ,inst ; immediate                      \ if does swallows the flag
-: ahead     ( -- a )        chere _bran ,inst ; immediate                       \ forward branch, used by else
-: else      ( a1 -- a2 )    postpone ahead  swap  postpone then ; immediate     \ if ... else ... then
-: begin     ( -- a )        chere ; immediate                                   \ begin a loop structure
-: again     ( a -- )        _bran _again ; immediate                            \ begin ... again
-: until     ( a -- )        _0bran _again ; immediate                           \ begin ... until
-: while     ( a1 -- a1 a2 ) postpone if  swap ; immediate                       \ begin ... while ... repeat
-: repeat    ( a1 a2 -- )    postpone again  postpone then ; immediate           \ begin ... while ... repeat
-: for       ( -- a )        postpone >r  chere ; immediate                      \ for ... next
-: next      ( a -- )        _next _again ; immediate                            \ for ... next
+: -if       ( C: -- a ) ( n -- n ) chere _pbran ,inst ; immediate               \ if n is negative, run up to then; keeps n
+: if        ( C: -- a ) ( flag -- ) chere _0bran ,inst ; immediate              \ if flag is nonzero, run up to else or then
+: ahead     ( C: -- a )     chere _bran ,inst ; immediate                       \ compile an unconditional forward branch
+: else      ( C: a1 -- a2 ) postpone ahead  swap  postpone then ; immediate     \ start the part that runs when if fails
+: begin     ( C: -- a )     chere ; immediate                                   \ start a loop
+: again     ( C: a -- )     _bran _again ; immediate                            \ loop back to begin forever
+: until     ( C: a -- ) ( flag -- ) _0bran _again ; immediate                   \ loop back to begin until flag is nonzero
+: while     ( C: a1 -- a2 a1 ) ( flag -- ) postpone if  swap ; immediate        \ leave the loop after repeat if flag is 0
+: repeat    ( C: a2 a1 -- ) postpone again  postpone then ; immediate           \ loop back to begin and resolve while
+: for       ( C: -- a ) ( n -- ) postpone >r  chere ; immediate                 \ start a loop that runs n times
+: next      ( C: a -- )     _next _again ; immediate                            \ loop back to for until the count runs out
 : 0=        ( x -- flag )   if 0 exit then -1 ;                                 \ true if x = 0, else false
 : 0<>       ( x -- flag )   0= inv ;                                            \ true if x != 0, else false
 : =         ( n1 n2 -- flag )  xor 0= ;                                         \ true if n1 = n2, else false
@@ -76,7 +76,7 @@ hex
 : _does     ( -- ) ( R: ra -- )  r> created @  ,jump ;                          \ run-time part of `does>`
 : does>     ( -- )          postpone _does ; immediate                          \ create ... does>
 : >body     ( xt -- a )     0 swap caddr  begin  @+     ( acc a inst )          \ extract body address from code
-    dup E000 and _lit = if 1FFF and nip swap 0D lshift + exit then              \ trailing lit instruction detected  
+    dup E000 and _lit = if 1FFF and nip swap 0D lshift + exit then              \ trailing lit instruction detected
     3FF and >r  swap 0A lshift r> + swap  ( acc a )  again ;                    \ otherwise, assume prefix instructions
 decimal
 -->
@@ -90,10 +90,10 @@ decimal
     [ _user 2 + ,inst ] @a ]task r> drop drop                                   \ and loads the next task's stack window
 ; constant awake                                                                \ xt of awake task
 
-hex _idata variable stackused  300030 stackused !   ( reserved for terminal )   \ stacks grow upward
+hex _idata variable stackused  300030 stackused !   ( reserved for terminal )   \ stack space in use, as rp:sp; stacks grow up
 decimal _udata here 3 allot constant operator                                   \ the operator task is launched by multitask
 
-: multitask  ( -- ) ( R: ra -- )                                                \ launch the multitasker before any activate
+: multitask ( -- ) ( R: ra -- )                                                 \ launch the multitasker before any activate
     operator                              ( this bulky literal is used once )   \ The operator task belongs to the terminal.
     dup u! dup a! !a+  awake !a+     ( ix |R: ra \ populate next and action )   \ Create a task loop with a single task in it
     task[  !a+ r> drop       ( capture the operator's r:d and start address )   \ and assign it to the operator.
@@ -101,7 +101,7 @@ decimal _udata here 3 allot constant operator                                   
 -->
 ( BLOCK 10 )
 ( Multitasking 2/2 ____________________________________________ 10/9/26 BNE )
-: activate  ( task -- )  ( R: ra -- )                               \ Activate a task, starting immediately after 'activate'.
+: activate  ( task -- ) ( R: ra -- )                                            \ start task running the code after activate
     a! @a+ @a+                                                   ( r:d user )   \ get task parameters
     [ _user ,inst ] a 0= -121 and yeet          ( the task queue must exist )   \ make sure multitask has set up the task loop
     @a over !a  swap a!               ( r:d opnext ) ( link in the new task )   \ link this task into the queue
@@ -111,7 +111,7 @@ decimal _udata here 3 allot constant operator                                   
     r> drop drop drop  r> drop         ( drop ra: return to caller's caller )
 ;
 
-: task  ( user_cells data_stack return_stack <name> -- )                        \ Create a new task
+: task      ( user_cells data_stack return_stack <name> -- )                    \ create a task with stacks and a user area
     _idata align create  16 lshift +                               ( uc r:d )   \ in the idata section
     stackused a! @a  swap over +                               ( uc r:d new )   \ the stacks grow upward
     dup stack-masks inv and 0<> -118 and yeet  ( check against upper limits )   \ yeet if not enough room in the stack space
@@ -127,16 +127,16 @@ decimal _udata here 3 allot constant operator                                   
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;                              \ bitwise OR
 : _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        \ a multiply that does not use the API
 : 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 \ true if n < 0
-: dnegate   ( d -- -d )     inv swap inv 1+ swap cy + ;                         \ double-cell negate
-: abs       ( u -- n )      -if negate then ;                                   \ absolute value
-: dabs      ( ud -- d )     -if dnegate then ;                                  \ double-cell absolute value
+: dnegate   ( d1 -- d2 )    inv swap inv 1+ swap cy + ;                         \ double-cell negate
+: abs       ( n -- u )      -if negate then ;                                   \ absolute value
+: dabs      ( d -- ud )     -if dnegate then ;                                  \ double-cell absolute value
 : +!        ( n a -- )      a! @a + !a ;                                        \ add n to cell at a
 : *         ( n1 n2 -- n3 ) um* drop ;                                          \ multiply
 : s>d       ( n -- d )      dup 0< ;                                            \ convert single to double
 : min       ( n1 n2 -- n3 ) 2dup - -if 2drop exit then drop nip ;               \ n3 is the lesser of n1 and n2
 : max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;               \ n3 is the greater of n1 and n2
-: rot       ( abc -- bca )  b! swap b swap ;                                    \ rotate third item to top of stack
-: u<=       ( u1 u2 -- flag) swap - drop cy ;                                   \ unsigned less than or equal
+: rot       ( x1 x2 x3 -- x2 x3 x1 ) b! swap b swap ;                           \ rotate third item to top of stack
+: u<=       ( u1 u2 -- flag ) swap - drop cy ;                                  \ unsigned less than or equal
 -->
 ( BLOCK 12 )
 ( String output _______________________________________________ 10/9/26 BNE )
@@ -145,10 +145,10 @@ decimal _udata here 3 allot constant operator                                   
 : key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
 : key?      ( -- flag )     t_rx? ;                                             \ a smarter key would pause while `key?`
 : 1parm     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 \ exit the caller if there is nothing to do
-: 2parms    ( n1 n2 -- | n1 n2) 1- -if drop r> drop drop exit then 1+ ;         \ exit the caller if there is nothing to do
+: 2parms    ( n1 n2 -- | n1 n2 ) 1- -if drop r> drop drop exit then 1+ ;        \ exit the caller if there is nothing to do
 : type      ( ca n -- )     2parms for @+ emit next drop ;                      \ output a string using emit
 : $type     ( ca -- )       @+ type ;                                           \ output counted string
-: ."        ( string" -- )  _," postpone literal  postpone $type ; immediate    \ compile a string to type at run time
+: ."        ( "ccc<quote>" -- ) _," postpone literal  postpone $type ; immediate \ compile a string to type at run time
 : digit     ( n -- char )   dup -10 + 0< -7 and + [char] 7 + ;                  \ convert to ASCII digit
 : space     ( -- )          32 emit ;                                           \ send a space
 : spaces    ( n -- )        1parm for space next ;                              \ send 0 or more spaces
@@ -160,50 +160,54 @@ decimal _udata here 3 allot constant operator                                   
 : chars+    ( a n -- a' )   over bytepos + 3 over and >r  2/ 2/ +  r> posbyte ; \ skip forward n chars, chars must be 8-bit
 : char-     ( a -- a' )   dup bytepos 1- -if drop 3 swap 1- swap then posbyte ; \ step a byte address backward
 : bytespan  ( a1 a0 -- n ) over bytepos  over bytepos - >r - amask 2* 2* r> + ; \ number of bytes within cell addresses
-: 3parms    ( abc -- | abc) 1- -if drop r> drop 2drop exit then 1+ ;            \ exit the caller if there is nothing to do
+: 3parms    ( x1 x2 n -- | x1 x2 n ) 1- -if drop r> drop 2drop exit then 1+ ;   \ exit the caller if there is nothing to do
 : cmove     ( a1 a2 n -- )  3parms >r b! a! |inst @a+ !b+ unext ;               \ move cells or slices (note address types)
 : cmove>    ( a1 a2 n -- )  3parms dup >r chars+  swap r@ chars+ ( a1 a2 | n )  \ move bytes forward by small offset
     begin  char- swap char- swap  dup a! over b! @a !b  next  2drop ;
-: -trailing  ( a len -- a' len' )                                               \ trim trailing blank bytes
+: -trailing ( a len -- a' len' )                                                \ trim trailing blank bytes
     >r 8 bit dup r> chars+  ( a0 a1 )                                           \ convert to byte addresses
-    begin 2dup xor while     
+    begin 2dup xor while
         char- dup @  32 xor  if  over bytespan  1+ exit  then                   \ seek backward for nonblank
     repeat  dup xor ;       ( a' 0 )
---> 
+-->
 ( BLOCK 14 )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
-_udata variable hld  create numbuf 10 allot
+_udata variable hld                                                             \ position of the last held char in numbuf
+create numbuf 10 allot                                                          \ pictured numeric output buffer, 40 bytes
 : <#        ( ud -- ud )    40  hld ! ;                                         \ start numeric conversion
-: #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars+  swap negate 40 + ; \ end numeric conversion
-: hold      ( c -- )        hld a! @a 1-  dup 0< -17 and yeet  dup !a           \ append to conversion buffer,
-                            numbuf swap chars+ ! ;                              \ checking for buffer overflow
+: #>        ( ud -- ca u )  2drop  numbuf hld @ tuck chars+  swap negate 40 + ; \ end numeric conversion
+: hold      ( c -- )        hld a! @a 1-  dup 0< -17 and yeet  dup !a           \ append c to the numeric conversion buffer
+                            numbuf swap chars+ ! ;                              \ yeet -17 if the buffer overflows
 : #         ( ud1 -- ud2 )  base @ mu/mod rot digit hold ;                      \ append next digit
 : #s        ( ud -- 0 )     begin # 2dup or 0= until ;                          \ append remaining digits
 : sign      ( n -- )        -if [char] - hold exit then drop ;                  \ append minus sign if negative
-: s.r       ( length width --) over - spaces type ;                             \ type right-justified text
+: s.r       ( ca u width -- ) over - spaces type ;                              \ type a string right-justified in width
 : d.r       ( d width -- )  >r dup >r dabs  <# #s r> sign #> r> s.r ;           \ signed double with width
-: u.r       ( u width -- )  0 swap d.r ;                                        \ unsigned with width 
+: u.r       ( u width -- )  0 swap d.r ;                                        \ unsigned with width
 : .r        ( n width -- )  >r s>d r> d.r ;                                     \ signed with width
 : d.        ( d -- )        0 d.r space ;                                       \ signed double
 : u.        ( u -- )        0 d. ;                                              \ unsigned
---> 
+-->
 ( BLOCK 15 )
 ( Search order ________________________________________________ 10/10/26 BNE )
-: definitions  ( -- )       context @ current ! ;                               \ top of the context list (8-bit wid)
-: contexts  ( -- n )        0 context begin @+ 128 and 0= while swap 1+ swap repeat drop ; \ number of contexts
-: previous  ( -- )          contexts 1parm >r context dup slice+ swap r> cmove ; \ drop top of context stack
+: definitions ( -- )        context @ current ! ;                               \ compile into the first context wordlist
+: contexts  ( -- n )        0 context begin @+ 128 and 0=                       \ number of wordlists in the search order
+                            while swap 1+ swap repeat drop ;
+: previous  ( -- )          contexts 1parm >r context dup slice+                \ drop the first wordlist of the search order
+                            swap r> cmove ;
 : also      ( -- )          context dup slice+  contexts 1+ cmove>              \ duplicate top of context stack
                             255  [ context |context| chars+ ] literal  ! ;      \ backstop the terminator
-: vocabulary  ( <name> -- ) _text align create wordlist , does> @ context ! ;   \ create a new vocabulary
+: vocabulary ( <name> -- )  _text align create wordlist , does> @ context ! ;   \ create a new vocabulary
 : _contexts ( -- )          context contexts 2parms for @+ .wid next drop ;     \ list contexts with first on the left
-: order     ( -- )          ." Context: " _contexts cr  ." Current: " current @ .wid ; \ list the search order
+: order     ( -- )          ." Context: " _contexts cr                          \ list the search order
+                            ." Current: " current @ .wid ;
 
---> 
+-->
 ( BLOCK 16 )
 ( Block support _______________________________________________ 10/9/26 BNE )
 _udata  variable scr                                                            \ active screen
 variable listcnt                                                                \ scratchpad line number for list
-: listline  ( ca u -- )    listcnt @ 2 u.r space type cr ;                      \ type the line number and the line text
+: listline  ( ca u -- )     listcnt @ 2 u.r space type cr ;                     \ type the line number and the line text
 : list      ( n -- )                                                            \ list block n
     0 listcnt !  dup scr !
     block [ |block| 2* 2* ] literal -trailing                                   \ trim trailing rows
@@ -224,12 +228,12 @@ previous definitions
 -->
 ( BLOCK 18 )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
-: save-idata  ( -- )                                                            \ compile idata initialization structure
+: save-idata ( -- )                                                             \ compile idata initialization structure
     _idata here  dp[] tuck - amask
     _text dup , ( 'src len )  for  @+ ,  next  drop                             \ first the length, then the data
 ;
 
-: init-idata  ( addr -- )                                                       \ load idata from idata structure
+: init-idata ( -- )                                                             \ load idata from idata structure
     1 @ @  @+ >r  a! dp[] b!
     |inst @a+ !b+ unext
 ;
@@ -247,15 +251,15 @@ previous definitions
 ( BLOCK 25 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
 
-: hi   ( -- )  ." 学如不及，犹恐失之 " ;                                         \ demo CJK message
+: hi        ( -- )          ." 学如不及，犹恐失之 " ;                           \ demo CJK message
 
-: value  ( u <name> -- )  _idata align create , does> @ ;                       \ sample implementation of VALUE
-: to     ( u <name> -- )  ' >body ! ;                                           \ demo to
+: value     ( x <name> -- ) _idata align create , does> @ ;                     \ create name, which returns x; see to
+: to        ( x <name> -- ) ' >body ! ;                                         \ change the x that value name returns
 .( value test: ) 11 value ten   ten .  10 to ten  ten . cr                      \ a test value
-                                                                
 
-variable counter                                                                \ bumped by multitasker 
-: demo-step  ( -- )                                                             \ application loop 
+
+variable counter                                                                \ bumped by multitasker
+: demo-step ( -- )                                                              \ application loop
     1 counter +!
 ;
 
@@ -264,7 +268,7 @@ variable counter                                                                
 
 variable ctr                                                                    \ starts incrementing after you type `try`
 
-: try  t1 activate  begin pause  1 ctr +!  again ;                              \ give t1 something to do
+: try       ( -- )          t1 activate  begin pause  1 ctr +!  again ;         \ give t1 something to do
 
 :noname ( demo application )
     init-idata

@@ -112,7 +112,7 @@ decimal _udata here 3 allot constant operator                                   
 ;
 
 : task      ( user_cells data_stack return_stack <name> -- )                    \ create a task with stacks and a user area
-    _idata align create  16 lshift +                               ( uc r:d )   \ in the idata section
+    _idata align create  16 lshift +                               ( uc r:d )   \ in the idata section.
     stackused a! @a  swap over +                               ( uc r:d new )   \ the stacks grow upward
     dup stack-masks inv and 0<> -118 and yeet  ( check against upper limits )   \ yeet if not enough room in the stack space
     swap a swap  , !  ( uc )  _udata here       ( CELL 0 = stack base rp:sp )   \ compile stack base to idata
@@ -205,28 +205,27 @@ create numbuf 10 allot                                                          
 -->
 ( BLOCK 16 )
 ( Block support _______________________________________________ 10/9/26 BNE )
-_udata  variable scr                                                            \ active screen
-variable listcnt                                                                \ scratchpad line number for list
-: listline  ( ca u -- )     listcnt @ 2 u.r space type cr ;                     \ type the line number and the line text
-: list      ( n -- )                                                            \ list block n
-    0 listcnt !  dup scr !
-    block [ |block| 2* 2* ] literal -trailing                                   \ trim trailing rows
-    begin dup while
-        2dup 128 min dup >r  -trailing listline                                 \ trim trailing columns
-        r@ - swap r> 2/ 2/ + swap                                               \ step address in cells, count in bytes
-        1 listcnt +!
-    repeat  2drop
-;
-: _index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
 : thru      ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
-: index     ( u1 u2 -- )    over - 1+ 2parms  for dup _index 1+ next drop ;     \ display an index of blocks
 -->
 ( BLOCK 17 )
-( Block editor ________________________________________________ 10/11/26 BNE )
+( Block editor 1/2 ____________________________________________ 10/11/26 BNE )
 vocabulary editor  also editor definitions                                      \ vocabulary for the editor
-previous definitions
--->
+_udata  variable listcnt                                                        \ scratchpad line number for list
+: listline  ( ca u -- )     listcnt @ 2 u.r space type cr ;                     \ type the line number and the line text
+: list      ( n -- )        0 listcnt !                                         \ list block n
+    block [ |block| 2* 2* ] literal -trailing  ( ca u )                         \ trim trailing rows
+    begin dup while
+        2dup 128 min dup >r  -trailing listline                                 \ trim trailing columns
+        r@ - swap  r> 2/ 2/ + swap  1 listcnt +!                                \ step address in cells, count in bytes
+    repeat  2drop ;
+variable scr                                                                    \ active screen
+: _index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
+: index     ( u1 u2 -- )    over - 1+ 2parms  for dup _index 1+ next drop ;     \ display an index of blocks
+forth definitions                                                               \ leave search order as [forth, forth]
 ( BLOCK 18 )
+( Block editor 2/2 ____________________________________________ 10/11/26 BNE )
+-->
+( BLOCK 19 )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata ( -- )                                                             \ compile idata initialization structure
     _idata here  dp[] tuck - amask
@@ -238,7 +237,7 @@ previous definitions
     |inst @a+ !b+ unext
 ;
 -->
-( BLOCK 19 )
+( BLOCK 20 )
 ( System stats ________________________________________________ 10/9/26 BNE )
 : _.map     ( -- )                                                              \ map for selected section
     hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr

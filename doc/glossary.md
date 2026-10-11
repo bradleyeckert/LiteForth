@@ -22,7 +22,7 @@ Name lookup ignores case.
 | `*/mod` | `( n1 n2 n3 -- rem quot )` | Signed `n1 * n2 / n3` with a 64-bit intermediate product; symmetric division. |
 | `+` | `( n1 n2 -- n3 )` | Adds. Sets `cy` to the carry out of bit 31. |
 | `+*` | `( n1 n2 -- n1 n3 )` | Multiply step: if `A` is odd, adds `n1` to `n2`; then shifts `n3:A` right by one bit. 32 steps multiply `n1` by the original `A`. |
-| `,compile` | `( xt -- )` | Compiles an execution token: inline micro-ops for a primitive, otherwise a call. The run-time half of `postpone`. |
+| `compile,` | `( xt -- )` | Compiles an execution token: inline micro-ops for a primitive, otherwise a call. The run-time half of `postpone`. |
 | `,inst` | `( inst -- )` | Compiles a raw 16-bit VM instruction. |
 | `-->` | `( -- )` | Stops interpreting the current block and continues with block `BLK`+1. Does nothing at the terminal (`BLK` = 0). |
 | `->` | `( ? -- )` | † Separates the tested code from the expected results in `t{ ... -> ... }t`. |
@@ -98,7 +98,7 @@ Name lookup ignores case.
 | `m*` | `( n1 n2 -- d )` | Signed 32 × 32 to 64-bit multiply. |
 | `mu/mod` | `( ud u -- rem dquot )` | Unsigned 64 / 32 division giving a remainder and a 64-bit quotient. |
 | `nip` | `( x1 x2 -- x2 )` | Drops the second item. |
-| `only` | `( -- )` | Sets the search order to just the only wordlist. |
+| `only` | `( -- )` | Sets the search order to just the root wordlist. |
 | `open-flash` | `( addr -- )` | Maps the flash page holding `addr` to a writable RAM buffer so it can be compiled to. |
 | `over` | `( x1 x2 -- x1 x2 x1 )` | Copies the second item to the top. |
 | `page` | `( page -- a )` | Returns the base address of memory page `page`. |

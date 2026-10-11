@@ -317,7 +317,7 @@ static int toaux(void) {
     return lfToHeader(0, vmPop());
 }
 
-/* ONLY  ( -- )  Search only the `only` wordlist. CONTEXT is in forth.h. */
+/* ONLY  ( -- )  Search only the root wordlist. CONTEXT is in forth.h. */
 int lfAPI_only(void) {
     int8_t* ctx = CONTEXT;
     *ctx++ = 1;

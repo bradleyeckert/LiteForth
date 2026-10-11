@@ -167,7 +167,7 @@ int lfAPI_bit(void);
 /**
  * @brief Forth word `postpone`  ( <name> -- )  immediate
  * Compiles an immediate word directly. For any other word, compiles code
- * that will compile it (via `,compile`) when the current definition runs.
+ * that will compile it (via `compile,`) when the current definition runs.
  *
  * @return 0 on success, ERR_UNDEFINED_WORD if <name> is not found,
  *         ERR_POSTPONING_CONSTANT for a constant, or another negative error code.
@@ -175,7 +175,7 @@ int lfAPI_bit(void);
 int lfAPI_postpone(void);
 
 /**
- * @brief Forth word `,compile`  ( xt -- )
+ * @brief Forth word `compile,`  ( xt -- )
  * Compiles an execution token: inline micro-ops for a primitive, or a call.
  * This is the run-time half of `postpone`.
  *

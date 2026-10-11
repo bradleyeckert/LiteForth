@@ -47,7 +47,7 @@ int lfAPI_setFlags(void);
 
 /**
  * @brief Forth word `only`  ( -- )
- * Sets the search order to the minimal `only` wordlist.
+ * Sets the search order to the minimal root wordlist.
  *
  * @return 0.
  */

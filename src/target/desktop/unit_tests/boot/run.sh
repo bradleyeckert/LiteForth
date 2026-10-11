@@ -36,7 +36,7 @@ hex
 : begin     ( -- a )        chere ; immediate
 : again     ( a -- )        _bran _again ; immediate
 : ,jump  ( xt addr -- )
-   _code here >r  'here ! ,compile  postpone exit
+   _code here >r  'here ! compile,  postpone exit
    r> 'here ! _udata
 ;
 :noname begin break again ; 80000000 ,jump
@@ -50,7 +50,7 @@ close-flash
 bye
 F
 
-# 3. Boot from it: the wordlists, a flash word, the `only` list down to its
+# 3. Boot from it: the wordlists, a flash word, the root (`only`) list down to its
 #    built-in words, and an error in a word doesn't stop the terminal.
 "$LF" -o 11 >> out.txt 2>&1 <<'F'
 0 .wid 1 .wid 2 .wid cr

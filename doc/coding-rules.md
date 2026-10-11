@@ -53,7 +53,8 @@ Row 0 of a block is its title, so indices that are multiples of 32
 picture and the description are on one row: the row where the name is
 parsed. Code may continue on later rows. The description must not.
 
-**H2. Columns** (counted from 0, as in `core.f`):
+**H2. Columns** (counted from 0, as in `core.f`; a wide character such as
+CJK counts 2, as an editor shows it):
 
 | Column | Contents |
 |---|---|
@@ -63,8 +64,10 @@ parsed. Code may continue on later rows. The description must not.
 | 80 | `\` and the description, which runs to column 127 at most |
 
 A row is at most 128 bytes, and `putblocks.py` rejects longer ones. When
-the name or picture is too long for its column, push the next field
-right. Still start the description at column 80 if it fits.
+a field is too long for its column, the next field follows it after one
+space (`: definitions ( -- )`), but the description still starts at
+column 80 if the code ends before it. Code may start left of column 28
+only when it wouldn't fit between 28 and 79.
 
 ```
 : here      ( -- a )        'here @ ;                                           \ address of first free cell or slice
@@ -155,8 +158,7 @@ and pronounceable, and use these patterns, Brodie's plus LiteForth's own:
 
 | Pattern | Meaning | Examples |
 |---|---|---|
-| `_name` | Internal factor, not for applications | `_section`, `_again`, `_.map` |
-| `(name)` | Run-time part of a compiling word | `(does)` |
+| `_name` | Internal factor or run-time part, not for applications | `_section`, `_again`, `_does` |
 | `,name` | Compile a *name* into a section | `,inst`, `,jump` |
 | `.name` | Print | `.map`, `.wid` |
 | `name?` | Return a flag | `key?`, `emit?` |
@@ -238,7 +240,15 @@ for read-only tables. Select the section before `variable`, `create` or
   (`base!`) can pay for itself.
 - Judge changes by the code they compile, which `see` shows.
 
-## 7. Tests
+## 7. Checking
+
+`scripts/lintf.py forth/*.f` checks the mechanical rules: B1, B3, B5,
+H1 to H4, and rows longer than 128 bytes or with trailing spaces. It
+reports each problem as `file:line: [block n row r] RULE message` and
+exits with 1 if it found any. The rest (correct pictures, good names,
+factoring) is for review.
+
+## 8. Tests
 
 New words get `T{ ... -> ... }T` assertions in `scripts/regression.f`.
 That file carries copies of the `core.f` words it tests, so when you

@@ -1,0 +1,16 @@
+bad.f:14: [block 4 row 0] B1 title date at column 16, not 64
+bad.f:15: [block 4 row 1] H1 `nodesc` has no \ description
+bad.f:16: [block 4 row 2] H3 `nopic` has no stack picture after the name
+bad.f:17: [block 4 row 3] H2 `wrongcol` description at column 70, not 80
+bad.f:18: [block 4 row 4] H4 `cap` description starts with a capital
+bad.f:19: [block 4 row 5] H4 `period` description ends with a period
+bad.f:20: [block 4 row 6] H3 `nodash` picture `( n )` has no --
+bad.f:21: [block 4 row 7] H3 `tight` picture `( n --)` needs a space before )
+bad.f:22: [block 4 row 8] H2 `piccol` stack picture at column 10, not 12
+bad.f:23: [block 4 row 9] H2 `codecol` code at column 24, not 28
+bad.f:24: [block 4 row 10] H1 names on one row: a, b
+bad.f:25: [block 4 row 11] -- trailing spaces
+bad.f:26: [block 4 row 12] B5 tab character
+bad.f:27: [block 4 row 13] -- row is 142 bytes, more than 128
+bad.f:28: [block 4 row 14] B3 ends with --> but block 5 isn't in this file
+(exit 1)

@@ -114,6 +114,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `forth/core.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `forth/block1.f`, `forth/build.bat` | More Forth source; `build.bat` (Windows, run in `forth/`) writes `core.f` and `block1.f` into `bin/lfblocks.fb4` with `putblocks.py` |
 | `scripts/regression.f` | Regression script run by `make test` |
+| `scripts/lintf.py` | Checks Forth source against `doc/coding-rules.md` (`lintf.py forth/*.f`; exit 1 on problems). `unit_tests/lintf` checks it on a fixture of known problems and shows (without failing) any problems in `forth/*.f` |
 | `scripts/putblocks.py` | Writes a source file into blocks: each `( BLOCK n )` line starts block n (the marker line itself isn't stored) and `( BLOCK IGNORE )` skips the lines up to the next marker, lines padded to 128 columns, 32 rows. Needs an existing signed block file (or partition device); never writes block 0 (`unit_tests/putblocks`) |
 | `scripts/getblocks.py` | The reverse: dumps a block file as text (stdout or `-o`), writing a `( BLOCK n )` marker before each non-blank block. `putblocks.py` writes the dump back byte for byte. Also the git diff driver for `*.fb4` (`.gitattributes`): run `git config diff.fb4.textconv "python3 scripts/getblocks.py -0"` once per clone so `git diff` shows blocks as text; GitHub can't use it and collapses `.fb4` diffs |
 

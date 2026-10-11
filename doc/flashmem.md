@@ -64,7 +64,7 @@ flowchart LR
     A --> W
 ```
 
-So the app is a macroloop that calls `break` regularly, like the demo in `go.f`:
+So the app is a macroloop that calls `break` regularly, like the demo in `core.f`:
 
 ```forth
 :noname ( demo application )
@@ -86,7 +86,7 @@ to `lfQuit`, which displays an error message.
 - Running the app: if the app fails (an error or `yeet`), the VM (stepping, so
 `steps` is nonzero) saves the PC in X
 and the error code in Y and sets the PC to the yeet handler at cell 2
-(`VM_YEET_ADDRESS`, code address 4), whose jump `go.f` installs. The app keeps running from there: it handles its own errors,
+(`VM_YEET_ADDRESS`, code address 4), whose jump `core.f` installs. The app keeps running from there: it handles its own errors,
 as it would on a Forth chip, so it could eventually run its own QUIT loop with no
 API calls. A yeet handler is installed like the app's entry point:
 
@@ -97,7 +97,7 @@ API calls. A yeet handler is installed like the app's entry point:
 ; hex 80000002 ,jump decimal
 ```
 
-This is the handler in `go.f`: it reports the error and parks the app.
+This is the handler in `core.f`: it reports the error and parks the app.
 
 - Timeout: if the app runs `VM_STEP_LIMIT` steps without a `break`, it is stuck,
 so `loadTIB` stops it by clearing `SYS_OPTION_RUNNING` and returns `ERR_VM_TIMEOUT`,

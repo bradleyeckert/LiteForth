@@ -1,6 +1,6 @@
 # Forth Dictionary & VM Reference Manual
 
-The built-in Forth words (`forth_heads[]` and `only_heads[]`) and system constants (`constant_table[]`) defined in `forth.c`, followed by the words that `scripts/go.f` defines on top of them.
+The built-in Forth words (`forth_heads[]` and `only_heads[]`) and system constants (`constant_table[]`) defined in `forth.c`, followed by the words that `forth/core.f` defines on top of them.
 
 Each table is sorted by name in ASCII order, ignoring case.
 
@@ -112,10 +112,10 @@ Name lookup ignores case.
 | `shft[` | `( n -- )` | Sets the shift count used by `]shl` and `]shr` (0 to 31). |
 | `slice+` | `( a1 -- a2 )` | Advances an address to the next cell or bit-field slice. |
 | `swap` | `( x1 x2 -- x2 x1 )` | Swaps the top two items. |
-| `t_rx` | `( -- c )` | Reads a character from the terminal (`key` in `go.f`). |
-| `t_rx?` | `( -- flag )` | Nonzero if a terminal character is waiting (`key?` in `go.f`). |
-| `t_tx!` | `( c -- )` | Sends a character to the terminal (`emit` in `go.f`). |
-| `t_tx?` | `( -- flag )` | Nonzero while the terminal output is busy (`emit?` in `go.f`). |
+| `t_rx` | `( -- c )` | Reads a character from the terminal (`key` in `core.f`). |
+| `t_rx?` | `( -- flag )` | Nonzero if a terminal character is waiting (`key?` in `core.f`). |
+| `t_tx!` | `( c -- )` | Sends a character to the terminal (`emit` in `core.f`). |
+| `t_tx?` | `( -- flag )` | Nonzero while the terminal output is busy (`emit?` in `core.f`). |
 | `task[` | `( -- r:d )` | Pushes T onto the data stack and R onto the return stack, then T = `rp:sp` (`rp` in the upper half). Used for task switching. |
 | `tuck` | `( x1 x2 -- x2 x1 x2 )` | Copies the top item under the second. |
 | `t{` | `( -- )` | † Starts a test: `t{ ... -> ... }t`. |
@@ -182,7 +182,7 @@ Name lookup ignores case.
 
 ---
 
-## 3. Words defined in `scripts/go.f`
+## 3. Words defined in `forth/core.f`
 
 These are compiled by the boot script, not built in.
 
@@ -192,7 +192,7 @@ These are compiled by the boot script, not built in.
 | `'` | `( <name> -- xt )` | The execution token of the next word (`x' drop`). |
 | `'here` | `( -- a )` | Address of the current space's pointer. |
 | `+!` | `( n a -- )` | Adds `n` to the cell at `a`. |
-| `,jump` | `( xt addr -- )` | Compiles a jump to `xt` at code address `addr` (as `go.f` does at 0 for the app). |
+| `,jump` | `( xt addr -- )` | Compiles a jump to `xt` at code address `addr` (as `core.f` does at 0 for the app). |
 | `-` | `( n1 n2 -- n3 )` | Subtracts `n2` from `n1`. |
 | `-if` | `( -- a )` | Immediate. Branches past `then` if T is not negative; keeps T. |
 | `."` | `( <text"> -- )` | Immediate. Compiles a string to print. |

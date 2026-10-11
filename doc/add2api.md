@@ -119,7 +119,7 @@ failing assertion stops `lf` and prints its line number.
 
 If the new entry moved other indices (any addition to `API0_LIST` moves the
 tools), code compiled before the change still calls the old indices. Rebuild
-it by feeding the source through `lf` again, for example `go.f`, then
+it by feeding the source through `lf` again, for example `core.f`, then
 `close-flash` to save it to `lfflash.bin`.
 
 ## 7. Document it

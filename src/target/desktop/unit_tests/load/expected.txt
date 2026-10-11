@@ -1,15 +1,15 @@
-[1] after-same-line [1] 42 7 <2 <3 [4] 3> 2> 10 11 12 13 14 15 16 17 18 19 20 21 chain-done arrow-at-terminal-ignored <30 [31] Screen 31 [1:22] .( [31] ) nosuchword 
-Screen 30 [1:18] .( <30 ) 31 load 
-Terminal [1:8] 30 load
+[1] after-same-line [1] 42 7 <2 <3 [4] 3> 2> 10 11 12 13 14 15 16 17 18 19 20 21 chain-done arrow-at-terminal-ignored <30 [31] Screen 31 [0:21] .( [31] ) nosuchword 
+Screen 30 [0:17] .( <30 ) 31 load 
+Terminal [0:7] 30 load
 nosuchword ?
-recovered 40 41 42 43 44 45 46 47 Screen 47 [1:17] .( 47 ) 48 load 
-Screen 46 [1:17] .( 46 ) 47 load 
-Screen 45 [1:17] .( 45 ) 46 load 
-Screen 44 [1:17] .( 44 ) 45 load 
-Screen 43 [1:17] .( 43 ) 44 load 
-Screen 42 [1:17] .( 42 ) 43 load 
-Screen 41 [1:17] .( 41 ) 42 load 
-Screen 40 [1:17] .( 40 ) 41 load 
-Terminal [1:8] 40 load
+recovered 40 41 42 43 44 45 46 47 Screen 47 [0:16] .( 47 ) 48 load 
+Screen 46 [0:16] .( 46 ) 47 load 
+Screen 45 [0:16] .( 45 ) 46 load 
+Screen 44 [0:16] .( 44 ) 45 load 
+Screen 43 [0:16] .( 43 ) 44 load 
+Screen 42 [0:16] .( 42 ) 43 load 
+Screen 41 [0:16] .( 41 ) 42 load 
+Screen 40 [0:16] .( 40 ) 41 load 
+Terminal [0:7] 40 load
 Error: ior=-3 stack overflow
 recovered-again [50] 

@@ -155,7 +155,7 @@ static void LiteForth(void)
         return;
     }
 
-    // Boot from flash once go.f has saved an image: it stores the boot
+    // Boot from flash once core.f has saved an image: it stores the boot
     // record's address in cell 1. Erased flash reads FLASH_ERASED_WORD
     // (0xE339E339) on this chip; 0xFFFFFFFF counts as blank too.
     uint32_t boot = (uint32_t)flash[1];

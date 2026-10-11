@@ -1,7 +1,7 @@
 # Multitasking
 
 The VM has enough instructions to implement a cooperative, round-robin
-multitasker. The words are in `scripts/go.f`, and `scripts/regression.f`
+multitasker. The words are in `forth/core.f`, and `scripts/regression.f`
 tests them.
 
 There are at least two tasks, terminal and app, in a round-robin queue.
@@ -89,7 +89,7 @@ _udata here 3 allot constant operator
 - **`multitask`** makes a ring of one task, the terminal, whose user area is
   `operator`. NEXT is `operator` itself, ACTION is `awake`, and R:D is the
   current `rp:sp`.
-- **The demo app** (the `:noname` that `go.f` jumps to from cell 0) runs
+- **The demo app** (the `:noname` that `core.f` jumps to from cell 0) runs
   `init-idata multitask hi`, then loops `begin demo-step pause break again`.
   `cold` starts it, and `counter` rises more slowly than without `pause`.
 

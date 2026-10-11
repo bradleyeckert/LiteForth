@@ -51,7 +51,7 @@ Windows Terminal stores actions in a JSON file, which you can edit in Windows Te
 The [`scripts/settings.json`](../scripts/settings.json) file contains shortcuts you can merge into your own settings JSON.
 Some of the keys include:
 
-- F9 = Boot up LiteForth from go.f
+- F9 = Boot up LiteForth from core.f
 - F10 = Jump to the LiteForth directory
 - F11 = Toggle full-screen mode
 - F12 = Run regression tests for LiteForth

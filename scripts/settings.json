@@ -9,7 +9,7 @@
             "command":
             { // F9 = boot up LiteForth
                 "action": "sendInput",
-                "input": "Get-Content ..\\scripts\\go.f | .\\lf.exe -o 3\r"
+                "input": "Get-Content ..\\forth\\core.f | .\\lf.exe -o 3\r"
             },
             "id": "User.sendInput.myF9key"
         },

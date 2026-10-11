@@ -24,7 +24,7 @@ locations for accessibility by Forth or by C.
 #define F_BLK        (F_TIB + TIBCELLS)
 #define F_CREATED    (F_BLK + 1)
 #define F_CONTEXT    (F_CREATED + 1)
-#define F_BLOCKBUFS  (F_CONTEXT + ((CONTEXT_MAX + 7) / 4))
+#define F_BLOCKBUFS  (F_CONTEXT + ((CONTEXT_SIZE + 3) / 4))
 #define F_PTRS       (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
 #define F_HERE0      (F_PTRS + 8)
 

@@ -2,10 +2,10 @@
 #define OPTIONS_H
 
 // forth.c
-#define TF_VERSION            2 // version x.xx
+#define TF_VERSION            3 // version x.xx
 #define CASE_INSENSITIVE      1 // is FIND case-insensitive?
 #define FAT_FORTH             1 // all options
-#define CONTEXT_MAX          15 // depth of possible search order
+#define CONTEXT_SIZE         12 // size of search order including terminator
 #define WIDS_MAX              8 // number of different wordlists supported
 #define DOT_S_MAX             8 // maximum depth to display in .s
 #define TIBCELLS      (132 / 4) // The size of the TIB in cells

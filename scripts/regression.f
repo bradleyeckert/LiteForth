@@ -251,8 +251,8 @@ T{ nine -> 9 }T
 : seven imm7 literal ;
 T{ seven -> 7 }T
 
-( x' and ,compile )
-: dup2 [ x' dup drop ,compile ] ;
+( x' and compile, )
+: dup2 [ x' dup drop compile, ] ;
 T{ 4 dup2 -> 4 4 }T
 T{ x' ADD_TEN nip -> 0 }T
 
@@ -268,7 +268,7 @@ T{ dd -> 3 3 }T
 ( :noname compiles an anonymous definition and leaves its xt )
 : before-nn 7 ;
 :noname before-nn 10 + ; constant xt17
-: call17 [ xt17 ,compile ] ;
+: call17 [ xt17 compile, ] ;
 T{ call17 -> 17 }T
 T{ before-nn -> 7 }T  ( the ; after :noname did not hide before-nn )
 

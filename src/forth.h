@@ -32,7 +32,6 @@ locations for accessibility by Forth or by C.
 #define F_PTRS_IDP   (F_PTRS + 2)
 #define F_PTRS_CP    (F_PTRS + 4)
 #define F_PTRS_TP    (F_PTRS + 6)
-#define F_PTRS_IDP0  (F_PTRS + 8)
 
 #define LF_PACKEDSTATE vm_memory[RAM_PAGE]  /* Packed Forth state          */
 #define LF_BASE      BITFIELD(6, 0, 0)

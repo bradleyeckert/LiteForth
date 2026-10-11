@@ -55,19 +55,17 @@ locations for accessibility by Forth or by C.
 #define TIBSIZE     (TIBCELLS * sizeof(int32_t)) // C only
 #define BLK         vm_memory[RAM_PAGE][F_BLK]
 
-// Flags in word->w[31:27]
+// Flags in word->w[31:28]
 #define W_PRIMITIVE     0x80000000 // the xt is a primitive in slot 1
 #define W_MACRO         0x40000000 // the xt is all primitives except nops
 #define W_WIDE_INST     0x20000000 // treat primitive as 16-bit instruction
 #define W_NO_TAIL_CALL  0x10000000 // don't allow tail recursion
 
-// Flags in word->aux[31:24]
+// Flags in word->aux[31:28]
 #define A_SMUDGED       0x80000000 // this bit is set by `:`
 #define A_IMMEDIATE     0x40000000 // this word is immediate
-#define A_NO_EXECUTE    0x20000000 // only execute while compiling
-#define A_CONSTANT      0x10000000 // w is a constant
-#define A_UNRESOLVED    0x08000000 // label has not been resolved
-#define A_IMMED_ONLY    (A_IMMEDIATE | A_NO_EXECUTE)
+#define A_CONSTANT      0x20000000 // w is a constant
+#define A_UNRESOLVED    0x10000000 // label has not been resolved
 
 
 /* ======================================================================= */

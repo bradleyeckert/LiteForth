@@ -676,9 +676,6 @@ static int interpretSource(void) {
 
         if (word != NULL) {
             if (word->aux & A_IMMEDIATE) {
-                if (state && (word->aux & A_NO_EXECUTE)) {
-                    return ERR_INTERPRET_COMPILE_ONLY;
-                }
                 state = 0;
             }
 
@@ -1017,7 +1014,7 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
     latest = head_addr;
     target_head->name = (char*)(uintptr_t)name_dest;
     target_head->w = w;
-    target_head->aux = aux | (BLK << 7) | (lfTOINfetch() >> 7);
+    target_head->aux = aux | ((BLK & 0x7FFFFF) << 5) | (lfTOINfetch() >> 7);
 
     // Insert header at top of current wordlist (linked list). Links are
     // tagged values (see lfFollow), so they stay valid in flash.

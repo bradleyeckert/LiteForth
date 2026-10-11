@@ -98,3 +98,9 @@ A 16-byte read takes 32 beats plus a 14-beat preamble. At 80 MHz, 575 ns.
 A `touch` instruction would be useful. Code would `touch` memory it will be accessing later.
 While it is executing, hardware is pre-filling cache with the code it will need.
 `touch` would take 9-bit immediate data for the pre-fill length and T would be the address.
+
+## Cologne GateMateTM FPGA
+
+This FPGA is a supported Yosys target, meaning you can synthesize with open-source tools.
+The block RAMs are roomy. The CCGM1A1 has 32 RAM blocks. Each stack gets 1 block (1K x 32).
+

@@ -33,10 +33,10 @@ static uint32_t B = 0;  // Address B
 static uint32_t U = 0;  // User pointer
 static uint32_t X = 0;  // GP register
 static uint32_t Y = 0;  // GP register
-static uint8_t  cy = 0;  // Carry
-static uint8_t  sp = 0;  // Data Stack Pointer
-static uint8_t  rp = 0;  // Return Stack Pointer
 static uint32_t prefix = 0;  // Literal prefix
+static uint16_t sp = 0;  // Data Stack Pointer
+static uint16_t rp = 0;  // Return Stack Pointer
+static uint8_t  cy = 0;  // Carry
 
 uint32_t vmFieldPlus(uint32_t addr) {
     uint32_t bsize = (addr >> 27) & 0x1F;

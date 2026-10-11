@@ -21,8 +21,8 @@
 empty only forth  
 : \         ( -- )          >in @ 128 + -128 and >in ! ; immediate              \ comment to next row in a 128*32 block
 : base!     ( n -- )        base ! ;                                            \ `base` is a 3-instruction literal
-: decimal   ( -- )          10 base! ;                                          \ so `base!` saves some space
-: hex       ( -- )          16 base! ;
+: decimal   ( -- )          10 base! ;                                          \ set base to 10
+: hex       ( -- )          16 base! ;                                          \ set base to 16
 -->
 ( BLOCK 7 )
 ( Basic compilation ___________________________________________ 10/9/26 BNE )
@@ -67,14 +67,14 @@ hex
 : repeat    ( a1 a2 -- )    postpone again  postpone then ; immediate           \ begin ... while ... repeat
 : for       ( -- a )        postpone >r  chere ; immediate                      \ for ... next
 : next      ( a -- )        _next _again ; immediate                            \ for ... next
-: 0=        ( x -- flag )   if 0 exit then -1 ;
-: 0<>       ( x -- flag )   0= inv ;
-: =         ( n1 n2 -- flag ) xor 0= ;
+: 0=        ( x -- flag )   if 0 exit then -1 ;                                 \ true if x = 0, else false
+: 0<>       ( x -- flag )   0= inv ;                                            \ true if x != 0, else false
+: =         ( n1 n2 -- flag )  xor 0= ;                                         \ true if n1 = n2, else false
 : execute   ( xt -- )       dup 0=  over 3FFFFF inv and + 0<> -15 and yeet >r ; \ safe execute, may remove limits later
 : ,jump     ( xt ta -- )    _code here >r  'here ! compile,  postpone exit      \ compile a jump to xt at ta
                             r> 'here ! _udata ;
-: (does)    ( -- |R ra -- ) r> created @  ,jump ;                               \ run-time part of `does>`
-: does>     ( -- )          postpone (does) ; immediate                         \ create ... does>
+: _does     ( -- ) ( R: ra -- )  r> created @  ,jump ;                          \ run-time part of `does>`
+: does>     ( -- )          postpone _does ; immediate                          \ create ... does>
 : >body     ( xt -- a )     0 swap caddr  begin  @+     ( acc a inst )          \ extract body address from code
     dup E000 and _lit = if 1FFF and nip swap 0D lshift + exit then              \ trailing lit instruction detected  
     3FF and >r  swap 0A lshift r> + swap  ( acc a )  again ;                    \ otherwise, assume prefix instructions
@@ -82,13 +82,13 @@ decimal
 -->
 ( BLOCK 9 )
 ( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
-:noname     ( next a -- )   drop u! ; constant asleep                           \ sleeping task does nothing
+:noname     ( next a -- )   drop u! ; constant asleep                           \ xt of sleeping task
 : pause     ( -- next a | ) [ _user ,inst ] a if @a+ @a+ >r a exit then ;       \ skip to the next task, or nothing if no task
 : stop      ( -- )          asleep [ _user 1 + ,inst ] !a pause ;               \ stop the current task
-:noname     ( next a -- )                                                       \ an awake task
+:noname     ( next a -- )
     a! u! task[ dup !a                 ( ix r:d |R: ra ? \ save current r:d )   \ saves the current task's stack window
     [ _user 2 + ,inst ] @a ]task r> drop drop                                   \ and loads the next task's stack window
-; constant awake
+; constant awake                                                                \ xt of awake task
 
 hex _idata variable stackused  300030 stackused !   ( reserved for terminal )   \ stacks grow upward
 decimal _udata here 3 allot constant operator                                   \ the operator task is launched by multitask
@@ -121,21 +121,21 @@ decimal _udata here 3 allot constant operator                                   
 -->
 ( BLOCK 11 )
 ( Basic math __________________________________________________ 10/9/26 BNE )
-: -         ( n -- -n )     negate + ;                                          \ subtract
-: 1+        ( n1 -- n2 )    1 + ;
-: 1-        ( n1 -- n2 )    -1 + ;
-: or        ( n1 n2 -- n3 ) inv swap inv and inv ;
+: -         ( n1 n2 -- n3 ) negate + ;                                          \ subtract n2 from n1
+: 1+        ( n1 -- n2 )    1 + ;                                               \ increment by 1
+: 1-        ( n1 -- n2 )    -1 + ;                                              \ decrement by 1
+: or        ( n1 n2 -- n3 ) inv swap inv and inv ;                              \ bitwise OR
 : _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        \ a multiply that does not use the API
 : 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 \ true if n < 0
-: dnegate   ( d -- -d )     inv swap inv 1 + swap cy + ;
-: abs       ( u -- n )      -if negate then ;
-: dabs      ( ud -- d )     -if dnegate then ;
+: dnegate   ( d -- -d )     inv swap inv 1+ swap cy + ;                         \ double-cell negate
+: abs       ( u -- n )      -if negate then ;                                   \ absolute value
+: dabs      ( ud -- d )     -if dnegate then ;                                  \ double-cell absolute value
 : +!        ( n a -- )      a! @a + !a ;                                        \ add n to cell at a
 : *         ( n1 n2 -- n3 ) um* drop ;                                          \ multiply
 : s>d       ( n -- d )      dup 0< ;                                            \ convert single to double
-: min       ( n1 n2 -- n3 ) 2dup - -if 2drop exit then drop nip ;
-: max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;
-: rot       ( abc -- bca )  b! swap b swap ;
+: min       ( n1 n2 -- n3 ) 2dup - -if 2drop exit then drop nip ;               \ n3 is the lesser of n1 and n2
+: max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;               \ n3 is the greater of n1 and n2
+: rot       ( abc -- bca )  b! swap b swap ;                                    \ rotate third item to top of stack
 : u<=       ( u1 u2 -- flag) swap - drop cy ;                                   \ unsigned less than or equal
 -->
 ( BLOCK 12 )
@@ -177,20 +177,20 @@ _udata variable hld  create numbuf 10 allot
 : #>        ( 00 -- ca u )  2drop  numbuf hld @ tuck chars+  swap negate 40 + ; \ end numeric conversion
 : hold      ( c -- )        hld a! @a 1-  dup 0< -17 and yeet  dup !a           \ append to conversion buffer,
                             numbuf swap chars+ ! ;                              \ checking for buffer overflow
-: #         ( ud1 -- ud2 )  base @ mu/mod rot digit hold ;
-: #s        ( ud -- 0 )     begin # 2dup or 0= until ;
+: #         ( ud1 -- ud2 )  base @ mu/mod rot digit hold ;                      \ append next digit
+: #s        ( ud -- 0 )     begin # 2dup or 0= until ;                          \ append remaining digits
 : sign      ( n -- )        -if [char] - hold exit then drop ;                  \ append minus sign if negative
-: s.r       ( length width --) over - spaces type ;
-: d.r       ( d width -- )  >r dup >r dabs  <# #s r> sign #> r> s.r ;
-: u.r       ( u width -- )  0 swap d.r ;
-: .r        ( n width -- )  >r s>d r> d.r ;
-: d.        ( d -- )        0 d.r space ;
-: u.        ( u -- )        0 d. ;
+: s.r       ( length width --) over - spaces type ;                             \ type right-justified text
+: d.r       ( d width -- )  >r dup >r dabs  <# #s r> sign #> r> s.r ;           \ signed double with width
+: u.r       ( u width -- )  0 swap d.r ;                                        \ unsigned with width 
+: .r        ( n width -- )  >r s>d r> d.r ;                                     \ signed with width
+: d.        ( d -- )        0 d.r space ;                                       \ signed double
+: u.        ( u -- )        0 d. ;                                              \ unsigned
 --> 
 ( BLOCK 15 )
 ( Search order ________________________________________________ 10/10/26 BNE )
 : definitions  ( -- )       context @ current ! ;                               \ top of the context list (8-bit wid)
-: contexts  ( -- n )        0 context begin @+ 128 and 0= while swap 1+ swap repeat drop ;
+: contexts  ( -- n )        0 context begin @+ 128 and 0= while swap 1+ swap repeat drop ; \ number of contexts
 : previous  ( -- )          contexts 1parm >r context dup slice+ swap r> cmove ; \ drop top of context stack
 : also      ( -- )          context dup slice+  contexts 1+ cmove>              \ duplicate top of context stack
                             255  [ context |context| chars+ ] literal  ! ;      \ backstop the terminator
@@ -198,15 +198,13 @@ _udata variable hld  create numbuf 10 allot
 : _contexts ( -- )          context contexts 2parms for @+ .wid next drop ;     \ list contexts with first on the left
 : order     ( -- )          ." Context: " _contexts cr  ." Current: " current @ .wid ; \ list the search order
 
-: value  _idata align create , does> @ ;
-hex 0A value ten decimal
-
 --> 
 ( BLOCK 16 )
 ( Block support _______________________________________________ 10/9/26 BNE )
-_udata  variable listcnt  variable scr
-: listline  ( ca u -- )    listcnt @ 2 u.r space type cr ;
-: list      ( n -- )
+_udata  variable scr                                                            \ active screen
+variable listcnt                                                                \ scratchpad line number for list
+: listline  ( ca u -- )    listcnt @ 2 u.r space type cr ;                      \ type the line number and the line text
+: list      ( n -- )                                                            \ list block n
     0 listcnt !  dup scr !
     block [ |block| 2* 2* ] literal -trailing                                   \ trim trailing rows
     begin dup while
@@ -231,14 +229,14 @@ previous definitions
     _text dup , ( 'src len )  for  @+ ,  next  drop                             \ first the length, then the data
 ;
 
-: init-idata  ( addr -- )
-    1 @ @  @+ >r  a! dp[] b!                                                    \ load idata from idata structure
+: init-idata  ( addr -- )                                                       \ load idata from idata structure
+    1 @ @  @+ >r  a! dp[] b!
     |inst @a+ !b+ unext
 ;
 -->
 ( BLOCK 19 )
 ( System stats ________________________________________________ 10/9/26 BNE )
-: _.map     ( -- )
+: _.map     ( -- )                                                              \ map for selected section
     hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr
 ;
 : .map      ( -- )                                                              \ display map of all sections
@@ -249,20 +247,24 @@ previous definitions
 ( BLOCK 25 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
 
-: hi  ." 学如不及，犹恐失之 " ;
+: hi   ( -- )  ." 学如不及，犹恐失之 " ;                                         \ demo CJK message
 
-variable counter
+: value  ( u <name> -- )  _idata align create , does> @ ;                       \ sample implementation of VALUE
+: to     ( u <name> -- )  ' >body ! ;                                           \ demo to
+.( value test: ) 11 value ten   ten .  10 to ten  ten . cr                      \ a test value
+                                                                
 
-: demo-step  ( -- )
+variable counter                                                                \ bumped by multitasker 
+: demo-step  ( -- )                                                             \ application loop 
     1 counter +!
 ;
 
-20 32 32 task t1                                                                \ sample tasks
-10 20 20 task t2
+20 32 32 task t1                                                                \ sample tasks 1
+10 20 20 task t2                                                                \ unused sample task
 
-variable ctr
+variable ctr                                                                    \ starts incrementing after you type `try`
 
-: try  t1 activate  begin pause  1 ctr +!  again ;
+: try  t1 activate  begin pause  1 ctr +!  again ;                              \ give t1 something to do
 
 :noname ( demo application )
     init-idata

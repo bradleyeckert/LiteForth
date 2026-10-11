@@ -93,6 +93,10 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   writable, and the file is never modified. That's the only block 0 metadata
   for now (`unit_tests/blocks/` checks it). Only `SYSTEM_BLOCKS` (2) buffers exist,
   so any 3-deep nesting of loads evicts buffers.
+  `lfInterpret` ends every terminal line with `empty-buffers`, so an
+  `update`d buffer that isn't saved before the line ends is discarded; the
+  block editor (`core.f` blocks 17-19, `doc/editor.md`, `unit_tests/editor`)
+  saves each change with `update save-buffers`.
 
 ## Source map
 

@@ -247,7 +247,7 @@ forth definitions                                                               
     _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
 ;
 
-( BLOCK 25 )
+( BLOCK 30 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
 
 : hi        ( -- )          ." 学如不及，犹恐失之 " ;                           \ demo CJK message

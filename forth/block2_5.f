@@ -125,5 +125,6 @@
 ( -- )                          \ Copy and display the values currently on the data stack, usually for debugging.
 ( n -- )                        \ Display n in free field format, except if BASE is hex, display slice addresses.
 ( "<spaces>name" -- )           \ Disassemble name.
-( -- )                          \ Make the headers that follow temporary, until `head+` drops them.
-( -- )                          \ Drop the temporary headers and make new headers permanent again.
+( -- )                          \ Make the headers that follow temporary, until `-heads` drops them.
+( -- )                          \ Make the headers that follow permanent; temporary words stay usable.
+( -- )                          \ Drop the temporary headers, ending the scope of their words.

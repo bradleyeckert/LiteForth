@@ -21,6 +21,13 @@ void* pool_alloc(int size);
 int pool_free(void* ptr);
 
 /**
+ * @brief Tells whether ptr is the most recent allocation, the only one
+ * pool_free would accept.
+ * @return 1 if it is, else 0 (also for NULL or an empty pool).
+ */
+int pool_is_newest(const void* ptr);
+
+/**
  * @brief Instantly resets the entire stack pool, discarding all current allocations.
  */
 void pool_reset(void);

@@ -177,6 +177,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "label",        API0(API_LABEL),                          173},
     { PREV, "head-",        API0(API_HEADMINUS),                      187},
     { PREV, "head+",        API0(API_HEADPLUS),                       188},
+    { PREV, "-heads",       API0(API_TRIMHEADS),                      189},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        174},
     { PREV, "->",           API0(API_DOTEST),                         175},
@@ -893,12 +894,16 @@ const struct s_head* lfTickWord(void) {
 static uint32_t latest = 0;             // VM address of the last header, or 0
 
 /*
- * Temporary headers (`head-` ... `head+`). While temp_heads isn't NULL,
- * lfHeader builds each header as a C struct in this pool buffer, followed
- * by its name, and links it into its wordlist with a plain C pointer, as
- * the built-in tables do, so lfFollow handles it unchanged.
+ * Temporary headers: `head-` [temporary words] `head+` [permanent words]
+ * `-heads`. In temporary mode (temp_mode), lfHeader builds each header as a
+ * C struct in the pool buffer temp_heads, followed by its name, and links
+ * it into its wordlist with a plain C pointer, as the built-in tables do,
+ * so lfFollow handles it unchanged. `head+` only leaves temporary mode:
+ * the temporary words stay findable, and permanent headers made after it
+ * may link to them. `-heads` unlinks them all and frees the buffer.
  */
 static uint32_t* temp_heads = NULL;     // the pool buffer, or NULL
+static int temp_mode = 0;               // lfHeader makes temporary headers
 static char* temp_hp;                   // next free byte in it
 static char* temp_end;                  // the end of it
 static struct s_head* temp_latest;      // the last header, if temporary
@@ -911,41 +916,59 @@ static int isTempHead(const struct s_head* link) {
         && ((const char*)link < temp_end);
 }
 
-// lfHeadsTemporary (documented in forth.h)
-int lfHeadsTemporary(void) {
+// Skips any temporary headers at the front of link
+static const struct s_head* skipTempHeads(const struct s_head* link) {
+    while (isTempHead(link)) link = link->link;
+    return link;
+}
+
+// lfTempHeads (documented in forth.h)
+int lfTempHeads(void) {
     return temp_heads != NULL;
 }
 
 // HEAD-  ( -- )  (documented in forth.h)
 int lfAPI_headMinus(void) {
-    if (temp_heads != NULL) return 0;
-    uint32_t* buf = pool_alloc(TEMP_HEAD_CELLS);
-    if (buf == NULL) return ERR_ALLOCATE_FAILED;
-    const uintptr_t align = sizeof(void*) - 1;   // headers hold pointers
-    temp_heads = buf;
-    temp_hp = (char*)(((uintptr_t)buf + align) & ~align);
-    temp_end = (char*)(buf + TEMP_HEAD_CELLS);
-    temp_latest = NULL;
+    if (temp_mode) return 0;
+    if (temp_heads == NULL) {           // else go on filling the buffer
+        uint32_t* buf = pool_alloc(TEMP_HEAD_CELLS);
+        if (buf == NULL) return ERR_ALLOCATE_FAILED;
+        const uintptr_t align = sizeof(void*) - 1;   // headers hold pointers
+        temp_heads = buf;
+        temp_hp = (char*)(((uintptr_t)buf + align) & ~align);
+        temp_end = (char*)(buf + TEMP_HEAD_CELLS);
+    }
+    temp_mode = 1;
     return 0;
 }
 
 // HEAD+  ( -- )  (documented in forth.h)
 int lfAPI_headPlus(void) {
+    temp_mode = 0;
+    return 0;
+}
+
+// -HEADS  ( -- )  (documented in forth.h)
+int lfAPI_trimHeads(void) {
     if (temp_heads == NULL) return 0;
-    // Temporary headers are the newest of each list: skip past them
-    const struct s_head* heads[WIDS_MAX];
+    if (!pool_is_newest(temp_heads)) return ERR_FREE_FAILED;
     for (int i = 0; i < wids_pointer; i++) {
-        const struct s_head* h = wids[i].head;
-        while (isTempHead(h)) h = h->link;
-        heads[i] = h;
+        wids[i].head = skipTempHeads(wids[i].head);
+        // Permanent headers made after head+ may link to temporary ones.
+        // They're in VM memory, in the open flash page; built-in headers
+        // never link to temporary ones, so nothing const is written.
+        const struct s_head* h = lfFollow(wids[i].head, NULL);
+        while (h != NULL) {
+            if (isTempHead(h->link)) {
+                ((struct s_head*)h)->link = (struct s_head*)skipTempHeads(h->link);
+            }
+            h = lfFollow(h->link, NULL);
+        }
     }
-    int ior = pool_free(temp_heads);    // fails unless the newest allocation
-    if (ior) return ior;
-    for (int i = 0; i < wids_pointer; i++) {
-        wids[i].head = heads[i];
-    }
+    if (isTempHead(temp_latest)) temp_latest = NULL;
+    pool_free(temp_heads);
     temp_heads = NULL;
-    temp_latest = NULL;
+    temp_mode = 0;
     return 0;
 }
 
@@ -1034,7 +1057,7 @@ int lfHeader(uint32_t w, uint32_t aux, const char** name) {
     int ior = lfParseWord(token, sizeof(token));
     if (ior) return ior;
 
-    if (temp_heads != NULL) {           // a temporary header (head-)
+    if (temp_mode) {                    // a temporary header (head-)
         size_t len = strlen(token) + 1;
         const size_t align = sizeof(void*) - 1;
         size_t bytes = (sizeof(struct s_head) + len + align) & ~align;

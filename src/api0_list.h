@@ -84,7 +84,8 @@
     X(API_TOAUX,            toaux)              \
     X(API_CHAR,             charword)           \
     X(API_HEADMINUS,        lfAPI_headMinus)    \
-    X(API_HEADPLUS,         lfAPI_headPlus)
+    X(API_HEADPLUS,         lfAPI_headPlus)     \
+    X(API_TRIMHEADS,        lfAPI_trimHeads)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

@@ -230,30 +230,41 @@ int lfHeader(uint32_t w, uint32_t aux, const char** name);
 /**
  * @brief Forth word `head-`  ( -- )
  * Makes the headers that follow temporary: lfHeader puts them in a buffer
- * of TEMP_HEAD_CELLS cells from the memory pool, until `head+`. The words'
- * code and data are compiled as usual; only their names go away. Does
- * nothing if headers are already temporary.
+ * of TEMP_HEAD_CELLS cells from the memory pool (allocated by the first
+ * `head-` after `-heads`, or at startup). The words' code and data are
+ * compiled as usual; only their names go away, at `-heads`. Usage:
+ * `head-` [temporary words] `head+` [permanent words] `-heads`.
+ * Does nothing if headers are already temporary.
  * @return 0 on success, or ERR_ALLOCATE_FAILED if the pool is too full.
  */
 int lfAPI_headMinus(void);
 
 /**
  * @brief Forth word `head+`  ( -- )
- * Makes headers permanent again: drops the temporary headers from every
- * wordlist (they are the newest headers of their lists, so each list goes
- * back to its first permanent header) and frees their buffer. Does nothing
- * if headers are already permanent, which is how the system starts.
- * @return 0 on success, or ERR_FREE_FAILED if the buffer isn't the newest
- *         pool allocation (e.g. `open-flash` came after `head-`); then the
- *         headers stay temporary.
+ * Makes the headers that follow permanent again, which is how the system
+ * starts. The temporary words stay findable until `-heads`, so permanent
+ * words can still use them.
+ * @return 0.
  */
 int lfAPI_headPlus(void);
 
 /**
- * Tells whether headers are temporary (between `head-` and `head+`).
- * @return 1 if they are, else 0.
+ * @brief Forth word `-heads`  ( -- )
+ * Ends the scope of the temporary words: unlinks every temporary header
+ * from its wordlist (relinking any permanent header that points to one)
+ * and frees their buffer. Leaves temporary mode too. Does nothing if there
+ * are no temporary headers.
+ * @return 0 on success, or ERR_FREE_FAILED if the buffer isn't the newest
+ *         pool allocation (e.g. `open-flash` came after `head-`); then
+ *         nothing changes.
  */
-int lfHeadsTemporary(void);
+int lfAPI_trimHeads(void);
+
+/**
+ * Tells whether temporary headers exist (from `head-` until `-heads`).
+ * @return 1 if they do, else 0.
+ */
+int lfTempHeads(void);
 
 /**
  * Finds the C address of a VM address.

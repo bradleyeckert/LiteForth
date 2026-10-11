@@ -188,7 +188,7 @@ uint32_t* flash = NULL;
 /* CLOSE-FLASH  ( -- ) */
 static int flashClose(void) {
     if (openpage < 0) return 0; // already closed
-    if (lfHeadsTemporary()) return ERR_MUST_HAVE_HEADS; // its buffer is newer
+    if (lfTempHeads()) return ERR_MUST_HAVE_HEADS; // -heads first: its buffer is newer
     if (openpage >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
     if (flash == NULL) return ERR_FLASH_INVALID_SECTOR;
 

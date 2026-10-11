@@ -169,6 +169,8 @@ decimal _udata here 3 allot constant operator                                   
     begin 2dup xor while
         char- dup @  32 xor  if  over bytespan  1+ exit  then                   \ seek backward for nonblank
     repeat  dup xor ;       ( a' 0 )
+: fill      ( ca u c -- )   3parms swap >r swap a! |inst  dup !a+ unext drop ;  \ fill u cells or slices with c
+: blank     ( ca u -- )     32 fill ;                                           \ fill u chars with spaces
 -->
 ( BLOCK++ )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
@@ -212,25 +214,24 @@ create numbuf 10 allot                                                          
 vocabulary editor  also editor definitions                                      \ vocabulary for the editor
 _udata  variable scr                                                            \ block being edited or listed
 variable listcnt                                                                \ line number for list
-variable lin                                                                    \ current line, 0 to 31
+variable row                                                                    \ current line, 0 to 31
 variable col                                                                    \ cursor column in the current line
 variable #fbuf                                                                  \ length of the find string
 create fbuf 32 allot                                                            \ find string, up to 128 bytes
-: listline  ( ca u -- )     listcnt @ 2 u.r space type cr ;                     \ type the line number and the line text
 : list      ( n -- )        dup scr !  0 listcnt !                              \ list block n and make it current
     block [ |block| 2* 2* ] literal -trailing  ( ca u )                         \ trim trailing rows
     begin dup while
-        2dup 128 min dup >r  -trailing listline                                 \ trim trailing columns
+        2dup 128 min dup >r  -trailing listcnt @ 2 u.r space type cr            \ trim trailing columns
         r@ - swap  r> 2/ 2/ + swap  1 listcnt +!                                \ step address in cells, count in bytes
     repeat  2drop ;
-: _index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
-: index     ( u1 u2 -- )    over - 1+ 2parms  for dup _index 1+ next drop ;     \ display an index of blocks
-: _line     ( n -- ca )     scr @ block 8 bit  swap 7 lshift chars+ ;           \ address of line n of the current block
-: _here     ( -- ca )       lin @ _line col @ chars+ ;                          \ address of the cursor
-: _left     ( -- u )        128 col @ - ;                                       \ chars from the cursor to the end of the line
-: _blank    ( ca u -- )     2parms for 32 over ! 1 chars+ next drop ;           \ fill u chars with spaces
-: _show     ( -- )          lin @ dup _line 128 -trailing                       \ type the current line with its number
+: .index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
+: index     ( u1 u2 -- )    over - 1+ 2parms  for dup .index 1+ next drop ;     \ display an index of blocks
+: 'line     ( n -- ca )     scr @ block 8 bit  swap 7 lshift chars+ ;           \ address of line n of the current block
+: 'cursor   ( -- ca )       row @ 'line col @ chars+ ;                          \ address of the cursor
+: remain    ( -- u )        128 col @ - ;                                       \ chars from the cursor to the end of the line
+: me        ( -- )          row @ dup 'line 128 -trailing                       \ type the current line with its number
                             rot 2 u.r space type cr ;
+head-                            
 : _caret    ( -- )          col @ 3 + spaces [char] ^ emit cr ;                 \ mark the cursor under the line
 : _upd      ( -- )          update save-buffers ;                               \ save the edit; QUIT empties the buffers
 -->
@@ -242,52 +243,52 @@ create fbuf 32 allot                                                            
 : _src      ( -- ca )       blk @ if blk @ block 8 bit exit then TIB ;          \ address of the input source
 : _rest     ( -- ca u )     _src >in @ chars+  >in @ 128 + -128 and             \ parse the rest of the line
                             dup >in @ - swap >in !  _len0 -trailing ;
-: _gap      ( n -- ca n' )  _left min  dup _left swap - >r  _here swap          \ open n blank chars at the cursor
-                            2dup chars+ >r over r> r> cmove>  2dup _blank ;     \ shift the rest of the line right
-: _cut      ( n -- )        _left min  dup _left swap - >r  _here               \ delete n chars at the cursor
+: _gap      ( n -- ca n' )  remain min  dup remain swap - >r  'cursor swap          \ open n blank chars at the cursor
+                            2dup chars+ >r over r> r> cmove>  2dup blank ;     \ shift the rest of the line right
+: _cut      ( n -- )        remain min  dup remain swap - >r  'cursor               \ delete n chars at the cursor
                             2dup swap chars+ over r> cmove                      \ shift the rest of the line left
-                            over _left swap - chars+ swap _blank ;              \ blank the end of the line
+                            over remain swap - chars+ swap blank ;              \ blank the end of the line
 : _ins      ( ca u -- )     dup _gap rot drop  dup col +!  cmove ;              \ insert text at the cursor and move past it
-: _put      ( ca u -- )     lin @ _line dup 128 _blank  swap 128 min cmove ;    \ make text the current line
+: _put      ( ca u -- )     row @ 'line dup 128 blank  swap 128 min cmove ;    \ make text the current line
 : _fbuf     ( -- ca )       fbuf 8 bit ;                                        \ address of the find string
 : _same     ( ca1 ca2 u -- flag ) for  over @ over @ xor                        \ true if u chars at ca1 and ca2 match
                             if 2drop r> drop 0 exit then                        \ a difference: no match
                             1 chars+ swap 1 chars+ swap  next  2drop -1 ;
 : _at       ( pos -- flag ) dup 127 and #fbuf @ + 128 u<= if                    \ true if the find string is at pos
-                            0 _line swap chars+  _fbuf #fbuf @ _same exit       \ in the block, within a line
+                            0 'line swap chars+  _fbuf #fbuf @ _same exit       \ in the block, within a line
                             then  drop 0 ;
-: _find     ( -- flag )     lin @ 7 lshift col @ +  dup #fbuf @ + 4097 swap -   \ search from the cursor; move past a match
+: _find     ( -- flag )     row @ 7 lshift col @ +  dup #fbuf @ + 4097 swap -   \ search from the cursor; move past a match
                             1- -if 2drop 0 exit then 1+  ( pos n )              \ n = positions left to try
-                            for  dup _at if  dup 7 rshift lin !  127 and #fbuf @ + col !
+                            for  dup _at if  dup 7 rshift row !  127 and #fbuf @ + col !
                             r> drop -1 exit then  1+  next  drop 0 ;
 : _found    ( -- flag )     #fbuf @ 0= if 0 exit then  col @ #fbuf @ -          \ true if the find string ends at the cursor
-                            -if drop 0 exit then  lin @ _line swap chars+  _fbuf #fbuf @ _same ;
--->
+                            -if drop 0 exit then  row @ 'line swap chars+  _fbuf #fbuf @ _same ;
+head+ -->
 ( BLOCK++ )
 ( Block editor 3/3 ____________________________________________ 10/11/26 BNE )
-: edit      ( n -- )        0 lin !  0 col !  list ;                            \ list block n and edit it from line 0
+: edit      ( n -- )        0 row !  0 col !  list ;                            \ list block n and edit it from line 0
 : l         ( -- )          scr @ list ;                                        \ list the current block
 : n         ( -- )          scr @ 1+ list ;                                     \ list the next block
 : b         ( -- )          scr @ 1- list ;                                     \ list the previous block
 : fl        ( -- )          flush ;                                             \ save modified blocks to storage
-: t         ( n -- )        31 and lin !  0 col !  _show ;                      \ make line n current and type it
-: p         ( "text" -- )   _rest _put _upd _show ;                             \ put text into the current line
-: i         ( "text" -- )   _rest  lin @ _line dup 128 chars+                   \ insert text as a line above the current one
-                            31 lin @ - 7 lshift cmove>  _put _upd _show ;       \ line 31 is lost
-: d         ( n -- )        31 and dup lin !  0 col !  _line dup 128 chars+ swap \ delete line n, moving the lines below up
-                            31 lin @ - 7 lshift cmove  31 _line 128 _blank  _upd _show ;
-: clear     ( -- )          0 _line 4096 _blank _upd ;                          \ fill the current block with spaces
+: t         ( n -- )        31 and row !  0 col !  me ;                         \ make line n current and type it
+: p         ( "text" -- )   _rest _put _upd me ;                                \ put text into the current line
+: i         ( "text" -- )   _rest  row @ 'line dup 128 chars+                   \ insert text as a line above the current one
+                            31 row @ - 7 lshift cmove>  _put _upd me ;          \ line 31 is lost
+: d         ( n -- )        31 and dup row !  0 col !  'line dup 128 chars+ swap \ delete line n, moving the rowes below up
+                            31 row @ - 7 lshift cmove  31 'line 128 blank  _upd me ;
+: clear     ( -- )          0 'line 4096 blank _upd ;                           \ fill the current block with spaces
 : f         ( "text" -- )   _rest dup if 128 min dup #fbuf ! _fbuf swap cmove   \ find text from the cursor; no text: again
                             else 2drop then  #fbuf @ 0= if ." nothing to find" cr exit then
-                            _find if _show _caret exit then  ." not found" cr ;
+                            _find if me _caret exit then  ." not found" cr ;
 : c         ( "text" -- )   _rest _found 0= if 2drop ." find first" cr exit then \ change the found string to text
-                            #fbuf @ negate col +!  #fbuf @ _cut  _ins _upd _show ;
-: e         ( -- )          _here _left _blank _upd _show ;                     \ erase from the cursor to the end of the line
-: r         ( "text" -- )   _rest _here _left 2dup _blank  rot min cmove        \ replace the rest of the line with text
-                            _upd _show ;
-: s         ( n -- )        _gap 2drop _upd _show ;                             \ insert n spaces at the cursor
-: x         ( n -- )        _cut _upd _show ;                                   \ delete n chars at the cursor
-forth definitions                                                               \ leave the search order as [forth, forth]
+                            #fbuf @ negate col +!  #fbuf @ _cut  _ins _upd me ;
+: e         ( -- )          'cursor remain blank _upd me ;                      \ erase from the cursor to the end of the line
+: r         ( "text" -- )   _rest 'cursor remain 2dup blank  rot min cmove      \ replace the rest of the line with text
+                            _upd me ;
+: s         ( n -- )        _gap 2drop _upd me ;                                \ insert n spaces at the cursor
+: x         ( n -- )        _cut _upd me ;                                      \ delete n chars at the cursor
+-heads forth definitions                                                        \ leave the search order as [forth, forth]
 -->
 ( BLOCK++ )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
@@ -303,12 +304,12 @@ forth definitions                                                               
 -->
 ( BLOCK++ )
 ( System stats ________________________________________________ 10/9/26 BNE )
-: _.map     ( -- )                                                              \ map for selected section
-    hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr
+: _.map     ( a0 -- )                                                           \ map for selected section
+    ." used "  here swap - amask .  ." unused " unused . ." cells" cr
 ;
 : .map      ( -- )                                                              \ display map of all sections
-    _udata ." _udata " _.map  _idata ." _idata " _.map
-    _code  ." _code  " _.map  _text  ." _text  " _.map  _udata
+    _udata ." _udata " _udata0 _.map  _idata ." _idata " dp[] _.map
+    _code  ." _code  "       0 _.map  _text  ." _text  " _text0 _.map  _udata
 ;
 
 ( BLOCK 30 )

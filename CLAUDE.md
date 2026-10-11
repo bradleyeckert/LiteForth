@@ -133,6 +133,10 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - Dictionary rows link to the previous row with `PREV` (counted with
   `__COUNTER__` from `HEADS_BEGIN(table)`); never write link numbers by hand,
   and don't use `__COUNTER__` inside a header table.
+- Forth source in `forth/` follows `doc/coding-rules.md`: each definition's
+  header row carries its stack picture (column 12) and a `\` description
+  (column 80), because `aux` records the block and row (`aux[27:5]` block,
+  `aux[4:0]` row) and that row is the glossary entry.
 - Tunables (`MAX_LOAD_NESTING`, `SYSTEM_BLOCKS`, `SCREEN_COLUMNS`, ...) are in
   `src/target/desktop/options.h`.
 - File encodings are mixed. Preserve them byte-for-byte when editing:

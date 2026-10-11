@@ -112,7 +112,7 @@ instead).
 ## 3. Blocks and files
 
 **B1. Title row.** Row 0 is `( Title ___ m/d/yy INI )`. Pad with
-underscores so that the date starts at column 63, and end with your
+underscores so that the date starts at column 64, and end with your
 initials. Update the date when you change the block.
 
 **B2. One topic per block.** Rows 1 to 31 hold code. A topic that needs

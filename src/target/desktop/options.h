@@ -21,6 +21,7 @@
 #define RAM_PAGE_CELLS     4096 // RAM page size [2]
 // memalloc.c
 #define POOL_CAPACITY     16384 // cells of the system memory pool
+#define TEMP_HEAD_CELLS    2048 // pool buffer for temporary headers (head-)
 // flash.c
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c
@@ -41,8 +42,8 @@
 #error "RAM_PAGE_CELLS is too small, choose a higher number."
 #endif
 
-#if (POOL_CAPACITY < RAM_PAGE_CELLS)
-#error "POOL_CAPACITY is too small, choose a higher number."
+#if (POOL_CAPACITY < RAM_PAGE_CELLS + FLASH_PAGE_CELLS + TEMP_HEAD_CELLS + 3)
+#error "POOL_CAPACITY must hold the RAM page, an open flash page and the temporary headers."
 #endif
 
 #endif /* OPTIONS_H */

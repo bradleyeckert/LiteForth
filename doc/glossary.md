@@ -88,6 +88,8 @@ Name lookup ignores case.
 | `exit` | `( -- )` | Immediate. Compiles a return from the current word. |
 | `flush` | `( -- )` | Saves modified block buffers, then unassigns all of them. |
 | `forth` | `( -- )` | Makes the forth wordlist first in the search order. |
+| `head-` | `( -- )` | Makes the headers that follow temporary: they go in a pool buffer of `TEMP_HEAD_CELLS` cells instead of text space, until `head+`. Code and data compile as usual; only the names are temporary. Does nothing if headers are already temporary. A full buffer gives -8. `save-wids` and `close-flash` give -122 until `head+`. |
+| `head+` | `( -- )` | Makes headers permanent again (the default): drops the temporary headers from every wordlist and frees their buffer. Does nothing if headers are already permanent. Gives -60 if the buffer isn't the newest pool allocation (`open-flash` after `head-`). A `label` made before `head-` and resolved by `:` during it keeps its name. |
 | `hex` | `( -- )` | † Sets `base` to 16. |
 | `immediate` | `( -- )` | Makes the most recent definition immediate. |
 | `inv` | `( x1 -- x2 )` | Bitwise NOT (same as `invert`). |

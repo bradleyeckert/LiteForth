@@ -53,7 +53,7 @@ int lfExecuteXT(uint32_t xt);
 int lfCompileWord(const struct s_head* word);
 
 // globals
-extern uint32_t lfCreatedName; // CREATE (comp.c) --> WORDLIST: VM address of the name, or 0
+extern const char* lfCreatedName; // CREATE (comp.c) --> WORDLIST: the name, or NULL
 
 /**
  * @brief Forth word `,inst`  ( inst -- )

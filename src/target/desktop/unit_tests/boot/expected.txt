@@ -1,5 +1,5 @@
 no-record 
-`forth `only extra 
+forth root extra 
 42 
 7 42 
 nosuchword ?

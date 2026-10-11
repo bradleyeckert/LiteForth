@@ -4,18 +4,14 @@ In LiteForth, code is organized into **4096-byte blocks (screens)** of 32 lines 
 Editing within LiteForth is done with the **`editor` vocabulary** (blocks 17 to 19 of `forth/core.f`),
 a compact lexicon of single-letter and short commands for line- and character-level changes.
 
-`editor` makes the editor vocabulary the first wordlist in the search order, in place of `forth`, and
-`forth` switches back. `also editor` keeps `forth` searched as well. Names are not case sensitive, so
-`EDIT` and `edit` are the same word.
+The search order is normally `[forth forth]` (`order` shows it). `editor` makes it
+`[editor forth]`, so the editor words come first and the rest of Forth is still there, and `forth`
+makes it `[forth forth]` again. Names are not case sensitive, so `EDIT` and `edit` are the same word.
 
 The editor works on the **current block** (`scr`), a **current line** (0 to 31) and a **cursor**,
 a column in the current line. Commands that change the block write it to storage straight away
 (`update save-buffers`), because the terminal empties the block buffers after every line it
 interprets.
-
-While the editor is first in the search order, its single letters hide other words: `b` is the
-editor's "back" rather than the B register, and in `hex` a lone `b`, `c`, `d`, `e` or `f` is an
-editor command rather than a number.
 
 ---
 
@@ -23,7 +19,7 @@ editor command rather than a number.
 
 | Word | Stack Effect | Description |
 | :--- | :--- | :--- |
-| **`editor`** | `( -- )` | Makes the editor vocabulary the first wordlist in the search order. |
+| **`editor`** | `( -- )` | Sets the search order to `[editor forth]`. |
 | **`edit`** | `( n -- )` | Lists block `n`, makes it the current block, and puts the cursor at the start of line 0. |
 | **`list`** | `( n -- )` | Lists block `n` with line numbers (0 to 31) and makes it the current block. |
 | **`l`** | `( -- )` | Lists the current block. |
@@ -68,12 +64,12 @@ string it finds. The changed line is typed after each command.
 ## Example LiteForth Editor Session
 
 ```forth
-ok>also editor              \ editor words first, forth still searched
+ok>editor                   \ search order [editor forth]
 ok>30 edit                  \ list block 30 and edit it
 ok>3 t                      \ make line 3 current: ": square dup * ;"
 ok>p : cube dup dup * * ;   \ put new code into line 3
 ok>f dup                    \ find the first dup after the cursor
 ok>c over                   \ change it: ": cube over dup * * ;"
 ok>l                        \ list the block again
-ok>forth                    \ forth first again
+ok>forth                    \ back to [forth forth]
 ```

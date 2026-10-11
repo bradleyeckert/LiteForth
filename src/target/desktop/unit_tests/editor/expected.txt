@@ -53,7 +53,7 @@ find first
 30 
 31 pushed off
  0 xyz
-Context: forth forth forth 
+Context: forth forth 
 Current: forth 
 ( BLOCK 40 )
 ( inserted above line 0 )

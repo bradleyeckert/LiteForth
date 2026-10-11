@@ -25,7 +25,7 @@ python3 "$ROOT/scripts/putblocks.py" b40.f > /dev/null
 cat "$ROOT/forth/core.f"
 cat <<'F'
 3 >options  .( --- ) cr
-also editor
+editor
 40 edit
 1 t
 p : cube dup dup * * ;

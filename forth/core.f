@@ -12,7 +12,7 @@
 ( Block 0 is reserved for the LITEFORTH tag and to-be-determined metadata. )
 ( Block 1 is the home block )
 ( Blocks 2 to 5 are used to document the internal functions of `forth.c`. )
-( Block 6 to 19 build up a Forth )
+( Block 6 to ~20 build up a Forth )
 
 0 open-flash
 
@@ -24,7 +24,7 @@ empty only forth
 : decimal   ( -- )          10 base! ;                                          \ set base to 10
 : hex       ( -- )          16 base! ;                                          \ set base to 16
 -->
-( BLOCK 7 )
+( BLOCK ++ )
 ( Basic compilation ___________________________________________ 10/9/26 BNE )
 hex
 : variable  ( -- )          20 bits ;                                           \ a Forth variable is a 32-bit slice
@@ -50,7 +50,7 @@ hex
 : [char]    ( <char> -- )   char  postpone literal ; immediate                  \ compile a character as a literal
 : @+        ( a -- a+1 n )  a! @a+ a swap ;                                     \ fetch next cell or slice in a stream
 decimal -->
-( BLOCK 8 )
+( BLOCK ++ )
 ( Control structures __________________________________________ 10/10/26 BNE )
 hex
 : _again    ( a inst -- )   >r iaddr  chere iaddr inv + 1FF and r> + ,inst ;    \ compile a backward control branch
@@ -80,7 +80,7 @@ hex
     3FF and >r  swap 0A lshift r> + swap  ( acc a )  again ;                    \ otherwise, assume prefix instructions
 decimal
 -->
-( BLOCK 9 )
+( BLOCK ++ )
 ( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
 :noname     ( next a -- )   drop u! ; constant asleep                           \ xt of sleeping task
 : pause     ( -- next a | ) [ _user ,inst ] a if @a+ @a+ >r a exit then ;       \ skip to the next task, or nothing if no task
@@ -99,7 +99,7 @@ decimal _udata here 3 allot constant operator                                   
     task[  !a+ r> drop       ( capture the operator's r:d and start address )   \ and assign it to the operator.
 ;
 -->
-( BLOCK 10 )
+( BLOCK ++ )
 ( Multitasking 2/2 ____________________________________________ 10/9/26 BNE )
 : activate  ( task -- ) ( R: ra -- )                                            \ start task running the code after activate
     a! @a+ @a+                                                   ( r:d user )   \ get task parameters
@@ -119,7 +119,7 @@ decimal _udata here 3 allot constant operator                                   
     swap 3 + allot  _idata ,  _udata    ( CELL 1 = address of the user area )   \ allocate uninitialized data space for task
 ;
 -->
-( BLOCK 11 )
+( BLOCK ++ )
 ( Basic math __________________________________________________ 10/9/26 BNE )
 : -         ( n1 n2 -- n3 ) negate + ;                                          \ subtract n2 from n1
 : 1+        ( n1 -- n2 )    1 + ;                                               \ increment by 1
@@ -138,7 +138,7 @@ decimal _udata here 3 allot constant operator                                   
 : rot       ( x1 x2 x3 -- x2 x3 x1 ) b! swap b swap ;                           \ rotate third item to top of stack
 : u<=       ( u1 u2 -- flag ) swap - drop cy ;                                  \ unsigned less than or equal
 -->
-( BLOCK 12 )
+( BLOCK ++ )
 ( String output _______________________________________________ 10/9/26 BNE )
 : emit      ( c -- )        t_tx! ;                                             \ dumb emit may block
 : emit?     ( -- flag )     t_tx? ;                                             \ a smarter emit would pause while `emit?`
@@ -153,7 +153,7 @@ decimal _udata here 3 allot constant operator                                   
 : space     ( -- )          32 emit ;                                           \ send a space
 : spaces    ( n -- )        1parm for space next ;                              \ send 0 or more spaces
 -->
-( BLOCK 13 )
+( BLOCK ++ )
 ( String support ______________________________________________ 10/10/26 BNE )
 : bytepos   ( a -- n )      25 rshift 3 and ;                                   \ get the byte offset
 : posbyte   ( a pos -- a' ) 25 lshift  swap amask [ 8 27 lshift ] literal + + ; \ set the byte offset for a byte address
@@ -170,7 +170,7 @@ decimal _udata here 3 allot constant operator                                   
         char- dup @  32 xor  if  over bytespan  1+ exit  then                   \ seek backward for nonblank
     repeat  dup xor ;       ( a' 0 )
 -->
-( BLOCK 14 )
+( BLOCK ++ )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
 _udata variable hld                                                             \ position of the last held char in numbuf
 create numbuf 10 allot                                                          \ pictured numeric output buffer, 40 bytes
@@ -188,7 +188,7 @@ create numbuf 10 allot                                                          
 : d.        ( d -- )        0 d.r space ;                                       \ signed double
 : u.        ( u -- )        0 d. ;                                              \ unsigned
 -->
-( BLOCK 15 )
+( BLOCK ++ )
 ( Search order ________________________________________________ 10/10/26 BNE )
 : definitions ( -- )        context @ current ! ;                               \ compile into the first context wordlist
 : contexts  ( -- n )        0 context begin @+ 128 and 0=                       \ number of wordlists in the search order
@@ -203,7 +203,7 @@ create numbuf 10 allot                                                          
                             ." Current: " current @ .wid ;
 
 -->
-( BLOCK 16 )
+( BLOCK ++ )
 ( Block support _______________________________________________ 10/9/26 BNE )
 : thru      ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
 -->
@@ -222,10 +222,10 @@ variable scr                                                                    
 : _index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index
 : index     ( u1 u2 -- )    over - 1+ 2parms  for dup _index 1+ next drop ;     \ display an index of blocks
 forth definitions                                                               \ leave search order as [forth, forth]
-( BLOCK 18 )
+( BLOCK ++ )
 ( Block editor 2/2 ____________________________________________ 10/11/26 BNE )
 -->
-( BLOCK 19 )
+( BLOCK ++ )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata ( -- )                                                             \ compile idata initialization structure
     _idata here  dp[] tuck - amask
@@ -237,7 +237,7 @@ forth definitions                                                               
     |inst @a+ !b+ unext
 ;
 -->
-( BLOCK 20 )
+( BLOCK ++ )
 ( System stats ________________________________________________ 10/9/26 BNE )
 : _.map     ( -- )                                                              \ map for selected section
     hex here . ." to " 'here 1+ @ . ." unused " unused decimal . ." cells" cr
@@ -280,7 +280,7 @@ variable ctr                                                                    
     begin  break  again         ( park the app until the next `cold` )
 ; hex 80000002 ,jump decimal
 -->
-( BLOCK 26 )
+( BLOCK ++ )
 ( Resolve startup _____________________________________________ 10/9/26 BNE )
 
 _text here 32 bit  1 !  ( Boot structure at end of text )

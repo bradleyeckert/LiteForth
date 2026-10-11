@@ -1,6 +1,6 @@
 #!/bin/sh
 # scripts/putblocks.py and getblocks.py test: writes a source with `( BLOCK n )` markers into
-# a fresh 64-block file (skipping a `( BLOCK IGNORE )` part), has bin/lf load the blocks, dumps them
+# a fresh 64-block file (skipping a `( BLOCK IGNORE )` part, then `( BLOCK ++ )`), has bin/lf load the blocks, dumps them
 # with getblocks.py and writes the dump back to get the same blocks, and
 # checks that bad sources (line too long, block 0) change nothing. Compares
 # the output with expected.txt. Usage: run.sh path/to/lf
@@ -31,11 +31,13 @@ text before the first marker is ignored
 ( BLOCK IGNORE )
 .( ignored: not in any block ) cr
 
+( BLOCK ++ )
+.( four: the block after 3 ) cr
 ( BLOCK 70 )
 .( seventy, past the end of the file ) cr
 F
 python3 "$PUT" src.f 2>&1
-printf 'capacity .\n3 load\n70 load\nbye\n' | "$LF" -o 3 2>&1 | tail -n +2
+printf 'capacity .\n3 load\n4 load\n70 load\nbye\n' | "$LF" -o 3 2>&1 | tail -n +2
 
 # getblocks.py dumps the blocks as text; putblocks.py writes them back the same
 python3 "$ROOT/scripts/getblocks.py" -o dump.f lfblocks.fb4
@@ -43,11 +45,13 @@ blank again.fb4
 python3 "$PUT" dump.f again.fb4 > /dev/null 2>&1
 dd if=again.fb4 of=again71.fb4 bs=4096 count=71 2>/dev/null
 cmp -s lfblocks.fb4 again71.fb4 && echo "round trip: same blocks"
-grep -c '^( BLOCK \(3\|70\) )' dump.f     # one marker per block
+grep -c '^( BLOCK \(3\|4\|70\) )' dump.f     # one marker per block
 
 cp lfblocks.fb4 before.bin
 python3 -c "print('( BLOCK 4 )'); print('x' * 129)" > long.f
 python3 "$PUT" long.f 2>&1 || echo "(exit $?)"
+printf '( BLOCK ++ )\nx\n' > first.f
+python3 "$PUT" first.f 2>&1 || echo "(exit $?)"
 printf '( BLOCK 0 )\n' > zero.f
 python3 "$PUT" zero.f 2>&1 || echo "(exit $?)"
 cmp -s before.bin lfblocks.fb4 && echo unchanged

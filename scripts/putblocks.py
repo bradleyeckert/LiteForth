@@ -11,6 +11,11 @@ padded with spaces to 128 bytes, and the rows after the last line are
 spaces. `//` comments rely on this: they skip to the next 128-byte row.
 Lines are counted in UTF-8 bytes, as LiteForth sees them.
 
+`( BLOCK ++ )` starts the block after the last numbered one: after
+`( BLOCK 10 )`, it is block 11, and another `( BLOCK ++ )` is block 12. It
+counts on from the last block started, even across `( BLOCK IGNORE )`.
+Before any numbered block it is an error.
+
 A line that starts with `( BLOCK IGNORE )` ends the current block; the
 lines after it, up to the next `( BLOCK n )`, aren't written anywhere. Use
 it for notes, or to keep code in the source without putting it in a block.
@@ -40,7 +45,7 @@ BLOCK_BYTES = 4096
 COLUMNS = 128
 ROWS = BLOCK_BYTES // COLUMNS           # 32
 SIGNATURE = b"LITEFORTH"
-MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\)")
+MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+|\+\+)\s*\)")
 IGNORE = re.compile(rb"^\(\s*BLOCK\s+IGNORE\s*\)")
 
 
@@ -56,13 +61,23 @@ def parse(path):
         data = data[3:]
     blocks = {}
     current = None
+    last = None                                 # the last block started
     skipped = 0
     errors = []
     for lineno, line in enumerate(data.splitlines(), 1):
         line = line.rstrip(b"\r")
         m = MARKER.match(line)
         if m:
-            current = int(m.group(1))
+            if m.group(1) == b"++":
+                if last is None:
+                    errors.append(f"{path}:{lineno}: `( BLOCK ++ )` before any "
+                                  f"numbered block")
+                    current = None
+                    continue
+                current = last + 1
+            else:
+                current = int(m.group(1))
+            last = current
             if current in blocks:
                 errors.append(f"{path}:{lineno}: block {current} appears twice")
             blocks[current] = []

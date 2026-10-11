@@ -3,7 +3,7 @@
 
 Usage: lintf.py file.f ...
 
-Reads source files in putblocks.py form (`( BLOCK n )` and `( BLOCK ++ )`
+Reads source files in putblocks.py form (`( BLOCK n )` and `( BLOCK++ )`
 markers, text after `( BLOCK IGNORE )` skipped) and reports, one line each:
 
     file:line: [block n row r] RULE message
@@ -39,7 +39,7 @@ COL_CODE = 28
 COL_DESC = 80
 COL_DATE = 64
 
-MARKER = re.compile(r"^\(\s*BLOCK\s+(\d+|IGNORE|\+\+)\s*\)")
+MARKER = re.compile(r"^\(\s*BLOCK(?:\s+(\d+|IGNORE)|(\+\+))\s*\)")
 TITLE = re.compile(r"^\( \S.*? _+ (\d{1,2}/\d{1,2}/\d{2}) [A-Z]{2,4} \)$")
 
 DEFINERS = {"create", "variable", "constant", "bits", "label"}
@@ -93,7 +93,7 @@ class Linter:
             if m:
                 if m.group(1) == "IGNORE":
                     current = None
-                elif m.group(1) == "++":
+                elif m.group(2):
                     current = None if last is None else last + 1
                 else:
                     current = int(m.group(1))

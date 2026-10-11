@@ -3,8 +3,8 @@
 
 Usage: lintf.py file.f ...
 
-Reads source files in putblocks.py form (`( BLOCK n )` markers, text after
-`( BLOCK IGNORE )` skipped) and reports, one line each:
+Reads source files in putblocks.py form (`( BLOCK n )` and `( BLOCK ++ )`
+markers, text after `( BLOCK IGNORE )` skipped) and reports, one line each:
 
     file:line: [block n row r] RULE message
 
@@ -39,7 +39,7 @@ COL_CODE = 28
 COL_DESC = 80
 COL_DATE = 64
 
-MARKER = re.compile(r"^\(\s*BLOCK\s+(\d+|IGNORE)\s*\+?\s*\)")
+MARKER = re.compile(r"^\(\s*BLOCK\s+(\d+|IGNORE|\+\+)\s*\)")
 TITLE = re.compile(r"^\( \S.*? _+ (\d{1,2}/\d{1,2}/\d{2}) [A-Z]{2,4} \)$")
 
 DEFINERS = {"create", "variable", "constant", "bits", "label"}
@@ -86,13 +86,20 @@ class Linter:
             lines = f.read().split("\n")
         blocks = {}                     # block -> [(lineno, text)]
         current = None
+        last = None                     # the last block started, for `++`
         for lineno, text in enumerate(lines, 1):
             text = text.rstrip("\r")
             m = MARKER.match(text)
             if m:
-                current = None if m.group(1) == "IGNORE" else int(m.group(1))
+                if m.group(1) == "IGNORE":
+                    current = None
+                elif m.group(1) == "++":
+                    current = None if last is None else last + 1
+                else:
+                    current = int(m.group(1))
                 if current is not None:
                     blocks[current] = []
+                    last = current
                 continue
             if current is not None:
                 blocks[current].append((lineno, text))

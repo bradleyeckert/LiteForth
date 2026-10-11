@@ -30,7 +30,7 @@ import sys
 BLOCK_BYTES = 4096
 COLUMNS = 128
 MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+)\s*\)")
-ANY_MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+|IGNORE)\s*\)")
+ANY_MARKER = re.compile(rb"^\(\s*BLOCK\s+(\d+|IGNORE|\+\+)\s*\)")
 
 
 def block_lines(block, n):

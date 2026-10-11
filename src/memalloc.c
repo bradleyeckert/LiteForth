@@ -50,6 +50,12 @@ int pool_free(void* ptr) {
     return 0;
 }
 
+int pool_is_newest(const void* ptr) {
+    if (!ptr || stack_top == 0) return 0;
+    uint32_t size = pool[stack_top - 1];
+    return ptr == &pool[stack_top - 1 - size];
+}
+
 void pool_reset(void) {
     stack_top = 0;
 }

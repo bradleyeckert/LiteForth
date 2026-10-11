@@ -27,6 +27,7 @@
 #define IO_CELLS  (0x38400u / 4) // CH32H417: the peripheral block, through UHSIF
 // memalloc.c
 #define POOL_CAPACITY     24576 // cells of the system memory pool. CH32H417: RAM page + open-flash cache [3]
+#define TEMP_HEAD_CELLS    2048 // pool buffer for temporary headers (head-) [3]
 // flash.c: the flash lives at __lf_flash_start (V5F linker script). Unused.
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c: no block storage yet, so these only size the buffers
@@ -43,7 +44,8 @@
     variables, and application data.
 
 [3] open-flash allocates a FLASH_PAGE_CELLS cache from the pool while a
-    flash page is open, on top of the RAM page. The pool is a static array
+    flash page is open, on top of the RAM page, and head- allocates
+    TEMP_HEAD_CELLS for temporary headers until head+. The pool is a static array
     in the V5F's 256KB DTCM.
 
 [4] main.c maps page VM_IO_PAGE onto the peripheral registers: the register
@@ -61,8 +63,8 @@ dual-flash mode; 4KB in single mode). 64KB pages erase as single blocks.
 #error "RAM_PAGE_CELLS is too small, choose a higher number."
 #endif
 
-#if (POOL_CAPACITY < RAM_PAGE_CELLS + FLASH_PAGE_CELLS)
-#error "POOL_CAPACITY must hold the RAM page and an open flash page."
+#if (POOL_CAPACITY < RAM_PAGE_CELLS + FLASH_PAGE_CELLS + TEMP_HEAD_CELLS + 3)
+#error "POOL_CAPACITY must hold the RAM page, an open flash page and the temporary headers."
 #endif
 
 #if ((FLASH_PAGE_CELLS * 4) % 0x2000)

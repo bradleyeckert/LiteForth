@@ -188,6 +188,7 @@ uint32_t* flash = NULL;
 /* CLOSE-FLASH  ( -- ) */
 static int flashClose(void) {
     if (openpage < 0) return 0; // already closed
+    if (lfTempHeads()) return ERR_MUST_HAVE_HEADS; // -heads first: its buffer is newer
     if (openpage >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
     if (flash == NULL) return ERR_FLASH_INVALID_SECTOR;
 
@@ -261,9 +262,9 @@ static int endbracket(void) {
 
 /* WORDLIST  ( -- wid ) */
 static int wordlist(void) {
-    int ior = lfAddWordlist(lfCreatedName ? lfVmBytes(lfCreatedName) : NULL);
+    int ior = lfAddWordlist(lfCreatedName);
     if (ior < 0) return ior;
-    lfCreatedName = 0;
+    lfCreatedName = NULL;
     return vmPush(ior);
 }
 

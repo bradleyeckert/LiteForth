@@ -82,9 +82,11 @@ locations for accessibility by Forth or by C.
  *       0             end of the list;
  *       (a << 1) | 1  a header in VM memory at cell address a;
  *       (n << 2) | 2  the built-in headers of wordlist n (forth, only);
- *       otherwise     a C pointer to a built-in header.
+ *       otherwise     a C pointer to a built-in header, or to a temporary
+ *                     header (`head-`) in a memory pool buffer.
  *   - name is the VM byte address of the name, when the header is in VM
- *     memory; a C string pointer in the built-in tables.
+ *     memory; a C string pointer in the built-in tables and temporary
+ *     headers.
  * Follow links with lfFollow in forth.c, which also resolves the name.
  */
 typedef struct s_head { 
@@ -216,11 +218,53 @@ const struct s_head* lfParseLabel(void);
  * @param w Execution token or value for the header's w field.
  * @param aux Initial flags for the header's aux field (e.g., A_SMUDGED, A_CONSTANT).
  * The header's link and name are VM values, not C pointers (see s_head),
- * so the header is valid wherever its page is mapped.
- * @param name If not NULL, receives the VM byte address of the stored name.
- * @return 0 on success, or a negative error code (e.g., ERR_DICTIONARY_OVERFLOW).
+ * so the header is valid wherever its page is mapped. After `head-`, the
+ * header is a temporary one instead: a C struct in the pool buffer that
+ * `head-` allocated, dropped again by `head+`.
+ * @param name If not NULL, receives a C pointer to the stored name.
+ * @return 0 on success, or a negative error code: ERR_DICTIONARY_OVERFLOW
+ *         if text space (or the temporary header buffer) is full.
  */
-int lfHeader(uint32_t w, uint32_t aux, uint32_t* name);
+int lfHeader(uint32_t w, uint32_t aux, const char** name);
+
+/**
+ * @brief Forth word `head-`  ( -- )
+ * Makes the headers that follow temporary: lfHeader puts them in a buffer
+ * of TEMP_HEAD_CELLS cells from the memory pool (allocated by the first
+ * `head-` after `-heads`, or at startup). The words' code and data are
+ * compiled as usual; only their names go away, at `-heads`. Usage:
+ * `head-` [temporary words] `head+` [permanent words] `-heads`.
+ * Does nothing if headers are already temporary.
+ * @return 0 on success, or ERR_ALLOCATE_FAILED if the pool is too full.
+ */
+int lfAPI_headMinus(void);
+
+/**
+ * @brief Forth word `head+`  ( -- )
+ * Makes the headers that follow permanent again, which is how the system
+ * starts. The temporary words stay findable until `-heads`, so permanent
+ * words can still use them.
+ * @return 0.
+ */
+int lfAPI_headPlus(void);
+
+/**
+ * @brief Forth word `-heads`  ( -- )
+ * Ends the scope of the temporary words: unlinks every temporary header
+ * from its wordlist (relinking any permanent header that points to one)
+ * and frees their buffer. Leaves temporary mode too. Does nothing if there
+ * are no temporary headers.
+ * @return 0 on success, or ERR_FREE_FAILED if the buffer isn't the newest
+ *         pool allocation (e.g. `open-flash` came after `head-`); then
+ *         nothing changes.
+ */
+int lfAPI_trimHeads(void);
+
+/**
+ * Tells whether temporary headers exist (from `head-` until `-heads`).
+ * @return 1 if they do, else 0.
+ */
+int lfTempHeads(void);
 
 /**
  * Finds the C address of a VM address.

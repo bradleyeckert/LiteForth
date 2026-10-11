@@ -10,7 +10,7 @@
 //#include <stdio.h> // remove
 
 // globals
-uint32_t lfCreatedName; // used by api0.c
+const char* lfCreatedName; // used by api0.c
 
 /*===========================================================================
 * Dictionary pointer functions (F_PTRS in RAM page)
@@ -270,7 +270,8 @@ int lfAPI_colon(void) {
         ((struct s_head*)label)->aux &= ~A_UNRESOLVED;
         noname = 1;             // no new header for ; to reveal
     } else {
-        lfHeader(cpPC(), A_SMUDGED, NULL);
+        int ior = lfHeader(cpPC(), A_SMUDGED, NULL);
+        if (ior) return ior;    // e.g. no room for the header
     }
     return lfSTATEstore(1);
 }
@@ -313,7 +314,7 @@ int lfAPI_semicolon(void) {
     }
     noname = 0;
     lfSTATEstore(0);
-    lfCreatedName = 0; // WORDLIST not used yet
+    lfCreatedName = NULL; // WORDLIST not used yet
     return CompExit();
 }
 

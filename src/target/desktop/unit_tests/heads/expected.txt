@@ -1,0 +1,16 @@
+sum 21 
+root 20 
+perm2 12 
+tmp1 still here 10 
+Error: ior=-122 Missing `-heads`, cannot save heads
+Error: ior=-122 Missing `-heads`, cannot save heads
+perm2 12 
+perm3 34 
+perm1 1 
+tmp1 ?
+tmp2 ?
+tmp3 ?
+tmproot ?
+Error: ior=-8 dictionary overflow
+many1 ?
+still 34 

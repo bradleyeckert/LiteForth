@@ -246,6 +246,16 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   `does>`) and sets `noname` so `;` doesn't toggle `A_SMUDGED` on `latest`.
   `lfSearchContext(name, flags, &name)` finds both, and `lfQuit` uses it at
   `bye` to report a label left unresolved (-119).
+- **Temporary headers** (`head-` [temporary words] `head+` [permanent
+  words] `-heads`, forth.c): in temporary mode `lfHeader` builds each
+  header as a C struct in a pool buffer (`TEMP_HEAD_CELLS`) and links it
+  with a plain C pointer, which `lfFollow` already treats like a built-in
+  header; `latest` is 0 and `temp_latest` points to it. `head+` only leaves
+  temporary mode, so permanent headers may link to temporary ones. `-heads`
+  skips each wordlist's head past temporary headers, relinks any permanent
+  header that points to one, and frees the buffer; the pool's LIFO order
+  means this nests inside `open-flash`/`close-flash`. `save-wids` and
+  `close-flash` refuse with -122 until `-heads`.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

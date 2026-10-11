@@ -7,6 +7,7 @@
 #include "tools.h"
 #include "lfblocks.h"
 #include "options.h"
+#include "memalloc.h"
 #include <string.h>
 #include <stddef.h>
 
@@ -174,6 +175,9 @@ static const struct s_head forth_heads[] = {
     { PREV, ":noname",      API0(API_NONAME),                         171},
     { PREV, "save-wids",    API0(API_SAVE_WIDS),                      172},
     { PREV, "label",        API0(API_LABEL),                          173},
+    { PREV, "head-",        API0(API_HEADMINUS),                      187},
+    { PREV, "head+",        API0(API_HEADPLUS),                       188},
+    { PREV, "-heads",       API0(API_TRIMHEADS),                      189},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        174},
     { PREV, "->",           API0(API_DOTEST),                         175},
@@ -889,9 +893,88 @@ const struct s_head* lfTickWord(void) {
 
 static uint32_t latest = 0;             // VM address of the last header, or 0
 
+/*
+ * Temporary headers: `head-` [temporary words] `head+` [permanent words]
+ * `-heads`. In temporary mode (temp_mode), lfHeader builds each header as a
+ * C struct in the pool buffer temp_heads, followed by its name, and links
+ * it into its wordlist with a plain C pointer, as the built-in tables do,
+ * so lfFollow handles it unchanged. `head+` only leaves temporary mode:
+ * the temporary words stay findable, and permanent headers made after it
+ * may link to them. `-heads` unlinks them all and frees the buffer.
+ */
+static uint32_t* temp_heads = NULL;     // the pool buffer, or NULL
+static int temp_mode = 0;               // lfHeader makes temporary headers
+static char* temp_hp;                   // next free byte in it
+static char* temp_end;                  // the end of it
+static struct s_head* temp_latest;      // the last header, if temporary
+
+// Tells whether link (a tagged value, see s_head) is a temporary header
+static int isTempHead(const struct s_head* link) {
+    uintptr_t v = (uintptr_t)link;
+    return (temp_heads != NULL) && ((v & 3) == 0)
+        && ((const char*)link >= (const char*)temp_heads)
+        && ((const char*)link < temp_end);
+}
+
+// Skips any temporary headers at the front of link
+static const struct s_head* skipTempHeads(const struct s_head* link) {
+    while (isTempHead(link)) link = link->link;
+    return link;
+}
+
+// lfTempHeads (documented in forth.h)
+int lfTempHeads(void) {
+    return temp_heads != NULL;
+}
+
+// HEAD-  ( -- )  (documented in forth.h)
+int lfAPI_headMinus(void) {
+    if (temp_mode) return 0;
+    if (temp_heads == NULL) {           // else go on filling the buffer
+        uint32_t* buf = pool_alloc(TEMP_HEAD_CELLS);
+        if (buf == NULL) return ERR_ALLOCATE_FAILED;
+        const uintptr_t align = sizeof(void*) - 1;   // headers hold pointers
+        temp_heads = buf;
+        temp_hp = (char*)(((uintptr_t)buf + align) & ~align);
+        temp_end = (char*)(buf + TEMP_HEAD_CELLS);
+    }
+    temp_mode = 1;
+    return 0;
+}
+
+// HEAD+  ( -- )  (documented in forth.h)
+int lfAPI_headPlus(void) {
+    temp_mode = 0;
+    return 0;
+}
+
+// -HEADS  ( -- )  (documented in forth.h)
+int lfAPI_trimHeads(void) {
+    if (temp_heads == NULL) return 0;
+    if (!pool_is_newest(temp_heads)) return ERR_FREE_FAILED;
+    for (int i = 0; i < wids_pointer; i++) {
+        wids[i].head = skipTempHeads(wids[i].head);
+        // Permanent headers made after head+ may link to temporary ones.
+        // They're in VM memory, in the open flash page; built-in headers
+        // never link to temporary ones, so nothing const is written.
+        const struct s_head* h = lfFollow(wids[i].head, NULL);
+        while (h != NULL) {
+            if (isTempHead(h->link)) {
+                ((struct s_head*)h)->link = (struct s_head*)skipTempHeads(h->link);
+            }
+            h = lfFollow(h->link, NULL);
+        }
+    }
+    if (isTempHead(temp_latest)) temp_latest = NULL;
+    pool_free(temp_heads);
+    temp_heads = NULL;
+    temp_mode = 0;
+    return 0;
+}
+
 // Modify the last created header (immediate, etc.)
 int lfToHeader(uint32_t w, uint32_t aux) {
-    struct s_head* h = (latest) ? (struct s_head*)lfVmBytes(latest) : NULL;
+    struct s_head* h = (latest) ? (struct s_head*)lfVmBytes(latest) : temp_latest;
     if (h == NULL) return ERR_UNSUPPORTED_OPERATION;
     h->w |= w;
     h->aux ^= aux;
@@ -904,6 +987,7 @@ int lfToHeader(uint32_t w, uint32_t aux) {
  * wherever the flash page is mapped.
  */
 int lfAPI_saveWids(void) {
+    if (temp_heads != NULL) return ERR_MUST_HAVE_HEADS;
     int32_t tp = 0;
     lfTpFetch(&tp);
     tp = (int32_t)lfSetSliceWidth((uint32_t)tp, 32);
@@ -963,14 +1047,36 @@ int lfBootFromFlash(void) {
     }
     wids_pointer = n;
     latest = 0;
+    temp_latest = NULL;
     return 0;
 }
 
 // Create a header structure in Forth memory space
-int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
+int lfHeader(uint32_t w, uint32_t aux, const char** name) {
     char token[32] = { 0 };
     int ior = lfParseWord(token, sizeof(token));
     if (ior) return ior;
+
+    if (temp_mode) {                    // a temporary header (head-)
+        size_t len = strlen(token) + 1;
+        const size_t align = sizeof(void*) - 1;
+        size_t bytes = (sizeof(struct s_head) + len + align) & ~align;
+        if (bytes > (size_t)(temp_end - temp_hp)) return ERR_DICTIONARY_OVERFLOW;
+        struct s_head* h = (struct s_head*)temp_hp;
+        char* h_name = (char*)(h + 1);
+        memcpy(h_name, token, len);
+        temp_hp += bytes;
+        h->name = h_name;
+        h->w = w;
+        h->aux = aux | ((BLK & 0x7FFFFF) << 5) | (lfTOINfetch() >> 7);
+        s_wid* current = &wids[*CURRENT];
+        h->link = (struct s_head*)current->head;
+        current->head = h;
+        latest = 0;
+        temp_latest = h;
+        if (name != NULL) *name = h_name;
+        return 0;
+    }
 
     // Resolve destination memory location in 32-bit cells
     uint32_t* textptr = &vm_memory[RAM_PAGE][F_PTRS_TP];
@@ -984,9 +1090,6 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
 
     // Name string starts here: the header holds its VM byte address
     uint32_t name_dest = (uint32_t)ch_dest;
-    if (name != NULL) {
-        *name = name_dest;
-    }
     char* src = token;
     char c = 0;
 
@@ -1012,7 +1115,11 @@ int lfHeader(uint32_t w, uint32_t aux, uint32_t* name) {
     struct s_head* target_head = (struct s_head*)cell_dest;
     uint32_t head_addr = (page << (22 - VM_LOG2_PAGES)) | ch_dest;
     latest = head_addr;
+    temp_latest = NULL;
     target_head->name = (char*)(uintptr_t)name_dest;
+    if (name != NULL) {
+        *name = lfVmBytes(name_dest);
+    }
     target_head->w = w;
     target_head->aux = aux | ((BLK & 0x7FFFFF) << 5) | (lfTOINfetch() >> 7);
 

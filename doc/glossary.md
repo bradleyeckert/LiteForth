@@ -26,6 +26,7 @@ Name lookup ignores case.
 | `,inst` | `( inst -- )` | Compiles a raw 16-bit VM instruction. |
 | `-->` | `( -- )` | Stops interpreting the current block and continues with block `BLK`+1. Does nothing at the terminal (`BLK` = 0). |
 | `->` | `( ? -- )` | † Separates the tested code from the expected results in `t{ ... -> ... }t`. |
+| `-heads` | `( -- )` | Drops the temporary headers from every wordlist (relinking permanent headers that point to them) and frees their buffer, ending the scope of the temporary words. Their code stays. Does nothing without temporary headers. Gives -60 if the buffer isn't the newest pool allocation (`open-flash` after `head-`). `save-wids` and `close-flash` give -122 until `-heads`. |
 | `.` | `( n -- )` | † Prints `n` in the current base, followed by a space. |
 | `.(` | `( -- )` | Prints the following text up to `)`. |
 | `.page` | `( n -- )` | † Prints the memory map entry of page `n`: base address, write-protect, read and execute limits, and name. |
@@ -88,6 +89,8 @@ Name lookup ignores case.
 | `exit` | `( -- )` | Immediate. Compiles a return from the current word. |
 | `flush` | `( -- )` | Saves modified block buffers, then unassigns all of them. |
 | `forth` | `( -- )` | Makes the forth wordlist first in the search order. |
+| `head-` | `( -- )` | Makes the headers that follow temporary: they go in a pool buffer of `TEMP_HEAD_CELLS` cells instead of text space. Code and data compile as usual; only the names are temporary, until `-heads`. Usage: `head-` [temporary words] `head+` [permanent words] `-heads`. Does nothing if headers are already temporary. A full buffer gives -8. |
+| `head+` | `( -- )` | Makes the headers that follow permanent again (the default). The temporary words stay usable until `-heads`. |
 | `hex` | `( -- )` | † Sets `base` to 16. |
 | `immediate` | `( -- )` | Makes the most recent definition immediate. |
 | `inv` | `( x1 -- x2 )` | Bitwise NOT (same as `invert`). |

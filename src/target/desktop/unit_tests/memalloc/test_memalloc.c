@@ -44,6 +44,21 @@ void test_lifo_violation(void) {
     printf("test_lifo_violation passed!\n");
 }
 
+void test_is_newest(void) {
+    pool_reset();
+    assert(pool_is_newest(NULL) == 0);
+    uint32_t* ptr1 = (uint32_t*)pool_alloc(5);
+    assert(pool_is_newest(ptr1) == 1);
+    uint32_t* ptr2 = (uint32_t*)pool_alloc(10);
+    assert(pool_is_newest(ptr1) == 0);
+    assert(pool_is_newest(ptr2) == 1);
+    assert(pool_free(ptr2) == 0);
+    assert(pool_is_newest(ptr1) == 1);
+    assert(pool_free(ptr1) == 0);
+    assert(pool_is_newest(ptr1) == 0);
+    printf("test_is_newest passed!\n");
+}
+
 void test_reset(void) {
     pool_reset();
     pool_alloc(10);
@@ -74,6 +89,7 @@ int main(void) {
     printf("Running unit tests for memalloc...\n");
     test_basic_alloc_free();
     test_lifo_violation();
+    test_is_newest();
     test_reset();
     test_oom();
     printf("All tests passed successfully!\n");

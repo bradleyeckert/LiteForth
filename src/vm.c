@@ -211,12 +211,12 @@ fetch:                                  // outer loop starts here...
             VM_SAVE();
             return 0;
         }
-        uint32_t page = pc >> (24 - VM_LOG2_PAGES);
+        uint32_t page = pc >> (23 - VM_LOG2_PAGES);
         if (page >= VM_MEM_PAGES) {
             ior = ERR_EXEC_PROTECTED;  goto byee;
         }
         code = vm_memory[page];
-        cbase = page << (24 - VM_LOG2_PAGES);
+        cbase = page << (23 - VM_LOG2_PAGES);
         cspan = vm_memory_executable[page] << 1;
         if (pc - cbase >= cspan) {
             ior = ERR_EXEC_PROTECTED;  goto byee;

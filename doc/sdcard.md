@@ -436,7 +436,11 @@ tried on Windows yet; the check at the end shows whether the copy worked.
 
    ```powershell
    $disk = 2                                  # the card: check with Get-Disk!
-   $file = "C:\LiteForth\bin\lfblocks.fb4"
+   $file = "C:\LiteForth\bin\lfblocks.fb4"    # fill in the actual path
+
+   # 1. Launch Windows PowerShell in Administrator mode.
+   # 2. Enter `Get-Disk` to list the disk numbers. Verify that $disk matches.
+   # 3. Enter `powershell -ExecutionPolicy Bypass` to allow the script to run.
 
    $part = Get-Partition -DiskNumber $disk | Where-Object MbrType -eq 0xDA | Select-Object -First 1
    if (-not $part) { throw "disk $disk has no partition of type DA" }

@@ -87,14 +87,17 @@ static int marker(const char* s, int len, uint32_t* n) {
             kind = 3;
         } else {
             int digits = 0;
-            uint32_t v = 0;
+            uint64_t v = 0;
             while ((i < len) && (s[i] >= '0') && (s[i] <= '9')) {
-                if (v > 99999999u) return 0;    // far past any block storage
-                v = v * 10 + (uint32_t)(s[i++] - '0');
+                v = v * 10 + (uint64_t)(s[i++] - '0');
+                if (v > UINT32_MAX) v = UINT32_MAX + 1ull;  // stays too big
                 digits++;
             }
             if (digits == 0) return 0;
-            *n = v;
+            // Block numbers are 32-bit. A bigger number becomes UINT32_MAX,
+            // which no storage reaches (capacity <= UINT32_MAX), so it is
+            // reported as past the end of the block storage.
+            *n = (v > UINT32_MAX) ? UINT32_MAX : (uint32_t)v;
             kind = 1;
         }
     }
@@ -175,7 +178,7 @@ static void endLine(src_state* st) {
             problem(st, ERR_XMODEM_SOURCE, "( BLOCK++ ) before any numbered block", -1);
             return;
         }
-        startBlock(st, (uint32_t)st->last + 1);
+        startBlock(st, (st->last >= UINT32_MAX) ? UINT32_MAX : (uint32_t)st->last + 1);
         return;
     case 3:
         finishBlock(st);
@@ -271,28 +274,40 @@ static int awaitSender(void) {
     return -1;
 }
 
+// Prints v in decimal; block numbers can exceed INT32_MAX
+static void putU(uint32_t v) {
+    char buf[11];
+    char* p = &buf[sizeof(buf) - 1];
+    *p = '\0';
+    do {
+        *--p = (char)('0' + v % 10);
+        v /= 10;
+    } while (v);
+    lf_puts(p);
+}
+
 static void report(const src_state* st) {
     lf_puts("xmodem: ");
-    lfDot10((int32_t)st->written);
+    putU(st->written);
     lf_puts(st->written == 1 ? " block written" : " blocks written");
     for (uint32_t i = 0; (i < st->written) && (i < SHOW_BLOCKS); i++) {
         lf_puts(i ? " " : ": ");
-        lfDot10((int32_t)st->shown[i]);
+        putU(st->shown[i]);
     }
     if (st->written > SHOW_BLOCKS) lf_puts(" ...");
     lfCR();
     if (st->skipped) {
         lf_puts("note: ");
-        lfDot10((int32_t)st->skipped);
+        putU(st->skipped);
         lf_puts(" non-blank line(s) outside blocks ignored");
         lfCR();
     }
     if (st->ior) {
         lf_puts("line ");
-        lfDot10((int32_t)st->err_line);
+        putU(st->err_line);
         if (st->err_block >= 0) {
             lf_puts(", block ");
-            lfDot10((int32_t)st->err_block);
+            putU((uint32_t)st->err_block);
         }
         lf_puts(": ");
         lf_puts(st->err_msg);

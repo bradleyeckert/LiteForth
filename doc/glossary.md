@@ -131,6 +131,7 @@ Name lookup ignores case.
 | `words` | `( -- )` | Lists the words in the first wordlist of the search order. |
 | `x'` | `( <name> -- w aux )` | Returns the header fields of `<name>`: `w` (its execution token or value) and `aux` (its flags). |
 | `x@` | `( -- x )` | Pushes register `X`. After an error in the app, `X` holds the PC just after the instruction that failed. |
+| `xmodem` | `( -- )` | Receives a source file over the terminal by XMODEM (8-bit checksum; 1K packets accepted) and writes it into blocks as `putblocks.py` does, with the same `( BLOCK n )`, `( BLOCK++ )` and `( BLOCK IGNORE )` markers. Writes each block as it completes and lists the blocks written at the end. Gives -124 for a problem in the source (reported with its line number; blocks before it stay written) and -123 if the transfer fails or is cancelled. See [blocks.md](blocks.md). |
 | `xor` | `( x1 x2 -- x3 )` | Bitwise exclusive OR. |
 | `y@` | `( -- x )` | Pushes register `Y`. After an error in the app, `Y` holds the error code. |
 | `yeet` | `( ior -- )` | Raises error `ior`. When interpreting, QUIT reports it. In the app, the VM jumps to the yeet handler at cell 2 with the PC in `X` and `ior` in `Y` (read them with `x@` and `y@`). |

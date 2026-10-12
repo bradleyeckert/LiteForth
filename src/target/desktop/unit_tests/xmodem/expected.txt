@@ -1,0 +1,78 @@
+-- 128-byte packets, a corrupt one and a repeated one
+sender: corrupt packet NAKed
+sender: repeated packet ACKed
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 4 blocks written: 3 4 10 11
+note: 2 non-blank line(s) outside blocks ignored
+-- 1K packets, the same file
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 4 blocks written: 3 4 10 11
+note: 2 non-blank line(s) outside blocks ignored
+-- loading what came
+three 
+eleven, last line without a newline 
+-- a line longer than 128 bytes
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 1 block written: 20
+line 4, block 21: line is longer than 128 bytes; nothing written from there on
+Error: ior=-124 Bad block source in an XMODEM transfer
+-- block 0
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 0 blocks written
+line 1, block 0: block 0 holds the signature and isn't written; nothing written from there on
+Error: ior=-124 Bad block source in an XMODEM transfer
+-- ( BLOCK++ ) first
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 0 blocks written
+line 1: ( BLOCK++ ) before any numbered block; nothing written from there on
+Error: ior=-124 Bad block source in an XMODEM transfer
+-- the sender cancels
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 0 blocks written
+xmodem: the transfer failed
+Error: ior=-123 XMODEM transfer failed or cancelled
+-- the blocks
+( BLOCK 3 )
+( Test block three )
+.( three ) cr
+( BLOCK 4 )
+.( four, after three ) cr  ( a comment )
+( the line below is exactly 128 bytes )
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+( BLOCK 10 )
+( row  0 )
+( row  1 )
+( row  2 )
+( row  3 )
+( row  4 )
+( row  5 )
+( row  6 )
+( row  7 )
+( row  8 )
+( row  9 )
+( row 10 )
+( row 11 )
+( row 12 )
+( row 13 )
+( row 14 )
+( row 15 )
+( row 16 )
+( row 17 )
+( row 18 )
+( row 19 )
+( row 20 )
+( row 21 )
+( row 22 )
+( row 23 )
+( row 24 )
+( row 25 )
+( row 26 )
+( row 27 )
+( row 28 )
+( row 29 )
+( row 30 )
+( row 31 )
+( BLOCK 11 )
+.( eleven, last line without a newline ) cr
+( BLOCK 20 )
+.( twenty ) cr

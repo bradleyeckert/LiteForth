@@ -477,7 +477,9 @@ static const ErrorMapping error_table[] = {
     { ERR_UNRESOLVED_LATER, "Unresolved `later` found" },
     { ERR_CANNOT_DOES, "Cannot resolve the CREATE of DOES>" },
     { ERR_EMPTY_TASKER, "Attempt to `activate` a task before `multitask`" },
-    { ERR_MUST_HAVE_HEADS, "Missing `-heads`, cannot save heads" }
+    { ERR_MUST_HAVE_HEADS, "Missing `-heads`, cannot save heads" },
+    { ERR_XMODEM_TRANSFER, "XMODEM transfer failed or cancelled" },
+    { ERR_XMODEM_SOURCE, "Bad block source in an XMODEM transfer" }
 };
 
 /**

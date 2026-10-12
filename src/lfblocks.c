@@ -138,6 +138,19 @@ int lfAPI_block(void) {
     return ior;
 }
 
+// Assigns a buffer to block blk without reading it (BUFFER), and makes it
+// the active buffer. Returns its index in *buf_idx.
+static int assignBuffer(uint32_t blk, int* buf_idx) {
+    int err = find_or_allocate_buffer(blk, buf_idx);
+    if (err != 0) {
+        return ERR_BLOCK_WRITE_ERROR;
+    }
+    buf_state[*buf_idx].block_id = blk;
+    buf_state[*buf_idx].last_used = ++lru_clock;
+    active_buf_idx = *buf_idx;
+    return 0;
+}
+
 /**
  * BUFFER ( u -- addr )
  * Assigns a RAM buffer to block u without reading its data from mass storage.
@@ -145,18 +158,23 @@ int lfAPI_block(void) {
 int lfAPI_buffer(void) {
     uint32_t blk = (uint32_t)vmPop();
     int buf_idx = -1;
-
-    int err = find_or_allocate_buffer(blk, &buf_idx);
+    int err = assignBuffer(blk, &buf_idx);
     if (err != 0) {
-        return ERR_BLOCK_WRITE_ERROR;
+        return err;
     }
-
-    buf_state[buf_idx].block_id = blk;
-    buf_state[buf_idx].last_used = ++lru_clock;
-    active_buf_idx = buf_idx;
-
     int32_t forth_addr = (int32_t)(LF_BLOCKBUFS + (buf_idx * BLOCK_SIZE_CELLS));
     vmPush(forth_addr);
+    return 0;
+}
+
+int lfBlockBuffer(uint32_t blk, uint32_t** data) {
+    if (blk >= g_block_capacity) return ERR_BLK_BOUNDS;
+    int buf_idx = -1;
+    int err = assignBuffer(blk, &buf_idx);
+    if (err != 0) {
+        return err;
+    }
+    *data = get_buf_ptr(buf_idx);
     return 0;
 }
 

@@ -128,3 +128,4 @@
 ( -- )                          \ Make the headers that follow temporary, until `-heads` drops them.
 ( -- )                          \ Make the headers that follow permanent; temporary words stay usable.
 ( -- )                          \ Drop the temporary headers, ending the scope of their words.
+( -- )                          \ Receive a source file by XMODEM (checksum) and write it into blocks, as putblocks.py does.

@@ -29,6 +29,35 @@ In the PC environment, `./scripts` contains Python scripts to convert back and f
 
 On an MCU the blocks live in a raw partition on a microSD card; see [sdcard.md](sdcard.md) to prepare one.
 
+### Sending source over the terminal: `xmodem`
+
+`xmodem` receives a source file over the terminal connection and writes it
+into blocks, the way `putblocks.py` does on the PC: the same
+`( BLOCK n )`, `( BLOCK++ )` and `( BLOCK IGNORE )` markers, each line a
+128-column row, text before the first marker ignored. It works with any
+terminal program that can send a file with XMODEM (the original protocol,
+8-bit checksum; 1K packets are accepted too).
+
+With RealTerm on the board's USB serial port:
+
+1. Type `xmodem` and Enter. LiteForth says
+   `xmodem: send the file now (XMODEM, checksum)` and waits up to a minute.
+2. On RealTerm's *Send* tab, choose the file (`forth/core.f`, say), set the
+   protocol to XMODEM with checksum, and send it.
+3. When the transfer ends, LiteForth lists the blocks it wrote, for example
+   `xmodem: 16 blocks written: 6 7 8 ...`. Then `1 load` or `6 load` as
+   usual.
+
+Each block is filled in a block buffer and written (`update save-buffers`)
+when the next marker or the end of the file arrives. `putblocks.py` checks
+the whole file before writing anything; `xmodem` writes as it goes. At the
+first problem, such as a line longer than 128 bytes, more than 32 lines in
+a block, block 0, or a block past the end of the storage, it stops writing
+but receives the rest of the transfer, then reports the line, for example
+`line 4, block 21: line is longer than 128 bytes; nothing written from there on`,
+and the word fails with -124. Blocks before that point stay written. A
+transfer that fails or that the sender cancels gives -123.
+
 In UTF-8 text, you will never see a 0xFF. The interpreter replaces 0xFF with `' '`.
 
 0xFF is interpreted as a space when listing screens.

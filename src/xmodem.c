@@ -252,8 +252,8 @@ static void purge(void) {
 }
 
 static void cancel(void) {
-    serial_putc(CAN);
-    serial_putc(CAN);
+    lf_putc(CAN);
+    lf_putc(CAN);
 }
 
 // Waits for the sender's first packet, sending NAK every NAK_US.
@@ -262,7 +262,7 @@ static int awaitSender(void) {
     uint64_t now = lfGetTimeMicroSec();
     uint64_t give_up = now + (uint64_t)XMODEM_START_SECONDS * 1000000u;
     while (now < give_up) {
-        serial_putc(NAK);
+        lf_putc(NAK);
         uint64_t next = now + NAK_US;
         int c;
         while ((c = readByte(next)) >= 0) {
@@ -337,7 +337,7 @@ int lfAPI_xmodem(void) {
     int ior = 0;
     while (1) {
         if (c == EOT) {
-            serial_putc(ACK);
+            lf_putc(ACK);
             break;
         }
         if (c == CAN) {
@@ -347,7 +347,7 @@ int lfAPI_xmodem(void) {
             }
             errors++;
             purge();
-            serial_putc(NAK);
+            lf_putc(NAK);
         } else if ((c == SOH) || (c == STX)) {
             int size = (c == SOH) ? 128 : 1024;
             uint64_t deadline = lfGetTimeMicroSec() + BYTE_US;
@@ -371,14 +371,14 @@ int lfAPI_xmodem(void) {
             if (!ok) {
                 errors++;
                 purge();
-                serial_putc(NAK);
+                lf_putc(NAK);
             } else if ((uint8_t)blk == expected) {
                 sourceBytes(&st, data, size);
                 expected++;
                 errors = 0;
-                serial_putc(ACK);
+                lf_putc(ACK);
             } else if ((uint8_t)blk == (uint8_t)(expected - 1)) {
-                serial_putc(ACK);               // a repeat of the last one
+                lf_putc(ACK);               // a repeat of the last one
             } else {
                 cancel();                       // out of step: give up
                 ior = ERR_XMODEM_TRANSFER;
@@ -387,7 +387,7 @@ int lfAPI_xmodem(void) {
         } else {                                // timeout or noise
             errors++;
             purge();
-            serial_putc(NAK);
+            lf_putc(NAK);
         }
         if (errors >= XMODEM_RETRIES) {
             cancel();

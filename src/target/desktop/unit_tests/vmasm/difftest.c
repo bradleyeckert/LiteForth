@@ -112,6 +112,7 @@ static uint32_t rnd_value(void) {
 /* ---- random instructions ----------------------------------------------- */
 
 #define PC_CODE (EXEC_CELLS * 2)        // instruction addresses in page 0
+#define CODE_PAGE1 (1u << (23 - VM_LOG2_PAGES))     // and where page 1 starts
 
 static uint32_t rnd_uop(int no_rstack) {
     for (;;) {
@@ -294,6 +295,10 @@ int main(void) {
             if (pc != NESTED * 2 && pc != NESTED * 2 + 1) put_inst(pc, rnd_inst(0));
         }
         lf_vm.PC = below(8) ? below(PC_CODE) : rnd_value();
+        if (below(8) == 0) {            // code in page 1 (64 executable cells)
+            for (uint32_t k = 0; k < 64; k++) page1[k] = rnd_inst(0) | (rnd_inst(0) << 16);
+            lf_vm.PC = CODE_PAGE1 | below(160);
+        }
         uint32_t iors = 0;              // the app keeps running after errors
         int32_t ior = 0;                // (in its yeet handler), as from loadTIB
         for (int k = 0; k < 16; k++) {

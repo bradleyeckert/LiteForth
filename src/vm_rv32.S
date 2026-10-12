@@ -34,7 +34,7 @@
 
 #define MASK4       (4 * (STACK_CAPACITY - 1))  // stack pointers are byte offsets
 #define PAGE_SHIFT  (22 - VM_LOG2_PAGES)        // data address -> page
-#define CODE_SHIFT  (24 - VM_LOG2_PAGES)        // instruction address -> page
+#define CODE_SHIFT  (23 - VM_LOG2_PAGES)        // instruction address -> page
 #define TERMINATOR  0xDEADC0DE                  // return address that ends a word call
 #define UOP_LOG2    6                           // micro-op handler size 64 bytes
 #define IMM_LOG2    5                           // 9-bit immediate handler size 32 bytes

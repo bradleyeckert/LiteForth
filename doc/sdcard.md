@@ -243,8 +243,10 @@ sync
 
 ### Windows
 
-Windows has no built-in tool for writing a raw partition, so use a disk
-editor from the list below, running as administrator. In HxD: *Tools >
+Windows has no built-in disk editor. Either copy a block file to the
+partition with PowerShell, which writes the signature with block 0 (see
+[Copying lfblocks.fb4 to the card](#copying-lfblocksfb4-to-the-card)), or
+use a disk editor from the list below, running as administrator. In HxD: *Tools >
 Open disk*, choose the card's physical disk with *Open as Readonly*
 unchecked, *Search > Go to* byte offset `P2_START` × 512 (the start of
 partition 2; see [Finding a block](#finding-a-block)), type `LITEFORTH`
@@ -360,3 +362,133 @@ inserting or deleting them, so the block stays exactly 4096 bytes.
 
   Check the size before writing back: `stat -c %s block$N.bin` must say
   4096.
+
+---
+
+## Copying lfblocks.fb4 to the card
+
+A block file such as `bin/lfblocks.fb4` is the same 4 KB blocks as the
+block partition, block 0 first, so copying the file to the start of
+partition 2 puts its blocks on the card. Block 0 of the file holds the
+`LITEFORTH` signature, so this also marks the partition: on a freshly
+partitioned card you can do this instead of
+[Marking the partition for LiteForth](#marking-the-partition-for-liteforth).
+
+- The copy replaces blocks 0 to *n*−1 of the partition, where *n* is the
+  file's size / 4096, and leaves the blocks after them as they were.
+- The file must not be larger than the partition. Each method below checks.
+- Write to partition 2, never to partition 1 or the whole card's start:
+  that would destroy the FAT file system or the partition table.
+
+On Linux, `putblocks.py` can also write source straight into the
+partition, without a block file in between:
+`sudo python3 scripts/putblocks.py forth/core.f ${P}2`.
+
+### Linux
+
+With `P` from the Linux steps:
+
+```sh
+FILE=bin/lfblocks.fb4
+SIZE=$(stat -c %s $FILE)
+if [ $SIZE -le $(sudo blockdev --getsize64 ${P}2) ]; then
+    sudo dd if=$FILE of=${P}2 bs=4096 conv=notrunc,fsync status=progress
+    sudo cmp -n $SIZE $FILE ${P}2 && echo "copied"
+else
+    echo "$FILE is larger than the partition"
+fi
+```
+
+### macOS
+
+With `DISK` from the macOS steps. The raw device `/dev/rdiskNs2` is
+faster, and the file is whole sectors:
+
+```sh
+FILE=bin/lfblocks.fb4
+SIZE=$(stat -f %z $FILE)
+PART=$(diskutil info /dev/${DISK}s2 | sed -n 's/.*Disk Size:.*(\([0-9]*\) Bytes).*/\1/p')
+diskutil unmountDisk /dev/$DISK
+if [ $SIZE -le $PART ]; then
+    sudo dd if=$FILE of=/dev/r${DISK}s2 bs=4096
+    sudo cmp -n $SIZE $FILE /dev/${DISK}s2 && echo "copied"
+else
+    echo "$FILE is larger than the partition"
+fi
+diskutil eject /dev/$DISK
+```
+
+### Windows
+
+PowerShell can do it with .NET file I/O on the card's physical disk, as
+`lf -k` does (see [Using the card with lf on Windows](#using-the-card-with-lf-on-windows)).
+DISM can't: it applies `.wim` and `.ffu` images to a volume or to a whole
+disk, not a file to an offset inside a partition. These steps haven't been
+tried on Windows yet; the check at the end shows whether the copy worked.
+
+1. Open PowerShell as administrator, and find the card's disk number with
+   `Get-Disk` (check the size and name), or `Get-Partition -DriveLetter F`
+   for the card's drive letter (`DiskNumber`).
+
+2. Run this, with `$disk` set to that number and `$file` to the block
+   file. It finds the first partition of type `DA` itself, and stops if
+   there is none or the file doesn't fit:
+
+   ```powershell
+   $disk = 2                                  # the card: check with Get-Disk!
+   $file = "C:\LiteForth\bin\lfblocks.fb4"
+
+   $part = Get-Partition -DiskNumber $disk | Where-Object MbrType -eq 0xDA | Select-Object -First 1
+   if (-not $part) { throw "disk $disk has no partition of type DA" }
+   $data = [System.IO.File]::ReadAllBytes($file)
+   if ($data.Length -gt $part.Size) { throw "$file is larger than the partition" }
+   if ($data.Length % 512) { throw "$file isn't whole sectors" }
+
+   # Windows PowerShell's FileStream won't open \\.\ devices by name, so
+   # open the disk with CreateFile and give FileStream the handle.
+   Add-Type -Namespace LF -Name Disk -MemberDefinition @'
+   [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+   public static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFile(
+       string name, int access, int share, IntPtr security, int creation, int flags, IntPtr template);
+   '@
+   # GENERIC_READ | GENERIC_WRITE, shared, OPEN_EXISTING
+   $h = [LF.Disk]::CreateFile("\\.\PhysicalDrive$disk", -1073741824, 3, [IntPtr]::Zero, 3, 0, [IntPtr]::Zero)
+   if ($h.IsInvalid) { throw "can't open disk ${disk}: run PowerShell as administrator" }
+   $s = New-Object System.IO.FileStream($h, [System.IO.FileAccess]::ReadWrite)
+   $s.Seek($part.Offset, [System.IO.SeekOrigin]::Begin) | Out-Null
+   $s.Write($data, 0, $data.Length)
+   $s.Flush()
+
+   # Check: read the blocks back and compare
+   $back = New-Object byte[] $data.Length
+   $s.Seek($part.Offset, [System.IO.SeekOrigin]::Begin) | Out-Null
+   $n = 0
+   while ($n -lt $back.Length) { $n += $s.Read($back, $n, $back.Length - $n) }
+   $s.Close()
+   if ([Convert]::ToBase64String($back) -eq [Convert]::ToBase64String($data)) { "copied" } else { "the card differs from $file" }
+   ```
+
+   The writes go to the block partition, which has no volume, so Windows
+   allows them while the card's FAT partition (`F:`) is mounted, as it
+   does for `lf -k F:`.
+
+3. Eject the card from Windows before moving it to the board.
+
+`lf -k F:` (as administrator) then shows the card's blocks: `1 list`
+should match `1 list` on `lf` with the file.
+
+### Copying the card to a file
+
+To go the other way, for example to keep the card's blocks in git or to
+look at them with `getblocks.py`, copy the first *n* blocks back to a file.
+On Linux:
+
+```sh
+N=64                  # blocks to copy
+sudo dd if=${P}2 of=card.fb4 bs=4096 count=$N
+python3 scripts/getblocks.py card.fb4
+```
+
+On macOS, use `if=/dev/r${DISK}s2`. On Windows, open the disk as above
+with `$s.Read` into a `byte[]` of *n* × 4096 bytes from `$part.Offset`,
+then `[System.IO.File]::WriteAllBytes("card.fb4", $bytes)`.

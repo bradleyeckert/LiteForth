@@ -18,6 +18,7 @@
 // vm.c                     
 #define VM_LOG2_PAGES         3 // log2 of the number of pages in the memory space
 #define STACK_CAPACITY	    128 // Data and return stack size in cells: a power of 2, at least 32
+#define VM_ASM                  // CH32H417: run the VM with src/vm_rv32.S, not vm.c's vmExec [6]
 // main.c
 #define FLASH_PAGE_CELLS  16384 // Flash memory page size [1] CH32H417: 64KB, one erase block
 #define RAM_PAGE              4 // The memory page used by system variables. CH32H417: 4 flash pages, 256KB
@@ -66,6 +67,11 @@ dual-flash mode; 4KB in single mode). 64KB pages erase as single blocks.
     copy of the first FLASH_SHADOW_PAGES pages in a static array (.bss, in
     the 256KB DTCM: 64KB per page) and the VM reads that instead.
     flash_program updates it. 0 reads the flash in place, as before.
+
+[6] vm_rv32.S (assembled by lf_vm_rv32.S) is vmExec in RV32IMC assembly,
+    about twice as fast as the C version. It must match vm.c exactly;
+    src/target/desktop/unit_tests/vmasm checks that. Comment VM_ASM out to
+    use the C vmExec.
 */
 
 #if (RAM_PAGE_CELLS < (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS + 0x400))

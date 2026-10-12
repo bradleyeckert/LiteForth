@@ -1,11 +1,15 @@
 #ifndef _VM_H_
 #define _VM_H_
 
+/* vm_rv32.S includes this file too, so its C parts are in
+   #ifndef __ASSEMBLER__ and the rest is plain #defines. */
+#ifndef __ASSEMBLER__
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
+#endif
 #include "options.h"
 
 #define VM_MEM_PAGES (1 << VM_LOG2_PAGES)
@@ -20,11 +24,41 @@ Each segment can have its own read, write-protect, and executable limits.
 These pointers take 256 bytes of RAM if VM_SEGMENTS = 8.
 */
 
+#ifndef __ASSEMBLER__
+
 extern uint32_t* vm_memory[VM_MEM_PAGES];           
 extern uint32_t vm_memory_rd_limit[VM_MEM_PAGES];  
 extern uint32_t vm_memory_wp_limit[VM_MEM_PAGES];  
 extern uint32_t vm_memory_executable[VM_MEM_PAGES];
 extern char* vm_memory_name[VM_MEM_PAGES];
+
+/*
+All the VM state is in one struct, lf_vm (vm.c), so vm_rv32.S reaches it
+through one base register at the byte offsets VMS_* in vm_labels.h (vm.c
+checks them). sp and rp are item counts (indices); cy is 0 or 1. Use
+vmPeek and vmPoke rather than lf_vm; tests may read it.
+*/
+typedef struct {
+    uint32_t T;             // Top of Data Stack
+    uint32_t N;             // Next on the Data Stack (TWO_REGISTER_TOS only)
+    uint32_t PC;            // Program Counter
+    uint32_t R;             // Top of Return Stack
+    uint32_t A;             // Address A
+    uint32_t B;             // Address B
+    uint32_t U;             // User pointer
+    uint32_t X;             // GP register
+    uint32_t Y;             // GP register
+    uint32_t prefix;        // Literal prefix
+    uint32_t shift_size;    // set by shft[ for ]shl and ]shr
+    uint32_t sp;            // Data Stack Pointer
+    uint32_t rp;            // Return Stack Pointer
+    uint32_t cy;            // Carry
+    uint32_t spare[2];
+    uint32_t datastack[STACK_CAPACITY];
+    uint32_t returnstack[STACK_CAPACITY];
+} vm_state_t;
+
+extern vm_state_t lf_vm;
 
 /**
  * @name VM Execution and State Control
@@ -123,7 +157,29 @@ int32_t vmPoke(int reg, int32_t data);
  */
 int32_t vmReset(void);
 
+/**
+ * @brief Runs an API instruction (API or XAPI) for the VM.
+ *
+ * Checks SYS_OPTION_NO_API and SYS_OPTION_ONLY_TERM, then calls the API 0 or
+ * API 1 function. The caller saves the VM registers first and reloads them
+ * after, since the function pops and pushes and may run more VM code.
+ *
+ * @param inst The 16-bit API instruction (its 9-bit immediate is the index).
+ * @return ior from the function, or ERR_NO_API_CALL_ALLOWED.
+ */
+int32_t vmApiCall(uint32_t inst);
+
+#ifdef VM_ASM
+/**
+ * @brief vmExec in RV32 assembly (vm_rv32.S), used when VM_ASM is defined.
+ *
+ * Same contract as vmRun without its PC save: vmRun calls it.
+ */
+int32_t vmExecAsm(int once, uint32_t inst, uint32_t address);
+#endif
+
 /** @} */
+#endif /* __ASSEMBLER__ */
 
 // When the VM yeets an error, the PC is loaded with this cell address.
 // 0 = cold boot address
@@ -153,6 +209,7 @@ int32_t vmReset(void);
 
 #define VM_EMPTYSTACK 0xAAAAAAAA
 
+#ifndef __ASSEMBLER__
 // FALLTHROUGH at the end of a case statement indicates that fallthrough is
 // intentional. It keeps the compiler from issuing a warning.
 #ifndef FALLTHROUGH
@@ -197,6 +254,7 @@ int32_t vmReset(void);
 /* ======================================================================== */
 
 extern uint32_t g_lf_sys_options; // used in forth.c, main.c, vm.c
+#endif /* __ASSEMBLER__ */
 
 #define SYS_OPTIONS_LOCKED    0x8000	/* `>options` ignores changes		*/
 #define SYS_OPTION_NO_API     0x4000	/* disallow the use of API calls    */
@@ -211,7 +269,7 @@ extern uint32_t g_lf_sys_options; // used in forth.c, main.c, vm.c
 #define SYS_OPTION_NO_DOTESS  0x0002	/* do not display the stack			*/
 #define SYS_OPTION_NO_OK      0x0001	/* do not display "ok>"				*/
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(__ASSEMBLER__)
 }
 #endif
 

@@ -35,6 +35,12 @@ make clean      # leaves the tracked bin/*.bin images alone
   with `dd`) and diffs the output, minus the banner line, against
   `expected.txt`. On failure it leaves `got.txt`. Use the same pattern for
   other interpreter-level tests.
+- `unit_tests/vmasm/` runs random VM code through vm.c's C `vmExec`
+  (native) and through `vm_rv32.S` (built with clang for RV32 and run in its
+  own small RV32IMC emulator, `rv32emu.c`) and compares the states, with one
+  and two TOS registers. It skips itself without clang's riscv32 target and
+  `ld.lld`. `make bench` there prints RV32 instructions per VM instruction.
+  Any change to `vmExec` needs the same change in `vm_rv32.S`.
 - `unit_tests/api0/` checks the API 0 index order against `expected.txt`.
   After deliberately appending an API 0 function, run `make update` there.
 - `scripts/regression.f` holds the VM and dictionary tests as `T{ ... -> ... }T`
@@ -104,7 +110,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 |---|---|
 | `src/forth.c/.h` | Text interpreter (`lfInterpret`, `interpretSource`), `QUIT`, parsing, the built-in dictionary table, `load`, `-->`, `.` etc. |
 | `src/comp.c/.h` | Compiler: `lfCompileWord`, `lfExecuteWord`, literals, code slots |
-| `src/vm.c/.h`, `vm_labels.h` | The simulated CPU (`vmRun`), registers, memory pages, sys option flags |
+| `src/vm.c/.h`, `vm_labels.h` | The simulated CPU (`vmRun`), registers (all in the struct `lf_vm`), memory pages, sys option flags |
+| `src/vm_rv32.S` | `vmExec` in RV32IMC assembly (`vmExecAsm`), used instead of the C one when `VM_ASM` is defined (the CH32H417 does). Reaches `lf_vm` at the `VMS_*` offsets in `vm_labels.h`; `unit_tests/vmasm` compares it with the C version |
 | `src/api0_list.h` | The API 0 function list (X-macro): single source of API 0 indices |
 | `src/api0.c/.h` | API 0 index enum and `API0fns[]`, both generated from `api0_list.h` |
 | `src/tools.c/.h` | Optional tools (`see`, `dump`, disassembler, test words), gated by `FAT_FORTH` |
@@ -115,7 +122,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/xmodem.c/.h` | `xmodem`: receives a source file by XMODEM (checksum) over the terminal and writes it into blocks like `putblocks.py` (`lfBlockBuffer` in lfblocks.c, `unit_tests/xmodem` drives it with a Python sender) |
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
-| `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (a raw type-DA partition on the microSD card via WCH's `sdio.c`; see doc/sdcard.md), `options.h` (4 x 64K flash pages, RAM_PAGE 4, `VM_IO_PAGE` 5: the peripheral registers at `IO_BASE`, mapped by `main.c`), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
+| `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (a raw type-DA partition on the microSD card via WCH's `sdio.c`; see doc/sdcard.md), `options.h` (4 x 64K flash pages, RAM_PAGE 4, `VM_IO_PAGE` 5: the peripheral registers at `IO_BASE`, mapped by `main.c`), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper; `lf_vm_rv32.S` assembles `src/vm_rv32.S` when `options.h` defines `VM_ASM`. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
 | `forth/core.f` | Boot code: defines the basic Forth lexicon on top of the primitives |
 | `forth/block1.f`, `forth/build.bat` | More Forth source; `build.bat` (Windows, run in `forth/`) writes `core.f` and `block1.f` into `bin/lfblocks.fb4` with `putblocks.py` |
 | `scripts/regression.f` | Regression script run by `make test` |
@@ -173,7 +180,10 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   nops cost nothing. The switches cover every value with an unreachable
   default so the jump tables have no range check. Judge speed changes by
   RV32 instruction counts (clang `--target=riscv32-unknown-elf`), not by
-  desktop timings, which are noisy.
+  desktop timings, which are noisy. `vm_rv32.S` does the same with every
+  VM register in a CPU register: the 32 micro-ops have 64-byte handlers at
+  fixed offsets (no jump table), each ending by dispatching the next slot.
+  A failed `@` leaves 0 in T in both versions (`vmFetch` stores 0).
 - **T and N cache the top two data stack items** when `TWO_REGISTER_TOS`
   is defined (`vm.h`, on by default; comment it out for the one-register VM,
   where `datastack[sp]` is the second item). With it, `datastack[sp]` is the

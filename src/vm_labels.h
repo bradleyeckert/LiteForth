@@ -1,7 +1,8 @@
 #ifndef _VM_LABELS_H_
 #define _VM_LABELS_H_
 
-// These are internal labels and macros used by vm.c.
+// These are internal labels and macros used by vm.c and vm_rv32.S, so
+// everything here must be plain #defines (vm_rv32.S includes this file).
 
 /* Forces data straight into the Data Tightly Coupled Memory section */
 #define PLACE_IN_DTCM /* __attribute__((section(".dtcm"))) */
@@ -9,51 +10,52 @@
 /* Forces code straight into the Instruction Tightly Coupled Memory section */
 #define PLACE_IN_ITCM /* __attribute__((section(".itcm"))) */
 
-// Global data stack moves (vm.c). With TWO_REGISTER_TOS (vm.h) the top two
-// items are cached in T and N: a push moves N to memory and T to N. Without
-// it, only T is cached. Either way the caller then sets T.
+// Data stack moves on lf_vm (vm.c, used by vmPeek and vmPoke). With
+// TWO_REGISTER_TOS (vm.h) the top two items are cached in T and N: a push
+// moves N to memory and T to N. Without it, only T is cached. Either way
+// the caller then sets T.
 #ifdef TWO_REGISTER_TOS
-#define VM_DDUP do {                    \
-    sp = (sp + 1) & STACK_MASK;         \
-    datastack[sp] = N;                  \
-    N = T;                              \
+#define VM_DDUP do {                            \
+    lf_vm.sp = (lf_vm.sp + 1) & STACK_MASK;     \
+    lf_vm.datastack[lf_vm.sp] = lf_vm.N;        \
+    lf_vm.N = lf_vm.T;                          \
+} while(0)
+#define VM_DDROP do {                           \
+    lf_vm.T = lf_vm.N;                          \
+    lf_vm.N = lf_vm.datastack[lf_vm.sp];        \
+    lf_vm.sp = (lf_vm.sp - 1) & STACK_MASK;     \
 } while(0)
 #else
-#define VM_DDUP do {                    \
-    sp = (sp + 1) & STACK_MASK;         \
-    datastack[sp] = T;                  \
+#define VM_DDUP do {                            \
+    lf_vm.sp = (lf_vm.sp + 1) & STACK_MASK;     \
+    lf_vm.datastack[lf_vm.sp] = lf_vm.T;        \
+} while(0)
+#define VM_DDROP do {                           \
+    lf_vm.T = lf_vm.datastack[lf_vm.sp];        \
+    lf_vm.sp = (lf_vm.sp - 1) & STACK_MASK;     \
 } while(0)
 #endif
 
-#define VM_RDUP do {                    \
-    rp = (rp + 1) & STACK_MASK;         \
-    returnstack[rp] = R;                \
-} while(0)      
-
-#ifdef TWO_REGISTER_TOS
-#define VM_DDROP do {                   \
-    T = N;                              \
-    N = datastack[sp];                  \
-    sp = (sp - 1) & STACK_MASK;         \
-} while(0)
-#else
-#define VM_DDROP do {                   \
-    T = datastack[sp];                  \
-    sp = (sp - 1) & STACK_MASK;         \
-} while(0)
-#endif
-
-#define VM_RDROP do {                   \
-    R = returnstack[rp];                \
-    rp = (rp - 1) & STACK_MASK;         \
-} while(0)    
-
-#ifdef TWO_REGISTER_TOS
-#define NOS N
-#else
-#define NOS datastack[sp]
-#endif
 #define VM_PAGE_MASK    ((1 << (22 - VM_LOG2_PAGES)) - 1)
+
+// Byte offsets of the VM state in lf_vm (vm_state_t in vm.c, which checks
+// them). vm_rv32.S reaches the state through one base register.
+#define VMS_T           0
+#define VMS_N           4
+#define VMS_PC          8
+#define VMS_R           12
+#define VMS_A           16
+#define VMS_B           20
+#define VMS_U           24
+#define VMS_X           28
+#define VMS_Y           32
+#define VMS_PREFIX      36
+#define VMS_SHIFT       40
+#define VMS_SP          44
+#define VMS_RP          48
+#define VMS_CY          52
+#define VMS_DSTACK      64
+#define VMS_RSTACK      (VMS_DSTACK + 4 * STACK_CAPACITY)
 
 // slot assignments for 16-bit instruction
 #define VM_UOPS         0x8000 // uops bit location

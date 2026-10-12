@@ -13,7 +13,7 @@ it holds two projects, `V3F` and `V5F`, one per core.
 | `V5F/User/serial_io.c/.h` | LiteForth's terminal I/O for the V5F, over the shared rings (below) |
 | `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage on the microSD card, and options for the V5F (below) |
 | `V5F/User/sdio.c/.h` | WCH's SD card driver for the SDIO peripheral, copied unmodified from `EVT/EXAM/SDIO/SDIO_SD` (commit 3924a05) |
-| `V5F/User/main.c/.h`, `lftime.c/.h`, `lf_*.c` | LiteForth on the V5F: startup, the microsecond time base, and one-line wrappers that compile LiteForth's `src/*.c` into the project (below) |
+| `V5F/User/main.c/.h`, `lftime.c/.h`, `lf_*.c`, `lf_vm_rv32.S` | LiteForth on the V5F: startup, the microsecond time base, and wrappers that compile LiteForth's `src/*.c` (and the assembly VM, `src/vm_rv32.S`) into the project (below) |
 
 The projects reach `Common/` and the `SRC/` folders as linked folders
 (`PARENT-1-PROJECT_LOC/...` in each `.project`), so the folder builds on
@@ -241,6 +241,16 @@ and the target headers (`options.h`, `serial_io.h`, `flash.h`, `blocks.h`,
 `lftime.h`, `main.h`) here in `V5F/User/`. The target files reach
 `src/` headers by relative path for the same reason. A new core source file
 needs a new wrapper.
+
+The VM itself runs in assembly: `options.h` defines `VM_ASM`, so
+`lf_vm_rv32.S` assembles `src/vm_rv32.S` (vmExec for RV32IMC) and `vm.c`
+calls it instead of its C `vmExec`. It takes about half the RV32
+instructions per VM instruction of the C version built by clang at `-O2`,
+and 45% of it at `-Os` (`make bench` in `src/target/desktop/unit_tests/vmasm`). `V5F/User` is on the assembler's
+include path (*GNU RISC-V Cross Assembler > Includes*) so that its
+`#include "options.h"` works. The micro-op handlers sit in fixed 64-byte
+slots; if a change makes one too big, the assembler stops with an
+`.org` error. Comment out `VM_ASM` to go back to the C version.
 
 The V5F project compiles as **gnu11** (WCH's projects use gnu99): the core
 uses a C11 `u8"..."` string. If MounRiver ever shows a `u8` error in

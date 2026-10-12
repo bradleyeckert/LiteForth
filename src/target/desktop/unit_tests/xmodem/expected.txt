@@ -16,6 +16,11 @@ xmodem: send the file now (XMODEM, checksum)
 xmodem: 1 block written: 20
 line 4, block 21: line is longer than 128 bytes; nothing written from there on
 Error: ior=-124 Bad block source in an XMODEM transfer
+-- the largest block number, past the end of the storage
+xmodem: send the file now (XMODEM, checksum)
+xmodem: 0 blocks written
+line 1, block 4294967295: past the end of the block storage; nothing written from there on
+Error: ior=-92 Target block index exceeds allocated file capacity
 -- block 0
 xmodem: send the file now (XMODEM, checksum)
 xmodem: 0 blocks written

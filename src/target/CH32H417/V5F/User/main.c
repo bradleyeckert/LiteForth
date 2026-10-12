@@ -69,8 +69,8 @@ static int lfMapMemory(uint32_t** flash)
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         if (i < RAM_PAGE) {
-            // Assign pointer to page i of flash memory
-            vm_memory[i] = &(*flash)[i * FLASH_PAGE_CELLS];
+            // Page i of flash memory, or its RAM copy (flash.c)
+            vm_memory[i] = flash_page(i);
             vm_memory_name[i] = "Flash";
             vm_memory_rd_limit[i] = FLASH_PAGE_CELLS;
             vm_memory_wp_limit[i] = FLASH_PAGE_CELLS; // write-protected

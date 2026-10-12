@@ -30,6 +30,7 @@
 // memalloc.c
 #define POOL_CAPACITY     24576 // cells of the system memory pool. CH32H417: RAM page + open-flash cache [3]
 #define TEMP_HEAD_CELLS    2048 // pool buffer for temporary headers (head-) [3]
+#define FLASH_SHADOW_PAGES    1 // flash pages 0.. that the VM reads from RAM copies in DTCM [5]
 // flash.c: the flash lives at __lf_flash_start (V5F linker script). Unused.
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c: no block storage yet, so these only size the buffers
@@ -59,6 +60,12 @@ CH32H417: flash pages 0..RAM_PAGE-1 are FLASH_PAGE_CELLS*4 bytes each,
 starting at __lf_flash_start. flash.c erases and programs a whole page at
 a time, so a page must be a whole number of 8KB sectors (the erase unit in
 dual-flash mode; 4KB in single mode). 64KB pages erase as single blocks.
+
+[5] Reading the code flash costs wait states, and the VM reads every
+    instruction it runs (a data read) from flash page 0. flash.c keeps a
+    copy of the first FLASH_SHADOW_PAGES pages in a static array (.bss, in
+    the 256KB DTCM: 64KB per page) and the VM reads that instead.
+    flash_program updates it. 0 reads the flash in place, as before.
 */
 
 #if (RAM_PAGE_CELLS < (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS + 0x400))
@@ -75,6 +82,10 @@ dual-flash mode; 4KB in single mode). 64KB pages erase as single blocks.
 
 #if (RAM_PAGE * FLASH_PAGE_CELLS * 4 > 256 * 1024)
 #error "CH32H417: the flash pages must fit in the 256KB reserved in Link_v5f.ld."
+#endif
+
+#if (FLASH_SHADOW_PAGES > RAM_PAGE)
+#error "FLASH_SHADOW_PAGES can't be more than the RAM_PAGE flash pages."
 #endif
 
 #if (RAM_PAGE >= (1 << VM_LOG2_PAGES))

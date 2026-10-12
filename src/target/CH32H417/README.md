@@ -172,9 +172,14 @@ mode.
 `V5F/User/options.h` divides it into `RAM_PAGE` = 4 flash pages of
 `FLASH_PAGE_CELLS` = 16384 cells (64K each), so page 0, which holds the
 dictionary, is 64K instead of the desktop's 16K. `VM_LOG2_PAGES` stays 3.
-The VM reads the pages in place. `close-flash` calls `flash_program`, which
+Reading the flash costs wait states, and the VM reads each instruction it
+runs from page 0, so `flash.c` keeps a copy of the first
+`FLASH_SHADOW_PAGES` pages (1 by default, in `options.h`) in a static
+array in DTCM and maps those pages to the copy (`flash_page`); the VM reads
+the other pages in place. `close-flash` calls `flash_program`, which
 erases the page (one 64K block) and programs it from the RAM cache with
-WCH's `FLASH_ROM_ERASE` / `FLASH_ROM_WRITE`, then reads it back to check.
+WCH's `FLASH_ROM_ERASE` / `FLASH_ROM_WRITE`, reads it back to check, and
+refreshes the page's RAM copy from the flash.
 A page that hasn't changed isn't rewritten. Erased flash on this chip reads `0xE339E339`, not
 `0xFFFFFFFF` (`FLASH_ERASED_WORD` in `flash.h`), so `0 12 dump` of blank
 flash shows that pattern. While a page is open its 64K
@@ -243,7 +248,8 @@ uses a C11 `u8"..."` string. If MounRiver ever shows a `u8` error in
 Cross C Compiler > Optimization > Language standard*.
 
 The image uses about 35K of the V5F's 128K for code (all of it runs from
-ITCM), and about 100K of its 256K DTCM, mostly the 96K memory pool. The
+ITCM), and about 164K of its 256K DTCM, mostly the 96K memory pool and the
+64K copy of flash page 0. The
 C stack is 16K (`__stack_size` in `Link_v5f.ld`).
 
 ### Startup (`V5F/User/main.c`)

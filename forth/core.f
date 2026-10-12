@@ -321,11 +321,11 @@ head+ -->
 : to        ( x <name> -- ) ' >body ! ;                                         \ change the x that value name returns
 .( value test: ) 11 value ten   ten .  10 to ten  ten . cr                      \ a test value
 
-
 variable counter                                                                \ bumped by multitasker
-: demo-step ( -- )                                                              \ application loop
-    1 counter +!
-;
+variable lastus                                                                 \ capusec time of the last demo-step
+variable looptime                                                               \ microseconds per trip around the pause loop
+: demo-step ( -- )          1 counter +!                                        \ application loop: count it, time it
+    capusec x@  dup lastus @ -  looptime !  lastus ! ;
 
 20 32 32 task t1                                                                \ sample tasks 1
 10 20 20 task t2                                                                \ unused sample task

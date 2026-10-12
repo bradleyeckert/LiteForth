@@ -314,9 +314,7 @@ head+ -->
 
 ( BLOCK 30 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
-
 : hi        ( -- )          ." 学如不及，犹恐失之 " ;                           \ demo CJK message
-
 : value     ( x <name> -- ) _idata align create , does> @ ;                     \ create name, which returns x; see to
 : to        ( x <name> -- ) ' >body ! ;                                         \ change the x that value name returns
 .( value test: ) 11 value ten   ten .  10 to ten  ten . cr                      \ a test value
@@ -324,14 +322,15 @@ head+ -->
 variable counter                                                                \ bumped by multitasker
 variable lastus                                                                 \ capusec time of the last demo-step
 variable looptime                                                               \ microseconds per trip around the pause loop
-: demo-step ( -- )          1 counter +!                                        \ application loop: count it, time it
-    capusec x@  dup lastus @ -  looptime !  lastus ! ;
+: demo-step ( -- )          1 counter a! @a + dup !a                            \ application loop: count it, time it
+    1023 and 0= if
+        capusec x@  dup lastus @ -  looptime !  lastus ! 
+    then ;
 
 20 32 32 task t1                                                                \ sample tasks 1
 10 20 20 task t2                                                                \ unused sample task
 
 variable ctr                                                                    \ starts incrementing after you type `try`
-
 : try       ( -- )          t1 activate  begin pause  1 ctr +!  again ;         \ give t1 something to do
 
 :noname ( demo application )

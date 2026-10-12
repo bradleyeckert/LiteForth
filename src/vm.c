@@ -19,24 +19,28 @@ char* vm_memory_name[VM_MEM_PAGES] = { NULL };
  * test, and iors, which are negative numbers. Memory (vm_memory) and the
  * cell values that vmFetch and vmStore pass are unsigned too.
  */
+// All the VM state, checked against the VMS_* offsets that vm_rv32.S uses
 PLACE_IN_DTCM;
-static uint32_t datastack[STACK_CAPACITY];
-static uint32_t returnstack[STACK_CAPACITY];
-static uint32_t T = 0;  // Top of Data Stack
-#ifdef TWO_REGISTER_TOS
-static uint32_t N = 0;  // Next on the Data Stack (datastack holds the rest)
-#endif
-static uint32_t PC = 0;  // Program Counter
-static uint32_t R = 0;  // Top of Return Stack
-static uint32_t A = 0;  // Address A
-static uint32_t B = 0;  // Address B
-static uint32_t U = 0;  // User pointer
-static uint32_t X = 0;  // GP register
-static uint32_t Y = 0;  // GP register
-static uint32_t prefix = 0;  // Literal prefix
-static uint16_t sp = 0;  // Data Stack Pointer
-static uint16_t rp = 0;  // Return Stack Pointer
-static uint8_t  cy = 0;  // Carry
+vm_state_t lf_vm;
+
+#define VMS_CHECK(field, offset) \
+    typedef char check_##field[(offsetof(vm_state_t, field) == (offset)) ? 1 : -1]
+VMS_CHECK(T, VMS_T);
+VMS_CHECK(N, VMS_N);
+VMS_CHECK(PC, VMS_PC);
+VMS_CHECK(R, VMS_R);
+VMS_CHECK(A, VMS_A);
+VMS_CHECK(B, VMS_B);
+VMS_CHECK(U, VMS_U);
+VMS_CHECK(X, VMS_X);
+VMS_CHECK(Y, VMS_Y);
+VMS_CHECK(prefix, VMS_PREFIX);
+VMS_CHECK(shift_size, VMS_SHIFT);
+VMS_CHECK(sp, VMS_SP);
+VMS_CHECK(rp, VMS_RP);
+VMS_CHECK(cy, VMS_CY);
+VMS_CHECK(datastack, VMS_DSTACK);
+VMS_CHECK(returnstack, VMS_RSTACK);
 
 uint32_t vmFieldPlus(uint32_t addr) {
     uint32_t bsize = (addr >> 27) & 0x1F;
@@ -57,6 +61,7 @@ int vmFetch(uint32_t addr, uint32_t* data) {
     uint32_t page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_PAGE_MASK;
     if (a >= vm_memory_rd_limit[page]) {
+        *data = 0;                      // a failed @ leaves 0 in T
         return ERR_INVALID_ADDRESS;
     }
     uint32_t res = vm_memory[page][a];
@@ -94,49 +99,54 @@ int vmStore(uint32_t addr, uint32_t data) {
  * and VM_SAVE copies them back: at every exit, and around calls into C that
  * use the VM state (API calls, which pop and push, and can run more VM code
  * through vmRun).
+ *
+ * vm_rv32.S is the same function in RV32 assembly (vmExecAsm, used when
+ * VM_ASM is defined). A change here needs the same change there:
+ * unit_tests/vmasm runs both on random code and compares the results.
  */
-static uint32_t shift_size = 0;              // set by shft[ for ]shl and ]shr
 
 /*
  * `nos` is the second data stack item: with TWO_REGISTER_TOS a local copy
  * of N, otherwise datastack[dsp] itself. The micro-ops use it either way.
  */
 #ifdef TWO_REGISTER_TOS
-#define LOAD_N()  nos = N
-#define SAVE_N()  N = nos
+#define LOAD_N()  nos = lf_vm.N
+#define SAVE_N()  lf_vm.N = nos
 #else
-#define nos       datastack[dsp]
+#define nos       lf_vm.datastack[dsp]
 #define LOAD_N()  ((void)0)
 #define SAVE_N()  ((void)0)
 #endif
 
 #define VM_LOAD() do {                                          \
-    t = T;  LOAD_N();  r = R;  a = A;  b = B;  u = U;  pc = PC; \
-    dsp = sp & STACK_MASK;  rsp = rp & STACK_MASK;              \
-    c = cy & 1;  pfx = prefix;                                  \
+    t = lf_vm.T;  LOAD_N();  r = lf_vm.R;  pc = lf_vm.PC;       \
+    a = lf_vm.A;  b = lf_vm.B;  u = lf_vm.U;                    \
+    dsp = lf_vm.sp & STACK_MASK;  rsp = lf_vm.rp & STACK_MASK;  \
+    c = lf_vm.cy & 1;  pfx = lf_vm.prefix;                      \
 } while (0)
 
 #define VM_SAVE() do {                                          \
-    T = t;  SAVE_N();  R = r;  A = a;  B = b;  U = u;  PC = pc; \
-    sp = (uint8_t)dsp;  rp = (uint8_t)rsp;                      \
-    cy = (uint8_t)c;  prefix = pfx;                             \
+    lf_vm.T = t;  SAVE_N();  lf_vm.R = r;  lf_vm.PC = pc;       \
+    lf_vm.A = a;  lf_vm.B = b;  lf_vm.U = u;                    \
+    lf_vm.sp = dsp;  lf_vm.rp = rsp;                            \
+    lf_vm.cy = c;  lf_vm.prefix = pfx;                          \
 } while (0)
 
-// Stack moves on the local copies (VM_DDUP etc. in vm_labels.h use globals).
+// Stack moves on the local copies (VM_DDUP etc. in vm_labels.h use lf_vm).
 // DDUP makes room for a new T (the caller sets t); DDROP pops T. With
 // TWO_REGISTER_TOS, t and nos are the top two items and datastack[dsp] the
 // third; otherwise datastack[dsp] is the second.
 #ifdef TWO_REGISTER_TOS
-#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = nos; nos = t; } while (0)
-#define DDROP() do { t = nos; nos = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
-#define NIP()   do { nos = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; lf_vm.datastack[dsp] = nos; nos = t; } while (0)
+#define DDROP() do { t = nos; nos = lf_vm.datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#define NIP()   do { nos = lf_vm.datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
 #else
-#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; datastack[dsp] = t; } while (0)
-#define DDROP() do { t = datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
+#define DDUP()  do { dsp = (dsp + 1) & STACK_MASK; lf_vm.datastack[dsp] = t; } while (0)
+#define DDROP() do { t = lf_vm.datastack[dsp]; dsp = (dsp - 1) & STACK_MASK; } while (0)
 #define NIP()   do { dsp = (dsp - 1) & STACK_MASK; } while (0)
 #endif
-#define RDUP()  do { rsp = (rsp + 1) & STACK_MASK; returnstack[rsp] = r; } while (0)
-#define RDROP() do { r = returnstack[rsp]; rsp = (rsp - 1) & STACK_MASK; } while (0)
+#define RDUP()  do { rsp = (rsp + 1) & STACK_MASK; lf_vm.returnstack[rsp] = r; } while (0)
+#define RDROP() do { r = lf_vm.returnstack[rsp]; rsp = (rsp - 1) & STACK_MASK; } while (0)
 
 // A switch default that can't be reached: lets the compiler drop the range
 // check before the jump table.
@@ -151,6 +161,21 @@ static uint32_t shift_size = 0;              // set by shft[ for ]shl and ]shr
 
 #define TERMINATOR 0xDEADC0DEu          // return address that ends a word call
 
+int32_t vmApiCall(uint32_t inst) {
+    uint32_t imm = inst & VM_IMM_MASK;
+    int api0 = (((inst >> VM_IMM_BITS) & 0x0F) == VMO_API0);
+    if (api0 && (g_lf_sys_options & SYS_OPTION_ONLY_TERM) && (imm > API_T_TXQ)) {
+        return ERR_NO_API_CALL_ALLOWED;
+    }
+    if (g_lf_sys_options & SYS_OPTION_NO_API) {
+        return ERR_NO_API_CALL_ALLOWED;
+    }
+    return api0 ? VMapi0Call((int)imm) : VMapi1Call((int)imm);
+}
+
+#ifdef VM_ASM
+#define vmExec vmExecAsm                // vm_rv32.S
+#else
 static int32_t vmExec(int once, uint32_t inst, uint32_t address) {
 #ifdef TWO_REGISTER_TOS
     uint32_t nos;                       // N
@@ -320,20 +345,20 @@ execute:
             RDROP();  break;
         case VMO_SYS:
             switch (imm) {
-            case VMS_SHR: t >>= shift_size;  break;
-            case VMS_SHL: t <<= shift_size;  break;
+            case VMS_SHR: t >>= lf_vm.shift_size;  break;
+            case VMS_SHL: t <<= lf_vm.shift_size;  break;
             case VMS_FIELDPLUS: t = vmFieldPlus(t);  break;
             case VMS_GETUSEC: {
                 uint64_t usec = lfGetTimeMicroSec();
-                Y = (uint32_t)(usec >> 32);
-                X = (uint32_t)usec;
+                lf_vm.Y = (uint32_t)(usec >> 32);
+                lf_vm.X = (uint32_t)usec;
                 break;
             }
             case VMS_TASK: // ]task
                 dsp = t & STACK_MASK;
                 rsp = (t >> 16) & STACK_MASK;
 #ifdef TWO_REGISTER_TOS
-                nos = datastack[(dsp + 1) & STACK_MASK];  // N, saved by task[
+                nos = lf_vm.datastack[(dsp + 1) & STACK_MASK];  // N, saved by task[
 #endif
                 break;
             case VMS_BREAK:
@@ -348,7 +373,7 @@ execute:
             switch (imm) {
             case VMSTO_YEET: if (tos) ior = (int32_t)tos;  break;
             case VMSTO_SHIFT:
-                shift_size = tos & 0x1F; break;
+                lf_vm.shift_size = tos & 0x1F; break;
             default: break;
             }
         } break;
@@ -361,12 +386,12 @@ execute:
 #ifdef TWO_REGISTER_TOS
                 // N goes in the cell above sp, where ]task reloads it, so
                 // rp:sp captures the whole stack as with one register
-                datastack[(dsp + 1) & STACK_MASK] = nos;
+                lf_vm.datastack[(dsp + 1) & STACK_MASK] = nos;
 #endif
                 t = (rsp << 16) | dsp;
                 break;
-            case VMSFROM_X: t = X; break;
-            case VMSFROM_Y: t = Y; break;
+            case VMSFROM_X: t = lf_vm.X; break;
+            case VMSFROM_Y: t = lf_vm.Y; break;
             default: break;
             } break;
         case VMO_PFX:
@@ -374,21 +399,9 @@ execute:
         case VMO_PFX1:
             pfx = (pfx << (VM_IMM_BITS + 1)) | imm | (1 << VM_IMM_BITS); break;
         case VMO_API0:
-            if (g_lf_sys_options & SYS_OPTION_ONLY_TERM) {
-                if (imm > API_T_TXQ) {
-                    ior = ERR_NO_API_CALL_ALLOWED;
-                    break;
-                }
-            }
-            FALLTHROUGH;
         case VMO_API1:
-            if (g_lf_sys_options & SYS_OPTION_NO_API) {
-                ior = ERR_NO_API_CALL_ALLOWED;
-                break;
-            }
             VM_SAVE();                  // the API sees and changes VM state,
-            ior = (((inst >> VM_IMM_BITS) & 0x0F) == VMO_API0)
-                ? VMapi0Call(imm) : VMapi1Call(imm);
+            ior = vmApiCall(inst);
             VM_LOAD();                  // and may run more VM code
             cspan = 0;                  // memory may have been remapped
             break;
@@ -413,8 +426,8 @@ byee:
             // The app is being stepped: send it to its yeet handler.
             // (A word run by the terminal has steps == 0, so its errors
             // only go back to the terminal and the PC is left alone.)
-            X = pc;
-            Y = (uint32_t)ior;
+            lf_vm.X = pc;
+            lf_vm.Y = (uint32_t)ior;
             pc = VM_YEET_ADDRESS << 1;
         }
         VM_SAVE();
@@ -428,6 +441,7 @@ byee:
 #ifndef TWO_REGISTER_TOS
 #undef nos
 #endif
+#endif /* VM_ASM */
 
 /*
  * vmRun (documented in vm.h).
@@ -443,9 +457,9 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     if (once || inst) {
         return vmExec(once, inst, (uint32_t)address);
     }
-    uint32_t pc = PC;
+    uint32_t pc = lf_vm.PC;
     int32_t ior = vmExec(0, 0, (uint32_t)address);
-    PC = pc;
+    lf_vm.PC = pc;
     return ior;
 }
 
@@ -454,26 +468,26 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
 int32_t vmPeek(int reg) {
     uint32_t x;
     if (reg < 0) {
-        x = T;
+        x = lf_vm.T;
         VM_DDROP;
         return (int32_t)x;
     }
     switch (reg) {
-        case 0:         x = T;  break;
+        case 0:         x = lf_vm.T;  break;
 #ifdef TWO_REGISTER_TOS
-        case 1:         x = N;  break;
+        case 1:         x = lf_vm.N;  break;
 #endif
-        case VM_REG_PC: x = PC; break;
-        case VM_REG_R : x = R;  break;
-        case VM_REG_A : x = A;  break;
-        case VM_REG_B : x = B;  break;
-        case VM_REG_U : x = U;  break;
-        case VM_REG_cy: x = cy; break;
-        case VM_REG_sp: x = sp; break;
-        case VM_REG_rp: x = rp; break;
+        case VM_REG_PC: x = lf_vm.PC; break;
+        case VM_REG_R : x = lf_vm.R;  break;
+        case VM_REG_A : x = lf_vm.A;  break;
+        case VM_REG_B : x = lf_vm.B;  break;
+        case VM_REG_U : x = lf_vm.U;  break;
+        case VM_REG_cy: x = lf_vm.cy; break;
+        case VM_REG_sp: x = lf_vm.sp; break;
+        case VM_REG_rp: x = lf_vm.rp; break;
         default:
         if (reg < STACK_MASK) {
-            x = datastack[(sp + TOS_REGISTERS - reg) & STACK_MASK];
+            x = lf_vm.datastack[(lf_vm.sp + TOS_REGISTERS - reg) & STACK_MASK];
             break;
         }   return -1;
     }
@@ -487,21 +501,21 @@ int32_t vmPoke(int reg, int32_t value) {
         VM_DDUP;
     }
     switch (reg) {
-        case 0:         T = data; break;
+        case 0:         lf_vm.T = data; break;
 #ifdef TWO_REGISTER_TOS
-        case 1:         N = data; break;
+        case 1:         lf_vm.N = data; break;
 #endif
-        case VM_REG_PC: PC = data; break;
-        case VM_REG_R : R = data; break;
-        case VM_REG_A : A = data; break;
-        case VM_REG_B : B = data; break;
-        case VM_REG_U : U = data; break;
-        case VM_REG_cy: cy = data & 1; break;
-        case VM_REG_sp: sp = data & STACK_MASK; break;
-        case VM_REG_rp: rp = data & STACK_MASK; break;
+        case VM_REG_PC: lf_vm.PC = data; break;
+        case VM_REG_R : lf_vm.R = data; break;
+        case VM_REG_A : lf_vm.A = data; break;
+        case VM_REG_B : lf_vm.B = data; break;
+        case VM_REG_U : lf_vm.U = data; break;
+        case VM_REG_cy: lf_vm.cy = data & 1; break;
+        case VM_REG_sp: lf_vm.sp = data & STACK_MASK; break;
+        case VM_REG_rp: lf_vm.rp = data & STACK_MASK; break;
         default:
         if (reg < STACK_MASK) {
-            datastack[(sp + TOS_REGISTERS - reg) & STACK_MASK] = data;
+            lf_vm.datastack[(lf_vm.sp + TOS_REGISTERS - reg) & STACK_MASK] = data;
             break;
         }   return -1;
     }
@@ -512,10 +526,10 @@ int32_t vmReset(void) {
     for (int i = VM_REG_PC; i <= VM_REG_rp; i++) {
         vmPoke(i, 0);
     }
-    R = TERMINATOR;    // empty return stack marker
-    T = VM_EMPTYSTACK; // empty data stack markers
+    lf_vm.R = TERMINATOR;    // empty return stack marker
+    lf_vm.T = VM_EMPTYSTACK; // empty data stack markers
 #ifdef TWO_REGISTER_TOS
-    N = VM_EMPTYSTACK;
+    lf_vm.N = VM_EMPTYSTACK;
 #endif
     return 0;
 }

@@ -50,10 +50,11 @@ uint32_t g_lf_sys_options;
 
 #define CODE_CELLS  2048                // page 0: code and data
 #define EXEC_CELLS  1024                // executable part of page 0
-#define WP0         512                 // page 0 is write-protected below this
+#define WP0         EXEC_CELLS          // page 0 is write-protected below this, so
+                                        // stores can't make code that loops for ages
 #define RAM_CELLS   1024                // page 1: RAM
 #define ROM_CELLS   16                  // page 7: read-only
-#define NESTED      1016                // a word the API stub runs (cells)
+#define NESTED      500                 // a word the API stub runs (cells)
 
 static uint32_t page0[CODE_CELLS];
 static uint32_t page1[RAM_CELLS];
@@ -78,6 +79,7 @@ static void map_memory(void) {
     vm_memory[1] = page1;
     vm_memory_rd_limit[1] = RAM_CELLS;
     vm_memory_executable[1] = 64;
+    vm_memory_wp_limit[1] = 64;         // the same for code in page 1
     vm_memory[7] = page7;
     vm_memory_rd_limit[7] = ROM_CELLS;
     vm_memory_wp_limit[7] = ROM_CELLS;
@@ -295,10 +297,10 @@ int main(void) {
             if (pc != NESTED * 2 && pc != NESTED * 2 + 1) put_inst(pc, rnd_inst(0));
         }
         lf_vm.PC = below(8) ? below(PC_CODE) : rnd_value();
-        if (below(8) == 0) {            // code in page 1 (64 executable cells)
-            for (uint32_t k = 0; k < 64; k++) page1[k] = rnd_inst(0) | (rnd_inst(0) << 16);
-            lf_vm.PC = CODE_PAGE1 | below(160);
+        for (uint32_t k = 0; k < 64; k++) {     // code in page 1 too (64 cells)
+            page1[k] = rnd_inst(0) | (rnd_inst(0) << 16);
         }
+        if (below(8) == 0) lf_vm.PC = CODE_PAGE1 | below(160);
         uint32_t iors = 0;              // the app keeps running after errors
         int32_t ior = 0;                // (in its yeet handler), as from loadTIB
         for (int k = 0; k < 16; k++) {
@@ -310,7 +312,8 @@ int main(void) {
     }
     for (uint32_t i = 0; i < CASES; i++, n++) {                 // word
         rnd_state();
-        uint32_t start = below(PC_CODE - 64), len = below(40), pc = start;
+        uint32_t start = NESTED * 2 + 2 + below(PC_CODE - NESTED * 2 - 64);
+        uint32_t len = below(40), pc = start;
         for (uint32_t k = 0; k < len; k++) put_inst(pc++, rnd_inst(1));
         put_inst(pc, VM_UOPS | VM_RET);
         if (below(4)) lf_vm.A = below(RAM_CELLS) | (1 << PAGE_SHIFT);    // valid

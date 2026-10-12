@@ -140,5 +140,7 @@
 #define ERR_CANNOT_DOES            (-120)   /* Cannot resolve the CREATE of DOES> */
 #define ERR_EMPTY_TASKER           (-121)   /* Attempt to `activate` a task before `multitask` */
 #define ERR_MUST_HAVE_HEADS        (-122)   /* Missing `-heads`, cannot save heads */
+#define ERR_XMODEM_TRANSFER        (-123)   /* XMODEM transfer failed or cancelled */
+#define ERR_XMODEM_SOURCE          (-124)   /* Bad block source in an XMODEM transfer */
 
 #endif // ERRCODES_H

@@ -97,6 +97,19 @@ int lfAPI_emptyBuffers(void);
  */
 int lfAssignBlock(uint32_t blk, int32_t* f_addr);
 
+/**
+ * Assigns a RAM buffer to block blk without reading the block, as BUFFER
+ * does, and makes it the buffer that `update` marks. Used by `xmodem` to
+ * fill blocks that it overwrites completely.
+ *
+ * @param blk Block number.
+ * @param data Receives a C pointer to the buffer (BLOCK_SIZE_CELLS cells).
+ * @return 0 on success, ERR_BLK_BOUNDS if blk >= g_block_capacity, or
+ *         ERR_BLOCK_WRITE_ERROR if a modified buffer could not be saved to
+ *         make room.
+ */
+int lfBlockBuffer(uint32_t blk, uint32_t** data);
+
 #ifdef __cplusplus
 }
 #endif

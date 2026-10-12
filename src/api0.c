@@ -12,6 +12,7 @@
 #include "tools.h"
 #include "api0.h"
 #include "lfblocks.h"
+#include "xmodem.h"
 
 /*==========================================================================
 * API 0 

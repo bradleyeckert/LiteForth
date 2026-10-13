@@ -20,7 +20,16 @@ py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 -o cjk24.lfnt --proof cj
 | `-o FILE` | The output (default `font.lfnt`) |
 | `--max-bytes N` | The most the file may take. Glyphs are added in the list's order while they fit; the rest are listed as dropped |
 | `--proof FILE` | A PNG of every glyph, decoded from the output file, so it shows what the LCD will get |
+| `--list [TEXT \| PATH ...]` | Lists the fonts installed on this computer (on Windows `C:\Windows\Fonts` and your own `%LOCALAPPDATA%\Microsoft\Windows\Fonts`; on Linux and macOS the usual font folders): family, style, weight (or a variable font's weight range), `--face N` for each face of a `.ttc`, and the file. Words keep only the fonts whose file, family or style contains them all; a file or folder lists just that |
 | `--selftest` | Tests the encoder and decoder on made-up bitmaps |
+
+To find a font and the options it needs:
+
+```
+py scripts\mkfont.py --list noto cjk
+Noto Sans CJK SC             Bold         700              --face 2  C:\...\NotoSansCJK-Bold.ttc
+Noto Sans CJK SC             Regular      400              --face 2  C:\...\NotoSansCJK-Regular.ttc
+```
 
 It needs Pillow and fontTools (`pip install pillow fonttools`).
 

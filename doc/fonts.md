@@ -19,7 +19,7 @@ py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 -o cjk24.lfnt --proof cj
 | `-w WEIGHT` | The weight: 100 to 900, or a name (`thin` 100, `extralight` 200, `light` 300, `demilight` 350, `regular` 400, `medium` 500, `semibold` 600, `bold` 700, `extrabold` 800, `black` 900). A variable font (one with a weight axis, like Noto Sans or `NotoSansCJKsc-VF.otf`) is set to it. A static font must already be that weight: Noto Sans CJK comes as one file per weight (`NotoSansCJK-Bold.ttc`, ...) |
 | `-o FILE` | The output (default `font.lfnt`) |
 | `--max-bytes N` | The most the file may take. Glyphs are added in the list's order while they fit; the rest are listed as dropped |
-| `--sector N` | Lays the font out for reading from the block file: no glyph record crosses an N-byte sector (N a power of 2, 64 to 4096; 4096 is one block), so one sector read gets a whole glyph. See [In the block file](#in-the-block-file) |
+| `--blocks` | Lays the font out for reading from the block file: no glyph record crosses a 4 KB block, so one block read gets a whole glyph. See [In the block file](#in-the-block-file) |
 | `--proof FILE` | A PNG of every glyph, decoded from the output file, so it shows what the LCD will get |
 | `--list [TEXT \| PATH ...]` | Lists the fonts installed on this computer (on Windows `C:\Windows\Fonts` and your own `%LOCALAPPDATA%\Microsoft\Windows\Fonts`; on Linux and macOS the usual font folders): family, style, weight (or a variable font's weight range), `--face N` for each face of a `.ttc`, and the file. Words keep only the fonts whose file, family or style contains them all; a file or folder lists just that |
 | `--selftest` | Tests the encoder and decoder on made-up bitmaps |
@@ -111,26 +111,16 @@ A font in the block file starts at byte 32 of a block (`BLOCK_OFFSET` in
 font then runs on through the following blocks as one stream, so file
 offset `o` is at byte `(o + 32) mod 4096` of block `first + (o + 32) / 4096`.
 
-With `--sector N`, mkfont places the glyph records so that none crosses an
-N-byte boundary of that layout (and so none crosses a block). It goes
-through the glyphs in priority order and puts each one in the first gap
-that holds it, which keeps the most-used glyphs together in the first
-sectors; the gaps are zeros. A record bigger than a sector starts on a
-sector boundary and is kept within one block. The header, page table and
-index aren't moved: their 2- and 4-byte entries are aligned, so no single
-entry crosses a sector.
+With `--blocks`, mkfont places the glyph records so that none crosses a
+block. It goes through the glyphs in priority order and puts each one in
+the first gap that holds it, which keeps the most-used glyphs together in
+the first blocks; the gaps are zeros. The header, page table and index
+aren't moved: their 2- and 4-byte entries are aligned, so no single entry
+crosses a block, though the index as a whole may span several.
 
-The padding depends on how many records fit in a sector. For 595 glyphs
-(ASCII and 500 common hanzi) from Noto Sans CJK:
-
-| Size | 512-byte sectors | 1024 | 4096 |
-|---|---|---|---|
-| 16 px | 5.6% | 2.1% | 0.6% |
-| 24 px | 16.4% | 3.1% | 0.8% |
-| 32 px | 37.6% | 8.9% | 0.8% |
-
-At 32 pixels a typical CJK glyph is more than half of a 512-byte sector,
-so one sector holds just one; use 1024-byte sectors there.
+The padding is small. For 595 glyphs (ASCII and 500 common hanzi) from
+Noto Sans CJK it is 390 bytes at 16 pixels, 850 at 24, 1152 at 32 and
+5790 at 48 (2.1% of 276 KB).
 
 ## Pixel codes
 

@@ -53,7 +53,7 @@ cell `o/4`, shift `8*(o mod 4)`, and a 16-bit value the 16-bit slice there.
 | Offset | Size | Contents |
 |---|---|---|
 | 0 | 4 | `LFNT` |
-| 4 | 1 | Version (1) |
+| 4 | 1 | Version (2; version 1 had white and black runs as format 00) |
 | 5 | 1 | Bits per pixel (4) |
 | 6 | 1 | Cell height: the line height, in pixels |
 | 7 | 1 | Ascent: the baseline's row in the cell |
@@ -92,16 +92,24 @@ Each 16-bit code describes a few pixels. "White" is 15 (foreground) and
 
 | Bits 15:14 | Fields | Pixels |
 |---|---|---|
-| 00 | white[7] black[7] | `white` white pixels, then `black` black pixels (0 to 127 each) |
+| 00 | gray[4] black[3] gray[4] white[3] | a pixel, `black` (0 to 7) black pixels, a pixel, then `white` (0 to 7) white pixels |
 | 01 | gray[4] next[1] length[9] | the pixel `gray`, then `length` (0 to 511) pixels of `next` (1 = white, 0 = black) |
 | 10 | gray[4] gray[4] next[1] length[5] | two pixels, then `length` (0 to 31) pixels of `next` |
 | 11 | gray[4] gray[4] gray[4] black[2] | three pixels, then 0 to 3 black pixels |
 
 A "gray" can be any value 0 to 15. The encoder finds the shortest sequence
-of codes for each glyph (dynamic programming over the four formats). On Noto
-Sans CJK, format 11 as three grays and a short black run made the pixel
-data 5 to 21% smaller than leaving it unused, and beat the other choices
-tried (three grays with a run of either color, or of white). The pixel data
-comes out about 1.2x (16 pixels) to 1.8x (32 pixels, CJK) smaller than
-plain 4-bit pixels in the same bounding boxes; small anti-aliased glyphs
-are mostly edges.
+of codes for each glyph (dynamic programming over the four formats).
+
+The formats were chosen by measuring Noto Sans CJK (Regular and Bold, 12
+to 32 pixels, Latin and CJK):
+
+- Format 11 as three grays and a short black run beat three grays with a
+  run of either color, or of white.
+- Version 1's format 00, a white run then a black run (0 to 127 each), was
+  the least used: 2.5% of the codes. Two grays with short runs in its
+  place (an edge, a gap, an edge, a stroke) cut the codes by 12.4%; the
+  other order, gray white gray black, by 11.8%.
+
+The pixel data comes out about 1.1x (12 pixels) to 1.8x (32 pixels)
+smaller than plain 4-bit pixels in the same bounding boxes; small
+anti-aliased glyphs are mostly edges.

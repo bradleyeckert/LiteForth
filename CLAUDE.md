@@ -101,7 +101,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   so any 3-deep nesting of loads evicts buffers.
   `lfInterpret` ends every terminal line with `empty-buffers`, so an
   `update`d buffer that isn't saved before the line ends is discarded; the
-  block editor (`core.f` blocks 17-19, `doc/editor.md`, `unit_tests/editor`)
+  block editor (`core.f` blocks 18-20, `doc/editor.md`, `unit_tests/editor`)
   saves each change with `update save-buffers`.
 
 ## Source map
@@ -120,7 +120,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/memalloc.c/.h` | LIFO memory pool |
 | `src/errcodes.h` | Forth `ior` codes (standard negative throw codes) |
 | `src/xmodem.c/.h` | `xmodem`: receives a source file by XMODEM (checksum) over the terminal and writes it into blocks like `putblocks.py` (`lfBlockBuffer` in lfblocks.c, `unit_tests/xmodem` drives it with a Python sender) |
-| `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O |
+| `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O, and `lcd.c`: a simulated graphic LCD (`lcd-init`, `lcd-tx`) with an ST7789 model behind a bus interface, shown in a Win32 or X11 window (the makefile links `-lgdi32`, or `-lX11` with `-DLCD_X11` when pkg-config finds x11; otherwise `lcd_init` gives -21). `unit_tests/lcd` tests the model headless (`LCD_HEADLESS`); `make demo` there opens the window. The V5F has a stub `lcd.c` |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
 | `src/target/CH32H417/` | MCU target, MounRiver projects (not built by the makefile): the V3F core runs USB CDC and bridges it through shared-SRAM rings (`Common/cdc_bridge.c`, `cdc_shared.h`) to the V5F, whose `serial_io.c`, `flash.c` (256K at 0x08030000, reserved in `SRC/Ld/V5F/Link_v5f.ld`), `blocks.c` (a raw type-DA partition on the microSD card via WCH's `sdio.c`; see doc/sdcard.md), `options.h` (4 x 64K flash pages, RAM_PAGE 4, `VM_IO_PAGE` 5: the peripheral registers at `IO_BASE`, mapped by `main.c`), `lftime.c` and `main.c` (runs `lfQuit`) are in `V5F/User/`; `lf_*.c` there each `#include` one `src/*.c`, so a new core source file needs a new wrapper; `lf_vm_rv32.S` assembles `src/vm_rv32.S` when `options.h` defines `VM_ASM`. Ctrl+X three times on the terminal makes the V3F restart the V5F without starting the app (HSEM1, `SYS_OPTION_NO_AUTORUN`). See its README |
 | `forth/core.f` | Boot code: defines the basic Forth lexicon on top of the primitives |

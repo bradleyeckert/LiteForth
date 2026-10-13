@@ -1,6 +1,6 @@
 ( BLOCK 1 )
 ( LiteForth home screen _______________________________________ 10/10/26 BNE )
-0 open-flash  6 load    \ load the lexicon
+0 open-flash  7 load    \ load the lexicon
 30 load                 \ build the application image
 \ close-flash           \ commit to flash memory
 

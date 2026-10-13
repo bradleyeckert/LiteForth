@@ -1,5 +1,5 @@
 #!/bin/sh
-# Test of the block editor (forth/core.f, blocks 17 to 19): loads core.f into
+# Test of the block editor (forth/core.f, blocks 18 to 20): loads core.f into
 # bin/lf with a scratch block file, runs an editing session on block 40, then
 # dumps the block with getblocks.py to check that the edits were saved.
 # core.f ends with `0 >options`, so the session first turns the prompt and

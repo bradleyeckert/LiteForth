@@ -45,6 +45,18 @@ endif
 CFLAGS = -Wall -Wextra -O2 $(PTHREAD) $(addprefix -I,$(SRC_DIRS))
 DEPFLAGS = -MMD -MP
 
+# lcd.c's window: Win32 GDI on Windows, X11 elsewhere when pkg-config finds
+# it (else lcd_init reports ERR_UNSUPPORTED_OPERATION).
+ifeq ($(OS),Windows_NT)
+LDLIBS = -lgdi32
+else
+X11_LIBS := $(shell pkg-config --libs x11 2>/dev/null)
+ifneq ($(X11_LIBS),)
+CFLAGS += -DLCD_X11 $(shell pkg-config --cflags x11)
+LDLIBS = $(X11_LIBS)
+endif
+endif
+
 # Unit test suites under src/target/desktop/unit_tests
 UNIT_TEST_DIRS = $(sort $(dir $(wildcard src/target/desktop/unit_tests/*/makefile src/target/desktop/unit_tests/*/Makefile)))
 
@@ -60,7 +72,7 @@ endif
 # Link the executable
 $(TARGET): $(OBJS)
 	@$(call MKDIR,$(BIN_DIR))
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDLIBS) -o $@
 
 # Pattern rule: vpath automatically locates the source file in SRC_DIRS
 $(BUILD_DIR)/%.o: %.c

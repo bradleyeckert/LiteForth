@@ -179,6 +179,8 @@ static const struct s_head forth_heads[] = {
     { PREV, "head+",        API0(API_HEADPLUS),                       188},
     { PREV, "-heads",       API0(API_TRIMHEADS),                      189},
     { PREV, "xmodem",       API0(API_XMODEM),                         190},
+    { PREV, "lcd-init",     API0(API_LCD_INIT),                       191},
+    { PREV, "lcd-tx",       API0(API_LCD_TX),                         193},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        174},
     { PREV, "->",           API0(API_DOTEST),                         175},

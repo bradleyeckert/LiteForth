@@ -500,6 +500,8 @@ sys_op:
         beqz    a1, sys_usec            // VMS_GETUSEC 4
         addi    a1, a1, -1
         beqz    a1, sys_break           // VMS_BREAK 5
+        addi    a1, a1, -1
+        beqz    a1, sys_asr             // VMS_ASR 6
         jr      rTAIL
 sys_task:                               // ]task: sp and rp from T
         andi    a1, rT, STACK_CAPACITY - 1
@@ -522,6 +524,10 @@ sys_fieldplus:
 sys_shr:
         lw      a1, VMS_SHIFT(rBASE)
         srl     rT, rT, a1
+        jr      rTAIL
+sys_asr:
+        lw      a1, VMS_SHIFT(rBASE)
+        sra     rT, rT, a1
         jr      rTAIL
 sys_shl:
         lw      a1, VMS_SHIFT(rBASE)

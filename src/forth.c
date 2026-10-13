@@ -117,6 +117,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "slice+",       SYS(VMS_FIELDPLUS),                       110},
     { PREV, "]shr",         SYS(VMS_SHR),                             111},
     { PREV, "]shl",         SYS(VMS_SHL),                             112},
+    { PREV, "]asr",         SYS(VMS_ASR),                             194},
     { PREV, "break",        SYS(VMS_BREAK),                           113},
     { PREV, "capusec",      SYS(VMS_GETUSEC),                         114},
     { PREV, "shft[",        SYSTO(VMSTO_SHIFT),                       115},

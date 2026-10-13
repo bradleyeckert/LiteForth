@@ -111,6 +111,11 @@ A font in the block file starts at byte 32 of a block (`BLOCK_OFFSET` in
 font then runs on through the following blocks as one stream, so file
 offset `o` is at byte `(o + 32) mod 4096` of block `first + (o + 32) / 4096`.
 
+`scripts/putbin.py` writes the font into the block file that way:
+`putbin.py cjk24.lfnt 100 lfblocks.fb4` (see [blocks.md](blocks.md)). It
+warns about glyphs that cross a block, as in a font built without
+`--blocks`.
+
 With `--blocks`, mkfont places the glyph records so that none crosses a
 block. It goes through the glyphs in priority order and puts each one in
 the first gap that holds it, which keeps the most-used glyphs together in

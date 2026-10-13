@@ -16,6 +16,12 @@ ignores it. A control character in a row (which a line can't carry) is
 shown as `?`, with a warning on stderr (except in block 0, whose header
 ends with a newline).
 
+A binary block (written by putbin.py: not UTF-8 text, or full of control
+characters) becomes a single line, `( BLOCK IGNORE ) block n: binary,
+crc32 ...` (with `LFNT font` when a font starts in it), which putblocks.py
+skips, so writing the dump back leaves binary blocks as they are and
+`git diff` shows which ones changed.
+
 The block file defaults to lfblocks.fb4; the text goes to stdout, or to
 the file given with -o.
 
@@ -26,6 +32,7 @@ It is also a git diff driver, so `git diff` shows block files as text:
 """
 import re
 import sys
+import zlib
 
 BLOCK_BYTES = 4096
 COLUMNS = 128
@@ -53,12 +60,27 @@ def block_lines(block, n):
     return rows
 
 
+def is_binary(block):
+    """True if a block holds binary data rather than text rows."""
+    try:
+        block.decode("utf-8")
+    except UnicodeDecodeError:
+        return True
+    return sum(1 for c in block if c < 0x20 and c != 0x09) > 32
+
+
 def dump(data, with_header):
     out = []
     old_style = []
     count = len(data) // BLOCK_BYTES
     for n in range(0 if with_header else 1, count):
-        lines = block_lines(data[n * BLOCK_BYTES:(n + 1) * BLOCK_BYTES], n)
+        block = data[n * BLOCK_BYTES:(n + 1) * BLOCK_BYTES]
+        if n and block.strip(b" \0") and is_binary(block):
+            what = ", LFNT font" if block[32:36] == b"LFNT" else ""
+            out.append(b"( BLOCK IGNORE ) block %d: binary%s, crc32 %08x"
+                       % (n, what.encode(), zlib.crc32(block)))
+            continue
+        lines = block_lines(block, n)
         if lines is None:
             continue
         if n == 0:

@@ -29,6 +29,26 @@ In the PC environment, `./scripts` contains Python scripts to convert back and f
 
 On an MCU the blocks live in a raw partition on a microSD card; see [sdcard.md](sdcard.md) to prepare one.
 
+### Binary data: `putbin.py`
+
+`putbin.py file block [blockfile]` writes a binary file, such as a font
+from `mkfont.py`, as one stream starting at byte 32 of `block`: the first
+32 bytes of that block are zeros, kept for an HMAC of the data, and the
+rest of the last block is zeros too. It prints the blocks it used and the
+next free one, where the next file can go:
+
+```
+py ..\scripts\putbin.py cjk24.lfnt 100 ..\bin\lfblocks.fb4
+cjk24.lfnt: 107974 bytes at byte 32 of block 100: blocks 100-126, next free block 127
+```
+
+Like `putblocks.py`, it needs a signed block file (or partition) and never
+writes block 0. `getblocks.py` shows each binary block as one
+`( BLOCK IGNORE ) block n: binary, crc32 ...` line, which `putblocks.py`
+skips, so a dump written back leaves the binary blocks alone. `xmodem`
+only takes text, so to get binary data onto the board, write it into the
+block file on the PC and copy that to the card ([sdcard.md](sdcard.md)).
+
 ### Sending source over the terminal: `xmodem`
 
 `xmodem` receives a source file over the terminal connection and writes it

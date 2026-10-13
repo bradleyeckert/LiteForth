@@ -132,4 +132,4 @@
 ( width height controller -- )  \ Open a simulated LCD panel of width x height pixels; controller 0 is an ST7789.
 ( BLOCK 6 )
 ( LiteForth internal glossary lines 193 to 223 ________________ 10/13/26 BNE )
-( u -- )                        \ Drive the LCD bus: bit 15 reset, 14 CSX, 13 D/CX, 7:0 the byte (lcd_tx).
+( u -- )                        \ Drive the LCD bus: bit 15 reset, 14 CSX, 13 command, 7:0 the byte (lcd_tx).

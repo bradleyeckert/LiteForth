@@ -507,7 +507,7 @@ int lcd_tx(uint16_t data) {
         lcd.in_reset = 0;
         if (!(data & LCD_CSX)) {
             uint8_t b = (uint8_t)(data & LCD_DATA);
-            if (!(data & LCD_DCX)) st_command(b);
+            if (data & LCD_CMD) st_command(b);
             else if (lcd.writing) st_pixel_byte(b);
             else st_parameter(b);
         }

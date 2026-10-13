@@ -19,8 +19,8 @@ static void pause_ms(int ms) {
 }
 #endif
 
-static void cmd(uint8_t c) { lcd_tx(c); }
-static void dat(uint8_t d) { lcd_tx(LCD_DCX | d); }
+static void cmd(uint8_t c) { lcd_tx(LCD_CMD | c); }
+static void dat(uint8_t d) { lcd_tx(d); }
 static void dat16(int v)   { dat((uint8_t)(v >> 8));  dat((uint8_t)v); }
 
 static void window(int x0, int y0, int x1, int y1) {

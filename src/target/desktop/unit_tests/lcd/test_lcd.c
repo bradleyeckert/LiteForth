@@ -13,8 +13,8 @@
 #define BLACK 0x000000
 #define WHITE 0xFFFFFF
 
-static void cmd(uint8_t c)  { TEST_ASSERT_EQUAL_INT(0, lcd_tx(c)); }
-static void dat(uint8_t d)  { TEST_ASSERT_EQUAL_INT(0, lcd_tx(LCD_DCX | d)); }
+static void cmd(uint8_t c)  { TEST_ASSERT_EQUAL_INT(0, lcd_tx(LCD_CMD | c)); }
+static void dat(uint8_t d)  { TEST_ASSERT_EQUAL_INT(0, lcd_tx(d)); }
 static void dat16(int v)    { dat((uint8_t)(v >> 8));  dat((uint8_t)v); }
 
 static void window(int x0, int y0, int x1, int y1) {
@@ -169,7 +169,7 @@ void test_vertical_scroll(void) {
 void test_pins(void) {
     start(240, 320);
     fill565(0, 0, 0, 0, 0xF800);
-    TEST_ASSERT_EQUAL_INT(0, lcd_tx(LCD_CSX | 0x28));               // not selected
+    TEST_ASSERT_EQUAL_INT(0, lcd_tx(LCD_CSX | LCD_CMD | 0x28));     // not selected
     TEST_ASSERT_EQUAL_HEX32(RED, lcd_pixel(0, 0));
     TEST_ASSERT_EQUAL_INT(0, lcd_tx(LCD_RESET));        // reset
     TEST_ASSERT_EQUAL_INT(0, lcd_tx(LCD_CSX));

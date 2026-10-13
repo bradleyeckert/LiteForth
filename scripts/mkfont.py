@@ -2,6 +2,7 @@
 """Make a 4-bit anti-aliased bitmap font for LiteForth's graphic LCDs.
 
 Usage: mkfont.py -f font.otf -s size [options] glyphs.txt
+       mkfont.py --list [TEXT | PATH ...]
 
 Renders the glyphs listed in glyphs.txt from a TrueType/OpenType font
 (Noto Sans, Noto Sans CJK, ...) at `size` pixels, compresses each one and
@@ -28,6 +29,13 @@ Options:
   --max-bytes N  the most the font file may take
   --proof FILE   also draw the glyphs, decoded from the file, as a PNG
   --selftest     test the encoder and decoder on made-up bitmaps
+  --list         list the fonts installed on this computer (the system and
+                 user font folders) with what -f, --face and -w need: the
+                 file, the face in a .ttc, family, style and weight (or a
+                 variable font's weight range). Words after --list keep
+                 only fonts whose file, family or style contains them
+                 (`--list noto cjk bold`); a file or folder lists that
+                 instead.
 
 Needs Pillow (pip install pillow) and fontTools (pip install fonttools).
 
@@ -397,6 +405,83 @@ def proof(data, path, columns=16, gap=2):
     img.save(path)
 
 
+# ---- listing fonts -------------------------------------------------------------
+
+
+def font_dirs():
+    """The system and user font folders for this platform."""
+    import os
+    home = os.path.expanduser("~")
+    if sys.platform.startswith("win"):
+        windir = os.environ.get("WINDIR", r"C:\Windows")
+        local = os.environ.get("LOCALAPPDATA", os.path.join(home, "AppData", "Local"))
+        return [os.path.join(windir, "Fonts"),
+                os.path.join(local, "Microsoft", "Windows", "Fonts")]
+    if sys.platform == "darwin":
+        return ["/System/Library/Fonts", "/Library/Fonts",
+                os.path.join(home, "Library", "Fonts")]
+    return ["/usr/share/fonts", "/usr/local/share/fonts",
+            os.path.join(home, ".local", "share", "fonts"), os.path.join(home, ".fonts")]
+
+
+def font_files(paths):
+    """Font files in the given files and folders (recursively)."""
+    import os
+    exts = (".ttf", ".otf", ".ttc", ".otc")
+    for p in paths:
+        if os.path.isfile(p):
+            yield p
+        elif os.path.isdir(p):
+            for root, _, files in os.walk(p):
+                for f in sorted(files):
+                    if f.lower().endswith(exts):
+                        yield os.path.join(root, f)
+
+
+def describe(path):
+    """(face, family, style, weight text) for each face in a font file."""
+    from fontTools.ttLib import TTFont, TTCollection
+    if path.lower().endswith((".ttc", ".otc")):
+        faces = TTCollection(path, lazy=True).fonts
+    else:
+        faces = [TTFont(path, lazy=True)]
+    out = []
+    for k, f in enumerate(faces):
+        name = f["name"]
+        family = name.getBestFamilyName() or "?"
+        style = name.getBestSubFamilyName() or "?"
+        weight = str(f["OS/2"].usWeightClass) if "OS/2" in f else "?"
+        if "fvar" in f:
+            for a in f["fvar"].axes:
+                if a.axisTag == "wght":
+                    weight = f"{a.minValue:g}-{a.maxValue:g} variable"
+        out.append((k if len(faces) > 1 else None, family, style, weight))
+    return out
+
+
+def list_fonts(args):
+    """Prints the fonts in the font folders, or in the paths given."""
+    import os
+    paths = [a for a in args if os.path.exists(a)]
+    words = [a.lower() for a in args if not os.path.exists(a)]
+    rows, bad = [], 0
+    for path in font_files(paths or font_dirs()):
+        try:
+            faces = describe(path)
+        except Exception:
+            bad += 1
+            continue
+        for face, family, style, weight in faces:
+            text = " ".join((path, family, style)).lower()
+            if all(w in text for w in words):
+                rows.append((family.lower(), path, face, family, style, weight))
+    rows.sort(key=lambda r: (r[0], r[1], r[2] or 0))
+    for _, path, face, family, style, weight in rows:
+        where = f"--face {face}" if face is not None else ""
+        print(f"{family:<28} {style:<12} {weight:<16} {where:<9} {path}")
+    print(f"{len(rows)} font face(s)" + (f"; {bad} file(s) couldn't be read" if bad else ""))
+
+
 # ---- self test -----------------------------------------------------------------
 
 
@@ -442,6 +527,9 @@ def main(argv):
     if "--selftest" in argv:
         selftest()
         return 0
+    if argv and argv[0] == "--list":
+        list_fonts(argv[1:])
+        return 0
     a = Args()
     it = iter(argv)
     try:
@@ -469,11 +557,13 @@ def main(argv):
                 a.glyphs = arg
     except (StopIteration, ValueError):
         print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
-              "[--max-bytes N] [--proof sheet.png] glyphs.txt", file=sys.stderr)
+              "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
+              "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
     if not (a.font and a.size and a.glyphs):
         print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
-              "[--max-bytes N] [--proof sheet.png] glyphs.txt", file=sys.stderr)
+              "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
+              "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
     build(a)
     return 0

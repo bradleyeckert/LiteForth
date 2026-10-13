@@ -24,6 +24,23 @@ size=$(wc -c < "$WORK/g.lfnt")
 if [ "$size" -gt 3000 ] || ! grep -q "dropped" "$WORK/out2.txt"; then
     echo "mkfont test FAILED: --max-bytes"; cat "$WORK/out2.txt"; exit 1
 fi
+# --sector: no glyph record crosses a 512-byte sector of the block file,
+# counting from byte 32 of the font's first block (mkfont checks the lookups)
+python3 "$MKFONT" -f "$FONT" -s 24 --sector 512 -o "$WORK/s.lfnt" "$WORK/glyphs.txt" > "$WORK/out5.txt" || { cat "$WORK/out5.txt"; exit 1; }
+python3 - "$WORK/s.lfnt" 512 <<'EOF' || { echo "mkfont test FAILED: --sector"; cat "$WORK/out5.txt"; exit 1; }
+import struct, sys
+d = open(sys.argv[1], "rb").read(); sector = int(sys.argv[2])
+n, = struct.unpack_from("<H", d, 8)
+for i in range(n):
+    e = struct.unpack_from("<I", d, 528 + 4 * i)[0] & 0xFFFFFF
+    w, h = d[e], d[e + 1]
+    j, px = e + 6, 0
+    while px < w * h:                   # walk the codes to the record's end
+        c, = struct.unpack_from("<H", d, j); j += 2; f = c >> 14
+        px += [2 + ((c >> 7) & 7) + (c & 7), 1 + (c & 511), 2 + (c & 31), 3 + (c & 3)][f]
+    if (e + 32) // sector != (j - 1 + 32) // sector:
+        sys.exit(f"record at {e} crosses a sector")
+EOF
 # -w: a static font must already be that weight
 BOLD=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc
 if [ -f "$BOLD" ]; then

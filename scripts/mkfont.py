@@ -31,6 +31,12 @@ Options:
                  file per weight: NotoSansCJK-Bold.ttc, ...)
   -o FILE        the output (default font.lfnt)
   --max-bytes N  the most the font file may take
+  --sector N     keep each glyph record inside one N-byte sector of the
+                 block file (N a power of 2, 64 to 4096; 4096 = one
+                 block), so one sector read gets a whole glyph. The font
+                 is taken to start at byte 32 of a block (BLOCK_OFFSET:
+                 the first 32 bytes are kept for an HMAC), and records are
+                 packed first-fit into the gaps
   --proof FILE   also draw the glyphs, decoded from the file, as a PNG
   --selftest     test the encoder and decoder on made-up bitmaps
   --list         list the fonts installed on this computer (the system and
@@ -58,6 +64,9 @@ import sys
 MAGIC = b"LFNT"
 VERSION = 2                     # 2: format 00 is gray black gray white
 WHITE, BLACK = 15, 0
+BLOCK = 4096                    # block file block size
+BLOCK_OFFSET = 32               # where a font starts in its first block
+INDEX = 12 + 514 + 2            # header, page table, padding: the index
 
 # ---- the pixel codec ---------------------------------------------------------
 
@@ -296,16 +305,21 @@ def build(args):
         glyphs.append(Glyph(cp, w, h, x0, ascent + y0 if rows else 0, adv, px))
 
     # fill to --max-bytes in priority order
-    kept, dropped = [], []
-    size = 12 + 514 + 2         # header, page table, padding
-    for g in glyphs:
-        need = 4 + len(g.record())
-        if args.max_bytes and size + need > args.max_bytes:
-            dropped.append(g.cp)
-            continue
-        kept.append(g)
-        size += need
-    data = write_font(kept, height, ascent, weight)
+    offsets, crossing = None, []
+    if args.sector:
+        kept, offsets, crossing = place(glyphs, args.sector, args.max_bytes)
+        dropped = [g.cp for g in glyphs if g.cp not in offsets]
+    else:
+        kept, dropped = [], []
+        size = INDEX
+        for g in glyphs:
+            need = 4 + len(g.record())
+            if args.max_bytes and size + need > args.max_bytes:
+                dropped.append(g.cp)
+                continue
+            kept.append(g)
+            size += need
+    data = write_font(kept, height, ascent, weight, offsets)
     check(data, kept)
 
     with open(args.out, "wb") as f:
@@ -332,6 +346,13 @@ def build(args):
               f"by a pixel or two: " + show(moved, 8))
     for n in notes:
         print("note: " + n)
+    if args.sector:
+        used = INDEX + sum(4 + len(g.record()) for g in kept)
+        print(f"{args.sector}-byte sectors from byte {BLOCK_OFFSET} of a block: "
+              f"{len(data) - used} bytes of padding")
+        if crossing:
+            print(f"note: {len(crossing)} glyph(s) are bigger than a sector and cross "
+                  f"sector boundaries: " + show(crossing, 8))
     if args.proof:
         proof(data, args.proof)
         print(f"{args.proof}: proof sheet")
@@ -345,8 +366,62 @@ def show(cps, limit=20):
 # ---- the file ------------------------------------------------------------------
 
 
-def write_font(glyphs, height, ascent, weight=400):
-    """Header, page table, index and glyph records (see doc/fonts.md)."""
+def place(glyphs, sector, max_bytes=0):
+    """Lays out glyph records so that none crosses a sector boundary, with
+    the font starting BLOCK_OFFSET bytes into a block. Glyphs go in
+    priority order, each into the first gap that holds it; a glyph that
+    doesn't fit in max_bytes (if given) is left out. A record bigger than
+    a sector starts on a sector boundary and crosses the ones after it.
+    Returns (kept glyphs, {code point: file offset}, code points of the
+    records that cross)."""
+    n = len(glyphs)
+    while True:                         # the index size depends on the count
+        start = INDEX + 4 * n + BLOCK_OFFSET    # block-relative positions
+        fill = {}                       # sector -> its first free byte
+        end = start
+        kept, offsets, crossing = [], {}, []
+        for g in glyphs:
+            if len(kept) == n:
+                break
+            size = len(g.record())
+            pos = None
+            if size <= sector:
+                for s in sorted(fill):  # first fit in an earlier gap
+                    if (s + 1) * sector - fill[s] >= size:
+                        pos = fill[s]
+                        break
+                if pos is None:
+                    pos = end
+                    if pos // sector != (pos + size - 1) // sector:
+                        pos = (pos // sector + 1) * sector      # next sector
+            else:                       # a sector boundary, in one block
+                pos = -(-end // sector) * sector
+                if size <= BLOCK and pos // BLOCK != (pos + size - 1) // BLOCK:
+                    pos = (pos // BLOCK + 1) * BLOCK
+            if max_bytes and pos + size - BLOCK_OFFSET > max_bytes:
+                continue
+            if size > sector:
+                crossing.append(g.cp)
+                for s in range(pos // sector, (pos + size - 1) // sector + 1):
+                    fill[s] = (s + 1) * sector                  # full
+                fill[(pos + size - 1) // sector] = pos + size
+            else:
+                fill[pos // sector] = pos + size
+            end = max(end, pos + size)
+            kept.append(g)
+            offsets[g.cp] = pos - BLOCK_OFFSET
+            full = [s for s in fill if (s + 1) * sector - fill[s] < 6]
+            for s in full:              # 6 bytes: the smallest record
+                del fill[s]
+        if len(kept) == n:
+            return kept, offsets, crossing
+        n = len(kept)                   # a smaller index; place them again
+
+
+def write_font(glyphs, height, ascent, weight=400, offsets=None):
+    """Header, page table, index and glyph records (see doc/fonts.md).
+    offsets maps code points to record offsets (from place); without it
+    the records follow the index in code point order."""
     glyphs = sorted(glyphs, key=lambda g: g.cp)
     n = len(glyphs)
     page = [0] * 257
@@ -355,22 +430,27 @@ def write_font(glyphs, height, ascent, weight=400):
     head = MAGIC + bytes([VERSION, 4, height, ascent]) + struct.pack("<HH", n, weight)
     table = b"".join(struct.pack("<H", v) for v in page) + b"\0\0"
     offset = len(head) + len(table) + 4 * n
-    index, records = b"", b""
+    index, records = b"", bytearray()
     for g in glyphs:
         rec = g.record()
-        if offset >= 1 << 24:
+        if offsets is not None:
+            offset = offsets[g.cp]
+        if offset + len(rec) > 1 << 24:
             sys.exit("error: the font is over 16 MB")
         index += struct.pack("<I", ((g.cp & 255) << 24) | offset)
-        records += rec
+        at = offset - (len(head) + len(table) + 4 * n)
+        if len(records) < at + len(rec):
+            records += bytes(at + len(rec) - len(records))
+        records[at:at + len(rec)] = rec
         offset += len(rec)
-    return head + table + index + records
+    return head + table + index + bytes(records)
 
 
 def lookup(data, cp):
     """Returns the byte offset of cp's glyph record, or None (as Forth would)."""
     p = cp >> 8
     lo, hi = struct.unpack_from("<HH", data, 12 + 2 * p)
-    base = 12 + 514 + 2
+    base = INDEX
     while lo < hi:                                  # binary search on the low byte
         mid = (lo + hi) // 2
         e = struct.unpack_from("<I", data, base + 4 * mid)[0]
@@ -410,7 +490,7 @@ def proof(data, path, columns=16, gap=2):
     from PIL import Image, ImageDraw
     n, = struct.unpack_from("<H", data, 8)
     height = data[6]
-    base = 12 + 514 + 2
+    base = INDEX
     entries = [struct.unpack_from("<I", data, base + 4 * i)[0] for i in range(n)]
     cells = [read_glyph(data, e & 0xFFFFFF) for e in entries]
     cw = max([max(c[4], c[2] + c[0]) for c in cells] + [1])
@@ -564,7 +644,7 @@ def selftest():
 
 class Args:
     fonts = None; size = None; out = "font.lfnt"; weight = None
-    max_bytes = 0; proof = None; glyphs = None
+    max_bytes = 0; proof = None; glyphs = None; sector = 0
 
 
 def need_libraries():
@@ -618,6 +698,10 @@ def main(argv):
                 a.out = next(it)
             elif arg == "--max-bytes":
                 a.max_bytes = int(next(it))
+            elif arg == "--sector":
+                a.sector = int(next(it))
+                if a.sector & (a.sector - 1) or not 64 <= a.sector <= BLOCK:
+                    raise ValueError(arg)
             elif arg == "--proof":
                 a.proof = next(it)
             elif arg.startswith("-"):
@@ -626,12 +710,12 @@ def main(argv):
                 a.glyphs = arg
     except (StopIteration, ValueError):
         print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
-              "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
+              "[--max-bytes N] [--sector N] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
     if not (a.fonts and a.size and a.glyphs):
         print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
-              "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
+              "[--max-bytes N] [--sector N] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
     need_libraries()

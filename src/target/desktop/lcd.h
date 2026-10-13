@@ -48,10 +48,9 @@ int lcd_init(int width, int height, int controller);
  * Drives the controller's bus for one transfer.
  *
  * Bit 15 is reset (active high: the inverse of the RESX pin), bit 14
- * chip select CSX and bit 13 the
- * data/command pin D/CX; bits 7:0 are the byte on the bus (an 8-bit
- * 8080 parallel bus, or one 8-bit SPI transfer; for 3-wire 9-bit SPI,
- * D/CX is the first bit). Bits 12:8 are ignored.
+ * chip select CSX and bit 13 the data/command pin D/CX; bits 7:0 are the
+ * byte on the bus (an 8-bit 8080 parallel bus, or one 8-bit SPI transfer;
+ * for 3-wire 9-bit SPI, D/CX is the first bit). Bits 12:8 are ignored.
  *   - Reset = 1 resets the controller and holds it there; normal
  *     transfers have bit 15 = 0.
  *   - CSX = 1 ignores the byte.

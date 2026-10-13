@@ -235,7 +235,11 @@ def render(font, cp):
 def build(args):
     from PIL import ImageFont
     from fontTools.ttLib import TTFont
-    font = ImageFont.truetype(args.font, args.size, index=args.face)
+    args.font = find_font(args.font)
+    try:
+        font = ImageFont.truetype(args.font, args.size, index=args.face)
+    except OSError as e:
+        sys.exit(f"error: can't open {args.font} (face {args.face}): {e}")
     tt = TTFont(args.font, fontNumber=args.face, lazy=True)
     cmap = tt.getBestCmap() or {}
     weight = set_weight(font, tt, args.weight)
@@ -437,6 +441,23 @@ def font_files(paths):
                 for f in sorted(files):
                     if f.lower().endswith(exts):
                         yield os.path.join(root, f)
+
+
+def find_font(name):
+    """Returns the font file `name`, looking in the installed font folders
+    when it isn't a path to a file; exits with advice if there's none."""
+    import os
+    if os.path.isfile(name):
+        return name
+    base = os.path.basename(name).lower()
+    for path in font_files(font_dirs()):
+        if os.path.basename(path).lower() == base:
+            print(f"note: using {path}")
+            return path
+    stem = os.path.splitext(os.path.basename(name))[0]
+    words = re.findall(r"[A-Za-z][a-z]+|[A-Z]+(?![a-z])", stem)[:2] or [stem]
+    sys.exit(f"error: no font file {name}, here or in the font folders.\n"
+             f"To see what's installed: mkfont.py --list {' '.join(w.lower() for w in words)}")
 
 
 def describe(path):

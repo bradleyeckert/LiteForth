@@ -14,7 +14,7 @@ py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 -o cjk24.lfnt --proof cj
 
 | Option | Meaning |
 |---|---|
-| `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` for the face in the collection) |
+| `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` for the face in the collection). A bare file name that isn't in the current folder is looked for in the installed font folders |
 | `-s PIXELS` | The size: the font's em square, in pixels |
 | `-w WEIGHT` | The weight: 100 to 900, or a name (`thin` 100, `extralight` 200, `light` 300, `demilight` 350, `regular` 400, `medium` 500, `semibold` 600, `bold` 700, `extrabold` 800, `black` 900). A variable font (one with a weight axis, like Noto Sans or `NotoSansCJKsc-VF.otf`) is set to it. A static font must already be that weight: Noto Sans CJK comes as one file per weight (`NotoSansCJK-Bold.ttc`, ...) |
 | `-o FILE` | The output (default `font.lfnt`) |

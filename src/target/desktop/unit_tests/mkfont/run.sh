@@ -33,6 +33,14 @@ fi
 if python3 "$MKFONT" -f "$FONT" -s 16 -w bold -o "$WORK/x.lfnt" "$WORK/glyphs.txt" > /dev/null 2>&1; then
     echo "mkfont test FAILED: -w bold on a regular-only font should fail"; exit 1
 fi
+# several -f: Hebrew isn't in Noto Sans CJK, so it comes from the fallback
+DEJAVU=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+if [ -f "$DEJAVU" ]; then
+    printf 'AB\nאב\n学\n' > "$WORK/fb.txt"
+    python3 "$MKFONT" -f "$FONT" -f "$DEJAVU" -s 16 -o "$WORK/fb.lfnt" "$WORK/fb.txt" > "$WORK/out4.txt" || { cat "$WORK/out4.txt"; exit 1; }
+    grep -q "5 glyphs" "$WORK/out4.txt" && grep -q "2 glyph(s) from .*DejaVuSans" "$WORK/out4.txt" \
+        || { echo "mkfont test FAILED: fallback font"; cat "$WORK/out4.txt"; exit 1; }
+fi
 # --list: the faces of a .ttc, filtered by words
 python3 "$MKFONT" --list "$FONT" sc > "$WORK/list.txt" || exit 1
 grep -q "Noto Sans CJK SC .*Regular .*400 .*--face 2 " "$WORK/list.txt" || { echo "mkfont test FAILED: --list"; cat "$WORK/list.txt"; exit 1; }

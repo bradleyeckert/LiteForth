@@ -14,7 +14,7 @@ py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 -o cjk24.lfnt --proof cj
 
 | Option | Meaning |
 |---|---|
-| `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` for the face in the collection). A bare file name that isn't in the current folder is looked for in the installed font folders |
+| `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` after it for the face in the collection). A bare file name that isn't in the current folder is looked for in the installed font folders. Give `-f` more than once for fallback fonts: each glyph comes from the first font that has it, and the first font sets the cell height and ascent (grown if a fallback glyph needs more room) |
 | `-s PIXELS` | The size: the font's em square, in pixels |
 | `-w WEIGHT` | The weight: 100 to 900, or a name (`thin` 100, `extralight` 200, `light` 300, `demilight` 350, `regular` 400, `medium` 500, `semibold` 600, `bold` 700, `extrabold` 800, `black` 900). A variable font (one with a weight axis, like Noto Sans or `NotoSansCJKsc-VF.otf`) is set to it. A static font must already be that weight: Noto Sans CJK comes as one file per weight (`NotoSansCJK-Bold.ttc`, ...) |
 | `-o FILE` | The output (default `font.lfnt`) |
@@ -46,6 +46,21 @@ reported. For example:
 U+0020-U+007E
 学如不及，犹恐失之
 ```
+
+For scripts the first font lacks, add fonts that have them:
+
+```
+py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -f NotoSansArabic-Regular.ttf -f NotoSansDevanagari-Regular.ttf -s 24 -o all24.lfnt glyphs.txt
+```
+
+Glyphs are drawn one code point at a time, with no text shaping. That
+suits Latin, Greek, Cyrillic, Hebrew and CJK. Arabic letters change shape
+with their neighbors: put the presentation forms (U+FB50-U+FDFF,
+U+FE70-U+FEFF) in the glyph list and pick the form for each letter, and
+the right-to-left order, when drawing. Indic scripts such as Devanagari
+need a shaping engine (conjuncts, reordered vowel signs, ligatures that
+have no code point of their own), so per-code-point glyphs only give
+isolated letters.
 
 ## The file
 

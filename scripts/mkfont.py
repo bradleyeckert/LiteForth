@@ -17,8 +17,12 @@ don't are listed. Duplicates, code points above U+FFFF and characters the
 font doesn't have are skipped and reported.
 
 Options:
-  -f FILE        the font (.ttf, .otf or .ttc)
-  --face N       the face in a .ttc collection (default 0)
+  -f FILE        the font (.ttf, .otf or .ttc). Give -f more than once
+                 for fallbacks: each glyph comes from the first font that
+                 has it, e.g. -f NotoSansCJKsc-Regular.otf -f
+                 NotoSansArabic-Regular.ttf
+  --face N       the face in a .ttc collection, for the -f before it
+                 (default 0)
   -s PIXELS      the size (the font's em square, in pixels)
   -w WEIGHT      the weight: 100 to 900, or thin, extralight, light,
                  demilight (350), regular, medium, semibold, bold,
@@ -235,33 +239,42 @@ def render(font, cp):
 def build(args):
     from PIL import ImageFont
     from fontTools.ttLib import TTFont
-    args.font = find_font(args.font)
-    try:
-        font = ImageFont.truetype(args.font, args.size, index=args.face)
-    except OSError as e:
-        sys.exit(f"error: can't open {args.font} (face {args.face}): {e}")
-    tt = TTFont(args.font, fontNumber=args.face, lazy=True)
-    cmap = tt.getBestCmap() or {}
-    weight = set_weight(font, tt, args.weight)
+    fonts = []                          # (name, Pillow font, cmap), in order
+    weight = None
+    for name, face in args.fonts:
+        path = find_font(name)
+        try:
+            font = ImageFont.truetype(path, args.size, index=face)
+        except OSError as e:
+            sys.exit(f"error: can't open {path} (face {face}): {e}")
+        tt = TTFont(path, fontNumber=face, lazy=True)
+        w = set_weight(font, tt, args.weight)
+        weight = w if weight is None else weight
+        fonts.append((name, font, tt.getBestCmap() or {}))
 
     wanted, seen = [], set()
-    skipped = {"duplicate": 0, "above U+FFFF": [], "not in the font": []}
+    skipped = {"duplicate": 0, "above U+FFFF": [],
+               "not in the font" if len(fonts) == 1 else "in none of the fonts": []}
+    source = {}                         # code point -> the font that has it
     for cp in read_glyph_list(args.glyphs):
         if cp in seen:
             skipped["duplicate"] += 1
         elif cp > 0xFFFF:
             skipped["above U+FFFF"].append(cp)
-        elif cp not in cmap:
-            skipped["not in the font"].append(cp)
         else:
-            wanted.append(cp)
+            have = [f for f in fonts if cp in f[2]]
+            if not have:
+                skipped["not in the font" if len(fonts) == 1 else "in none of the fonts"].append(cp)
+            else:
+                source[cp] = have[0]
+                wanted.append(cp)
         seen.add(cp)
 
     rendered = []
     for cp in wanted:
-        rendered.append((cp,) + render(font, cp))
-    # the cell: the font's ascent and descent, grown to hold every glyph
-    ascent, descent = font.getmetrics()
+        rendered.append((cp,) + render(source[cp][1], cp))
+    # the cell: the first font's ascent and descent, grown to hold every glyph
+    ascent, descent = fonts[0][1].getmetrics()
     for cp, (x0, y0, x1, y1), adv, rows in rendered:
         if rows:
             ascent = max(ascent, -y0)
@@ -270,11 +283,11 @@ def build(args):
     if height > 255:
         sys.exit(f"error: the cell is {height} pixels high, more than 255")
 
-    glyphs, notes = [], []
+    glyphs, notes, moved = [], [], []
     for cp, (x0, y0, x1, y1), adv, rows in rendered:
         w, h = x1 - x0, y1 - y0
         if x0 < 0:
-            notes.append(f"U+{cp:04X} starts {-x0} pixel(s) left of its cell; moved right")
+            moved.append(cp)            # overhangs the cell on the left
             x0 = 0
         if w > 255 or h > 255 or x0 > 255 or adv > 255:
             notes.append(f"U+{cp:04X} is too big for 8-bit sizes; skipped")
@@ -310,6 +323,13 @@ def build(args):
             print(f"skipped {len(cps)} {what}: " + show(cps))
     if dropped:
         print(f"dropped {len(dropped)} that didn't fit in {args.max_bytes} bytes: " + show(dropped))
+    if len(fonts) > 1:
+        for name, _, _ in fonts:
+            n = sum(1 for g in kept if source[g.cp][0] == name)
+            print(f"{n} glyph(s) from {name}")
+    if moved:
+        print(f"note: {len(moved)} glyph(s) started left of their cell and were moved right "
+              f"by a pixel or two: " + show(moved, 8))
     for n in notes:
         print("note: " + n)
     if args.proof:
@@ -543,7 +563,7 @@ def selftest():
 
 
 class Args:
-    font = None; face = 0; size = None; out = "font.lfnt"; weight = None
+    fonts = None; size = None; out = "font.lfnt"; weight = None
     max_bytes = 0; proof = None; glyphs = None
 
 
@@ -585,9 +605,11 @@ def main(argv):
                 print(__doc__)
                 return 0
             elif arg == "-f":
-                a.font = next(it)
+                a.fonts = (a.fonts or []) + [[next(it), 0]]
             elif arg == "--face":
-                a.face = int(next(it))
+                if not a.fonts:
+                    raise ValueError(arg)   # --face belongs to the -f before it
+                a.fonts[-1][1] = int(next(it))
             elif arg == "-s":
                 a.size = int(next(it))
             elif arg == "-w":
@@ -607,7 +629,7 @@ def main(argv):
               "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
-    if not (a.font and a.size and a.glyphs):
+    if not (a.fonts and a.size and a.glyphs):
         print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
               "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)

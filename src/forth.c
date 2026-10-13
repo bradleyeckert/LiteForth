@@ -74,7 +74,7 @@ HEADS_BEGIN(forth_heads);
 #define PREV PREV_IN(forth_heads)
 static const struct s_head forth_heads[] = {  
     { (struct s_head*)LAST_HEAD(only_heads), "invert", UOP(VMU_INV),  69},
-    { PREV, "inv",          UOP(VMU_INV),                             70},
+    { PREV, "inv",          UOP(VMU_INV),                             69},
     { PREV, "over",         UOP(VMU_OVER),                            71},
     { PREV, "a!",           UOP(VMU_ASTORE),                          72},
     { PREV, "xor",          UOP(VMU_XOR),                             73},
@@ -104,7 +104,8 @@ static const struct s_head forth_heads[] = {
     { PREV, "@b+",          UOP(VMU_FETCHBPLUS),                      98},
     { PREV, "a",            UOP(VMU_A),                               99},
     { PREV, "cy",           UOP(VMU_CY),                              100},
-    { PREV, "u!",           UOP(VMU_USTORE),                          101},
+    { PREV, "px!",          UOP(VMU_PXSTORE),                         70},
+    { PREV, "u!",           SYSTO(VMSTO_USTORE),                      101},
     { PREV, "2dup",         MACRO(VMU_OVER,VMU_OVER,VMU_NOP),         102},
     { PREV, "2drop",        MACRO(VMU_DROP,VMU_DROP,VMU_NOP),         103},
     { PREV, "!",            MACRO(VMU_ASTORE,VMU_STOREA,VMU_NOP),     104},

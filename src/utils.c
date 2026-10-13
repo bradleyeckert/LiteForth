@@ -204,6 +204,9 @@ int lfAPI_dump(void) {
 
 static const char* uopName[] = UOP_NAMES;
 static const char* immName[] = IMM_NAMES; 
+static const char* vmsName[] = VMS_NAMES;
+static const char* vmstName[] = VMST_NAMES;
+static const char* vmsfName[] = VMSF_NAMES;
 
 static int lfDotHex(int32_t n) {
     lfDotB(n, 16, 0, 0);
@@ -239,6 +242,7 @@ static int32_t DisassembleInsn(uint16_t inst, char* tag) {
         int32_t immex = (lex << 13) | (inst & ((1 << 13) - 1));
         char* label = NULL;
         char last = ' ';
+		const char* opname = NULL;
         switch (opcode) {
             case 0: last = ';'; FALLTHROUGH;
             case 1:
@@ -275,11 +279,17 @@ static int32_t DisassembleInsn(uint16_t inst, char* tag) {
                     else {
                         lfDotHex(simm);
                     } break;
+				case VMO_SYS:     opname = vmsName[imm & 7];  goto seesys;
+				case VMO_TOSYS:     opname = vmstName[imm & 7];  goto seesys;
+				case VMO_FROMSYS:    opname = vmsfName[imm & 7];
+                seesys:
+                    if (imm >= 8) goto plain;
+                    lf_puts(opname);  break;
                 case VMO_BRAN:
                 case VMO_ZBRAN:
                 case VMO_PBRAN:
-                    branch_offset = simm;
-					FALLTHROUGH;
+                    branch_offset = simm;  FALLTHROUGH;
+                plain:
                 default:
                     lfDot(simm);
                     lf_puts(immName[opcode]);

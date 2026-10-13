@@ -5,7 +5,7 @@
 ( -- )                          \ Set the top of the search order to forth.
 ( -- )                          \ Set the search order to only the root.
 ( x1 -- x2 )                    \ Invert all bits of x1, giving its logical inverse x2.
-( x1 -- x2 )                    \ Invert all bits of x1, giving its logical inverse x2.
+( x -- )                        \ Reserved for Page Extension: Appends 32 address bits to the next memory access.
 ( x1 x2 -- x1 x2 x1 )           \ Place a copy of x1 on top of the stack.
 ( addr -- )                     \ Load the A register with a cell or slice address, or a 32-bit value.
 ( x1 x2 -- x3 )                 \ x3 is the bit-by-bit exclusive-or of x1 with x2.

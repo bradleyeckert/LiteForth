@@ -107,7 +107,7 @@
 #define VMU_TWODIVC             0x10
 #define VMU_TWODIV              0x11
 #define VMU_FETCHASIGN          0x12
-#define VMU_USTORE              0x13
+#define VMU_PXSTORE             0x13
 #define VMU_STOREA              0x14
 #define VMU_STOREAPLUS          0x15
 #define VMU_STOREB              0x16
@@ -172,6 +172,11 @@
 #define VMI_MASK               ((3 << VM_LIMM_BITS) | (0x0F << VM_IMM_BITS))
 
 // system instructions VMI_SYS, VMI_TOSYS, and VMI_FROMSYS
+
+#define VMS_NAMES  {"]task", "field+", "]shr", "]shl", "capusec", "break", "", "", ""}
+#define VMST_NAMES {"shft[", "yeet", "u!", "", "", "", "", ""}
+#define VMSF_NAMES {"task[", "x@", "y@", "", "", "", "", ""}
+
 #define VMS_TASK                0
 #define VMS_FIELDPLUS           1
 #define VMS_SHR                 2
@@ -181,6 +186,7 @@
 
 #define VMSTO_SHIFT             0
 #define VMSTO_YEET              1
+#define VMSTO_USTORE            2
 
 #define VMSFROM_TASK            0
 #define VMSFROM_X               1

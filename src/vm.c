@@ -285,7 +285,7 @@ execute:
                 }
                 t = n;
             }                                                       break;
-            case VMU_USTORE:    n = t;  DDROP();  u = n;            break;
+            case VMU_PXSTORE:    DDROP();   break;
             case VMU_STOREA:    n = t;  DDROP();  MEMOP(ior = vmStore(a, n));  break;
             case VMU_STOREAPLUS:
                 n = t;  DDROP();  MEMOP(ior = vmStore(a, n));  a = vmFieldPlus(a);  break;
@@ -373,7 +373,8 @@ execute:
             switch (imm) {
             case VMSTO_YEET: if (tos) ior = (int32_t)tos;  break;
             case VMSTO_SHIFT:
-                lf_vm.shift_size = tos & 0x1F; break;
+                lf_vm.shift_size = tos & 0x1F;  break;
+            case VMSTO_USTORE: u = tos;  break;
             default: break;
             }
         } break;

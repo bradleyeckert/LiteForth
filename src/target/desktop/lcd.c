@@ -45,7 +45,7 @@
 typedef struct {
     uint32_t* gram;                     // ST_ROWS x ST_COLS, 18-bit RRRRRRGGGGGGBBBBBB
     int width, height;                  // the panel
-    int in_reset;                       // RESX is low
+    int in_reset;                       // reset is held (bit 15)
     uint8_t cmd;                        // the command being received
     uint8_t param[8];
     int nparam;
@@ -500,7 +500,7 @@ int lcd_init(int width, int height, int controller) {
 int lcd_tx(uint16_t data) {
     if (!lcd_open) return ERR_UNSUPPORTED_OPERATION;
     LCD_LOCK();
-    if (!(data & LCD_RESX)) {                           // held in reset
+    if (data & LCD_RESET) {                             // held in reset
         if (!lcd.in_reset) st_reset();
         lcd.in_reset = 1;
     } else {

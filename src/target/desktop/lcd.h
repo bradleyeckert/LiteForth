@@ -22,7 +22,7 @@ extern "C" {
 #define LCD_ST7789          0   // controller: Sitronix ST7789 (240 x 320)
 
 // lcd_tx bus bits
-#define LCD_RESX       0x8000   // reset pin: 0 = held in reset
+#define LCD_RESET      0x8000   // reset: 1 = held in reset (the RESX pin low)
 #define LCD_CSX        0x4000   // chip select: 0 = selected
 #define LCD_DCX        0x2000   // data/command: 0 = command, 1 = data
 #define LCD_DATA       0x00FF   // the byte on the bus
@@ -47,11 +47,12 @@ int lcd_init(int width, int height, int controller);
 /**
  * Drives the controller's bus for one transfer.
  *
- * Bit 15 is the reset pin RESX, bit 14 chip select CSX and bit 13 the
- * data/command pin D/CX; bits 7:0 are the byte on the bus (an 8-bit
- * 8080 parallel bus, or one 8-bit SPI transfer; for 3-wire 9-bit SPI,
- * D/CX is the first bit). Bits 12:8 are ignored.
- *   - RESX = 0 resets the controller (a rising edge isn't needed).
+ * Bit 15 is reset (active high: the inverse of the RESX pin), bit 14
+ * chip select CSX and bit 13 the data/command pin D/CX; bits 7:0 are the
+ * byte on the bus (an 8-bit 8080 parallel bus, or one 8-bit SPI transfer;
+ * for 3-wire 9-bit SPI, D/CX is the first bit). Bits 12:8 are ignored.
+ *   - Reset = 1 resets the controller and holds it there; normal
+ *     transfers have bit 15 = 0.
  *   - CSX = 1 ignores the byte.
  *   - D/CX = 0 sends a command, 1 a parameter or pixel data.
  * Reading from the controller isn't simulated.

@@ -19,8 +19,8 @@ static void pause_ms(int ms) {
 }
 #endif
 
-static void cmd(uint8_t c) { lcd_tx(LCD_RESX | c); }
-static void dat(uint8_t d) { lcd_tx(LCD_RESX | LCD_DCX | d); }
+static void cmd(uint8_t c) { lcd_tx(c); }
+static void dat(uint8_t d) { lcd_tx(LCD_DCX | d); }
 static void dat16(int v)   { dat((uint8_t)(v >> 8));  dat((uint8_t)v); }
 
 static void window(int x0, int y0, int x1, int y1) {
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     pause_ms(500);                      // the power-on garbage, for a moment
-    lcd_tx(0);  lcd_tx(LCD_RESX | LCD_CSX);             // hardware reset
+    lcd_tx(LCD_RESET);  lcd_tx(LCD_CSX);                // hardware reset
     cmd(0x11);                          // SLPOUT
     cmd(0x3A);  dat(0x55);              // 16-bit pixels
     cmd(0x36);  dat(0x00);              // MADCTL: portrait

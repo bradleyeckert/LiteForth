@@ -235,7 +235,11 @@ def render(font, cp):
 def build(args):
     from PIL import ImageFont
     from fontTools.ttLib import TTFont
-    font = ImageFont.truetype(args.font, args.size, index=args.face)
+    args.font = find_font(args.font)
+    try:
+        font = ImageFont.truetype(args.font, args.size, index=args.face)
+    except OSError as e:
+        sys.exit(f"error: can't open {args.font} (face {args.face}): {e}")
     tt = TTFont(args.font, fontNumber=args.face, lazy=True)
     cmap = tt.getBestCmap() or {}
     weight = set_weight(font, tt, args.weight)
@@ -439,6 +443,23 @@ def font_files(paths):
                         yield os.path.join(root, f)
 
 
+def find_font(name):
+    """Returns the font file `name`, looking in the installed font folders
+    when it isn't a path to a file; exits with advice if there's none."""
+    import os
+    if os.path.isfile(name):
+        return name
+    base = os.path.basename(name).lower()
+    for path in font_files(font_dirs()):
+        if os.path.basename(path).lower() == base:
+            print(f"note: using {path}")
+            return path
+    stem = os.path.splitext(os.path.basename(name))[0]
+    words = re.findall(r"[A-Za-z][a-z]+|[A-Z]+(?![a-z])", stem)[:2] or [stem]
+    sys.exit(f"error: no font file {name}, here or in the font folders.\n"
+             f"To see what's installed: mkfont.py --list {' '.join(w.lower() for w in words)}")
+
+
 def describe(path):
     """(face, family, style, weight text) for each face in a font file."""
     from fontTools.ttLib import TTFont, TTCollection
@@ -477,9 +498,11 @@ def list_fonts(args):
             if all(w in text for w in words):
                 rows.append((family.lower(), path, face, family, style, weight))
     rows.sort(key=lambda r: (r[0], r[1], r[2] or 0))
-    for _, path, face, family, style, weight in rows:
-        where = f"--face {face}" if face is not None else ""
-        print(f"{family:<28} {style:<12} {weight:<16} {where:<9} {path}")
+    lines = [(family, style, weight, f"--face {face}" if face is not None else "", path)
+             for _, path, face, family, style, weight in rows]
+    widths = [max([len(r[k]) for r in lines] + [1]) for k in range(4)]
+    for r in lines:
+        print("  ".join(r[k].ljust(widths[k]) for k in range(4)) + "  " + r[4])
     print(f"{len(rows)} font face(s)" + (f"; {bad} file(s) couldn't be read" if bad else ""))
 
 

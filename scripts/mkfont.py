@@ -33,7 +33,7 @@ Needs Pillow (pip install pillow) and fontTools (pip install fonttools).
 
 Pixels are 0 (background, "black") to 15 (foreground, "white"), streamed
 row by row through the glyph's bounding box. Each 16-bit code is one of:
-  00 white[7] black[7]           a run of white, then a run of black
+  00 gray[4] black[3] gray[4] white[3]   a pixel, 0-7 black, a pixel, 0-7 white
   01 gray[4] next[1] len[9]      a pixel, then len pixels of next (1 white)
   10 gray[4] gray[4] next[1] len[5]
   11 gray[4] gray[4] gray[4] black[2]
@@ -44,7 +44,7 @@ import struct
 import sys
 
 MAGIC = b"LFNT"
-VERSION = 1
+VERSION = 2                     # 2: format 00 is gray black gray white
 WHITE, BLACK = 15, 0
 
 # ---- the pixel codec ---------------------------------------------------------
@@ -64,11 +64,11 @@ def encode(px):
     choice = [None] * (n + 1)       # (code, next position)
     for i in range(n - 1, -1, -1):
         options = []
-        if px[i] in (WHITE, BLACK):                              # 00
-            w = _run(px, i, WHITE, 127)
-            b = _run(px, i + w, BLACK, 127)
-            if w + b:
-                options.append(((w << 7) | b, i + w + b))
+        b = _run(px, i + 1, BLACK, 7)                            # 00
+        k = i + 1 + b                   # the second pixel
+        if k < n:
+            w = _run(px, k + 1, WHITE, 7)
+            options.append(((px[i] << 10) | (b << 7) | (px[k] << 3) | w, k + 1 + w))
         j = i + 1                                                # 01
         if j < n and px[j] in (WHITE, BLACK):
             nxt = px[j] == WHITE
@@ -107,7 +107,8 @@ def decode(codes, count):
     for c in codes:
         f = c >> 14
         if f == 0:
-            px += [WHITE] * ((c >> 7) & 127) + [BLACK] * (c & 127)
+            px += ([(c >> 10) & 15] + [BLACK] * ((c >> 7) & 7)
+                   + [(c >> 3) & 15] + [WHITE] * (c & 7))
         elif f == 1:
             px += [(c >> 10) & 15] + [WHITE if (c >> 9) & 1 else BLACK] * (c & 511)
         elif f == 2:
@@ -424,7 +425,7 @@ def selftest():
         if any(not 0 <= c <= 0xFFFF for c in codes):
             sys.exit("selftest FAILED: a code is not 16 bits")
     # a run-length check: long runs take few codes
-    assert len(encode([WHITE] * 127 + [BLACK] * 127)) == 1
+    assert len(encode([9] + [BLACK] * 7 + [4] + [WHITE] * 7)) == 1
     assert len(encode([7] + [WHITE] * 511)) == 1
     assert len(encode([1, 2, 3, 0, 0, 0])) == 1
     print(f"mkfont selftest passed ({len(cases)} cases)")

@@ -498,9 +498,11 @@ def list_fonts(args):
             if all(w in text for w in words):
                 rows.append((family.lower(), path, face, family, style, weight))
     rows.sort(key=lambda r: (r[0], r[1], r[2] or 0))
-    for _, path, face, family, style, weight in rows:
-        where = f"--face {face}" if face is not None else ""
-        print(f"{family:<28} {style:<12} {weight:<16} {where:<9} {path}")
+    lines = [(family, style, weight, f"--face {face}" if face is not None else "", path)
+             for _, path, face, family, style, weight in rows]
+    widths = [max([len(r[k]) for r in lines] + [1]) for k in range(4)]
+    for r in lines:
+        print("  ".join(r[k].ljust(widths[k]) for k in range(4)) + "  " + r[4])
     print(f"{len(rows)} font face(s)" + (f"; {bad} file(s) couldn't be read" if bad else ""))
 
 

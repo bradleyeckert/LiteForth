@@ -96,6 +96,8 @@ Name lookup ignores case.
 | `inv` | `( x1 -- x2 )` | Bitwise NOT (same as `invert`). |
 | `invert` | `( x1 -- x2 )` | Bitwise NOT. |
 | `label` | `( <name> -- )` | Declares `name` for a forward reference: a header (flag `A_UNRESOLVED`) with two reserved code slots. Code can call `name` before it's defined; a later `: name` stores a jump to its code there. Until then, a call from code fails with -105 (the slots hold an invalid opcode), running it at the terminal gives -119, and so does `bye` while one is left (it prints the name). |
+| `lcd-init` | `( width height controller -- )` | Opens a simulated graphic LCD panel of `width` x `height` pixels in a window (desktop `lf`, `lcd.c`), driven by an emulated controller: 0 = ST7789 (frame memory 240 x 320). The window shows each pixel `LCD_ZOOM` (2) times as big. Gives -21 where there is no window (no display, or a target without an LCD driver) or the panel doesn't fit the controller. |
+| `lcd-tx` | `( u -- )` | One transfer on the LCD bus: bit 15 is the reset pin RESX (0 = reset), bit 14 chip select CSX (1 = ignore the byte), bit 13 D/CX (0 = command, 1 = parameter or pixel data), bits 7:0 the byte, as on an 8-bit parallel or SPI bus. For example `hex 802C lcd-tx` sends RAMWR. Gives -21 before `lcd-init`. |
 | `literal` | `( n -- )` | Immediate. Compiles `n` as a literal. |
 | `load` | `( u -- )` | Interprets block `u`, then continues after `load`. Loads nest. |
 | `m*` | `( n1 n2 -- d )` | Signed 32 × 32 to 64-bit multiply. |

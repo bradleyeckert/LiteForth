@@ -1,7 +1,7 @@
 # LiteForth Editor Lexicon
 
 In LiteForth, code is organized into **4096-byte blocks (screens)** of 32 lines of 128 characters each.
-Editing within LiteForth is done with the **`editor` vocabulary** (blocks 17 to 19 of `forth/core.f`),
+Editing within LiteForth is done with the **`editor` vocabulary** (blocks 18 to 20 of `forth/core.f`),
 a compact lexicon of single-letter and short commands for line- and character-level changes.
 
 The search order is normally `[forth forth]` (`order` shows it). `editor` makes it

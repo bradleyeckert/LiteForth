@@ -13,6 +13,7 @@
 #include "api0.h"
 #include "lfblocks.h"
 #include "xmodem.h"
+#include "lcd.h"
 
 /*==========================================================================
 * API 0 
@@ -312,6 +313,19 @@ static int extick(void) {
     if (word == NULL) return ERR_UNDEFINED_WORD;
     vmPush(word->w);
     return vmPush(word->aux);
+}
+
+/* LCD-INIT  ( width height controller -- )  Open a simulated LCD (lcd.h) */
+static int lcdInit(void) {
+    int controller = (int)vmPop();
+    int height = (int)vmPop();
+    int width = (int)vmPop();
+    return lcd_init(width, height, controller);
+}
+
+/* LCD-TX  ( u -- )  One transfer on the LCD bus: pins and a byte (lcd.h) */
+static int lcdTx(void) {
+    return lcd_tx((uint16_t)vmPop());
 }
 
 /* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */

@@ -33,18 +33,18 @@ file piped into `lf` (`lf < core.f`), have `BLK` = 0. To get real
 locations, write the file into blocks with `putblocks.py` and `load` it.
 
 **Built-in words** (the C tables in `forth.c`) have their `aux` set by
-hand to `32 * block + row`. That row is in `forth/block2_5.f`
-(blocks 2 to 5), whose rows are written in this format:
+hand to `32 * block + row`. That row is in `forth/block2_6.f`
+(blocks 2 to 6), whose rows are written in this format:
 
 ```
 ( x1 x2 -- x2 x1 )              \ Exchange the top two stack items.
 ```
 
 Row 0 of a block is its title, so indices that are multiples of 32
-(96, 128, 160) are never used. When you add a built-in word:
+(96, 128, 160, 192) are never used. When you add a built-in word:
 
 - give it the next free index;
-- put its row at the same position in `block2_5.f`;
+- put its row at the same position in `block2_6.f`;
 - keep the block titles ("lines 129 to 159") in step.
 
 ## 2. The header row

@@ -45,7 +45,7 @@ With RealTerm on the board's USB serial port:
 2. On RealTerm's *Send* tab, choose the file (`forth/core.f`, say), set the
    protocol to XMODEM with checksum, and send it.
 3. When the transfer ends, LiteForth lists the blocks it wrote, for example
-   `xmodem: 16 blocks written: 6 7 8 ...`. Then `1 load` or `6 load` as
+   `xmodem: 16 blocks written: 7 8 9 ...`. Then `1 load` or `7 load` as
    usual.
 
 Each block is filled in a block buffer and written (`update save-buffers`)

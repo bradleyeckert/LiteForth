@@ -12,11 +12,11 @@
 ( Block 0 is reserved for the LITEFORTH tag and to-be-determined metadata. )
 ( Block 1 is the home block )
 ( Blocks 2 to 5 are used to document the internal functions of `forth.c`. )
-( Block 6 to ~20 build up a Forth )
+( Block 7 to ~22 build up a Forth )
 
 0 open-flash
 
-( BLOCK 6 )
+( BLOCK 7 )
 ( LiteForth configuration _____________________________________ 10/9/26 BNE )
 empty only forth
 : \         ( -- )          >in @ 128 + -128 and >in ! ; immediate              \ comment to next row in a 128*32 block
@@ -209,7 +209,7 @@ create numbuf 10 allot                                                          
 ( Block support _______________________________________________ 10/9/26 BNE )
 : thru      ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
 -->
-( BLOCK 17 )
+( BLOCK 18 )
 ( Block editor 1/3 ____________________________________________ 10/11/26 BNE )
 vocabulary editor  also editor definitions                                      \ vocabulary for the editor
 _udata  variable scr                                                            \ block being edited or listed

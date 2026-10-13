@@ -120,7 +120,7 @@ crosses a block, though the index as a whole may span several.
 
 The padding is small. For 595 glyphs (ASCII and 500 common hanzi) from
 Noto Sans CJK it is 390 bytes at 16 pixels, 850 at 24, 1152 at 32 and
-5790 at 48 (2.1% of 276 KB).
+5790 at 48 (2.2% of 260 KB).
 
 ## Pixel codes
 

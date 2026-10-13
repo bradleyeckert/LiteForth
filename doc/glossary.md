@@ -107,6 +107,7 @@ Name lookup ignores case.
 | `open-flash` | `( addr -- )` | Maps the flash page holding `addr` to a writable RAM buffer so it can be compiled to. |
 | `over` | `( x1 x2 -- x1 x2 x1 )` | Copies the second item to the top. |
 | `page` | `( page -- a )` | Returns the base address of memory page `page`. |
+| `px!` | `( x -- )` | Reserved for a page extension: will supply 32 more address bits for the next memory access, past the 22-bit address space. For now it only drops `x`. |
 | `postpone` | `( <name> -- )` | Immediate. Compiles an immediate word; for any other word, compiles code that will compile it. |
 | `r>` | `( -- x ) (R: x -- )` | Moves the top of the return stack to the data stack. |
 | `r@` | `( -- x ) (R: x -- x)` | Copies the top of the return stack. |
@@ -124,7 +125,7 @@ Name lookup ignores case.
 | `task[` | `( -- r:d )` | Pushes T onto the data stack and R onto the return stack, then T = `rp:sp` (`rp` in the upper half). Used for task switching. |
 | `tuck` | `( x1 x2 -- x2 x1 x2 )` | Copies the top item under the second. |
 | `t{` | `( -- )` | † Starts a test: `t{ ... -> ... }t`. |
-| `u!` | `( x -- )` | Sets the user pointer register `U`. |
+| `u!` | `( x -- )` | Sets the user pointer register `U` (`>sys` 2, a separate instruction). |
 | `um*` | `( u1 u2 -- ud )` | Unsigned 32 × 32 to 64-bit multiply. |
 | `um+` | `( u1 u2 -- u3 carry )` | Adds, and pushes the carry out of bit 31. |
 | `unext` | `( -- )` | Repeats its instruction group from the start while `R` counts down, then drops `R`. Use `|inst` to start the group where the loop should begin. |

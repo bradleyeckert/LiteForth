@@ -79,7 +79,7 @@
 #define UOP_NAMES { \
     "nop",   "inv",   "over",  "a!",    "xor",   "+",     "and",   ">r", \
     "unext", "2*",    "dup",   "drop",  "@a",    "@a+",   "r@",    "r>", \
-    "2/c",   "2/",    "@as",   "u!",    "!a",    "!a+",   "!b",    "!b+", \
+    "2/c",   "2/",    "@as",   "px!",   "!a",    "!a+",   "!b",    "!b+", \
     "swap",  "+*",    "b",     "b!",    "@b",    "@b+",   "a",     "cy"}
 
 #define VM_STACKEFFECTS { /* 0=none, 1=dup, 2=drop */ \

@@ -209,11 +209,12 @@ The µops (note - they don't take immediate data) are:
 |-----|-------|------|----------|--------|--------|---------|--------|--------|
 | *0* | nop   | inv  | ***over*** | *a!*   | *xor*  | *+*     | *and*  | *>r*   |
 | *1* | unext | 2\*  | ***dup***  | *drop* | ***@a*** | ***@a+*** | ***r@*** | ***r>*** |
-| *2* | 2/c   | 2/   | ***@as***  | *u!*   | *!a*   | *!a+*   | *!b*   | *!b+*  |
+| *2* | 2/c   | 2/   | ***@as***  | *px!*  | *!a*   | *!a+*   | *!b*   | *!b+*  |
 | *3* | swap  | +\*  | ***b***    | *b!*   | ***@b*** | ***@b+*** | ***a***  | ***cy*** |
 
 - cy = carry caused by addition or shift
-- u = user pointer register
+- px! = reserved for a page extension (32 more address bits for the next
+  memory access, past the 22-bit address space); for now it just drops T
 - a, b = address registers for memory
 - @ and ! support bit fields: auto-increment handles bit fields
 
@@ -255,6 +256,7 @@ The longest, 32-bit literal takes 3 instructions.
 | break  | 6 | 5 | Return to the terminal (`ERR_VM_BREAK`) |
 | *shft\[* | 8 | 0 | shift_size \= T |
 | *yeet* | 8 | 1 | VM quits and returns ior \= T |
+| *u!*   | 8 | 2 | U \= T (the user pointer) |
 |***task\[***| 10 | 0 | Push R, T \= rp:sp |
 |***x@***| 10 | 1 | T \= X |
 |***y@***| 10 | 2 | T \= Y |

@@ -19,8 +19,8 @@ a partition (/dev/sdb2), is never extended.
 
 It prints the blocks it wrote and the next free block, which is where the
 next file can go:
-    putbin.py cjk24.lfnt 100       -> blocks 100-127, next free block 128
-    putbin.py cjk16.lfnt 128
+    putbin.py cjk24.fnt 100       -> blocks 100-127, next free block 128
+    putbin.py cjk16.fnt 128
 
 -n  only show what would be written.
 """
@@ -41,7 +41,7 @@ def image(data):
 
 
 def font_crossings(data):
-    """For a .lfnt font, returns how many glyph records cross a block
+    """For a .fnt font, returns how many glyph records cross a block
     boundary in this layout, or None if data isn't a font."""
     if len(data) < 528 or data[:4] != b"LFNT":
         return None

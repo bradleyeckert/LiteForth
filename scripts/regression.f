@@ -137,6 +137,10 @@ T{ 84000001 slice+ -> 80000002 }T
 T{ 80000002 slice+ -> 84000002 }T
 T{ nib 1B shft[ ]shr -> 4 }T       ( slice width is in bits 31:27 )
 T{ sbyte 1B shft[ ]shr -> 8 }T
+T{ -40 4 shft[ ]asr -> -4 }T       ( ]asr copies the sign bit )
+T{ 40 4 shft[ ]asr -> 4 }T
+T{ -1 1F shft[ ]asr -> -1 }T
+T{ -40 4 shft[ ]shr -> 0FFFFFFC }T  ( ]shr does not )
 DECIMAL
 
 

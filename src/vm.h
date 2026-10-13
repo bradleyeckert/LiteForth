@@ -49,7 +49,7 @@ typedef struct {
     uint32_t X;             // GP register
     uint32_t Y;             // GP register
     uint32_t prefix;        // Literal prefix
-    uint32_t shift_size;    // set by shft[ for ]shl and ]shr
+    uint32_t shift_size;    // set by shft[ for ]shl, ]shr and ]asr
     uint32_t sp;            // Data Stack Pointer
     uint32_t rp;            // Return Stack Pointer
     uint32_t cy;            // Carry

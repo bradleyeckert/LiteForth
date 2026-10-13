@@ -347,6 +347,7 @@ execute:
             switch (imm) {
             case VMS_SHR: t >>= lf_vm.shift_size;  break;
             case VMS_SHL: t <<= lf_vm.shift_size;  break;
+            case VMS_ASR: t = (uint32_t)((int32_t)t >> lf_vm.shift_size);  break;
             case VMS_FIELDPLUS: t = vmFieldPlus(t);  break;
             case VMS_GETUSEC: {
                 uint64_t usec = lfGetTimeMicroSec();

@@ -254,6 +254,7 @@ The longest, 32-bit literal takes 3 instructions.
 | \]shl  | 6 | 3 | T \= T \<\< shift_size |
 | capusec | 6 | 4 | Y:X \= microsecond counter |
 | break  | 6 | 5 | Return to the terminal (`ERR_VM_BREAK`) |
+| \]asr  | 6 | 6 | T \= T \>\> shift_size, signed (copies the sign bit) |
 | *shft\[* | 8 | 0 | shift_size \= T |
 | *yeet* | 8 | 1 | VM quits and returns ior \= T |
 | *u!*   | 8 | 2 | U \= T (the user pointer) |

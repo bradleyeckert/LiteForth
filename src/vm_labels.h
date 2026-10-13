@@ -173,7 +173,7 @@
 
 // system instructions VMI_SYS, VMI_TOSYS, and VMI_FROMSYS
 
-#define VMS_NAMES  {"]task", "field+", "]shr", "]shl", "capusec", "break", "", "", ""}
+#define VMS_NAMES  {"]task", "field+", "]shr", "]shl", "capusec", "break", "]asr", ""}
 #define VMST_NAMES {"shft[", "yeet", "u!", "", "", "", "", ""}
 #define VMSF_NAMES {"task[", "x@", "y@", "", "", "", "", ""}
 
@@ -183,6 +183,7 @@
 #define VMS_SHL                 3
 #define VMS_GETUSEC             4
 #define VMS_BREAK               5
+#define VMS_ASR                 6
 
 #define VMSTO_SHIFT             0
 #define VMSTO_YEET              1

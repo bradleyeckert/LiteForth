@@ -53,6 +53,7 @@ Name lookup ignores case.
 | `@b+` | `( -- x )` | Fetches from the address in `B`, then advances `B` to the next cell or slice. |
 | `[` | `( -- )` | Switches to interpreting (`state` = 0). Immediate. |
 | `]` | `( -- )` | Switches to compiling (`state` = 1). |
+| `]asr` | `( n1 -- n2 )` | Shifts right (signed: copies the sign bit) by the count set with `shft[`. |
 | `]shl` | `( u1 -- u2 )` | Shifts left by the count set with `shft[`. |
 | `]shr` | `( u1 -- u2 )` | Shifts right (unsigned) by the count set with `shft[`. |
 | `]task` | `( r:d -- r:d )` | Sets the stack pointers from T (`rp:sp`, `rp` in the upper half). T stays: it doesn't pop. A `sys` instruction. Used for task switching; see [Multitasking](multitasking.md). |
@@ -115,7 +116,7 @@ Name lookup ignores case.
 | `save-buffers` | `( -- )` | Writes modified block buffers to storage. |
 | `save-wids` | `( -- )` | Compiles the wordlist record to text space for booting, cell aligned: the address just past the record, the number of wordlists in use, then that many raw `s_wid` structures (head link and 12-byte name), padded to a cell. Heads are tagged links, not C addresses, so the record is valid wherever flash is mapped. Store the record's address in cell 1, and use it last before `close-flash`. Booting with `-o 8` restores the wordlists from it. |
 | `see` | `( <name> -- )` | † Disassembles a word. |
-| `shft[` | `( n -- )` | Sets the shift count used by `]shl` and `]shr` (0 to 31). |
+| `shft[` | `( n -- )` | Sets the shift count used by `]shl`, `]shr` and `]asr` (0 to 31). |
 | `slice+` | `( a1 -- a2 )` | Advances an address to the next cell or bit-field slice. |
 | `swap` | `( x1 x2 -- x2 x1 )` | Swaps the top two items. |
 | `t_rx` | `( -- c )` | Reads a character from the terminal (`key` in `core.f`). |

@@ -547,9 +547,13 @@ tosys_op:
         andi    a1, rINST, VM_IMM_MASK
         beqz    a1, 1f                  // VMSTO_SHIFT 0
         addi    a1, a1, -1
+        beqz    a1, 3f                  // VMSTO_YEET 1
+        addi    a1, a1, -1
         bnez    a1, 2f
-        bnez    a3, fail                // VMSTO_YEET 1: ior = T if not 0
+        sw      a3, VMS_U(rBASE)        // VMSTO_USTORE 2: u = T
 2:      jr      rTAIL
+3:      bnez    a3, fail                // ior = T if not 0
+        jr      rTAIL
 1:      andi    a3, a3, 31
         sw      a3, VMS_SHIFT(rBASE)
         jr      rTAIL
@@ -766,8 +770,7 @@ uop_table:
         bnez    rMERR, mem_error
         NEXT_UOP
 
-        UOP     VMU_USTORE
-        sw      rT, VMS_U(rBASE)
+        UOP     VMU_PXSTORE             // reserved for the page extension: a drop
         DDROP
         NEXT_UOP
 

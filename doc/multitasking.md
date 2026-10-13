@@ -16,7 +16,7 @@ The focus is on a lightweight `pause`, especially past sleeping tasks.
 | `task[` | `sys>` 0 | `( -- r:d )` | Pushes T onto the data stack and R onto the return stack, then T = `rp << 16 \| sp` |
 | `]task` | `sys` 0 | `( r:d -- r:d )` | Sets `sp` and `rp` from T. T stays: the instruction doesn't pop |
 | `n _user + ,inst` | `user` n | `( -- )` | A = U + n |
-| `u!` | micro-op | `( a -- )` | U = a |
+| `u!` | `>sys` 2 | `( a -- )` | U = a |
 
 With `TWO_REGISTER_TOS` (`vm.h`), the top two data stack items are in
 registers T and N. `task[` then also writes N to the cell just above `sp`,

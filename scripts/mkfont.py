@@ -524,11 +524,34 @@ class Args:
     max_bytes = 0; proof = None; glyphs = None
 
 
+def need_libraries():
+    """Exits with the install command if Pillow or fontTools is missing
+    from the Python running this script (often not the one `pip` uses)."""
+    missing = []
+    try:
+        from PIL import ImageFont   # noqa: F401
+    except ImportError:
+        missing.append("pillow")
+    try:
+        from fontTools import ttLib  # noqa: F401
+    except ImportError:
+        missing.append("fonttools")
+    if missing:
+        print(f"error: this Python lacks {' and '.join(missing)}:\n  {sys.executable}\n"
+              f"To install for this Python:\n"
+              f"  \"{sys.executable}\" -m pip install {' '.join(missing)}\n"
+              f"(`pip install` alone may install into a different Python; on Windows,\n"
+              f"`py -m pip install ...` installs for the Python that `py` runs.)",
+              file=sys.stderr)
+        sys.exit(2)
+
+
 def main(argv):
     if "--selftest" in argv:
         selftest()
         return 0
     if argv and argv[0] == "--list":
+        need_libraries()
         list_fonts(argv[1:])
         return 0
     a = Args()
@@ -566,6 +589,7 @@ def main(argv):
               "[--max-bytes N] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
+    need_libraries()
     build(a)
     return 0
 

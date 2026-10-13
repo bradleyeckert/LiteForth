@@ -31,7 +31,10 @@ Noto Sans CJK SC             Bold         700              --face 2  C:\...\Noto
 Noto Sans CJK SC             Regular      400              --face 2  C:\...\NotoSansCJK-Regular.ttc
 ```
 
-It needs Pillow and fontTools (`pip install pillow fonttools`).
+It needs Pillow and fontTools (`pip install pillow fonttools`). Install
+them for the Python that runs the script: on Windows, `py -m pip install
+pillow fonttools`, since a plain `pip` may belong to a different Python
+than `py`. If they're missing, `mkfont.py` prints the command to use.
 
 `glyphs.txt` is UTF-8. A line like `U+0020-U+007E` or `U+00B0` adds those
 code points; any other line adds each of its characters, so a line of

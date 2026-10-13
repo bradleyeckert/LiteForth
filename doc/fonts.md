@@ -16,6 +16,7 @@ py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 -o cjk24.lfnt --proof cj
 |---|---|
 | `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` for the face in the collection) |
 | `-s PIXELS` | The size: the font's em square, in pixels |
+| `-w WEIGHT` | The weight: 100 to 900, or a name (`thin` 100, `extralight` 200, `light` 300, `demilight` 350, `regular` 400, `medium` 500, `semibold` 600, `bold` 700, `extrabold` 800, `black` 900). A variable font (one with a weight axis, like Noto Sans or `NotoSansCJKsc-VF.otf`) is set to it. A static font must already be that weight: Noto Sans CJK comes as one file per weight (`NotoSansCJK-Bold.ttc`, ...) |
 | `-o FILE` | The output (default `font.lfnt`) |
 | `--max-bytes N` | The most the file may take. Glyphs are added in the list's order while they fit; the rest are listed as dropped |
 | `--proof FILE` | A PNG of every glyph, decoded from the output file, so it shows what the LCD will get |
@@ -48,7 +49,7 @@ cell `o/4`, shift `8*(o mod 4)`, and a 16-bit value the 16-bit slice there.
 | 6 | 1 | Cell height: the line height, in pixels |
 | 7 | 1 | Ascent: the baseline's row in the cell |
 | 8 | 2 | Glyph count n |
-| 10 | 2 | 0 |
+| 10 | 2 | Weight (100 to 900) |
 | 12 | 257 x 2 | Page table: `page[p]` is the index of the first glyph whose code point is at least `p * 256`; `page[256]` = n |
 | 526 | 2 | 0 (so the index is cell-aligned) |
 | 528 | n x 4 | Index, sorted by code point: bits 31:24 are the code point's low byte, bits 23:0 the glyph record's byte offset in the file |

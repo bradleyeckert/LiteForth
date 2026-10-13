@@ -24,4 +24,13 @@ size=$(wc -c < "$WORK/g.lfnt")
 if [ "$size" -gt 3000 ] || ! grep -q "dropped" "$WORK/out2.txt"; then
     echo "mkfont test FAILED: --max-bytes"; cat "$WORK/out2.txt"; exit 1
 fi
+# -w: a static font must already be that weight
+BOLD=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc
+if [ -f "$BOLD" ]; then
+    python3 "$MKFONT" -f "$BOLD" -s 16 -w bold -o "$WORK/b.lfnt" "$WORK/glyphs.txt" > "$WORK/out3.txt" || exit 1
+    grep -q "weight 700" "$WORK/out3.txt" || { echo "mkfont test FAILED: -w bold"; cat "$WORK/out3.txt"; exit 1; }
+fi
+if python3 "$MKFONT" -f "$FONT" -s 16 -w bold -o "$WORK/x.lfnt" "$WORK/glyphs.txt" > /dev/null 2>&1; then
+    echo "mkfont test FAILED: -w bold on a regular-only font should fail"; exit 1
+fi
 echo "mkfont tests passed"

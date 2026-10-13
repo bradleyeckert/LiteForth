@@ -19,6 +19,11 @@ Options:
   -f FILE        the font (.ttf, .otf or .ttc)
   --face N       the face in a .ttc collection (default 0)
   -s PIXELS      the size (the font's em square, in pixels)
+  -w WEIGHT      the weight: 100 to 900, or thin, extralight, light,
+                 demilight (350), regular, medium, semibold, bold,
+                 extrabold, black. A variable font is set to it; a static
+                 font must already be that weight (Noto Sans CJK has one
+                 file per weight: NotoSansCJK-Bold.ttc, ...)
   -o FILE        the output (default font.lfnt)
   --max-bytes N  the most the font file may take
   --proof FILE   also draw the glyphs, decoded from the file, as a PNG
@@ -114,6 +119,50 @@ def decode(codes, count):
 
 # ---- glyph lists -------------------------------------------------------------
 
+WEIGHTS = {"thin": 100, "extralight": 200, "light": 300, "demilight": 350,
+           "regular": 400, "normal": 400, "medium": 500, "semibold": 600,
+           "bold": 700, "extrabold": 800, "black": 900, "heavy": 900}
+
+
+def parse_weight(text):
+    """Returns a weight from a number or a name like `bold`."""
+    t = text.strip().lower().replace("-", "").replace(" ", "")
+    if t in WEIGHTS:
+        return WEIGHTS[t]
+    w = int(t)                          # ValueError for anything else
+    if not 1 <= w <= 1000:
+        raise ValueError(text)
+    return w
+
+
+def set_weight(font, tt, weight):
+    """Sets a variable font's weight, or checks a static font's. Returns
+    the weight the glyphs will have."""
+    if "fvar" in tt:
+        axes = tt["fvar"].axes
+        values = [a.defaultValue for a in axes]
+        tags = [a.axisTag for a in axes]
+        if "wght" not in tags:
+            if weight is not None:
+                sys.exit("error: this variable font has no weight axis")
+            return 400
+        k = tags.index("wght")
+        if weight is None:
+            return round(values[k])
+        a = axes[k]
+        if not a.minValue <= weight <= a.maxValue:
+            sys.exit(f"error: this font's weights are {a.minValue:g} to {a.maxValue:g}, "
+                     f"not {weight}")
+        values[k] = weight
+        font.set_variation_by_axes(values)
+        return weight
+    actual = tt["OS/2"].usWeightClass if "OS/2" in tt else 400
+    if weight is not None and weight != actual:
+        sys.exit(f"error: this font has one weight, {actual}, not {weight}; use the file "
+                 f"for that weight or a variable font (one with a weight axis)")
+    return actual
+
+
 RANGE = re.compile(r"^\s*U\+([0-9A-Fa-f]{1,6})(?:\s*-\s*U\+([0-9A-Fa-f]{1,6}))?\s*$")
 
 
@@ -180,6 +229,7 @@ def build(args):
     font = ImageFont.truetype(args.font, args.size, index=args.face)
     tt = TTFont(args.font, fontNumber=args.face, lazy=True)
     cmap = tt.getBestCmap() or {}
+    weight = set_weight(font, tt, args.weight)
 
     wanted, seen = [], set()
     skipped = {"duplicate": 0, "above U+FFFF": [], "not in the font": []}
@@ -229,14 +279,14 @@ def build(args):
             continue
         kept.append(g)
         size += need
-    data = write_font(kept, height, ascent)
+    data = write_font(kept, height, ascent, weight)
     check(data, kept)
 
     with open(args.out, "wb") as f:
         f.write(data)
     raw = sum((g.w * g.h + 1) // 2 for g in kept)
     packed = sum(2 * len(g.codes) for g in kept)
-    print(f"{args.out}: {len(kept)} glyphs, {len(data)} bytes, cell {height} pixels "
+    print(f"{args.out}: {len(kept)} glyphs, weight {weight}, {len(data)} bytes, cell {height} pixels "
           f"(ascent {ascent}); pixels {packed} bytes, {raw / packed if packed else 0:.2f}x "
           f"smaller than plain 4-bit")
     for what, cps in skipped.items():
@@ -262,14 +312,14 @@ def show(cps, limit=20):
 # ---- the file ------------------------------------------------------------------
 
 
-def write_font(glyphs, height, ascent):
+def write_font(glyphs, height, ascent, weight=400):
     """Header, page table, index and glyph records (see doc/fonts.md)."""
     glyphs = sorted(glyphs, key=lambda g: g.cp)
     n = len(glyphs)
     page = [0] * 257
     for p in range(257):
         page[p] = sum(1 for g in glyphs if (g.cp >> 8) < p)
-    head = MAGIC + bytes([VERSION, 4, height, ascent]) + struct.pack("<HH", n, 0)
+    head = MAGIC + bytes([VERSION, 4, height, ascent]) + struct.pack("<HH", n, weight)
     table = b"".join(struct.pack("<H", v) for v in page) + b"\0\0"
     offset = len(head) + len(table) + 4 * n
     index, records = b"", b""
@@ -384,7 +434,7 @@ def selftest():
 
 
 class Args:
-    font = None; face = 0; size = None; out = "font.lfnt"
+    font = None; face = 0; size = None; out = "font.lfnt"; weight = None
     max_bytes = 0; proof = None; glyphs = None
 
 
@@ -405,6 +455,8 @@ def main(argv):
                 a.face = int(next(it))
             elif arg == "-s":
                 a.size = int(next(it))
+            elif arg == "-w":
+                a.weight = parse_weight(next(it))
             elif arg == "-o":
                 a.out = next(it)
             elif arg == "--max-bytes":
@@ -416,11 +468,11 @@ def main(argv):
             else:
                 a.glyphs = arg
     except (StopIteration, ValueError):
-        print("usage: mkfont.py -f font.otf -s size [-o out.lfnt] [--face N] "
+        print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
               "[--max-bytes N] [--proof sheet.png] glyphs.txt", file=sys.stderr)
         return 2
     if not (a.font and a.size and a.glyphs):
-        print("usage: mkfont.py -f font.otf -s size [-o out.lfnt] [--face N] "
+        print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
               "[--max-bytes N] [--proof sheet.png] glyphs.txt", file=sys.stderr)
         return 2
     build(a)

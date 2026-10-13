@@ -14,11 +14,12 @@ py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 -o cjk24.lfnt --proof cj
 
 | Option | Meaning |
 |---|---|
-| `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` for the face in the collection). A bare file name that isn't in the current folder is looked for in the installed font folders |
+| `-f FILE` | The font: `.ttf`, `.otf`, or `.ttc` (with `--face N` after it for the face in the collection). A bare file name that isn't in the current folder is looked for in the installed font folders. Give `-f` more than once for fallback fonts: each glyph comes from the first font that has it, and the first font sets the cell height and ascent (grown if a fallback glyph needs more room) |
 | `-s PIXELS` | The size: the font's em square, in pixels |
 | `-w WEIGHT` | The weight: 100 to 900, or a name (`thin` 100, `extralight` 200, `light` 300, `demilight` 350, `regular` 400, `medium` 500, `semibold` 600, `bold` 700, `extrabold` 800, `black` 900). A variable font (one with a weight axis, like Noto Sans or `NotoSansCJKsc-VF.otf`) is set to it. A static font must already be that weight: Noto Sans CJK comes as one file per weight (`NotoSansCJK-Bold.ttc`, ...) |
 | `-o FILE` | The output (default `font.lfnt`) |
 | `--max-bytes N` | The most the file may take. Glyphs are added in the list's order while they fit; the rest are listed as dropped |
+| `--blocks` | Lays the font out for reading from the block file: no glyph record crosses a 4 KB block, so one block read gets a whole glyph. See [In the block file](#in-the-block-file) |
 | `--proof FILE` | A PNG of every glyph, decoded from the output file, so it shows what the LCD will get |
 | `--list [TEXT \| PATH ...]` | Lists the fonts installed on this computer (on Windows `C:\Windows\Fonts` and your own `%LOCALAPPDATA%\Microsoft\Windows\Fonts`; on Linux and macOS the usual font folders): family, style, weight (or a variable font's weight range), `--face N` for each face of a `.ttc`, and the file. Words keep only the fonts whose file, family or style contains them all; a file or folder lists just that |
 | `--selftest` | Tests the encoder and decoder on made-up bitmaps |
@@ -46,6 +47,21 @@ reported. For example:
 U+0020-U+007E
 学如不及，犹恐失之
 ```
+
+For scripts the first font lacks, add fonts that have them:
+
+```
+py scripts\mkfont.py -f NotoSansCJKsc-Regular.otf -f NotoSansArabic-Regular.ttf -f NotoSansDevanagari-Regular.ttf -s 24 -o all24.lfnt glyphs.txt
+```
+
+Glyphs are drawn one code point at a time, with no text shaping. That
+suits Latin, Greek, Cyrillic, Hebrew and CJK. Arabic letters change shape
+with their neighbors: put the presentation forms (U+FB50-U+FDFF,
+U+FE70-U+FEFF) in the glyph list and pick the form for each letter, and
+the right-to-left order, when drawing. Indic scripts such as Devanagari
+need a shaping engine (conjuncts, reordered vowel signs, ligatures that
+have no code point of their own), so per-code-point glyphs only give
+isolated letters.
 
 ## The file
 
@@ -87,6 +103,24 @@ Drawing a glyph: set the LCD's window to the bounding box (cell origin plus
 the offsets, w by h), clear the rest of the cell to the background if
 needed, and stream the pixels row by row as the codes describe them. A
 space has w = h = 0 and no codes.
+
+## In the block file
+
+A font in the block file starts at byte 32 of a block (`BLOCK_OFFSET` in
+`mkfont.py`); the first 32 bytes are kept for an HMAC of the font. The
+font then runs on through the following blocks as one stream, so file
+offset `o` is at byte `(o + 32) mod 4096` of block `first + (o + 32) / 4096`.
+
+With `--blocks`, mkfont places the glyph records so that none crosses a
+block. It goes through the glyphs in priority order and puts each one in
+the first gap that holds it, which keeps the most-used glyphs together in
+the first blocks; the gaps are zeros. The header, page table and index
+aren't moved: their 2- and 4-byte entries are aligned, so no single entry
+crosses a block, though the index as a whole may span several.
+
+The padding is small. For 595 glyphs (ASCII and 500 common hanzi) from
+Noto Sans CJK it is 390 bytes at 16 pixels, 850 at 24, 1152 at 32 and
+5790 at 48 (2.2% of 260 KB).
 
 ## Pixel codes
 

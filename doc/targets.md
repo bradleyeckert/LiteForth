@@ -28,6 +28,10 @@ The most relevant MCU pins are:
 - LCD (DC CS SCLK MOSI RST) = PD9, PB12, PB13, PB15, PD8
 - SD (CLK CMD D0-D3 ) = PB11, PB10, PE8, PE9, PE10, PE11
 
+The LCD needs VIO18 (the high-speed GPIO supply) at 3.3 V, set in software by the V3F's `main`
+(`PWR_VIO18ModeCfg(PWR_VIO18CFGMODE_SW)`, `PWR_VIO18LevelCfg(PWR_VIO18Level_MODE3)`), as the board's
+SPI_LCD example does; at the hardware setting the panel ignores the SPI.
+
 [sdcard.md](sdcard.md) explains how to partition a microSD card for LiteForth's blocks.
 
 The UART pins conflict with USB OTG_ID and OTG_VBUS pins, but that is not a problem if you only use

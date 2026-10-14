@@ -244,7 +244,10 @@ desktop simulator (`lcd_init`, `lcd_tx`, `lcd_decode`), so `core.f`'s
 | RES | PD8 |
 
 SPI2 runs in mode 3 at its fastest prescaler, as in the board's SPI_LCD
-example. `lcd_init` sets up the pins and SPI2 the first time and keeps
+example. The V3F's `main` first sets VIO18, the supply of the high-speed
+GPIOs, to 3.3 V in software (`PWR_VIO18LevelCfg(PWR_VIO18Level_MODE3)`),
+as that example does: at the board's hardware setting SPI2 runs but the
+module doesn't see valid highs, and the panel never changes. `lcd_init` sets up the pins and SPI2 the first time and keeps
 the palette; `lcd_tx` drives RES, CS and D/C from bits 15 to 13 and sends
 the byte; `lcd_decode` streams a font code's pixels. Bytes go out as
 soon as the transmit buffer is free, and the driver waits for the bus to

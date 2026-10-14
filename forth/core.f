@@ -11,7 +11,7 @@
 
 ( Block 0 is reserved for the LITEFORTH tag and to-be-determined metadata. )
 ( Block 1 is the home block )
-( Blocks 2 to 5 are used to document the internal functions of `forth.c`. )
+( Blocks 2 to 6 are used to document the internal functions of `forth.c`. )
 ( Block 7 to ~22 build up a Forth )
 
 0 open-flash
@@ -23,6 +23,8 @@ empty only forth
 : base!     ( n -- )        base ! ;                                            \ `base` is a 3-instruction literal
 : decimal   ( -- )          10 base! ;                                          \ set base to 10
 : hex       ( -- )          16 base! ;                                          \ set base to 16
+: aligned   ( ca -- a )     32 bit ;                                            \ align address to cells
+32 constant bl                                                                  \ blank
 -->
 ( BLOCK++ )
 ( Basic compilation ___________________________________________ 10/9/26 BNE )
@@ -54,8 +56,9 @@ decimal -->
 ( Control structures __________________________________________ 10/10/26 BNE )
 hex
 : _again    ( a inst -- )   >r iaddr  chere iaddr inv + 1FF and r> + ,inst ;    \ compile a backward control branch
-: then      ( C: a -- )     chere iaddr  over iaddr inv +  swap                 \ resolve a forward branch
+: then      ( C: a -- )     chere iaddr  over iaddr inv +  swap                 \ resolve a forward branch (if else then)
                             a! 1FF and @a + !a ; immediate
+: endif     ( C: a -- )     postpone then ; immediate                           \ a more natural-reading if ... endif
 : -if       ( C: -- a ) ( n -- n ) chere _pbran ,inst ; immediate               \ if n is negative, run up to then; keeps n
 : if        ( C: -- a ) ( flag -- ) chere _0bran ,inst ; immediate              \ if flag is nonzero, run up to else or then
 : ahead     ( C: -- a )     chere _bran ,inst ; immediate                       \ compile an unconditional forward branch
@@ -78,8 +81,7 @@ hex
 : >body     ( xt -- a )     0 swap caddr  begin  @+     ( acc a inst )          \ extract body address from code
     dup E000 and _lit = if 1FFF and nip swap 0D lshift + exit then              \ trailing lit instruction detected
     3FF and >r  swap 0A lshift r> + swap  ( acc a )  again ;                    \ otherwise, assume prefix instructions
-decimal
--->
+decimal -->
 ( BLOCK++ )
 ( Multitasking 1/2 ____________________________________________ 10/9/26 BNE )
 :noname     ( next a -- )   drop u! ; constant asleep                           \ xt of sleeping task
@@ -136,10 +138,12 @@ decimal _udata here 3 allot constant operator                                   
 : min       ( n1 n2 -- n3 ) 2dup - -if 2drop exit then drop nip ;               \ n3 is the lesser of n1 and n2
 : max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;               \ n3 is the greater of n1 and n2
 : rot       ( x1 x2 x3 -- x2 x3 x1 ) b! swap b swap ;                           \ rotate third item to top of stack
-: u<=       ( u1 u2 -- flag ) swap - drop cy ;                                  \ unsigned less than or equal
+: u<=       ( u1 u2 -- flag1 ) swap - drop cy ;                                 \ unsigned less than or equal
+: */        ( n1 n2 n3 -- n4 ) */mod nip ;                                      \ n1 * n2 / n3 with double intermediate product
+: um/mod    ( ud u1 -- u2 u3 ) mu/mod drop ;                                    \ ud / u1; remainder u2, quotient u3
 -->
 ( BLOCK++ )
-( String output _______________________________________________ 10/9/26 BNE )
+( String output _______________________________________________ 10/14/26 BNE )
 : emit      ( c -- )        t_tx! ;                                             \ dumb emit may block
 : emit?     ( -- flag )     t_tx? ;                                             \ a smarter emit would pause while `emit?`
 : key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
@@ -148,9 +152,11 @@ decimal _udata here 3 allot constant operator                                   
 : 2parms    ( n1 n2 -- | n1 n2 ) 1- -if drop r> drop drop exit then 1+ ;        \ exit the caller if there is nothing to do
 : type      ( ca n -- )     2parms for @+ emit next drop ;                      \ output a string using emit
 : $type     ( ca -- )       @+ type ;                                           \ output counted string
+: $abort    ( flag ca -- )  swap if $type -2 yeet exit then  drop ;             \ output counted string if flag is nonzero
 : ."        ( "ccc<quote>" -- ) _," postpone literal  postpone $type ; immediate \ compile a string to type at run time
+: abort"    ( "ccc<quote>" -- ) _," postpone literal  postpone $abort ; immediate \ compile abort" message
 : digit     ( n -- char )   dup -10 + 0< -7 and + [char] 7 + ;                  \ convert to ASCII digit
-: space     ( -- )          32 emit ;                                           \ send a space
+: space     ( -- )          bl emit ;                                           \ send a space
 : spaces    ( n -- )        1parm for space next ;                              \ send 0 or more spaces
 -->
 ( BLOCK++ )
@@ -167,10 +173,10 @@ decimal _udata here 3 allot constant operator                                   
 : -trailing ( a len -- a' len' )                                                \ trim trailing blank bytes
     >r 8 bit dup r> chars+  ( a0 a1 )                                           \ convert to byte addresses
     begin 2dup xor while
-        char- dup @  32 xor  if  over bytespan  1+ exit  then                   \ seek backward for nonblank
+        char- dup @  bl xor  if  over bytespan  1+ exit  then                   \ seek backward for nonblank
     repeat  dup xor ;       ( a' 0 )
 : fill      ( ca u c -- )   3parms swap >r swap a! |inst  dup !a+ unext drop ;  \ fill u cells or slices with c
-: blank     ( ca u -- )     32 fill ;                                           \ fill u chars with spaces
+: blank     ( ca u -- )     bl fill ;                                           \ fill u chars with spaces
 -->
 ( BLOCK++ )
 ( Numeric output ______________________________________________ 10/9/26 BNE )
@@ -231,7 +237,7 @@ create fbuf 32 allot                                                            
 : remain    ( -- u )        128 col @ - ;                                       \ chars from the cursor to the end of the line
 : me        ( -- )          row @ dup 'line 128 -trailing                       \ type the current line with its number
                             rot 2 u.r space type cr ;
-head-                            
+head-
 : _caret    ( -- )          col @ 3 + spaces [char] ^ emit cr ;                 \ mark the cursor under the line
 : _upd      ( -- )          update save-buffers ;                               \ save the edit; QUIT empties the buffers
 -->
@@ -243,13 +249,13 @@ head-
 : _src      ( -- ca )       blk @ if blk @ block 8 bit exit then TIB ;          \ address of the input source
 : _rest     ( -- ca u )     _src >in @ chars+  >in @ 128 + -128 and             \ parse the rest of the line
                             dup >in @ - swap >in !  _len0 -trailing ;
-: _gap      ( n -- ca n' )  remain min  dup remain swap - >r  'cursor swap          \ open n blank chars at the cursor
-                            2dup chars+ >r over r> r> cmove>  2dup blank ;     \ shift the rest of the line right
-: _cut      ( n -- )        remain min  dup remain swap - >r  'cursor               \ delete n chars at the cursor
+: _gap      ( n -- ca n' )  remain min  dup remain swap - >r  'cursor swap      \ open n blank chars at the cursor
+                            2dup chars+ >r over r> r> cmove>  2dup blank ;      \ shift the rest of the line right
+: _cut      ( n -- )        remain min  dup remain swap - >r  'cursor           \ delete n chars at the cursor
                             2dup swap chars+ over r> cmove                      \ shift the rest of the line left
                             over remain swap - chars+ swap blank ;              \ blank the end of the line
 : _ins      ( ca u -- )     dup _gap rot drop  dup col +!  cmove ;              \ insert text at the cursor and move past it
-: _put      ( ca u -- )     row @ 'line dup 128 blank  swap 128 min cmove ;    \ make text the current line
+: _put      ( ca u -- )     row @ 'line dup 128 blank  swap 128 min cmove ;     \ make text the current line
 : _fbuf     ( -- ca )       fbuf 8 bit ;                                        \ address of the find string
 : _same     ( ca1 ca2 u -- flag ) for  over @ over @ xor                        \ true if u chars at ca1 and ca2 match
                             if 2drop r> drop 0 exit then                        \ a difference: no match
@@ -324,7 +330,7 @@ variable lastus                                                                 
 variable looptime                                                               \ microseconds per trip around the pause loop
 : demo-step ( -- )          1 counter a! @a + dup !a                            \ application loop: count it, time it
     1023 and 0= if
-        capusec x@  dup lastus @ -  looptime !  lastus ! 
+        capusec x@  dup lastus @ -  looptime !  lastus !
     then ;
 
 20 32 32 task t1                                                                \ sample tasks 1

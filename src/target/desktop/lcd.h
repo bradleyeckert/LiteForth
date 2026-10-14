@@ -38,11 +38,16 @@ extern "C" {
  *                   The window is LCD_ZOOM times as big.
  * @param controller The controller to emulate: LCD_ST7789 (frame memory
  *                   240 x 320, so width <= 240 and height <= 320).
+ * @param palette    The 16 colors lcd_decode sends for pixel values 0 to
+ *                   15 (RGB565 for 16-bit pixels), or NULL. It is kept,
+ *                   not copied, so changing an entry takes effect on the
+ *                   next lcd_decode; it must stay valid while the panel is
+ *                   open.
  * @return 0 if the window is open, or ERR_UNSUPPORTED_OPERATION if it
  *         can't be opened (no display, unknown controller, panel too big
  *         for the controller). Calling it again replaces the panel.
  */
-int lcd_init(int width, int height, int controller);
+int lcd_init(int width, int height, int controller, const uint16_t* palette);
 
 /**
  * Drives the controller's bus for one transfer.
@@ -62,6 +67,19 @@ int lcd_init(int width, int height, int controller);
  * @return 0, or ERR_UNSUPPORTED_OPERATION if lcd_init hasn't succeeded.
  */
 int lcd_tx(uint16_t data);
+
+/**
+ * Expands one 16-bit pixel code of a bitmap font (doc/fonts.md: two to 513
+ * 4-bit pixels) and sends the pixels to the controller as data, each the
+ * palette entry for its value, high byte first. Set up the window and
+ * start RAMWR, with 16-bit pixels (COLMOD 55h), before the first code of
+ * a glyph; the codes then stream its bounding box row by row.
+ *
+ * @param code The pixel code.
+ * @return 0, or ERR_UNSUPPORTED_OPERATION if lcd_init hasn't succeeded or
+ *         was given no palette.
+ */
+int lcd_decode(uint16_t code);
 
 /**
  * Reads what the panel shows at a pixel, after display on/off, sleep,

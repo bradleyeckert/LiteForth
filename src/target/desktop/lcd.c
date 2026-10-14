@@ -61,6 +61,7 @@ typedef struct {
 
 static st7789_t lcd;
 static int lcd_open;                    // lcd_init succeeded
+static const uint16_t* lcd_palette;     // lcd_decode's 16 colors, or NULL
 static volatile int lcd_dirty;          // the panel may have changed
 
 /* Reset state, from hardware or software reset. Frame memory is kept. */
@@ -462,7 +463,7 @@ static void win_close(void) { }
 
 /* ---- the interface ----------------------------------------------------- */
 
-int lcd_init(int width, int height, int controller) {
+int lcd_init(int width, int height, int controller, const uint16_t* palette) {
     lcd_close();
     if (controller != LCD_ST7789 || width < 1 || height < 1
         || width > ST_COLS || height > ST_ROWS) {
@@ -493,7 +494,40 @@ int lcd_init(int width, int height, int controller) {
         return ior;
     }
     lcd_open = 1;
+    lcd_palette = palette;
     lcd_dirty = 1;
+    return 0;
+}
+
+/* Sends count pixels of palette entry v as 16-bit data, high byte first. */
+static void decode_run(unsigned v, unsigned count) {
+    uint16_t c = lcd_palette[v & 15];
+    while (count--) {
+        lcd_tx((uint16_t)(c >> 8));
+        lcd_tx((uint16_t)(c & 0xFF));
+    }
+}
+
+int lcd_decode(uint16_t code) {
+    if (!lcd_open || !lcd_palette) return ERR_UNSUPPORTED_OPERATION;
+    switch (code >> 14) {               // the formats in doc/fonts.md
+    case 0:                             // gray black[3] gray white[3]
+        decode_run(code >> 10, 1);  decode_run(0, (code >> 7) & 7);
+        decode_run(code >> 3, 1);   decode_run(15, code & 7);
+        break;
+    case 1:                             // gray next length[9]
+        decode_run(code >> 10, 1);
+        decode_run((code >> 9) & 1 ? 15 : 0, code & 511);
+        break;
+    case 2:                             // gray gray next length[5]
+        decode_run(code >> 10, 1);  decode_run(code >> 6, 1);
+        decode_run((code >> 5) & 1 ? 15 : 0, code & 31);
+        break;
+    default:                            // gray gray gray black[2]
+        decode_run(code >> 10, 1);  decode_run(code >> 6, 1);
+        decode_run(code >> 2, 1);   decode_run(0, code & 3);
+        break;
+    }
     return 0;
 }
 
@@ -547,6 +581,7 @@ void lcd_close(void) {
     if (!lcd_open) return;
     win_close();
     lcd_open = 0;
+    lcd_palette = NULL;
     free(lcd.gram);  free(win_pixels);
     lcd.gram = NULL;  win_pixels = NULL;
 }

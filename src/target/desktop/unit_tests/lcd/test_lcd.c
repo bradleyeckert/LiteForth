@@ -30,7 +30,7 @@ static void fill565(int x0, int y0, int x1, int y1, uint16_t color) {
 
 /* A typical init: wake, 16-bit color, normal orientation, black, on. */
 static void start(int width, int height) {
-    TEST_ASSERT_EQUAL_INT(0, lcd_init(width, height, LCD_ST7789));
+    TEST_ASSERT_EQUAL_INT(0, lcd_init(width, height, LCD_ST7789, NULL));
     cmd(0x11);                                          // SLPOUT
     cmd(0x3A);  dat(0x55);                              // COLMOD 16 bits
     cmd(0x36);  dat(0x00);                              // MADCTL
@@ -42,17 +42,17 @@ void setUp(void) { }
 void tearDown(void) { lcd_close(); }
 
 void test_init_checks_arguments(void) {
-    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 320, 1));
-    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(241, 320, LCD_ST7789));
-    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 321, LCD_ST7789));
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 320, 1, NULL));
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(241, 320, LCD_ST7789, NULL));
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 321, LCD_ST7789, NULL));
     TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_tx(0));
-    TEST_ASSERT_EQUAL_INT(0, lcd_init(135, 240, LCD_ST7789));
+    TEST_ASSERT_EQUAL_INT(0, lcd_init(135, 240, LCD_ST7789, NULL));
     TEST_ASSERT_EQUAL_INT(-1, lcd_pixel(135, 0));
     TEST_ASSERT_EQUAL_INT(-1, lcd_pixel(0, 240));
 }
 
 void test_starts_dark_until_display_on(void) {
-    TEST_ASSERT_EQUAL_INT(0, lcd_init(240, 320, LCD_ST7789));
+    TEST_ASSERT_EQUAL_INT(0, lcd_init(240, 320, LCD_ST7789, NULL));
     TEST_ASSERT_EQUAL_HEX32(BLACK, lcd_pixel(100, 100));   // sleeping, display off
     cmd(0x11);
     TEST_ASSERT_EQUAL_HEX32(BLACK, lcd_pixel(100, 100));   // display still off
@@ -180,6 +180,62 @@ void test_pins(void) {
     TEST_ASSERT_EQUAL_HEX32(BLACK, lcd_pixel(0, 0));
 }
 
+/* A 4-bit gray ramp as the palette, but 7 is red, to tell the grays apart */
+static uint16_t palette[16];
+
+static void make_palette(void) {
+    for (int i = 0; i < 16; i++) {
+        int v = i * 255 / 15;
+        palette[i] = (uint16_t)(((v >> 3) << 11) | ((v >> 2) << 5) | (v >> 3));
+    }
+    palette[7] = 0xF800;
+}
+
+static int32_t expect(int v) {          // the panel's color for palette entry v
+    uint16_t c = palette[v];
+    int r = (c >> 11) & 31, g = (c >> 5) & 63, b = c & 31;
+    r = (r << 1) | (r >> 4);  b = (b << 1) | (b >> 4);      // 5 to 6 bits
+    r = (r << 2) | (r >> 4);  g = (g << 2) | (g >> 4);  b = (b << 2) | (b >> 4);
+    return (r << 16) | (g << 8) | b;
+}
+
+void test_decode(void) {
+    make_palette();
+    TEST_ASSERT_EQUAL_INT(0, lcd_init(240, 320, LCD_ST7789, NULL));
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_decode(0));  // no palette
+    lcd_close();
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_decode(0));  // closed
+    TEST_ASSERT_EQUAL_INT(0, lcd_init(240, 320, LCD_ST7789, palette));
+    cmd(0x11);  cmd(0x3A);  dat(0x55);  cmd(0x36);  dat(0x00);  cmd(0x29);
+    window(10, 20, 29, 20);             // one row of 20 pixels
+    cmd(0x2C);
+    static const struct { uint16_t code; const char* px; } codes[] = {
+        { 0x0000 | (7 << 10) | (2 << 7) | (9 << 3) | 3, "7009FFF" },    // 00: 7 pixels
+        { 0x4000 | (3 << 10) | (1 << 9) | 2,            "3FF" },        // 01: gray, 2 white
+        { 0x8000 | (5 << 10) | (6 << 6) | (0 << 5) | 3, "56000" },      // 10: 2 grays, 3 black
+        { 0xC000 | (1 << 10) | (2 << 6) | (4 << 2) | 2, "12400" },      // 11: 3 grays, 2 black
+    };
+    char want[64] = "";
+    for (int i = 0; i < 4; i++) {
+        TEST_ASSERT_EQUAL_INT(0, lcd_decode(codes[i].code));
+        strcat(want, codes[i].px);
+    }
+    TEST_ASSERT_EQUAL_INT(20, (int)strlen(want));
+    for (int x = 0; x < 20; x++) {
+        int v = want[x] <= '9' ? want[x] - '0' : want[x] - 'A' + 10;
+        TEST_ASSERT_EQUAL_HEX32(expect(v), lcd_pixel(10 + x, 20));
+    }
+    palette[0] = 0x001F;                // the palette is used where it is
+    window(0, 0, 0, 0);
+    cmd(0x2C);
+    TEST_ASSERT_EQUAL_INT(0, lcd_decode(0x4000));       // one pixel of entry 0
+    TEST_ASSERT_EQUAL_HEX32(BLUE, lcd_pixel(0, 0));
+    window(0, 1, 239, 3);               // a long run: 1 + 511 pixels
+    cmd(0x2C);
+    TEST_ASSERT_EQUAL_INT(0, lcd_decode(0x4000 | (15 << 10) | (1 << 9) | 511));
+    TEST_ASSERT_EQUAL_HEX32(WHITE, lcd_pixel(31, 3));   // pixel 511 of the run
+}
+
 void test_save_ppm(void) {
     start(16, 8);
     fill565(0, 0, 0, 0, 0xF800);
@@ -211,6 +267,7 @@ int main(void) {
     RUN_TEST(test_display_modes);
     RUN_TEST(test_vertical_scroll);
     RUN_TEST(test_pins);
+    RUN_TEST(test_decode);
     RUN_TEST(test_save_ppm);
     return UNITY_END();
 }

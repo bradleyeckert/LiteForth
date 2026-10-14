@@ -88,7 +88,8 @@
     X(API_TRIMHEADS,        lfAPI_trimHeads)    \
     X(API_XMODEM,           lfAPI_xmodem)       \
     X(API_LCD_INIT,         lcdInit)            \
-    X(API_LCD_TX,           lcdTx)
+    X(API_LCD_TX,           lcdTx)              \
+    X(API_LCD_DECODE,       lcdDecode)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

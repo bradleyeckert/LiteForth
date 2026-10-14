@@ -167,7 +167,7 @@ don't call it while compiling to flash.
 | Word | Stack | Meaning |
 |---|---|---|
 | `LCDwidth`, `LCDheight` | `( -- u )` | The panel's size in pixels (240 x 240) |
-| `LCD` | `( -- )` | Opens the panel with `palette`, sets white on black, resets the controller, wakes it with 16-bit pixels, turns it on and clears it |
+| `LCD` | `( -- )` | Opens the panel with `palette`, sets white on black, resets the controller, wakes it with 16-bit pixels, turns it on and clears it (about 125 ms) |
 | `lcls` | `( -- )` | Fills the panel with palette entry 0 (the background) and goes to 0,0 |
 | `font` | variable | The address of a list of font blocks, ending in 0. A glyph comes from the first font in the list that has it |
 | `fontheight` | `( -- u )` | The cell height of the first font in the list: the line height |
@@ -187,9 +187,8 @@ create fonts 100 , 120 , 0 ,      \ cjk24, then cjk48 for what it lacks
 fonts font !  LCD  10 10 at  char A lemit
 ```
 
-On real hardware `LCD` will need delays: the ST7789 wants 5 ms after a
-reset and 120 ms after SLPOUT before the next command. The simulator
-doesn't.
+`LCD` waits 5 ms after the reset and 120 ms after SLPOUT, as the ST7789
+needs, with `ms` (which runs `pause`, so other tasks keep going).
 
 ## Pixel codes
 

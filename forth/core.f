@@ -141,6 +141,9 @@ decimal _udata here 3 allot constant operator                                   
 : u<=       ( u1 u2 -- flag1 ) swap - drop cy ;                                 \ unsigned less than or equal
 : */        ( n1 n2 n3 -- n4 ) */mod nip ;                                      \ n1 * n2 / n3 with double intermediate product
 : um/mod    ( ud u1 -- u2 u3 ) mu/mod drop ;                                    \ ud / u1; remainder u2, quotient u3
+: usec      ( u -- )        capusec x@ +                                        \ pause until u microseconds have passed
+                            begin  pause  capusec x@ over - 0< 0= until  drop ;
+: ms        ( u -- )        1000 * usec ;                                       \ pause until u milliseconds have passed
 -->
 ( BLOCK++ )
 ( String output _______________________________________________ 10/14/26 BNE )
@@ -394,7 +397,8 @@ head+
     LCDwidth LCDheight *  begin dup while  dup 512 min  dup 1- 16384 or lcd-decode  -  repeat
     drop  0 0 at ;
 : LCD       ( -- )          LCDwidth LCDheight 0 palette lcd-init  white fg!    \ start the panel: 16-bit pixels, cleared
-    32768 lcd-tx  16384 lcd-tx  17 _cmd  58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  41 _cmd  lcls ;
+    32768 lcd-tx  16384 lcd-tx  5 ms  17 _cmd  120 ms                 ( reset, SLPOUT )
+    58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  41 _cmd  lcls ;         ( 16-bit pixels, DISPON )
 -heads
 -->
 ( BLOCK++ )

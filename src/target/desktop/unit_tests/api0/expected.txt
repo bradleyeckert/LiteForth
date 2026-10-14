@@ -59,17 +59,18 @@
  58 API_XMODEM           lfAPI_xmodem
  59 API_LCD_INIT         lcdInit
  60 API_LCD_TX           lcdTx
- 61 API_ENDTEST          lfAPI_endTest
- 62 API_DOTEST           lfAPI_doTest
- 63 API_BEGINTEST        lfAPI_beginTest
- 64 API_HEX              lfAPI_hex
- 65 API_DECIMAL          lfAPI_decimal
- 66 API_DOTPAGE          lfAPI_dotPage
- 67 API_DOTPAGES         lfAPI_dotPages
- 68 API_DUMP             lfAPI_dump
- 69 API_DUMPI            lfAPI_dumpIns
- 70 API_DASM             lfAPI_dasm
- 71 API_DOTS             lfAPI_dotEss
- 72 API_DOT              lfAPI_dot
- 73 API_SEE              lfAPI_see
-count 74
+ 61 API_LCD_DECODE       lcdDecode
+ 62 API_ENDTEST          lfAPI_endTest
+ 63 API_DOTEST           lfAPI_doTest
+ 64 API_BEGINTEST        lfAPI_beginTest
+ 65 API_HEX              lfAPI_hex
+ 66 API_DECIMAL          lfAPI_decimal
+ 67 API_DOTPAGE          lfAPI_dotPage
+ 68 API_DOTPAGES         lfAPI_dotPages
+ 69 API_DUMP             lfAPI_dump
+ 70 API_DUMPI            lfAPI_dumpIns
+ 71 API_DASM             lfAPI_dasm
+ 72 API_DOTS             lfAPI_dotEss
+ 73 API_DOT              lfAPI_dot
+ 74 API_SEE              lfAPI_see
+count 75

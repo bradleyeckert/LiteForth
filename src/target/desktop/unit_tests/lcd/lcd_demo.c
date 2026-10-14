@@ -35,7 +35,7 @@ static uint16_t rgb565(int r, int g, int b) {
 
 int main(int argc, char** argv) {
     int seconds = (argc > 1) ? atoi(argv[1]) : 10;
-    int ior = lcd_init(240, 320, LCD_ST7789);
+    int ior = lcd_init(240, 320, LCD_ST7789, NULL);
     if (ior) {
         printf("lcd_init failed (%d): no window here\n", ior);
         return 1;

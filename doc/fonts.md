@@ -101,7 +101,9 @@ A glyph record:
 
 Drawing a glyph: set the LCD's window to the bounding box (cell origin plus
 the offsets, w by h), clear the rest of the cell to the background if
-needed, and stream the pixels row by row as the codes describe them. A
+needed, and stream the pixels row by row as the codes describe them:
+`lcd-decode` expands each code into colors from the palette given to
+`lcd-init` and sends them. A
 space has w = h = 0 and no codes.
 
 ## In the block file

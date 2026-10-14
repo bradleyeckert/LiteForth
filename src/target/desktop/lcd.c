@@ -62,6 +62,7 @@ typedef struct {
 static st7789_t lcd;
 static int lcd_open;                    // lcd_init succeeded
 static const uint16_t* lcd_palette;     // lcd_decode's 16 colors, or NULL
+static int lcd_ips;                     // an IPS panel: colors inverted unless INVON
 static volatile int lcd_dirty;          // the panel may have changed
 
 /* Reset state, from hardware or software reset. Frame memory is kept. */
@@ -185,7 +186,7 @@ static uint32_t st_shown(int x, int y) {
     if (gy < 0 || gy >= ST_ROWS) return 0;
     uint32_t c = lcd.gram[gy * ST_COLS + x];
     if (lcd.idle) c &= 0x20820;                         // 8 colors: the top bits
-    if (lcd.inverted) c ^= 0x3FFFF;
+    if (lcd.inverted != lcd_ips) c ^= 0x3FFFF;
     uint32_t r = (c >> 12) & 63, g = (c >> 6) & 63, b = c & 63;
     if (lcd.idle) { r = r ? 63 : 0;  g = g ? 63 : 0;  b = b ? 63 : 0; }
     return (((r << 2) | (r >> 4)) << 16) | (((g << 2) | (g >> 4)) << 8) | ((b << 2) | (b >> 4));
@@ -465,7 +466,7 @@ static void win_close(void) { }
 
 int lcd_init(int width, int height, int controller, const uint16_t* palette) {
     lcd_close();
-    if (controller != LCD_ST7789 || width < 1 || height < 1
+    if ((controller != LCD_ST7789 && controller != LCD_ST7789_IPS) || width < 1 || height < 1
         || width > ST_COLS || height > ST_ROWS) {
         return ERR_UNSUPPORTED_OPERATION;
     }
@@ -495,6 +496,7 @@ int lcd_init(int width, int height, int controller, const uint16_t* palette) {
     }
     lcd_open = 1;
     lcd_palette = palette;
+    lcd_ips = (controller == LCD_ST7789_IPS);
     lcd_dirty = 1;
     return 0;
 }

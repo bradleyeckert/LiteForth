@@ -167,7 +167,7 @@ don't call it while compiling to flash.
 | Word | Stack | Meaning |
 |---|---|---|
 | `LCDwidth`, `LCDheight` | `( -- u )` | The panel's size in pixels (240 x 240) |
-| `LCD` | `( -- )` | Opens the panel with `palette`, sets white on black, resets the controller, wakes it with 16-bit pixels, turns it on and clears it (about 125 ms) |
+| `LCD` | `( -- )` | Opens the panel (an IPS ST7789, controller 1) with `palette`, sets white on black, resets the controller, wakes it with 16-bit pixels, sends INVON, turns it on and clears it (about 130 ms) |
 | `lcls` | `( -- )` | Fills the panel with palette entry 0 (the background) and goes to 0,0 |
 | `font` | variable | The address of a list of font blocks, ending in 0. A glyph comes from the first font in the list that has it |
 | `fontheight` | `( -- u )` | The cell height of the first font in the list: the line height |

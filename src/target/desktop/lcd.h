@@ -20,6 +20,7 @@ extern "C" {
 #define LCD_ZOOM            2   // window pixels per LCD pixel, each way
 
 #define LCD_ST7789          0   // controller: Sitronix ST7789 (240 x 320)
+#define LCD_ST7789_IPS      1   // ST7789 with an IPS panel: colors inverted unless INVON
 
 // lcd_tx bus bits
 #define LCD_RESET      0x8000   // reset: 1 = held in reset (the RESX pin low)
@@ -37,7 +38,10 @@ extern "C" {
  *                   frame memory columns 0..width-1 and rows 0..height-1.
  *                   The window is LCD_ZOOM times as big.
  * @param controller The controller to emulate: LCD_ST7789 (frame memory
- *                   240 x 320, so width <= 240 and height <= 320).
+ *                   240 x 320, so width <= 240 and height <= 320), or
+ *                   LCD_ST7789_IPS, the same with an IPS panel, which like
+ *                   most small ST7789 modules shows inverted colors until
+ *                   INVON (21h) is sent.
  * @param palette    The 16 colors lcd_decode sends for pixel values 0 to
  *                   15 (RGB565 for 16-bit pixels), or NULL. It is kept,
  *                   not copied, so changing an entry takes effect on the

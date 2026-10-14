@@ -397,9 +397,9 @@ head+
 : lcls      ( -- )          0 0 LCDwidth LCDheight _window                      \ clear the panel to palette entry 0
     LCDwidth LCDheight *  begin dup while  dup 512 min  dup 1- 16384 or lcd-decode  -  repeat
     drop  0 0 at ;
-: LCD       ( -- )          LCDwidth LCDheight 0 palette lcd-init  white fg!    \ start the panel: 16-bit pixels, cleared
-    32768 lcd-tx  16384 lcd-tx  5 ms  17 _cmd  120 ms                 ( reset, SLPOUT )
-    58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  41 _cmd  lcls ;         ( 16-bit pixels, DISPON )
+: LCD       ( -- )          LCDwidth LCDheight 1 palette lcd-init  white fg!    \ start the IPS panel: 16-bit pixels, cleared
+    32768 lcd-tx 1 ms  16384 lcd-tx 5 ms  17 _cmd 120 ms               ( reset, SLPOUT )
+    58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  33 _cmd  41 _cmd  lcls ; ( 16-bit pixels, INVON, DISPON )
 -heads
 -->
 ( BLOCK++ )

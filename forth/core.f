@@ -318,6 +318,8 @@ head+
 -heads
 : color:    ( r g b <name> -- ) >r swap 6 lshift + 6 lshift r> + constant ;     \ define a color
 63 63 63 color: white
+
+: LCD       ( -- )  240 240 0 palette lcd-init  white fg! ;
 -->
 ( BLOCK++ )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )

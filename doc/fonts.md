@@ -129,6 +129,37 @@ The padding is small. For 595 glyphs (ASCII and 500 common hanzi) from
 Noto Sans CJK it is 390 bytes at 16 pixels, 850 at 24, 1152 at 32 and
 5790 at 48 (2.2% of 260 KB).
 
+## Looking glyphs up in Forth
+
+`core.f` (block 22, "Font lookup") reads fonts in place from the blocks:
+
+| Word | Stack | Meaning |
+|---|---|---|
+| `glyph` | `( u blk -- a )` | Looks up code point `u` in the font at block `blk` and returns its glyph record as a 16-bit slice address, or 0 if the font hasn't got it. `a @+` gives w and h (w in the low byte), the next slice xoff and yoff, the next the advance, and the codes follow for `lcd-decode` |
+| `font-cache` | `( blk -- )` | Copies the font at `blk` into flash page 3, so `glyph` reads it from flash instead of the card |
+
+`glyph` follows the lookup above: the page table gives the index range for
+`u`'s page, then a binary search on the low byte. It reads through `block`,
+so a record that comes from a block buffer stays there only until the next
+`block` call; draw it (or copy it) before reading another block.
+
+**The cache.** Flash page 3 holds one font: the first 16 blocks of it
+(64 KB), or fewer if the font is shorter, with its block number in cell 0
+and the number of bytes cached in cell 1. Those two cells are in the 32
+bytes before the font, so the font's own bytes are where they are in the
+blocks. `glyph` uses the cache when the page's cell 0 matches `blk` and
+the byte is within the cached length; everything else (another font, or
+glyphs past the first 16 blocks) comes from the blocks. With the most-used
+glyphs first in `glyphs.txt`, those are the cached ones.
+
+Call `font-cache` when the app starts. It rebuilds the page in the
+`open-flash` buffer and `close-flash` programs it, but on the CH32H417
+`flash_program` compares the page first and erases nothing if it hasn't
+changed, so the flash is only erased when the font did. It reads every
+block it copies, about 11 blocks for a 24-pixel font of 439 glyphs. Being
+an `open-flash`, it closes any flash page that is open (committing it), so
+don't call it while compiling to flash.
+
 ## Pixel codes
 
 Each 16-bit code describes a few pixels. "White" is 15 (foreground) and

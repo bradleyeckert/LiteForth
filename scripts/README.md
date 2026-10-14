@@ -1,0 +1,136 @@
+# Scripts
+
+Python tools for working with LiteForth's block files and fonts on the PC.
+They need Python 3; `mkfont.py` also needs Pillow and fontTools. The
+examples use `py`, the Windows launcher; on Linux and macOS use `python3`.
+Each script prints its full usage with `-h`.
+
+| Script | What it does |
+|---|---|
+| `putblocks.py` | Writes Forth source into blocks |
+| `getblocks.py` | Dumps blocks back out as source text; also the `git diff` driver for `.fb4` files |
+| `putbin.py` | Writes a binary file, such as a font, into blocks |
+| `mkfont.py` | Makes 4-bit anti-aliased bitmap fonts for the graphic LCDs |
+| `lintf.py` | Checks Forth source against `doc/coding-rules.md` |
+
+The other files here aren't Python: `regression.f` is the test script that
+`make test` runs, and `settings.json` has Windows Terminal key bindings for
+booting `lf` (F9) and running the regression tests (F12).
+
+## Block files
+
+A block file (`lfblocks.fb4` by default) holds 4 KB blocks, block n at
+byte n × 4096. Block 0 starts with the signature `LITEFORTH` and is never
+written by these scripts. The scripts need an existing signed file; they
+extend a regular file as needed, but not a device such as an SD card
+partition (`/dev/sdb2`), which they can also write to directly.
+
+## putblocks.py
+
+```
+py putblocks.py [-n] source.f [blockfile]
+```
+
+Splits the source at `( BLOCK n )` lines and writes each part as block n,
+32 rows of 128 columns padded with spaces. `( BLOCK++ )` starts the block
+after the last one, and `( BLOCK IGNORE )` skips the lines up to the next
+marker. A line over 128 bytes, a block over 32 lines, or a block given
+twice is an error, and then nothing is written. `-n` shows what would be
+written. `forth/build.bat` uses it to write the system source into
+`bin/lfblocks.fb4`:
+
+```
+cd forth
+py ../scripts/putblocks.py core.f ../bin/lfblocks.fb4
+```
+
+On the board, the `xmodem` word does the same with a file sent over the
+terminal.
+
+## getblocks.py
+
+```
+py getblocks.py [-0] [-o out.f] [blockfile]
+```
+
+The reverse: writes every non-blank block as a `( BLOCK n )` marker and its
+rows, so `putblocks.py` can write the dump back unchanged. A binary block
+(from `putbin.py`) becomes one `( BLOCK IGNORE ) block n: binary, crc32 ...`
+line, which `putblocks.py` skips. `-0` includes block 0's header text.
+
+To make `git diff` show block files as text, run this once in your clone:
+
+```
+git config diff.fb4.textconv "py scripts/getblocks.py -0"
+```
+
+## mkfont.py
+
+```
+py mkfont.py -f font.otf -s size [options] glyphs.txt
+py mkfont.py --list [words]
+```
+
+Renders the glyphs in `glyphs.txt` from a TrueType or OpenType font (such
+as Noto Sans CJK) at `size` pixels and writes a compressed `.fnt` file with
+an index by code point. `glyphs.txt` is UTF-8: a line like `U+0020-U+007E`
+adds a range, and any other line adds its characters. Put the most-used
+glyphs first; the order is the priority.
+
+| Option | Meaning |
+|---|---|
+| `-f FILE` | The font. A bare name is also looked for in the installed font folders. Give `-f` again for fallback fonts (Arabic, Thai, ...) |
+| `--face N` | The face of a `.ttc` collection, for the `-f` before it |
+| `-s PIXELS` | The size |
+| `-w WEIGHT` | The weight: 100 to 900, or `regular`, `bold`, ... |
+| `-o FILE` | The output (default `font.fnt`) |
+| `--blocks` | Keep each glyph inside one 4 KB block, for reading from blocks |
+| `--max-bytes N` | Stop adding glyphs at this size |
+| `--proof FILE` | Also draw the decoded glyphs as a PNG |
+| `--list` | List the installed fonts and the `-f`/`--face` they need |
+
+```
+py mkfont.py --list noto cjk
+py mkfont.py -f NotoSansCJKsc-Regular.otf -s 24 --blocks -o cjk24.fnt --proof cjk24.png glyphs.txt
+```
+
+`fonts/build.bat` builds the project's fonts this way. If Pillow or
+fontTools is missing, it prints the command to install them for the right
+Python (`py -m pip install pillow fonttools`). The file format is in
+`doc/fonts.md`.
+
+## putbin.py
+
+```
+py putbin.py [-n] file.fnt block [blockfile]
+```
+
+Writes a binary file into blocks as one stream starting at byte 32 of
+`block` (the first 32 bytes are left as zeros for an HMAC). It prints the
+blocks used and the next free block, where the next file can go, and warns
+if a font has glyphs crossing a block boundary (build it with `--blocks`).
+
+```
+py putbin.py cjk24.fnt 100 ../bin/lfblocks.fb4
+cjk24.fnt: 108824 bytes at byte 32 of block 100: blocks 100-126, next free block 127
+```
+
+## lintf.py
+
+```
+py lintf.py file.f ...
+```
+
+Reports each departure from `doc/coding-rules.md` on its own line: title
+rows, the stack picture and `\` description columns of each definition,
+missing descriptions, tabs, long rows and trailing spaces. The exit status
+is 1 if it reported anything.
+
+```
+py lintf.py ../forth/core.f
+```
+
+## Tests
+
+Each script has a test suite under `src/target/desktop/unit_tests/`
+(`putblocks`, `putbin`, `mkfont`, `lintf`), run by `make test`.

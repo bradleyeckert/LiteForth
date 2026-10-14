@@ -322,6 +322,36 @@ head+
 : LCD       ( -- )  240 240 0 palette lcd-init  white fg! ;
 -->
 ( BLOCK++ )
+( Font lookup _________________________________________________ 10/14/26 BNE )
+\ Fonts from mkfont.py --blocks, written at byte 32 of their first block by putbin.py. Flash page 3 can
+\ cache one font: its first 16 blocks, with the font's block in cell 0 and its cached bytes in cell 1.
+hex 180000 constant fontpage decimal                                            \ flash page 3, the font cache
+_udata variable fblk                                                            \ block where the font being read starts
+head-
+: _fcached  ( -- u )        fontpage @ fblk @ = if fontpage 1+ @ exit then 0 ;  \ bytes of the font in page 3, or 0
+: _fcell    ( o -- a )      32 +  dup 1+ _fcached u<=                           \ cell address of font byte o
+                            if 2/ 2/ fontpage + exit then
+                            dup 12 rshift fblk @ + block  swap 4095 and 2/ 2/ + ;
+: _f16      ( o -- a )      dup _fcell 16 bit  swap 2 and                       \ the 16-bit slice at font byte o
+                            if [ 16 22 lshift ] literal + then ;
+: _fentry   ( i -- x )      2* 2* 528 + _fcell @ ;                              \ index entry i: low byte, record offset
+: _fend     ( -- o )        0  8 _f16 @ 1parm                                   \ highest glyph record offset
+                            for  r@ 1- _fentry 16777215 and max  next ;
+head+
+: glyph     ( u blk -- a )  fblk !  dup 255 and >r                              \ u's glyph record as 16-bit slices, or 0
+    8 rshift 2* 12 + _f16 @+ swap @             ( lo hi |R: low byte of u )
+    begin  2dup xor while
+        2dup + 2/  dup _fentry                  ( lo hi mid x )
+        dup 24 rshift r@ = if  nip nip nip 16777215 and  r> drop _f16 exit  then
+        24 rshift r@ u<= if  1+ rot drop swap  else  nip  then
+    repeat  2drop r> drop 0 ;
+: font-cache ( blk -- )     fontpage open-flash  -1 fontpage !  fblk !          \ cache the font at blk in flash page 3
+    _fend 32 + 12 rshift 1+ 16 min              ( blocks )
+    dup for  r@ 1- dup fblk @ + block  swap 10 lshift fontpage +  1024 cmove  next
+    fblk @  fontpage a!  !a+  12 lshift !a  close-flash ;
+-heads
+-->
+( BLOCK++ )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata ( -- )                                                             \ compile idata initialization structure
     _idata here  dp[] tuck - amask

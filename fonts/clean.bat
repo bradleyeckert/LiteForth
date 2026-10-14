@@ -1,1 +1,2 @@
-del *.lfntdel *.png
+del *.fnt
+del *.png

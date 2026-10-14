@@ -318,8 +318,13 @@ head+
 -heads
 : color:    ( r g b <name> -- ) >r swap 6 lshift + 6 lshift r> + constant ;     \ define a color
 63 63 63 color: white
-
-: LCD       ( -- )  240 240 0 palette lcd-init  white fg! ;
+240 constant LCDwidth                                                           \ panel width in pixels
+240 constant LCDheight                                                          \ panel height in pixels
+_udata variable lcd_x                                                           \ left edge of the next glyph's cell
+variable lcd_y                                                                  \ top edge of the next glyph's cell
+variable kerning                                                                \ extra pixels between glyphs
+variable font                                                                   \ address of a list of font blocks, ending in 0
+: at        ( x y -- )      lcd_y !  lcd_x ! ;                                  \ set the position of the next glyph
 -->
 ( BLOCK++ )
 ( Font lookup _________________________________________________ 10/14/26 BNE )
@@ -349,6 +354,47 @@ head+
     _fend 32 + 12 rshift 1+ 16 min              ( blocks )
     dup for  r@ 1- dup fblk @ + block  swap 10 lshift fontpage +  1024 cmove  next
     fblk @  fontpage a!  !a+  12 lshift !a  close-flash ;
+: fontheight ( -- u )       font @ @ fblk !  6 _f16 @ 255 and ;                 \ cell height of the first font in the list
+-heads
+-->
+( BLOCK++ )
+( LCD text 1/2 ________________________________________________ 10/14/26 BNE )
+head-
+: _cmd      ( b -- )        8192 or lcd-tx ;                                    \ send a command byte to the LCD
+: _w16      ( u -- )        dup 8 rshift lcd-tx  255 and lcd-tx ;               \ send a 16-bit parameter, high byte first
+: _span     ( u1 u2 b -- )  _cmd  swap _w16 _w16 ;                              \ send command b with the range u1 to u2
+: _window   ( x y w h -- )  >r  rot tuck + 1- 42 _span                          \ write w x h pixels from x,y on (RAMWR)
+                            r> over + 1- 43 _span  44 _cmd ;
+: _npx      ( x -- n )      dup 14 rshift  dup 0= if drop                       \ number of pixels a font code describes
+                            dup 7 rshift 7 and  swap 7 and + 2 + exit then
+                            dup 1 = if drop 511 and 1+ exit then
+                            2 = if 31 and 2 + exit then  3 and 3 + ;
+: _draw     ( a n -- )      begin  dup 1- 0< 0= while                           \ send codes from a until n pixels are out
+                            >r @+ dup lcd-decode _npx r> swap -  repeat  2drop ;
+: _lookup   ( c -- a )      font @  begin dup @ while  2dup @ glyph             \ c's glyph in the first font that has it
+                            dup if nip nip exit then  drop 1+  repeat  2drop 0 ;
+variable _wh                                                                    \ glyph width and height bytes
+variable _xy                                                                    \ glyph x and y offsets in the cell
+: _w        ( -- u )        _wh @ 255 and ;                                     \ glyph width
+: _h        ( -- u )        _wh @ 8 rshift ;                                    \ glyph height
+: _wrap     ( fh -- )       lcd_x @ _xy @ 255 and + _w +  LCDwidth u<=          \ next row if the glyph crosses the right edge
+                            if drop exit then  0 lcd_x !  dup lcd_y +!
+                            lcd_y @ + LCDheight u<= if exit then  0 lcd_y ! ;
+-->
+( BLOCK++ )
+( LCD text 2/2 ________________________________________________ 10/14/26 BNE )
+head+
+: lemit     ( c -- )        fontheight swap  _lookup                            \ draw c at lcd_x,lcd_y in the current font
+    dup 0= if drop [char] ? _lookup then  dup 0= if 2drop exit then     ( fh a )
+    @+ _wh !  @+ _xy !  @+ 255 and >r  swap _wrap                   ( codes |R: advance )
+    _w _h *  dup if  >r  lcd_x @ _xy @ 255 and +  lcd_y @ _xy @ 8 rshift +  _w _h _window
+                     r> _draw  else  2drop  then
+    r> kerning @ +  lcd_x +! ;
+: lcls      ( -- )          0 0 LCDwidth LCDheight _window                      \ clear the panel to palette entry 0
+    LCDwidth LCDheight *  begin dup while  dup 512 min  dup 1- 16384 or lcd-decode  -  repeat
+    drop  0 0 at ;
+: LCD       ( -- )          LCDwidth LCDheight 0 palette lcd-init  white fg!    \ start the panel: 16-bit pixels, cleared
+    32768 lcd-tx  16384 lcd-tx  17 _cmd  58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  41 _cmd  lcls ;
 -heads
 -->
 ( BLOCK++ )

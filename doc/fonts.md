@@ -160,6 +160,37 @@ block it copies, about 11 blocks for a 24-pixel font of 439 glyphs. Being
 an `open-flash`, it closes any flash page that is open (committing it), so
 don't call it while compiling to flash.
 
+## Drawing text in Forth
+
+`core.f`'s "LCD display" and "LCD text" blocks draw text with these:
+
+| Word | Stack | Meaning |
+|---|---|---|
+| `LCDwidth`, `LCDheight` | `( -- u )` | The panel's size in pixels (240 x 240) |
+| `LCD` | `( -- )` | Opens the panel with `palette`, sets white on black, resets the controller, wakes it with 16-bit pixels, turns it on and clears it |
+| `lcls` | `( -- )` | Fills the panel with palette entry 0 (the background) and goes to 0,0 |
+| `font` | variable | The address of a list of font blocks, ending in 0. A glyph comes from the first font in the list that has it |
+| `fontheight` | `( -- u )` | The cell height of the first font in the list: the line height |
+| `kerning` | variable | Extra pixels added to each glyph's advance (may be negative) |
+| `lcd_x`, `lcd_y` | variables | The top left corner of the next glyph's cell |
+| `at` | `( x y -- )` | Sets `lcd_x` and `lcd_y` |
+| `lemit` | `( c -- )` | Draws code point `c` at `lcd_x`,`lcd_y`, or `?` if no font has it, then adds its advance and `kerning` to `lcd_x` |
+
+Before drawing, `lemit` checks the glyph's bounding box: if its right edge
+would be past `LCDwidth`, it goes to the start of the next line
+(`lcd_x` = 0, `lcd_y` + `fontheight`), and back to the top if that line
+would go past `LCDheight`. Only the bounding box is drawn, so the rest of
+the cell keeps whatever was there; `lcls` first if that matters.
+
+```
+create fonts 100 , 120 , 0 ,      \ cjk24, then cjk48 for what it lacks
+fonts font !  LCD  10 10 at  char A lemit
+```
+
+On real hardware `LCD` will need delays: the ST7789 wants 5 ms after a
+reset and 120 ms after SLPOUT before the next command. The simulator
+doesn't.
+
 ## Pixel codes
 
 Each 16-bit code describes a few pixels. "White" is 15 (foreground) and

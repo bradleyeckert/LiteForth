@@ -42,7 +42,7 @@ void setUp(void) { }
 void tearDown(void) { lcd_close(); }
 
 void test_init_checks_arguments(void) {
-    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 320, 1, NULL));
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 320, 2, NULL));
     TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(241, 320, LCD_ST7789, NULL));
     TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 321, LCD_ST7789, NULL));
     TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_tx(0));
@@ -148,6 +148,18 @@ void test_display_modes(void) {
     TEST_ASSERT_EQUAL_HEX32(BLACK, lcd_pixel(3, 3));
     cmd(0x11);
     TEST_ASSERT_EQUAL_HEX32(0x868286, lcd_pixel(3, 3));
+}
+
+void test_ips_panel(void) {
+    TEST_ASSERT_EQUAL_INT(ERR_UNSUPPORTED_OPERATION, lcd_init(240, 240, 2, NULL));
+    TEST_ASSERT_EQUAL_INT(0, lcd_init(240, 240, LCD_ST7789_IPS, NULL));
+    cmd(0x11);  cmd(0x3A);  dat(0x55);  cmd(0x29);
+    fill565(5, 5, 5, 5, 0xF800);                        // red
+    TEST_ASSERT_EQUAL_HEX32(0x00FFFF, lcd_pixel(5, 5)); // cyan until INVON
+    cmd(0x21);
+    TEST_ASSERT_EQUAL_HEX32(RED, lcd_pixel(5, 5));
+    cmd(0x20);
+    TEST_ASSERT_EQUAL_HEX32(0x00FFFF, lcd_pixel(5, 5));
 }
 
 void test_vertical_scroll(void) {
@@ -265,6 +277,7 @@ int main(void) {
     RUN_TEST(test_madctl_orientations);
     RUN_TEST(test_240x240_panel_shows_the_top_rows);
     RUN_TEST(test_display_modes);
+    RUN_TEST(test_ips_panel);
     RUN_TEST(test_vertical_scroll);
     RUN_TEST(test_pins);
     RUN_TEST(test_decode);

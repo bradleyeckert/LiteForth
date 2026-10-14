@@ -228,6 +228,30 @@ read once at startup, so a card inserted later needs a restart (Ctrl+X
 three times will do). If transfers fail, try a slower SD clock: raise
 `SDIO_TRANSFER_CLK_DIV` in `sdio.h`.
 
+### LCD: `V5F/User/lcd.c`
+
+The nanoCH32H417's LCD connector takes a 1.54" 240 x 240 ST7789 IPS
+module. `lcd.c` drives it on SPI2 behind the same interface as the
+desktop simulator (`lcd_init`, `lcd_tx`, `lcd_decode`), so `core.f`'s
+`LCD`, `lemit` and `lcls` work unchanged:
+
+| Signal | Pin |
+|---|---|
+| SCLK | PB13 (SPI2, AF5) |
+| MOSI | PB15 (SPI2, AF5) |
+| CS | PB12 |
+| D/C | PD9 |
+| RES | PD8 |
+
+SPI2 runs in mode 3 at its fastest prescaler, as in the board's SPI_LCD
+example. `lcd_init` sets up the pins and SPI2 the first time and keeps
+the palette; `lcd_tx` drives RES, CS and D/C from bits 15 to 13 and sends
+the byte; `lcd_decode` streams a font code's pixels. Bytes go out as
+soon as the transmit buffer is free, and the driver waits for the bus to
+go idle only before it changes RES, CS or D/C. The panel shows inverted
+colors until INVON, which `LCD` sends (the simulator's controller 1 does
+the same).
+
 ## LiteForth on the V5F
 
 ### How it's built

@@ -5,10 +5,14 @@
    Pins (doc/targets.md), as in the board's SPI_LCD example:
      SCLK PB13 and MOSI PB15 (SPI2, AF5), CS PB12, D/C PD9, RES PD8.
    SPI2 runs in mode 3 (CPOL high, CPHA second edge), 8 bits, MSB first,
-   at its fastest prescaler. Nothing is read back, so the receive side's
-   overrun flag is left alone. Each byte is written as soon as the transmit
-   buffer is free; the bus is waited on only before D/C, CS or RES changes,
-   so a run of pixels streams back to back. */
+   at its fastest prescaler. The module sends nothing back, but SPI2 is
+   full duplex and stops transmitting while its receive buffer is full, so
+   every wait also reads and discards what came in. Each byte is written
+   as soon as the transmit buffer is free; the bus is waited on only before
+   D/C, CS or RES changes, so a run of pixels streams back to back.
+   Every wait gives up after SPI_TIMEOUT polls: the driver then reports
+   ERR_UNSUPPORTED_OPERATION until the next lcd_init, instead of hanging
+   the V5F (and with it the terminal). */
 #include "ch32h417.h"
 #include "lcd.h"
 #include "../../../../errcodes.h"
@@ -19,6 +23,7 @@
 #define DC_PIN      GPIO_Pin_9
 #define RES_PORT    GPIOD
 #define RES_PIN     GPIO_Pin_8
+#define SPI_TIMEOUT 1000000             /* polls of STATR before giving up */
 
 static int lcd_ready;                   /* the pins and SPI2 are set up */
 static int lcd_open;                    /* lcd_init succeeded */
@@ -32,23 +37,42 @@ static void pin(GPIO_TypeDef* port, uint16_t bit, int high) {
     else port->BCR = bit;
 }
 
-/* Waits until the last byte has left the shift register. */
-static void spi_idle(void) {
-    while (!(SPI2->STATR & SPI_STATR_TXE)) { }
-    while (SPI2->STATR & SPI_STATR_BSY) { }
+static int spi_failed;                  /* a wait timed out */
+
+/* Polls STATR until (STATR & mask) == want, reading and discarding any
+   received byte meanwhile. Returns 0, or -1 after SPI_TIMEOUT polls. */
+static int spi_wait(uint16_t mask, uint16_t want) {
+    for (uint32_t n = SPI_TIMEOUT; n; n--) {
+        uint16_t st = SPI2->STATR;
+        if (st & SPI_STATR_RXNE) (void)SPI2->DATAR;
+        if ((st & mask) == want) return 0;
+    }
+    spi_failed = 1;
+    lcd_open = 0;
+    return -1;
 }
 
-static inline void spi_byte(uint8_t b) {
-    while (!(SPI2->STATR & SPI_STATR_TXE)) { }
+/* Waits until the last byte has left the shift register. */
+static int spi_idle(void) {
+    if (spi_wait(SPI_STATR_TXE, SPI_STATR_TXE)) return -1;
+    if (spi_wait(SPI_STATR_BSY, 0)) return -1;
+    while (SPI2->STATR & SPI_STATR_RXNE) (void)SPI2->DATAR;
+    return 0;
+}
+
+static inline int spi_byte(uint8_t b) {
+    if (spi_wait(SPI_STATR_TXE, SPI_STATR_TXE)) return -1;
     SPI2->DATAR = b;
+    return 0;
 }
 
 /* Sets a control line, after the bytes already sent have gone out. */
-static void set_line(int* now, int level, GPIO_TypeDef* port, uint16_t bit) {
-    if (*now == level) return;
-    spi_idle();
+static int set_line(int* now, int level, GPIO_TypeDef* port, uint16_t bit) {
+    if (*now == level) return 0;
+    if (spi_idle()) return -1;
     pin(port, bit, level);
     *now = level;
+    return 0;
 }
 
 static void hw_init(void) {
@@ -95,6 +119,7 @@ int lcd_init(int width, int height, int controller, const uint16_t* palette) {
         return ERR_UNSUPPORTED_OPERATION;
     }
     if (!lcd_ready) hw_init();
+    spi_failed = 0;
     lcd_palette = palette;
     lcd_open = 1;
     return 0;
@@ -102,30 +127,29 @@ int lcd_init(int width, int height, int controller, const uint16_t* palette) {
 
 int lcd_tx(uint16_t data) {
     if (!lcd_open) return ERR_UNSUPPORTED_OPERATION;
-    set_line(&res_now, !(data & LCD_RESET), RES_PORT, RES_PIN);
+    if (set_line(&res_now, !(data & LCD_RESET), RES_PORT, RES_PIN)) return ERR_UNSUPPORTED_OPERATION;
     if (data & LCD_RESET) return 0;                     /* held in reset */
-    set_line(&cs_now, (data & LCD_CSX) != 0, CS_PORT, CS_PIN);
+    if (set_line(&cs_now, (data & LCD_CSX) != 0, CS_PORT, CS_PIN)) return ERR_UNSUPPORTED_OPERATION;
     if (data & LCD_CSX) return 0;                       /* not selected */
-    set_line(&dc_now, !(data & LCD_CMD), DC_PORT, DC_PIN);
-    spi_byte((uint8_t)data);
+    if (set_line(&dc_now, !(data & LCD_CMD), DC_PORT, DC_PIN)) return ERR_UNSUPPORTED_OPERATION;
+    if (spi_byte((uint8_t)data)) return ERR_UNSUPPORTED_OPERATION;
     return 0;
 }
 
-/* Sends count pixels of palette entry v, high byte first. */
+/* Sends count pixels of palette entry v, high byte first; stops early if
+   SPI2 is stuck (spi_failed tells). */
 static void decode_run(unsigned v, unsigned count) {
     uint16_t c = lcd_palette[v & 15];
     uint8_t hi = (uint8_t)(c >> 8), lo = (uint8_t)c;
-    while (count--) {
-        spi_byte(hi);
-        spi_byte(lo);
+    while (count-- && !spi_failed) {
+        if (spi_byte(hi) || spi_byte(lo)) return;
     }
 }
 
 int lcd_decode(uint16_t code) {
     if (!lcd_open || !lcd_palette) return ERR_UNSUPPORTED_OPERATION;
-    set_line(&res_now, 1, RES_PORT, RES_PIN);
-    set_line(&cs_now, 0, CS_PORT, CS_PIN);
-    set_line(&dc_now, 1, DC_PORT, DC_PIN);
+    if (set_line(&res_now, 1, RES_PORT, RES_PIN) || set_line(&cs_now, 0, CS_PORT, CS_PIN)
+        || set_line(&dc_now, 1, DC_PORT, DC_PIN)) return ERR_UNSUPPORTED_OPERATION;
     switch (code >> 14) {               /* the formats in doc/fonts.md */
     case 0:                             /* gray black[3] gray white[3] */
         decode_run(code >> 10, 1);  decode_run(0, (code >> 7) & 7);
@@ -144,5 +168,5 @@ int lcd_decode(uint16_t code) {
         decode_run(code >> 2, 1);   decode_run(0, code & 3);
         break;
     }
-    return 0;
+    return spi_failed ? ERR_UNSUPPORTED_OPERATION : 0;
 }

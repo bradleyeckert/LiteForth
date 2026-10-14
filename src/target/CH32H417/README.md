@@ -248,7 +248,11 @@ example. `lcd_init` sets up the pins and SPI2 the first time and keeps
 the palette; `lcd_tx` drives RES, CS and D/C from bits 15 to 13 and sends
 the byte; `lcd_decode` streams a font code's pixels. Bytes go out as
 soon as the transmit buffer is free, and the driver waits for the bus to
-go idle only before it changes RES, CS or D/C. The panel shows inverted
+go idle only before it changes RES, CS or D/C. SPI2 is full duplex and
+stops sending while its receive buffer is full, so every wait reads and
+discards what came in. A wait that times out (SPI2 stuck) makes `lcd-tx`
+and `lcd-decode` give -21 until the next `lcd-init`, instead of hanging
+the V5F and with it the terminal. The panel shows inverted
 colors until INVON, which `LCD` sends (the simulator's controller 1 does
 the same).
 

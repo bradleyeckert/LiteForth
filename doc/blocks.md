@@ -38,8 +38,8 @@ rest of the last block is zeros too. It prints the blocks it used and the
 next free one, where the next file can go:
 
 ```
-py ..\scripts\putbin.py cjk24.lfnt 100 ..\bin\lfblocks.fb4
-cjk24.lfnt: 107974 bytes at byte 32 of block 100: blocks 100-126, next free block 127
+py ..\scripts\putbin.py cjk24.fnt 100 ..\bin\lfblocks.fb4
+cjk24.fnt: 107974 bytes at byte 32 of block 100: blocks 100-126, next free block 127
 ```
 
 Like `putblocks.py`, it needs a signed block file (or partition) and never

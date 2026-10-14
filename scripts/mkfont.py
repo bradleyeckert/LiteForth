@@ -6,7 +6,7 @@ Usage: mkfont.py -f font.otf -s size [options] glyphs.txt
 
 Renders the glyphs listed in glyphs.txt from a TrueType/OpenType font
 (Noto Sans, Noto Sans CJK, ...) at `size` pixels, compresses each one and
-writes a font file (default font.lfnt) with an index for looking glyphs
+writes a font file (default font.fnt) with an index for looking glyphs
 up by their 16-bit code point. See doc/fonts.md for the format.
 
 glyphs.txt is UTF-8. A line like `U+0020-U+007E` or `U+00B0` adds code
@@ -29,7 +29,7 @@ Options:
                  extrabold, black. A variable font is set to it; a static
                  font must already be that weight (Noto Sans CJK has one
                  file per weight: NotoSansCJK-Bold.ttc, ...)
-  -o FILE        the output (default font.lfnt)
+  -o FILE        the output (default font.fnt)
   --max-bytes N  the most the font file may take
   --blocks       keep each glyph record inside one 4 KB block of the
                  block file, so one block read gets a whole glyph. The
@@ -634,7 +634,7 @@ def selftest():
 
 
 class Args:
-    fonts = None; size = None; out = "font.lfnt"; weight = None
+    fonts = None; size = None; out = "font.fnt"; weight = None
     max_bytes = 0; proof = None; glyphs = None; blocks = False
 
 
@@ -698,12 +698,12 @@ def main(argv):
             else:
                 a.glyphs = arg
     except (StopIteration, ValueError):
-        print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
+        print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.fnt] [--face N] "
               "[--max-bytes N] [--blocks] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2
     if not (a.fonts and a.size and a.glyphs):
-        print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.lfnt] [--face N] "
+        print("usage: mkfont.py -f font.otf -s size [-w weight] [-o out.fnt] [--face N] "
               "[--max-bytes N] [--blocks] [--proof sheet.png] glyphs.txt\n"
               "       mkfont.py --list [text | path ...]", file=sys.stderr)
         return 2

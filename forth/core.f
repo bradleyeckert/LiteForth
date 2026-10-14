@@ -297,6 +297,29 @@ head+ -->
 -heads forth definitions                                                        \ leave the search order as [forth, forth]
 -->
 ( BLOCK++ )
+( LCD display _________________________________________________ 10/14/26 BNE )
+\ 4bpp Font data needs a 16-color palette in 5:6:5 format. 
+_udata create palette 8 ( cells ) allot                                         \ uint16_t[16] color table
+head-
+: 'palette  ( -- a )        hld @  palette over 2/ +                            \ address the palette uint16_t
+                            swap 1 and if [ 16 22 lshift ] literal + then ;     \ re-use `hld`
+: 'red      ( -- a5 )       'palette [ 5 27 lshift 11 22 lshift + ] literal + ; \ red slice address
+: 'green    ( -- a6 )       'palette [ 6 27 lshift  5 22 lshift + ] literal + ; \ green slice address
+: 'blue     ( -- a5 )       'palette [ 5 27 lshift  0 22 lshift + ] literal + ; \ blue slice address
+variable fgcolor                                                                \ foreground color in RGB 6:6:6 format
+variable bgcolor                                                                \ background color in RGB 6:6:6 format
+: shade     ( .. -- .. shade ) swap @+ rot @+ rot  over -  hld @  15 */ + ;     \ get the next shade in the B,G,R sequence
+: reshade   ( -- )          fgcolor 6 bit  bgcolor 6 bit                        \ interpolate one table entry
+    shade 2/ 'blue !  shade 'green !  shade 2/ 'red !  2drop ;
+: repalet   ( -- )          16 for r@ 1- hld !  reshade  next ;                 \ reshade the entire palette
+head+
+: fg!       ( color -- )    fgcolor ! repalet ;                                 \ set the foreground color
+: bg!       ( color -- )    bgcolor ! repalet ;                                 \ set the background color
+-heads
+: color:    ( r g b <name> -- ) >r swap 6 lshift + 6 lshift r> + constant ;     \ define a color
+63 63 63 color: white
+-->
+( BLOCK++ )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
 : save-idata ( -- )                                                             \ compile idata initialization structure
     _idata here  dp[] tuck - amask

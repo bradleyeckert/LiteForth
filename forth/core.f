@@ -323,10 +323,11 @@ head+
 63 63 63 color: white
 240 constant LCDwidth                                                           \ panel width in pixels
 240 constant LCDheight                                                          \ panel height in pixels
+_text create font0  100 , 0 ,                                                   \ default font chain
+_idata variable font   font0 font !                                             \ address of a list of font blocks, ending in 0
 _udata variable lcd_x                                                           \ left edge of the next glyph's cell
 variable lcd_y                                                                  \ top edge of the next glyph's cell
 variable kerning                                                                \ extra pixels between glyphs
-variable font                                                                   \ address of a list of font blocks, ending in 0
 : at        ( x y -- )      lcd_y !  lcd_x ! ;                                  \ set the position of the next glyph
 -->
 ( BLOCK++ )

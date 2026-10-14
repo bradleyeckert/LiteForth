@@ -325,7 +325,7 @@ head+
 ( Font lookup _________________________________________________ 10/14/26 BNE )
 \ Fonts from mkfont.py --blocks, written at byte 32 of their first block by putbin.py. Flash page 3 can
 \ cache one font: its first 16 blocks, with the font's block in cell 0 and its cached bytes in cell 1.
-hex 180000 constant fontpage decimal                                            \ flash page 3, the font cache
+3 page constant fontpage                                                        \ flash page 3, the font cache
 _udata variable fblk                                                            \ block where the font being read starts
 head-
 : _fcached  ( -- u )        fontpage @ fblk @ = if fontpage 1+ @ exit then 0 ;  \ bytes of the font in page 3, or 0

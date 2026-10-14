@@ -183,6 +183,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "xmodem",       API0(API_XMODEM),                         190},
     { PREV, "lcd-init",     API0(API_LCD_INIT),                       191},
     { PREV, "lcd-tx",       API0(API_LCD_TX),                         193},
+    { PREV, "lcd-decode",   API0(API_LCD_DECODE),                     195},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        174},
     { PREV, "->",           API0(API_DOTEST),                         175},

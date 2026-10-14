@@ -129,8 +129,9 @@
 ( -- )                          \ Make the headers that follow permanent; temporary words stay usable.
 ( -- )                          \ Drop the temporary headers, ending the scope of their words.
 ( -- )                          \ Receive a source file by XMODEM (checksum) and write it into blocks, as putblocks.py does.
-( width height controller -- )  \ Open a simulated LCD panel of width x height pixels; controller 0 is an ST7789.
+( w h ctrl palette -- )         \ Open a w x h pixel LCD panel (ctrl 0: ST7789); palette: the cell address of 16 RGB565 colors.
 ( BLOCK 6 )
 ( LiteForth internal glossary lines 193 to 223 ________________ 10/13/26 BNE )
 ( u -- )                        \ Drive the LCD bus: bit 15 reset, 14 CSX, 13 command, 7:0 the byte (lcd_tx).
 ( n1 -- n2 )                    \ Shift n1 right, copying the sign bit, by the count set with shft[.
+( u16 -- )                      \ Expand a font pixel code into palette colors and send them to the LCD as data.

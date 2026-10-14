@@ -315,17 +315,31 @@ static int extick(void) {
     return vmPush(word->aux);
 }
 
-/* LCD-INIT  ( width height controller -- )  Open a simulated LCD (lcd.h) */
+/* LCD-INIT  ( width height controller palette -- )  Open an LCD (lcd.h);
+   palette is the cell address of 16 RGB565 colors, two per cell (entry 0
+   in bits 15:0 of the first cell), all in one page */
 static int lcdInit(void) {
+    uint32_t palette = (uint32_t)vmPop();
     int controller = (int)vmPop();
     int height = (int)vmPop();
     int width = (int)vmPop();
-    return lcd_init(width, height, controller);
+    const uint16_t* colors = (const uint16_t*)lfVmBytes(palette);
+    if ((palette >> 22) || colors == NULL || lfVmBytes(palette + 7) == NULL
+        || ((palette + 7) & ~VM_PAGE_MASK) != (palette & ~VM_PAGE_MASK)) {
+        return ERR_INVALID_ADDRESS;     // not 8 readable cells in one page
+    }
+    return lcd_init(width, height, controller, colors);
 }
 
 /* LCD-TX  ( u -- )  One transfer on the LCD bus: pins and a byte (lcd.h) */
 static int lcdTx(void) {
     return lcd_tx((uint16_t)vmPop());
+}
+
+/* LCD-DECODE  ( u16 -- )  Expand a font pixel code into palette colors, sent
+   to the LCD as data (lcd.h, doc/fonts.md) */
+static int lcdDecode(void) {
+    return lcd_decode((uint16_t)vmPop());
 }
 
 /* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */

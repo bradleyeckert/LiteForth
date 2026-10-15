@@ -28,7 +28,7 @@ const uint8_t  MyDevDescr[] =
     DEF_IC_PRG_VER, 0x00, // bcdDevice 0.01
     0x01,       // iManufacturer (String Index)
     0x02,       // iProduct (String Index)
-    0x00,       // iSerialNumber (String Index)
+    0x03,       // iSerialNumber (String Index): LiteForth, the chip's UID
     0x01,       // bNumConfigurations 1
 };
 
@@ -96,20 +96,26 @@ const uint8_t MyProdInfo[ ]  =
     '7', 0
 };
 
-/* Serial Number Information */
-const uint8_t  MySerNumInfo[ ] =
-{
-    0x16, 
-    0x03, 
-    '0', 0, 
-    '1', 0, 
-    '2', 0, 
-    '3', 0, 
-    '4', 0, 
-    '5', 0, 
-    '6', 0, 
-    '7', 0, 
-    '8', 0, 
-    '9', 0
-};
+/* LiteForth: Serial Number Information, 24 hex digits of the chip's
+ * 96-bit unique ID (ESIG UNIID1..3), filled in by USB_SerialInit before
+ * USB starts. Until then bLength is 0 and the descriptor is empty. */
+uint8_t MySerNumInfo[ 2 + 2 * DEF_USBD_SN_DIGITS ];
 
+void USB_SerialInit( void )
+{
+    static const char hex[ ] = "0123456789ABCDEF";
+    uint32_t id[ 3 ];
+    int i;
+
+    id[ 0 ] = *(volatile uint32_t *)DEF_ESIG_UNIID1;
+    id[ 1 ] = *(volatile uint32_t *)( DEF_ESIG_UNIID1 + 4 );
+    id[ 2 ] = *(volatile uint32_t *)( DEF_ESIG_UNIID1 + 8 );
+    for( i = 0; i < DEF_USBD_SN_DIGITS; i++ )
+    {
+        /* UNIID1 first, each word most significant digit first */
+        MySerNumInfo[ 2 + 2 * i ] = hex[ ( id[ i / 8 ] >> ( 28 - 4 * ( i % 8 ) ) ) & 0xF ];
+        MySerNumInfo[ 3 + 2 * i ] = 0;
+    }
+    MySerNumInfo[ 1 ] = 0x03;
+    MySerNumInfo[ 0 ] = sizeof MySerNumInfo;
+}

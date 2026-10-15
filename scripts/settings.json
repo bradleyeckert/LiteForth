@@ -9,7 +9,7 @@
             "command":
             { // F9 = boot up LiteForth
                 "action": "sendInput",
-                "input": "Get-Content ..\\forth\\core.f | .\\lf.exe -o 3\r"
+                "input": "cmd /c \"lf.exe -o 3 < ..\\forth\\core.f\"\r"
             },
             "id": "User.sendInput.myF9key"
         },
@@ -25,7 +25,7 @@
             "command":
             { // F12 = run regression tests on LiteForth
                 "action": "sendInput",
-                "input": "Get-Content ..\\scripts\\regression.f | .\\lf.exe -o 39\r"
+                "input": "cmd /c \"lf.exe -o 39 < ..\\scripts\\regression.f\"\r"
             },
             "id": "User.sendInput.myF12key"
         }

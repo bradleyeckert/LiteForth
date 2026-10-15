@@ -124,6 +124,13 @@ int lfRtcInit(void) {
     RCC_HB1PeriphClockCmd(RCC_HB1Periph_PWR | RCC_HB1Periph_BKP, ENABLE);
     PWR_BackupAccessCmd(ENABLE);
     uint32_t bd = RCC->BDCTLR;
+    if ((bd & RCC_RTCEN) && !(bd & RCC_RTCSEL)) {
+        /* Enabled with no clock: half set up, and RTCSEL can't be changed
+           now, so reset the backup domain and start over */
+        RCC->BDCTLR = RCC_BDRST;
+        RCC->BDCTLR = 0;
+        bd = 0;
+    }
     if ((bd & RCC_RTCEN) && (bd & RCC_RTCSEL)) {
         /* Running since before this reset. The LSI, unlike the LSE, is
            switched off by a reset, so start it again if the RTC uses it. */
@@ -147,8 +154,11 @@ int lfRtcInit(void) {
         source = RCC_RTCCLKSource_LSI;
         reload = 40000 - 1;             /* the LSI's nominal 40 kHz */
     }
-    RCC_RTCCLKConfig(source);
-    RCC_RTCCLKCmd(ENABLE);
+    /* One write: RTCSEL takes only the first value written to it after a
+       backup domain reset, so RCC_RTCCLKConfig's clear-then-set leaves it
+       at 00 (no clock) */
+    RCC->BDCTLR = (RCC->BDCTLR & ~RCC_RTCSEL) | source;
+    RCC->BDCTLR |= RCC_RTCEN;
     if (!rtc_sync() || !rtc_ready()) return ERR_UNSUPPORTED_OPERATION;
     RTC_SetPrescaler(reload);
     if (!rtc_ready()) return ERR_UNSUPPORTED_OPERATION;

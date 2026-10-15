@@ -37,7 +37,7 @@ uint64_t lfGetTimeMicroSec(void);
  */
 void lfWatchdogPing(void);
 
-#define LFRTC_LSE_TIMEOUT_MS 1000   /* lfRtcInit falls back on the LSI after this */
+#define LFRTC_LSE_TIMEOUT_MS 3000   /* lfRtcInit falls back on the LSI after this */
 #define LFRTC_V3F_SLEEP_MS   100    /* lfStandby waits this long for the V3F to sleep */
 
 /** Times before this (2026-01-01 00:00:00 UTC) mean the RTC isn't set. */
@@ -50,7 +50,9 @@ void lfWatchdogPing(void);
  * registers to sync. After the backup domain has lost power it starts the
  * 32.768 kHz crystal (LSE), or the LSI (about 40 kHz, a few percent off)
  * if the crystal doesn't start within LFRTC_LSE_TIMEOUT_MS, sets the
- * prescaler for 1 Hz, and sets the counter and the alarm to 0. It also
+ * prescaler for 1 Hz, and sets the counter and the alarm to 0. An RTC
+ * left enabled without a clock source (RTCSEL 00, which can't be changed
+ * until the backup domain is reset) gets a backup domain reset first. It also
  * reads and clears the wake-up mark lfStandby leaves (CDC_SHARED->rtc_wake).
  * Call after lfTimeInit: the timeouts use lfGetTimeMicroSec.
  * @return 0, or ERR_UNSUPPORTED_OPERATION (-21) if no clock starts.

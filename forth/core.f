@@ -147,13 +147,16 @@ decimal _udata here 3 allot constant operator                                   
 -->
 ( BLOCK++ )
 ( String output _______________________________________________ 10/14/26 BNE )
-: emit      ( c -- )        t_tx! ;                                             \ dumb emit may block
-: emit?     ( -- flag )     t_tx? ;                                             \ a smarter emit would pause while `emit?`
+_idata variable emit_xt
+: conemit   ( c -- )        begin t_tx? while pause repeat t_tx! ;              \ emit to console
+: emit      ( c -- )        emit_xt @ >r ;  ' conemit emit_xt !                 \ late-bound emit
 : key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
 : key?      ( -- flag )     t_rx? ;                                             \ a smarter key would pause while `key?`
 : 1parm     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 \ exit the caller if there is nothing to do
 : 2parms    ( n1 n2 -- | n1 n2 ) 1- -if drop r> drop drop exit then 1+ ;        \ exit the caller if there is nothing to do
 : type      ( ca n -- )     2parms for @+ emit next drop ;                      \ output a string using emit
+: safeemit  ( c -- )        -32 + -if drop [ char . 32 - ] literal then 32 + emit ; \ safer emit, filter out control chars
+: safetype  ( ca n -- )     2parms for @+ safeemit next drop ;                  \ output a string using safeemit
 : $type     ( ca -- )       @+ type ;                                           \ output counted string
 : $abort    ( flag ca -- )  swap if $type -2 yeet exit then  drop ;             \ output counted string if flag is nonzero
 : ."        ( "ccc<quote>" -- ) _," postpone literal  postpone $type ; immediate \ compile a string to type at run time
@@ -230,7 +233,7 @@ create fbuf 32 allot                                                            
 : list      ( n -- )        dup scr !  0 listcnt !                              \ list block n and make it current
     block [ |block| 2* 2* ] literal -trailing  ( ca u )                         \ trim trailing rows
     begin dup while
-        2dup 128 min dup >r  -trailing listcnt @ 2 u.r space type cr            \ trim trailing columns
+        2dup 128 min dup >r  -trailing listcnt @ 2 u.r space safetype cr        \ trim trailing columns
         r@ - swap  r> 2/ 2/ + swap  1 listcnt +!                                \ step address in cells, count in bytes
     repeat  2drop ;
 : .index    ( blk -- )      block 128 -trailing  type cr ;                      \ display the block index

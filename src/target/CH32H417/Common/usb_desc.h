@@ -22,6 +22,10 @@
 /* usb device info define  */
 #define DEF_USB_VID                  0x1A86
 #define DEF_USB_PID                  0xFE0C
+/* LiteForth: the chip's 96-bit unique ID (reference manual, Electronic
+ * Signature), shown as the USB serial number */
+#define DEF_ESIG_UNIID1              0x1FFFF7E8
+#define DEF_USBD_SN_DIGITS           24     /* hex digits in the serial number */
 /* USB device descriptor, device serial number(bcdDevice) */
 #define DEF_IC_PRG_VER               DEF_FILE_VERSION
 
@@ -62,6 +66,10 @@ extern const uint8_t MyCfgDescr[ ];
 extern const uint8_t MyLangDescr[ ];
 extern const uint8_t MyManuInfo[ ];
 extern const uint8_t MyProdInfo[ ];
-extern const uint8_t MySerNumInfo[ ];
+extern uint8_t MySerNumInfo[ ];
+
+/* LiteForth: fills MySerNumInfo with the chip's unique ID in hex; call before
+ * USBFS_Device_Init (which does) */
+void USB_SerialInit( void );
 
 #endif /* USER_USB_DESC_H_ */

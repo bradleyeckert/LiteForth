@@ -107,6 +107,7 @@ void USBFS_Device_Init( FunctionalState sta )
 {
     if( sta )
     {
+        USB_SerialInit( );                  /* LiteForth: serial number */
         USBFSH->BASE_CTRL = USBFS_UC_RESET_SIE | USBFS_UC_CLR_ALL;
         Delay_Us( 10 );
         USBFSH->BASE_CTRL = 0x00;

@@ -61,13 +61,17 @@ instructions order the data before the index that publishes it.
 loops on `cdc_bridge_poll()` in place of the example's `UART_DataRx_Deal()`
 and `UART_DataTx_Deal()` (which bridged USB to USART4). The USB driver from
 [SimulateCDC](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/USBFS/DEVICE/SimulateCDC)
-is used with one change: `ch32h417_usbfs_device.c` records DTR in the
-shared block (edits marked `LiteForth`).
+is used with two changes (edits marked `LiteForth`):
+`ch32h417_usbfs_device.c` records DTR in the shared block, and the device
+has a serial number: `USB_SerialInit` (`usb_desc.c`, called by
+`USBFS_Device_Init`) writes the chip's 96-bit unique ID (ESIG `UNIID1..3`
+at 0x1FFFF7E8) as 24 hex digits into the serial number string, so the
+host can tell boards apart (`kwai -l` shows it).
 
 | From `Common/` | Used for |
 |---|---|
 | `ch32h417_usbfs_device.c/.h` | Enumeration, CDC class requests, the endpoint interrupts |
-| `usb_desc.c/.h` | Descriptors (VID 1A86, PID FE0C) |
+| `usb_desc.c/.h` | Descriptors (VID 1A86, PID FE0C; the serial number is the chip's unique ID) |
 | `UART.c/.h` | The `Uart` state and packet slots the interrupt fills, and TIM2 (100 us tick) |
 
 `UART_Init` sets up the `Uart` state. It also configures USART4 on PF3/PF4,

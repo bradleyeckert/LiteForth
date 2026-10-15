@@ -152,7 +152,8 @@ int lfDot(int32_t val) {
     // In hex, show slice addresses as size:pos:addr. A real slice always fits
     // in its cell (pos + size <= 32). Other bases always show plain numbers,
     // since e.g. a 16-bit slice address looks the same as a negative number.
-    if ((base == 16) && (size > 0) && (size <= 16) && ((pos + size) <= 32)) {
+    if (((g_lf_sys_options & SYS_OPTION_NOT_SLICE) == 0) && (base == 16)
+        && (size > 0) && (size <= 16) && ((pos + size) <= 32)) {
         lfDotB(size, base, 0, 0);
         lf_putc(':');
         lfDotB(pos, base, 0, 0);

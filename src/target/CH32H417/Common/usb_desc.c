@@ -96,20 +96,21 @@ const uint8_t MyProdInfo[ ]  =
     '7', 0
 };
 
-/* LiteForth: Serial Number Information, 24 hex digits of the chip's
- * 96-bit unique ID (ESIG UNIID1..3), filled in by USB_SerialInit before
- * USB starts. Until then bLength is 0 and the descriptor is empty. */
+/* LiteForth: Serial Number Information, 16 hex digits of the chip's
+ * unique ID (ESIG UNIID1 and UNIID2), filled in by USB_SerialInit before
+ * USB starts. Until then bLength is 0 and the descriptor is empty. The
+ * reference manual calls the ID 96 bits, but UNIID3 reads 0xE339E339,
+ * erased flash, so only the first 64 bits are used. */
 uint8_t MySerNumInfo[ 2 + 2 * DEF_USBD_SN_DIGITS ];
 
 void USB_SerialInit( void )
 {
     static const char hex[ ] = "0123456789ABCDEF";
-    uint32_t id[ 3 ];
+    uint32_t id[ 2 ];
     int i;
 
     id[ 0 ] = *(volatile uint32_t *)DEF_ESIG_UNIID1;
     id[ 1 ] = *(volatile uint32_t *)( DEF_ESIG_UNIID1 + 4 );
-    id[ 2 ] = *(volatile uint32_t *)( DEF_ESIG_UNIID1 + 8 );
     for( i = 0; i < DEF_USBD_SN_DIGITS; i++ )
     {
         /* UNIID1 first, each word most significant digit first */

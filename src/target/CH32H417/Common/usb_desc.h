@@ -25,7 +25,8 @@
 /* LiteForth: the chip's 96-bit unique ID (reference manual, Electronic
  * Signature), shown as the USB serial number */
 #define DEF_ESIG_UNIID1              0x1FFFF7E8
-#define DEF_USBD_SN_DIGITS           24     /* hex digits in the serial number */
+#define DEF_USBD_SN_DIGITS           16     /* hex digits: UNIID1, UNIID2 (UNIID3
+                                               reads as erased flash, E339E339) */
 /* USB device descriptor, device serial number(bcdDevice) */
 #define DEF_IC_PRG_VER               DEF_FILE_VERSION
 

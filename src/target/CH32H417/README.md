@@ -64,9 +64,10 @@ and `UART_DataTx_Deal()` (which bridged USB to USART4). The USB driver from
 is used with two changes (edits marked `LiteForth`):
 `ch32h417_usbfs_device.c` records DTR in the shared block, and the device
 has a serial number: `USB_SerialInit` (`usb_desc.c`, called by
-`USBFS_Device_Init`) writes the chip's 96-bit unique ID (ESIG `UNIID1..3`
-at 0x1FFFF7E8) as 24 hex digits into the serial number string, so the
-host can tell boards apart (`kwai -l` shows it).
+`USBFS_Device_Init`) writes the chip's unique ID (ESIG `UNIID1` and
+`UNIID2` at 0x1FFFF7E8) as 16 hex digits into the serial number string,
+so the host can tell boards apart (`kwai -l` shows it). The reference
+manual calls the ID 96 bits, but `UNIID3` reads `E339E339`, erased flash.
 
 | From `Common/` | Used for |
 |---|---|

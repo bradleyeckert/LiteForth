@@ -46,3 +46,4 @@ bin/lfblocks.fb4
 # The flash memory file, a "blob" often changed by lfblocks.fb4 or core.f
 bin/lfflash.bin
 bin\lfflash.bin
+src/target/desktop/unit_tests/rtc/got.txt

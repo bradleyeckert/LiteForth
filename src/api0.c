@@ -14,6 +14,7 @@
 #include "lfblocks.h"
 #include "xmodem.h"
 #include "lcd.h"
+#include "lftime.h"
 
 /*==========================================================================
 * API 0 
@@ -340,6 +341,32 @@ static int lcdTx(void) {
    to the LCD as data (lcd.h, doc/fonts.md) */
 static int lcdDecode(void) {
     return lcd_decode((uint16_t)vmPop());
+}
+
+/* RTC@  ( -- u )  The real-time clock: seconds since 1970 UTC (lftime.h) */
+static int rtcFetch(void) {
+    return vmPush((int32_t)lfRtcGet());
+}
+
+/* RTC!  ( u -- )  Set the real-time clock */
+static int rtcStore(void) {
+    return lfRtcSet((uint32_t)vmPop());
+}
+
+/* ALARM!  ( u -- )  Set the alarm to a time like RTC@'s; 0 turns it off */
+static int alarmStore(void) {
+    return lfRtcSetAlarm((uint32_t)vmPop());
+}
+
+/* ALARM?  ( -- flag )  True once after the alarm goes off, or after a wake-up
+   from STANDBY */
+static int alarmQuery(void) {
+    return vmPush(lfRtcAlarm() ? -1 : 0);
+}
+
+/* STANDBY  ( -- )  Power down until the alarm, then restart from the top */
+static int standby(void) {
+    return lfStandby();
 }
 
 /* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */

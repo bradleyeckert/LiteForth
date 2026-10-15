@@ -60,6 +60,8 @@ Name lookup ignores case.
 | `_,"` | `( <text"> -- addr )` | Compiles a counted string into text space and returns its (byte slice) address. |
 | `a` | `( -- x )` | Pushes register `A`. |
 | `a!` | `( x -- )` | Sets register `A`. |
+| `alarm!` | `( u -- )` | Sets the real-time clock's alarm to a time like `rtc@`'s (seconds since 1970, UTC); 0 turns it off. Also clears an alarm that went off but hasn't been seen by `alarm?`. Gives -21 if the target has no RTC running. |
+| `alarm?` | `( -- flag )` | True once after the alarm goes off: when `rtc@` reaches it while running, or at the boot that `standby` woke up. Clears it. Power-up and the reset pin don't count. |
 | `and` | `( x1 x2 -- x3 )` | Bitwise AND. |
 | `b` | `( -- x )` | Pushes register `B`. |
 | `b!` | `( x -- )` | Sets register `B`. |
@@ -113,12 +115,15 @@ Name lookup ignores case.
 | `postpone` | `( <name> -- )` | Immediate. Compiles an immediate word; for any other word, compiles code that will compile it. |
 | `r>` | `( -- x ) (R: x -- )` | Moves the top of the return stack to the data stack. |
 | `r@` | `( -- x ) (R: x -- x)` | Copies the top of the return stack. |
+| `rtc!` | `( u -- )` | Sets the real-time clock, in seconds since 1970-01-01 00:00:00 UTC. On the desktop it only changes `lf`'s offset from the host's clock, until `lf` exits. |
+| `rtc@` | `( -- u )` | Reads the real-time clock: seconds since 1970-01-01 00:00:00 UTC (unsigned, good until 2106). On the desktop it's the host's clock unless `rtc!` set it. A time before 1767225600 (2026) means the clock hasn't been set since it lost power. |
 | `s@` | `( addr -- x )` | Fetches from `addr`, sign-extending a bit field. |
 | `save-buffers` | `( -- )` | Writes modified block buffers to storage. |
 | `save-wids` | `( -- )` | Compiles the wordlist record to text space for booting, cell aligned: the address just past the record, the number of wordlists in use, then that many raw `s_wid` structures (head link and 12-byte name), padded to a cell. Heads are tagged links, not C addresses, so the record is valid wherever flash is mapped. Store the record's address in cell 1, and use it last before `close-flash`. Booting with `-o 8` restores the wordlists from it. |
 | `see` | `( <name> -- )` | † Disassembles a word. |
 | `shft[` | `( n -- )` | Sets the shift count used by `]shl`, `]shr` and `]asr` (0 to 31). |
 | `slice+` | `( a1 -- a2 )` | Advances an address to the next cell or bit-field slice. |
+| `standby` | `( -- )` | Powers down until the alarm, then restarts everything from the top, as a reset does, and `alarm?` is true once. Set the alarm first, at least 2 s ahead (`rtc@ 60 + alarm! standby`), or it gives -24. On the CH32H417 both cores sleep in Stop mode (USB detaches) and the alarm resets the chip; on the desktop `lf` waits for the alarm and then restarts its interpreter with the options it was started with. |
 | `swap` | `( x1 x2 -- x2 x1 )` | Swaps the top two items. |
 | `t_rx` | `( -- c )` | Reads a character from the terminal (`key` in `core.f`). |
 | `t_rx?` | `( -- flag )` | Nonzero if a terminal character is waiting (`key?` in `core.f`). |

@@ -1,0 +1,5 @@
+[no alarm yet] 0 [set] 0 [standby without alarm] Error: ior=-24 invalid numeric argument
+[alarm too soon] Error: ior=-24 invalid numeric argument
+[alarm off] Error: ior=-24 invalid numeric argument
+[not yet] 0 [standby] [restart]
+[woke] -1 0 [time kept] 0 

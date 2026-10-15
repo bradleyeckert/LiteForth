@@ -33,6 +33,10 @@ void cdc_shared_init(void);
  * boots without starting the app (see cdc_shared.h). That takes up to
  * CDC_RESTART_WAIT_MS, after which the V3F resets the whole chip if the
  * V5F hasn't started again.
+ *
+ * When the V5F asks for standby (CDC_SHARED->standby, set by lfStandby),
+ * it detaches USB and puts the V3F in deep sleep instead, and doesn't
+ * return: the V5F resets the chip when the RTC alarm wakes it.
  */
 void cdc_bridge_poll(void);
 

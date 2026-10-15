@@ -14,4 +14,13 @@
  */
 int lfInitPointers(void);
 
+/**
+ * Restarts LiteForth as a reset would on an MCU: the system options are put
+ * back to what main() was started with, the memory map is set up again and
+ * lfQuit starts from the top (booting from flash again if -o 8 asked for
+ * it). The flash and block files and the terminal stay open, and the RAM
+ * page keeps its contents. Used by lfStandby (lftime.c). Doesn't return.
+ */
+void lfReset(void);
+
 #endif /* MAIN_H */

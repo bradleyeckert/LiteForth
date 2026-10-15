@@ -89,7 +89,12 @@
     X(API_XMODEM,           lfAPI_xmodem)       \
     X(API_LCD_INIT,         lcdInit)            \
     X(API_LCD_TX,           lcdTx)              \
-    X(API_LCD_DECODE,       lcdDecode)
+    X(API_LCD_DECODE,       lcdDecode)          \
+    X(API_RTC_FETCH,        rtcFetch)           \
+    X(API_RTC_STORE,        rtcStore)           \
+    X(API_ALARM_STORE,      alarmStore)         \
+    X(API_ALARM_QUERY,      alarmQuery)         \
+    X(API_STANDBY,          standby)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

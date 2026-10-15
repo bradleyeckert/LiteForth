@@ -317,6 +317,43 @@ counts milliseconds in 64 bits, and the counter supplies the
 microseconds. WCH's `Delay_Us`/`Delay_Ms` reprogram SysTick1, so the V5F
 must not call them after `lfTimeInit`. `lfWatchdogPing` does nothing yet.
 
+### Real-time clock and standby (`V5F/User/lftime.c`)
+
+The RTC (reference manual chapter 6) is a 32-bit seconds counter with a
+prescaler and an alarm, in the backup domain, so it keeps counting
+through resets and Stop mode. `lfRtcInit`, called after `lfTimeInit`,
+leaves a running RTC alone. After the backup domain has lost power it
+starts the board's 32.768 kHz crystal (LSE), or the LSI (about 40 kHz,
+a few percent off) if the crystal doesn't start within 1 s, sets the
+prescaler for 1 Hz and zeroes the counter and the alarm. USART1 shows
+`V5F: RTC running, N s`. The nanoCH32H417 has no battery on VBAT, so the
+time is lost when the board loses power; `rtc@` below 1767225600 (2026)
+means it hasn't been set since. If the RTC doesn't count at all, check
+whether VBAT needs tying to 3.3 V (the RM's advice without a battery).
+
+The words are `rtc@`, `rtc!`, `alarm!`, `alarm?` and `standby`
+(`doc/glossary.md`). The CH32H417 has no Standby mode, so `standby`
+(`lfStandby`) uses Stop mode, which the chip enters only when both cores
+are in deep sleep:
+
+1. The V5F gives the terminal up to 200 ms to take what was printed,
+   sets `standby` in the shared block, and waits up to 100 ms for the
+   V3F to sleep (`NVIC->CSTAR[0]`).
+2. The V3F's bridge sees the request (`cdc_standby` in `cdc_bridge.c`),
+   detaches USB (the host sees the port go away) and sleeps for good.
+3. The V5F turns off its interrupts and SysTick1, sets up EXTI line 17
+   (the RTC alarm) as an event, and enters Stop with WFE, as WCH's
+   `PWR/Stop_Mode` example does with a pin.
+4. The alarm wakes it. The V5F writes `CDC_RTC_WAKE_MAGIC` to `rtc_wake`
+   in the shared block and resets the chip (`NVIC_SystemReset`).
+5. Everything boots as after the reset pin, and `lfRtcInit` takes the
+   mark, so `alarm?` is true once. A press of the reset pin during Stop
+   leaves no mark, so `alarm?` stays false.
+
+The voltage regulator stays in normal mode during Stop. Low-power mode
+also needs VDDK lowered first (WCH's example does it with undocumented
+`SYS_CFGR0` bits), which can come later.
+
 ### Using it
 
 Open the COM port with **local echo on**: LiteForth doesn't echo what you

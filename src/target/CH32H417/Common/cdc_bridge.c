@@ -76,6 +76,7 @@ void cdc_shared_init(void) {
     sh->rx.head = sh->rx.tail = 0;
     sh->tx.head = sh->tx.tail = 0;
     sh->host_open = 0;                  /* until the host sets DTR */
+    sh->standby = 0;                    /* a standby ends with a chip reset */
     /* safe_boot is left alone: it must survive the chip reset that
        v5f_safe_restart falls back on. v5f_starts only ever counts up. */
     CDC_FENCE();
@@ -248,7 +249,26 @@ static void ring_to_host(void) {
     ep3_arm((uint16_t)n);
 }
 
+/*=========================================================================
+* Standby: the V5F's lfStandby asks the V3F to sleep
+=========================================================================*/
+
+/* Detaches from USB and sleeps for good (deep sleep, SLEEPDEEP), so that
+   the chip enters Stop mode once the V5F sleeps too. The V5F resets the
+   chip when the RTC alarm wakes it, so this never returns. */
+static void cdc_standby(void) {
+    printf("V3F: standby\r\n");
+    debug_uart_drain();
+    USBFS_Device_Init(DISABLE);         /* pull-up off: the host sees a detach */
+    NVIC_DisableIRQ(TIM2_IRQn);
+    __disable_irq();
+    while (1) {                         /* a stray wake-up just sleeps again */
+        PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFI);
+    }
+}
+
 void cdc_bridge_poll(void) {
+    if (CDC_SHARED->standby == CDC_STANDBY_MAGIC) cdc_standby();
     host_to_ring();
     ring_to_host();
 }

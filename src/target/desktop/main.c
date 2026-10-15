@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 #include "forth.h"
 #include "vm.h"
 #include "serial_io.h"
@@ -11,8 +12,15 @@
 #include "tools.h"
 #include "errcodes.h"
 #include "main.h"
+#include "lftime.h"
 
 extern uint32_t g_block_capacity;
+
+static jmp_buf reset_point;             // lfReset jumps back to it
+
+void lfReset(void) {
+    longjmp(reset_point, 1);
+}
 
 // The total idata and udata spans RAM_PAGE_CELLS cells
 int lfInitPointers(void) {
@@ -75,8 +83,6 @@ int main(int argc, char* argv[]) {
         baudrate = 0; // default to stdio
     }
 
-    pool_reset();
-    uint32_t* ram = pool_alloc(RAM_PAGE_CELLS);
     uint32_t* flash = NULL;
 
     // Simulated flash and blocks live in files (by default in the working
@@ -85,6 +91,18 @@ int main(int argc, char* argv[]) {
     if (ior) return ior;
     ior = blk_init(blocks_name, &g_block_capacity);
     if (ior) return ior;
+    ior = serial_open(port_name, baudrate);
+    if (ior) return ior;
+    lfRtcInit();                        // the host's clock: always starts
+
+    // lfReset (lfStandby) comes back here: like a reset, it starts over
+    // with the options lf was started with and a fresh memory map.
+    uint32_t boot_options = g_lf_sys_options;
+    if (setjmp(reset_point)) {
+        g_lf_sys_options = boot_options;
+    }
+    pool_reset();
+    uint32_t* ram = pool_alloc(RAM_PAGE_CELLS);
 
     for (int i = 0; i < VM_MEM_PAGES; i++) {
         if (i < RAM_PAGE) {
@@ -114,8 +132,6 @@ int main(int argc, char* argv[]) {
 
 // Launch LiteForth
 
-    ior = serial_open(port_name, baudrate);
-    if (ior) return ior;
     ior = lfQuit();
     lfSetColor(COLOR_NORMAL);
     serial_close();

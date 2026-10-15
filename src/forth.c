@@ -184,6 +184,11 @@ static const struct s_head forth_heads[] = {
     { PREV, "lcd-init",     API0(API_LCD_INIT),                       191},
     { PREV, "lcd-tx",       API0(API_LCD_TX),                         193},
     { PREV, "lcd-decode",   API0(API_LCD_DECODE),                     195},
+    { PREV, "rtc@",         API0(API_RTC_FETCH),                      196},
+    { PREV, "rtc!",         API0(API_RTC_STORE),                      197},
+    { PREV, "alarm!",       API0(API_ALARM_STORE),                    198},
+    { PREV, "alarm?",       API0(API_ALARM_QUERY),                    199},
+    { PREV, "standby",      API0(API_STANDBY),                        200},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        174},
     { PREV, "->",           API0(API_DOTEST),                         175},
@@ -843,6 +848,7 @@ static void reportError(int ior) {
 
 // QUIT (documented in forth.h). Open the terminal with serial_open first.
 int lfQuit(void) {
+    load_depth = 0;                     // after lfReset (lfStandby) from inside a LOAD
     // u8 keeps the bytes UTF-8 on any compiler (MSVC without /utf-8 would
     // convert a plain literal to the code page). In C23 u8 strings are
     // unsigned char (char8_t), hence the cast.

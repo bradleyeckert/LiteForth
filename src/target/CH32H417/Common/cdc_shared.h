@@ -41,6 +41,15 @@
  * If that count doesn't change within CDC_RESTART_WAIT_MS, the V3F resets
  * the whole chip. safe_boot lives here, outside both cores' .bss, so a
  * restart doesn't clear it; the V5F clears it once it has seen it.
+ *
+ * Standby (lfStandby, V5F/User/lftime.c): the chip powers down only when
+ * both cores sleep, so the V5F sets standby to CDC_STANDBY_MAGIC; the
+ * V3F's bridge sees it, detaches USB and sleeps for good (cdc_standby).
+ * When the RTC alarm wakes the chip, the V5F sets rtc_wake to
+ * CDC_RTC_WAKE_MAGIC and resets it; the next boot's lfRtcInit takes the
+ * mark (so `alarm?` is true) and clears it. Like safe_boot, rtc_wake
+ * survives the reset; cdc_shared_init clears standby, so the V3F doesn't
+ * go straight back to sleep.
  */
 #ifndef CDC_SHARED_H
 #define CDC_SHARED_H
@@ -60,6 +69,8 @@ extern "C" {
                                                debug UART, DEBUG_HSEM in SRC/Debug/debug.h) */
 #define CDC_RESTART_WAIT_MS 500             /* then the V3F resets the chip */
 #define CDC_CTRL_X          0x18            /* three in a row restart the V5F */
+#define CDC_STANDBY_MAGIC   0x5133B00Bu     /* standby: the V5F asks the V3F to sleep */
+#define CDC_RTC_WAKE_MAGIC  0xA1A4A4E0u     /* rtc_wake: the RTC alarm caused this reset */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -72,6 +83,8 @@ typedef struct {
     volatile uint32_t host_open;            /* V3F: 1 while a program has the port open (DTR) */
     volatile uint32_t safe_boot;            /* CDC_SAFE_BOOT_MAGIC: next V5F start skips the app */
     volatile uint32_t v5f_starts;           /* V5F: counts serial_open calls */
+    volatile uint32_t standby;              /* V5F: CDC_STANDBY_MAGIC asks the V3F to sleep */
+    volatile uint32_t rtc_wake;             /* V5F: CDC_RTC_WAKE_MAGIC after an alarm wake-up */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
 } cdc_shared_t;

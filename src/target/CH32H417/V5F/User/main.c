@@ -203,6 +203,8 @@ int main(void)
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
     printf("V5F released HSEM0, running LiteForth\r\n");
     lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
+    int rtc = lfRtcInit();              /* the RTC (and an alarm wake-up mark) */
+    printf("V5F: RTC %s, %u s\r\n", rtc ? "failed" : "running", (unsigned)lfRtcGet());
     lfRestartListen();                  /* Ctrl+X x3 on the terminal restarts us */
     LiteForth();
 

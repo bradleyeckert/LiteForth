@@ -60,17 +60,22 @@
  59 API_LCD_INIT         lcdInit
  60 API_LCD_TX           lcdTx
  61 API_LCD_DECODE       lcdDecode
- 62 API_ENDTEST          lfAPI_endTest
- 63 API_DOTEST           lfAPI_doTest
- 64 API_BEGINTEST        lfAPI_beginTest
- 65 API_HEX              lfAPI_hex
- 66 API_DECIMAL          lfAPI_decimal
- 67 API_DOTPAGE          lfAPI_dotPage
- 68 API_DOTPAGES         lfAPI_dotPages
- 69 API_DUMP             lfAPI_dump
- 70 API_DUMPI            lfAPI_dumpIns
- 71 API_DASM             lfAPI_dasm
- 72 API_DOTS             lfAPI_dotEss
- 73 API_DOT              lfAPI_dot
- 74 API_SEE              lfAPI_see
-count 75
+ 62 API_RTC_FETCH        rtcFetch
+ 63 API_RTC_STORE        rtcStore
+ 64 API_ALARM_STORE      alarmStore
+ 65 API_ALARM_QUERY      alarmQuery
+ 66 API_STANDBY          standby
+ 67 API_ENDTEST          lfAPI_endTest
+ 68 API_DOTEST           lfAPI_doTest
+ 69 API_BEGINTEST        lfAPI_beginTest
+ 70 API_HEX              lfAPI_hex
+ 71 API_DECIMAL          lfAPI_decimal
+ 72 API_DOTPAGE          lfAPI_dotPage
+ 73 API_DOTPAGES         lfAPI_dotPages
+ 74 API_DUMP             lfAPI_dump
+ 75 API_DUMPI            lfAPI_dumpIns
+ 76 API_DASM             lfAPI_dasm
+ 77 API_DOTS             lfAPI_dotEss
+ 78 API_DOT              lfAPI_dot
+ 79 API_SEE              lfAPI_see
+count 80

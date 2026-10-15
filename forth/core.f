@@ -403,6 +403,22 @@ head+
 : LCD       ( -- )          LCDwidth LCDheight 1 palette lcd-init  white fg!    \ start the IPS panel: 16-bit pixels, cleared
     32768 lcd-tx 1 ms  16384 lcd-tx 5 ms  17 _cmd 120 ms               ( reset, SLPOUT )
     58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  33 _cmd  41 _cmd  lcls ; ( 16-bit pixels, INVON, DISPON )
+_udata variable u8cp                                                            \ code point being assembled from UTF-8
+variable u8more                                                                 \ UTF-8 continuation bytes still to come
+: utf8reset ( -- )          0 u8more ! ;                                        \ start decoding UTF-8 afresh
+head-
+: _u8put    ( u -- )        dup 65535 u<= 0= if drop 65533 then  lemit ;        \ draw a code point, U+FFFD past U+FFFF
+: _u8ctl    ( c -- )        dup 13 = if drop 0 lcd_x ! exit then                \ CR: line start; LF: next line; others: none
+                            10 = if  0 lcd_x !  fontheight dup lcd_y +!
+                            lcd_y @ + LCDheight u<= if exit then  0 lcd_y !  then ;
+head+
+: utf8lcd   ( c -- )        255 and  dup 128 and 0=                             \ feed a UTF-8 byte; draw each code point
+    if  u8more @ if 65533 lemit utf8reset then  dup 31 u<= if _u8ctl exit then  _u8put exit  then
+    dup 64 and 0= if  u8more @ 0= if drop 65533 lemit exit then      ( continuation )
+        63 and  u8cp @ 6 lshift +  u8cp !  -1 u8more +!
+        u8more @ if exit then  u8cp @ _u8put exit  then
+    u8more @ if 65533 lemit then                        ( a lead byte cuts one short )
+    dup 32 and 0= if 31 and 1 else  dup 16 and 0= if 15 and 2 else 7 and 3 then  then  u8more ! u8cp ! ;
 -heads
 -->
 ( BLOCK++ )

@@ -175,6 +175,8 @@ don't call it while compiling to flash.
 | `lcd_x`, `lcd_y` | variables | The top left corner of the next glyph's cell |
 | `at` | `( x y -- )` | Sets `lcd_x` and `lcd_y` |
 | `lemit` | `( c -- )` | Draws code point `c` at `lcd_x`,`lcd_y`, or `?` if no font has it, then adds its advance and `kerning` to `lcd_x` |
+| `utf8lcd` | `( c -- )` | Feeds one byte of UTF-8 text; each completed code point goes to `lemit`. LF (10) goes to the start of the next line (and wraps to the top like `lemit`), CR (13) to the start of the line, other control characters are ignored. A broken sequence or a code point past U+FFFF draws U+FFFD, which the fonts don't have, so `?` |
+| `utf8reset` | `( -- )` | Forgets a partly received UTF-8 sequence |
 
 Before drawing, `lemit` checks the glyph's bounding box: if its right edge
 would be past `LCDwidth`, it goes to the start of the next line
@@ -185,6 +187,14 @@ the cell keeps whatever was there; `lcls` first if that matters.
 ```
 create fonts 100 , 120 , 0 ,      \ cjk24, then cjk48 for what it lacks
 fonts font !  LCD  10 10 at  char A lemit
+```
+
+To send `emit` (and so `type` and `."`) to the panel, point `emit_xt` at
+`utf8lcd`, and back at `conemit` for the terminal. `cr` is built in and
+always goes to the terminal; use `10 emit` for a new line on the panel.
+
+```
+' utf8lcd emit_xt !  ." 学如不及" 10 emit ." ±0.5°"  ' conemit emit_xt !
 ```
 
 `LCD` waits 5 ms after the reset and 120 ms after SLPOUT, as the ST7789

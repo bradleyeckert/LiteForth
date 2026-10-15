@@ -149,6 +149,9 @@ fields *slices*.
 
 Slices support variables smaller than 32-bit as long as the slice address fits into
 a 5:5:22 format, where the fields are size:shift:address.
+In hex, `.` prints such addresses in that form, such as `8:8:1234H`; when
+the numbers are register contents instead, `hex 200 >options` makes it
+print them plainly.
 This use of bit fields gets rid of the proliferation of data types and their operators.
 Having to remember that an 8-bit variable can only be used with `c@` and `c!` is an
 invitation for subtle bugs. Let's just not have that.

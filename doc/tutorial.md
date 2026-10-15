@@ -35,12 +35,18 @@ Text that contains newlines does the obvious: you see `ok>`s on the left.
 - `>options` ( u -- ) Toggles the option flags in `u` (XOR); `0 >options` clears them all
 
 - 8000h : `>options` is locked, `u` is ignored
+- 0200h : `.` in hex prints plain numbers, not slice addresses (see below)
 - 0040h : echo input lines
 - 0020h : ignore CR (for files with CRLF line endings)
 - 0010h : the app is running
 - 0004h : quit immediately upon error
 - 0002h : suppress the stack display before `ok>`
 - 0001h : suppress `ok>` prompt
+
+In hex, `.` prints a number that looks like a slice address as
+size:shift:cell, such as `2:0:84001H`. Peripheral registers often hold such
+values, so when you are reading them, `200 >options` (in hex) makes `.` print
+plain numbers (`10084001H`); the same again switches it back.
 
 Since `>options` toggles, start a file with `0 >options` before setting
 flags if lf may have been started with some already set (`-o`).

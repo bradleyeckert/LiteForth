@@ -27,7 +27,7 @@ empty only forth
 32 constant bl                                                                  \ blank
 -->
 ( BLOCK++ )
-( Basic compilation ___________________________________________ 10/9/26 BNE )
+( Basic compilation ___________________________________________ 10/14/26 BNE )
 hex
 : variable  ( -- )          20 bits ;                                           \ a Forth variable is a 32-bit slice
 : _section  ( n -- )        dp^ ! ;                                             \ dp^ is a 2-bit value (see forth.h)
@@ -38,6 +38,7 @@ hex
 : 'here     ( -- a )        dp^ @ 2* dp[] + ;                                   \ address of the currently selected here
 : ,         ( n -- )        'here @ a! !a+ a 'here ! ;                          \ compile a cell or slice to the section
 : '         ( <name> -- xt ) x' drop ;                                          \ look up the xt of a word
+: [']       ( <name> -- )   '  postpone literal ; immediate                     \ compile the xt of a word
 : here      ( -- a )        'here @ ;                                           \ address of first free cell or slice
 : align     ( -- )          here 20 bit 'here ! ;                               \ convert here to a cell address
 : allot     ( n -- )        align here + 'here ! ;                              \ allot n cells in the section
@@ -122,7 +123,7 @@ decimal _udata here 3 allot constant operator                                   
 ;
 -->
 ( BLOCK++ )
-( Basic math __________________________________________________ 10/9/26 BNE )
+( Basic math __________________________________________________ 10/14/26 BNE )
 : -         ( n1 n2 -- n3 ) negate + ;                                          \ subtract n2 from n1
 : 1+        ( n1 -- n2 )    1 + ;                                               \ increment by 1
 : 1-        ( n1 -- n2 )    -1 + ;                                              \ decrement by 1
@@ -149,7 +150,8 @@ decimal _udata here 3 allot constant operator                                   
 ( String output _______________________________________________ 10/14/26 BNE )
 _idata variable emit_xt
 : conemit   ( c -- )        begin t_tx? while pause repeat t_tx! ;              \ emit to console
-: emit      ( c -- )        emit_xt @ >r ;  ' conemit emit_xt !                 \ late-bound emit
+: con       ( -- )          ['] conemit emit_xt ! ;  con                        \ direct emit to console
+: emit      ( c -- )        emit_xt @ >r ;                                      \ late-bound emit
 : key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
 : key?      ( -- flag )     t_rx? ;                                             \ a smarter key would pause while `key?`
 : 1parm     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 \ exit the caller if there is nothing to do
@@ -365,7 +367,7 @@ head+
 -heads
 -->
 ( BLOCK++ )
-( LCD text 1/2 ________________________________________________ 10/14/26 BNE )
+( LCD text 1/3 ________________________________________________ 10/14/26 BNE )
 head-
 : _cmd      ( b -- )        8192 or lcd-tx ;                                    \ send a command byte to the LCD
 : _w16      ( u -- )        dup 8 rshift lcd-tx  255 and lcd-tx ;               \ send a 16-bit parameter, high byte first
@@ -380,7 +382,7 @@ head-
                             >r @+ dup lcd-decode _npx r> swap -  repeat  2drop ;
 : _lookup   ( c -- a )      font @  begin dup @ while  2dup @ glyph             \ c's glyph in the first font that has it
                             dup if nip nip exit then  drop 1+  repeat  2drop 0 ;
-variable _wh                                                                    \ glyph width and height bytes
+_udata variable _wh                                                             \ glyph width and height bytes
 variable _xy                                                                    \ glyph x and y offsets in the cell
 : _w        ( -- u )        _wh @ 255 and ;                                     \ glyph width
 : _h        ( -- u )        _wh @ 8 rshift ;                                    \ glyph height
@@ -389,7 +391,7 @@ variable _xy                                                                    
                             lcd_y @ + LCDheight u<= if exit then  0 lcd_y ! ;
 -->
 ( BLOCK++ )
-( LCD text 2/2 ________________________________________________ 10/14/26 BNE )
+( LCD text 2/3 ________________________________________________ 10/14/26 BNE )
 head+
 : lemit     ( c -- )        fontheight swap  _lookup                            \ draw c at lcd_x,lcd_y in the current font
     dup 0= if drop [char] ? _lookup then  dup 0= if 2drop exit then     ( fh a )
@@ -400,18 +402,18 @@ head+
 : lcls      ( -- )          0 0 LCDwidth LCDheight _window                      \ clear the panel to palette entry 0
     LCDwidth LCDheight *  begin dup while  dup 512 min  dup 1- 16384 or lcd-decode  -  repeat
     drop  0 0 at ;
-: LCD       ( -- )          LCDwidth LCDheight 1 palette lcd-init  white fg!    \ start the IPS panel: 16-bit pixels, cleared
+: LCDstart  ( -- )          LCDwidth LCDheight 1 palette lcd-init  white fg!    \ start the IPS panel: 16-bit pixels, cleared
     32768 lcd-tx 1 ms  16384 lcd-tx 5 ms  17 _cmd 120 ms               ( reset, SLPOUT )
     58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  33 _cmd  41 _cmd  lcls ; ( 16-bit pixels, INVON, DISPON )
-_udata variable u8cp                                                            \ code point being assembled from UTF-8
+-heads head-
+variable u8cp                                                                   \ code point being assembled from UTF-8
 variable u8more                                                                 \ UTF-8 continuation bytes still to come
-: utf8reset ( -- )          0 u8more ! ;                                        \ start decoding UTF-8 afresh
-head-
 : _u8put    ( u -- )        dup 65535 u<= 0= if drop 65533 then  lemit ;        \ draw a code point, U+FFFD past U+FFFF
 : _u8ctl    ( c -- )        dup 13 = if drop 0 lcd_x ! exit then                \ CR: line start; LF: next line; others: none
                             10 = if  0 lcd_x !  fontheight dup lcd_y +!
                             lcd_y @ + LCDheight u<= if exit then  0 lcd_y !  then ;
 head+
+: utf8reset ( -- )          0 u8more ! ;                                        \ start decoding UTF-8 afresh
 : utf8lcd   ( c -- )        255 and  dup 128 and 0=                             \ feed a UTF-8 byte; draw each code point
     if  u8more @ if 65533 lemit utf8reset then  dup 31 u<= if _u8ctl exit then  _u8put exit  then
     dup 64 and 0= if  u8more @ 0= if drop 65533 lemit exit then      ( continuation )
@@ -419,7 +421,12 @@ head+
         u8more @ if exit then  u8cp @ _u8put exit  then
     u8more @ if 65533 lemit then                        ( a lead byte cuts one short )
     dup 32 and 0= if 31 and 1 else  dup 16 and 0= if 15 and 2 else 7 and 3 then  then  u8more ! u8cp ! ;
--heads
+-heads -->
+( BLOCK++ )
+( LCD text 3/3 ________________________________________________ 10/14/26 BNE )
+: lcd       ( -- )          ['] utf8lcd emit_xt ! ;                             \ send output to LCD
+
+: lcd!      ( -- )          LCDstart lcd ." Hello " ;
 -->
 ( BLOCK++ )
 ( Save and restore idata ______________________________________ 10/9/26 BNE )
@@ -445,7 +452,7 @@ head+
 
 ( BLOCK 30 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
-: hi        ( -- )          ." 学如不及，犹恐失之 " ;                           \ demo CJK message
+: hi        ( -- )          ." 学如不及, 犹恐失之 " ;                            \ demo CJK message
 : value     ( x <name> -- ) _idata align create , does> @ ;                     \ create name, which returns x; see to
 : to        ( x <name> -- ) ' >body ! ;                                         \ change the x that value name returns
 .( value test: ) 11 value ten   ten .  10 to ten  ten . cr                      \ a test value

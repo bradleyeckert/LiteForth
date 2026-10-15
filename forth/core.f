@@ -1,8 +1,9 @@
 ﻿( BLOCK IGNORE )
 
 ( From the ./bin folder, you can './lf.exe -o 3 < ../forth/core.f` )
-( or in the case of Windows Powershell, 'Get-Content ..\forth\core.f | .\lf.exe -o 3` )
-( which will load this file into a blank `lf`. )
+( or from Windows PowerShell, `cmd /c "lf.exe -o 3 < ..\forth\core.f"`, )
+( which will load this file into a blank `lf`. A PowerShell pipe {Get-Content | lf.exe} turns non-ASCII )
+( text such as CJK into ? unless $OutputEncoding is UTF-8 {PowerShell 7, or set by hand}. )
 
 ( The `./scripts/putblocks.py` script will insert this file into a blocks file. )
 ( This keeps source files on GitHub as text files rather than blocks, which GitHub cannot diff. )

@@ -27,7 +27,7 @@ Name lookup ignores case.
 | `-->` | `( -- )` | Stops interpreting the current block and continues with block `BLK`+1. Does nothing at the terminal (`BLK` = 0). |
 | `->` | `( ? -- )` | † Separates the tested code from the expected results in `t{ ... -> ... }t`. |
 | `-heads` | `( -- )` | Drops the temporary headers from every wordlist (relinking permanent headers that point to them) and frees their buffer, ending the scope of the temporary words. Their code stays. Does nothing without temporary headers. Gives -60 if the buffer isn't the newest pool allocation (`open-flash` after `head-`). `save-wids` and `close-flash` give -122 until `-heads`. |
-| `.` | `( n -- )` | † Prints `n` in the current base, followed by a space. |
+| `.` | `( n -- )` | † Prints `n` in the current base, followed by a space. In hex, a number that could be a slice address (a width of 1 to 16 bits that fits its cell) prints as size:shift:cell, such as `2:0:84001H` for `10084001H`. The option 200h (`hex 200 >options`) turns that off, for reading peripheral registers. |
 | `.(` | `( -- )` | Prints the following text up to `)`. |
 | `.page` | `( n -- )` | † Prints the memory map entry of page `n`: base address, write-protect, read and execute limits, and name. |
 | `.pages` | `( -- )` | † Prints the memory map entries of all pages. |

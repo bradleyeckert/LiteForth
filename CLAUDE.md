@@ -64,7 +64,8 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 - `-o N` sets `g_lf_sys_options` (flags in `vm.h`): 1 no `ok>`, 2 no stack
   display, 4 quit on first error (validation), 8 boot from flash, 16 app
   running (set by `cold`), 32 ignore CR, 64 verbose echo, 256 boot without
-  starting the app (`cold` starts it). The variable `stop-tib` (`LF_DEADTIB`,
+  starting the app (`cold` starts it), 512 `.` prints plain hex, not
+  size:shift:cell slice addresses (`SYS_OPTION_NOT_SLICE`, `lfDot` in tools.c). The variable `stop-tib` (`LF_DEADTIB`,
   a bit of the packed state cell) gives a running app the keyboard: `loadTIB`
   runs it even with input waiting and reads nothing itself until the app
   stops (`unit_tests/deadtib`). Without 32, CRLF input counts every line twice (the CR ends a line

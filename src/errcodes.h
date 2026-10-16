@@ -105,7 +105,7 @@
 // block.c
 #define ERR_BLK_CREATE_FAIL         (-88)   /* Failed to create the binary simulation file */
 #define ERR_BLK_WRITE_INIT          (-89)   /* Failed to format initial blank file template */
-#define ERR_BLK_OPEN_FAIL           (-80)   /* Failed to open the mass storage file */
+#define ERR_BLK_OPEN_FAIL           (-90)   /* Failed to open the mass storage file */
 #define ERR_BLK_PARSE_FAIL          (-91)   /* Block 0 header missing signature or parsing failed */
 #define ERR_BLK_BOUNDS              (-92)   /* Target block index exceeds allocated file capacity */
 #define ERR_BLK_SEEK_FAIL           (-93)   /* Failed to seek to target block offset */

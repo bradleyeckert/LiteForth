@@ -496,7 +496,7 @@ _udata variable shown                                                           
 : clock     ( -- )          begin  pause  rtc@ dup shown @ xor                  \ redraw the clock on the LCD each second
                             if dup show-time then  shown !  again ;
 
-( BLOCK 30 )
+( BLOCK 50 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
 : hi        ( -- )          ." 学如不及, 犹恐失之 " ;                            \ demo CJK message
 : value     ( x <name> -- ) _idata align create , does> @ ;                     \ create name, which returns x; see to

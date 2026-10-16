@@ -33,9 +33,9 @@
  */
 void Hardware(void)
 {
-    printf("Build Time: %s %s\n", __DATE__, __TIME__);
-    printf("GCC Version: %d.%d.%d\n",__GNUC__, __GNUC_MINOR__,__GNUC_PATCHLEVEL__);
-    printf("USB CDC bridge to V5F running on USBFS controller\n");
+    printf("Build Time: %s %s\r\n", __DATE__, __TIME__);
+    printf("GCC Version: %d.%d.%d\r\n",__GNUC__, __GNUC_MINOR__,__GNUC_PATCHLEVEL__);
+    printf("USB CDC bridge to V5F running on USBFS controller\r\n");
 	RCC_Configuration( );
 
     /* Tim2 init */

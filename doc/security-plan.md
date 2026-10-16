@@ -491,8 +491,8 @@ The device streams raw audio to the card at 1 MB/s. Decided so far:
 exFAT, through FatFs; RF64 files, since a WAV file's 32-bit sizes stop at
 4 GB (about 70 minutes at 1 MB/s); files pre-expanded as one contiguous
 run (`f_expand`), so streaming never touches the allocation table; and a
-specified card part, so the worst-case write latency is known. A storage
-design note will cover the details. What matters for security:
+specified card part, so the worst-case write latency is known. The details are
+in [storage.md](storage.md) (PR #118). What matters for security:
 
 - **The buffer.** It comes from the RAM pool, shared with other uses, and
   must cover the specified card's worst-case busy time at 1 MB/s plus one

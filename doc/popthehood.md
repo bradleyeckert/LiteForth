@@ -26,6 +26,8 @@ In the desktop version, the App API list is empty. Only Forth definitions are su
 ## Administration
 
 LiteForth has 3 security levels: 0, 1, or 2.
+For the production plan, including the safe wordlist a locked unit starts in,
+see [security-plan.md](security-plan.md).
 The `options.h` file's SECURITY setting determines the default setting.
 
 - 0: Lets you re-flash the system.

@@ -100,6 +100,7 @@ Visual Studio builds without the makefile.
 - [Tutorial](doc/tutorial.md): a first look at using LiteForth (rough draft)
 - [Glossary](doc/glossary.md): Forth words and VM constants
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
+- [Security plan](doc/security-plan.md): root of trust, signed images, device keys, updates, provisioning (draft)
 - [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
 - [Multitasking](doc/multitasking.md): user areas, `pause`, `task` and `activate`
 - [Adding to the API](doc/add2api.md): how to add a C function as a Forth word

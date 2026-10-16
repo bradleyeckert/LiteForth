@@ -12,6 +12,7 @@ Each script prints its full usage with `-h`.
 | `putbin.py` | Writes a binary file, such as a font, into blocks |
 | `mkfont.py` | Makes 4-bit anti-aliased bitmap fonts for the graphic LCDs |
 | `lintf.py` | Checks Forth source against `doc/coding-rules.md` |
+| `lfmcp.py` | Gives an AI assistant (an MCP client such as the Claude desktop app) LiteForth's terminal on a serial port |
 
 The other files here aren't Python: `regression.f` is the test script that
 `make test` runs, and `settings.json` has Windows Terminal key bindings for
@@ -134,3 +135,36 @@ py lintf.py ../forth/core.f
 
 Each script has a test suite under `src/target/desktop/unit_tests/`
 (`putblocks`, `putbin`, `mkfont`, `lintf`), run by `make test`.
+
+## lfmcp.py
+
+An MCP server (Model Context Protocol, over stdin/stdout) that lets an AI
+assistant use LiteForth's terminal on a serial port, such as the
+CH32H417's USB CDC port. It has three tools:
+
+| Tool | What it does |
+|---|---|
+| `forth` | Sends one or more lines and returns what LiteForth printed, each line shown as `> line` and followed by its output, waiting for `ok>` (5 s by default) |
+| `forth_read` | Listens for a while without sending anything, for a running app's output |
+| `forth_restart` | Sends Ctrl+X three times: on the CH32H417, restarts LiteForth without starting the app |
+
+It opens the port for each call and closes it after, so kwai can use the
+port in between, but not at the same time (Windows lets one program open
+a COM port; a call then says the port is in use). It needs no packages:
+it uses Win32 through `ctypes` on Windows and `termios` elsewhere.
+
+For the Claude desktop app on Windows, add it to
+`%APPDATA%\Claude\claude_desktop_config.json` and restart the app:
+
+```json
+{
+  "mcpServers": {
+    "liteforth": {
+      "command": "py",
+      "args": ["C:\\Users\\User\\Documents\\GitHub\\LiteForth\\scripts\\lfmcp.py", "COM17"]
+    }
+  }
+}
+```
+
+`unit_tests/lfmcp` tests it against the desktop `lf` over a pair of ptys.

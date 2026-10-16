@@ -379,6 +379,13 @@ T{ here 3 allot here swap - -> 3 }T
 T{ unused 5 allot unused - -> 5 }T
 T{ dp^ @ _idata dp^ @ _data dp^ @ -> 0 1 0 }T
 
+( unwaited block transfers: read-block write-block block-status )
+( a block buffer serves as the area: the RAM page has no room for another )
+T{ block-status -> 0 }T
+T{ 100 buffer dup 1 read-block  block-status  swap @  1 block @  xor -> 0 0 }T
+T{ 100 buffer  12345 over !  capacity -1 + write-block  block-status -> 0 }T
+T{ capacity -1 + block @ -> 12345 }T
+
 ( create, does> and >body )
 create buf 2 allot
 T{ here buf - -> 2 }T

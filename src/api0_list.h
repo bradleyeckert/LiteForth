@@ -94,7 +94,10 @@
     X(API_RTC_STORE,        rtcStore)           \
     X(API_ALARM_STORE,      alarmStore)         \
     X(API_ALARM_QUERY,      alarmQuery)         \
-    X(API_STANDBY,          standby)
+    X(API_STANDBY,          standby)            \
+    X(API_READ_BLOCK,       readBlock)          \
+    X(API_WRITE_BLOCK,      writeBlock)         \
+    X(API_BLOCK_STATUS,     blockStatus)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

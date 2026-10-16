@@ -110,10 +110,8 @@ int blk_init(char* filename, uint32_t* capacity) {
     return 0;
 }
 
-int blk_read(uint32_t blk, uint32_t *dest) {
-    if (blk >= actual_blocks) {
-        return ERR_BLK_BOUNDS;
-    }
+/* Reads block blk now; bounds already checked */
+static int read_now(uint32_t blk, uint32_t *dest) {
     if (raw) {
         return rawdisk_read(blk, dest);
     }
@@ -140,13 +138,8 @@ int blk_read(uint32_t blk, uint32_t *dest) {
     return 0;
 }
 
-int blk_write(uint32_t blk, uint32_t *src) {
-    if (!writable) {
-        return ERR_BLK_WRITE_PROTECTED;   // not a LiteForth block file
-    }
-    if (blk >= actual_blocks) {
-        return ERR_BLK_BOUNDS;
-    }
+/* Writes block blk now; protection and bounds already checked */
+static int write_now(uint32_t blk, uint32_t *src) {
     if (raw) {
         return rawdisk_write(blk, src);
     }
@@ -173,4 +166,60 @@ int blk_write(uint32_t blk, uint32_t *src) {
     }
 
     return 0;
+}
+
+/*=========================================================================
+* Unwaited transfers: blk_read_imm and blk_write_imm start a transfer,
+* blk_status tells how it went. blk_read and blk_write are built on them.
+=========================================================================*/
+
+static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
+
+int blk_read_imm(uint32_t blk, uint32_t *dest) {
+    if (status > 0) {
+        return ERR_BLK_BUSY;
+    }
+    if (blk >= actual_blocks) {
+        return ERR_BLK_BOUNDS;
+    }
+    status = read_now(blk, dest);       /* done at once: a file or a raw disk */
+    return 0;
+}
+
+int blk_write_imm(uint32_t blk, uint32_t *src) {
+    if (status > 0) {
+        return ERR_BLK_BUSY;
+    }
+    if (!writable) {
+        return ERR_BLK_WRITE_PROTECTED;
+    }
+    if (blk >= actual_blocks) {
+        return ERR_BLK_BOUNDS;
+    }
+    status = write_now(blk, src);
+    return 0;
+}
+
+int blk_status(void) {
+    return status;
+}
+
+/* Waits for the transfer in progress, if any; returns its blk_status */
+static int finish(void) {
+    int s;
+    while ((s = blk_status()) > 0) {
+    }
+    return s;
+}
+
+int blk_read(uint32_t blk, uint32_t *dest) {
+    finish();
+    int err = blk_read_imm(blk, dest);
+    return err ? err : finish();
+}
+
+int blk_write(uint32_t blk, uint32_t *src) {
+    finish();
+    int err = blk_write_imm(blk, src);
+    return err ? err : finish();
 }

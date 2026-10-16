@@ -142,5 +142,6 @@
 #define ERR_MUST_HAVE_HEADS        (-122)   /* Missing `-heads`, cannot save heads */
 #define ERR_XMODEM_TRANSFER        (-123)   /* XMODEM transfer failed or cancelled */
 #define ERR_XMODEM_SOURCE          (-124)   /* Bad block source in an XMODEM transfer */
+#define ERR_BLK_BUSY               (-125)   /* A block transfer is still in progress */
 
 #endif // ERRCODES_H

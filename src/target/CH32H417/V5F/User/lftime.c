@@ -45,15 +45,22 @@ void lfTimeInit(void) {
 
 uint64_t lfGetTimeMicroSec(void) {
     uint64_t ms;
-    uint32_t cycles;
-    do {                                /* retry if a tick lands in between */
+    uint32_t cycles, reloaded;
+    if (cycles_per_us == 0) return 0;   /* lfTimeInit not called */
+    /* Upper, lower, upper: read the millisecond count, then the counter and
+       its reload flag, then the count again, and retry if the interrupt ran
+       in between. Reading the flag inside the loop matters: if the interrupt
+       ran after the counter was read, it would have cleared the flag, and a
+       small counter value would be added to the old count (1 ms back). */
+    do {
         ms = ms_count;
         cycles = SysTick1->CNT;
+        reloaded = SysTick0->ISR & TICK_FLAG;
     } while (ms != ms_count);
-    if (cycles_per_us == 0) return 0;   /* lfTimeInit not called */
     /* The counter has reloaded but the interrupt hasn't run yet (interrupts
-       off): count that millisecond here, so time never goes backwards. */
-    if ((SysTick0->ISR & TICK_FLAG) && cycles < cycles_per_ms / 2) {
+       off, or it's pending): count that millisecond here. A small counter
+       value means the reload came before the counter was read. */
+    if (reloaded && cycles < cycles_per_ms / 2) {
         ms++;
     }
     return ms * 1000u + cycles / cycles_per_us;

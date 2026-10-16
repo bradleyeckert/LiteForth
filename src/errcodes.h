@@ -143,5 +143,6 @@
 #define ERR_XMODEM_TRANSFER        (-123)   /* XMODEM transfer failed or cancelled */
 #define ERR_XMODEM_SOURCE          (-124)   /* Bad block source in an XMODEM transfer */
 #define ERR_BLK_BUSY               (-125)   /* A block transfer is still in progress */
+#define ERR_BLK_TIMEOUT            (-126)   /* A block transfer took too long */
 
 #endif // ERRCODES_H

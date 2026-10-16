@@ -14,11 +14,13 @@ parts before relying on them. Section 10 collects them.
 In scope:
 
 - The CH32H417 board running LiteForth (V5F core) with the V3F USB CDC
-  bridge, its internal flash, and the SD card block partition.
+  bridge, its internal flash, an external NOR SPI flash for blocks and
+  fonts, and a microSD slot used only to deliver update files.
 - The firmware image: the root of trust (RoT), LiteForth, and the Forth
   application in flash pages 0-3.
-- Content loaded at run time: SD card blocks (source, fonts, data).
-- The update path: USB CDC (kwai, XMODEM) and the SD card.
+- Content loaded at run time: NOR flash blocks (source, fonts, data).
+- The update path: an update file on a microSD card; USB CDC (kwai,
+  XMODEM) for service.
 - The factory: provisioning computers, signing, the device database.
 
 Out of scope for now (say so in the threat model): invasive attacks (decap,
@@ -86,7 +88,7 @@ Assets:
 - Vendor signing keys (the most valuable: they decide what runs everywhere)
 - Per-device keys (identity, the image HMAC key, the admin key)
 - Firmware and Forth application code (IP, and integrity)
-- Customer data on the device and its SD card
+- Customer data on the device and in its NOR flash
 - The device's behavior: it must not run unauthorized code
 
 Adversaries, by reach:
@@ -94,8 +96,8 @@ Adversaries, by reach:
 | Adversary | Can | Main defenses |
 |---|---|---|
 | Remote, over the product's interfaces | Send input, maybe updates | Signed updates, input limits, no debug features in production |
-| Holder of the device | USB terminal, SD card, buttons | Security levels and challenge-response, signed/HMAC'd blocks, RDP |
-| Lab attacker (non-invasive) | Debug probe, swapping the SD card, reflashing | RDP, WRPR, a wipe loses all keys, server-side identity checks |
+| Holder of the device | USB terminal, microSD slot (any file on any card), buttons | Security levels and challenge-response, signed updates, RDP |
+| Lab attacker (non-invasive) | Debug probe, reading or rewriting the NOR chip with a clip, reflashing | RDP, WRPR, authenticated (and if needed encrypted) NOR content, a wipe loses all keys, server-side identity checks |
 | Insider at the factory or contract manufacturer | Provisioning station access | HSM, separated duties, audit logs, no raw keys on stations |
 | Supply chain | Swapped parts or images | Signed images, attestation at first contact |
 
@@ -107,35 +109,61 @@ LiteForth's current plan ([flashmem.md](flashmem.md)): RoT in sectors 0..N-1, a
 security sector N, then four flash pages for the dictionary. A proposal to
 pin down (**Decide** sizes):
 
+Internal flash:
+
 | Region | Size | Protection | Contents |
 |---|---|---|---|
-| Stage 0 RoT | 8 KB | Auto WP under RDP | Self-test, signature check, update installer core, recovery |
-| RoT / LiteForth core | N x 8 KB | WRPR | LiteForth C, RoT API, vendor public keys |
-| Security sector | 8 KB | Not WP; reachable only by RoT code | Device keys, version counters, image HMAC, provisioning record |
+| Stage 0 | 8-24 KB | First 8 KB auto-WP under RDP, the rest WRPR | Self-test, SHA-256/512, signature check, NOR driver, update installer, rollback, recovery |
+| LiteForth core | N x 8 KB | Not WP; only stage 0 writes it (5.6) | LiteForth C, RoT API, SD and FAT32 reader, vendor public keys |
+| Security sector | 8 KB | Not WP; only stage 0 writes it | Device keys, version counters, image MACs, NOR table hashes, update state, provisioning record |
 | Flash pages 0-3 | 4 x 64 KB | Not WP | Forth application dictionary |
-| Update staging | 256 KB, or on the SD card | Not WP | A received image waiting to be checked and installed |
 
-**Decide:** is the RoT ever field-updatable? Recommendation: stage 0
-never is. The LiteForth core above it can be updated only through stage 0
-and a vendor signature, which leaves room for fixing bugs in C.
+Under RDP, write protection can only be cleared by wiping the chip
+(removing RDP erases user flash first). So anything under WRPR can never
+change in the field: that's what makes stage 0 a root of trust, and also
+why anything that should be updatable must not be under WRPR.
+
+**Decide:** is the LiteForth core field-updatable? Recommendation: yes,
+through stage 0 and a vendor signature, so bugs in C can be fixed. Then
+stage 0 is the only immutable code and must stay small and simple. If the
+core will never be updated, put it under WRPR too.
+
+External NOR flash (sizes for a 16 MB part as an example; **Decide** the
+part and sizes once the font and source sizes are known):
+
+| Region | Size | Contents |
+|---|---|---|
+| Directory | 4 KB | Which content bank is active, region table. Its hash is kept in the security sector |
+| Content bank A | 4 MB | Vendor content: fonts, Forth source blocks, shipped data |
+| Content bank B | 4 MB | The next version of the content, written during an update; the banks swap |
+| Update staging | 2 MB | An update package copied from the card or received over USB, waiting to be checked |
+| Backup | 1 MB | The internal image (app pages, and core if updated) as it was before the last update, for rollback |
+| Device data | The rest | Blocks the device writes (settings, logs, user content) |
+
+LiteForth block numbers stay the same across banks: blocks in the vendor
+range read from whichever bank is active, and are read-only. Blocks above
+it are device data.
 
 ### 5.2 Root of trust and the boot sequence
 
 At every reset, stage 0:
 
-1. **Self-test.** Check that RDP is on, WRPR covers the RoT, the boot ROM
+1. **Self-test.** Check that RDP is on, WRPR covers stage 0, the boot ROM
    download bits are off, and the security sector holds a provisioned
    record. Anything wrong: stay in a locked-down state (the "development"
    state) and say so on the terminal.
-2. **Check the RoT core**, its hash against a value stage 0 holds, if the
-   core is updatable.
-3. **Check the application.** Fast path: the per-device image MAC (5.3).
+2. **Finish any update.** A package waiting in staging, an install cut
+   short by a power loss, or a new version on trial: handle it first (5.5,
+   phases B and C).
+3. **Check the LiteForth core**, its hash against the value stored at its
+   last install, if the core is updatable.
+4. **Check the application.** Fast path: the per-device image MAC (5.3).
    No match: don't launch; go to QUIT at security level 2, as
    [popthehood.md](popthehood.md) already describes.
-4. **Recovery override.** A strap pin held at reset skips launching the
+5. **Recovery override.** A strap pin held at reset skips launching the
    app, so a bad app can't brick the unit. It only skips the launch; it
    never lowers the security level or turns off checks.
-5. Launch.
+6. Launch.
 
 LiteForth already plans most of this (RoT, self-test, HMAC check, recovery
 pin). The changes below are the vendor signature in 5.3 and the IO window
@@ -154,26 +182,48 @@ it gets a valid HMAC. So production needs two layers:
 | Vendor signature | Signing service (HSM), at release | Once, at install, by the RoT | Ed25519 (small, fast, constant-time code available), or ECDSA P-256 if a customer requires NIST curves | The vendor released this exact image, for this product, at this version |
 | Device image MAC | The RoT, after it checks the signature | At every boot | HMAC-SHA256, or AES-CMAC using the ECDC engine | The installed flash is still what was checked |
 
-Update package (manifest + payload), a first cut:
+An update package is one file: a signed manifest followed by one or more
+components. A first cut:
 
 ```
-magic, format version
-product ID, hardware revision range
-image type: app | rot-core | blocks
-image version (monotonic), minimum version allowed to install it
-payload length, SHA-256 of the payload
-target: any device | one UID (for debug unlocks or per-device images)
-encryption: none | AES-CTR (key ID, nonce)
-signing key ID
-signature over everything above
+manifest
+  magic, format version
+  product ID, hardware revision range
+  package version; new anti-rollback minimum
+  target: any device | one UID (for a single unit, e.g. from support)
+  encryption: none | AES-CTR (key ID)
+  signing key ID
+  components, each:
+    type: app | core | content
+    version, offset in the file, length, SHA-256
+    nonce (if encrypted)
+    content only: block range, SHA-256 of its block-hash table
+  signature over all of the above
+component data
 ```
 
-The same scheme covers **SD card blocks**. `load` runs source from blocks,
-and the SD card is removable, so it's attacker-controlled. In production,
-blocks that will be loaded need a signature (vendor-shipped content) or a
-device MAC (content made on the device). The 32 bytes already reserved in
-binary blocks (`putbin.py`, [blocks.md](blocks.md)) are a natural home for a MAC.
-**Decide:** sign each block, or a manifest that lists block hashes.
+A package can carry any mix: content only (new fonts or source), an app
+only, or everything.
+
+**NOR content is checked when it's read.** A clip on the NOR chip can read
+or rewrite it, and `load` runs source from blocks, so blocks are never
+trusted just because they're in NOR:
+
+- **Vendor content** comes with a table of SHA-256 hashes, one per 4 KB
+  block. The table's hash is in the signed manifest; after an install,
+  stage 0 keeps it in the security sector. Each block is hashed when it's
+  read into a block buffer and compared with its entry; a mismatch is an
+  error, like a bad read. In software that's about 0.2 ms per block at
+  400 MHz.
+- **Device data** blocks each carry a MAC made with a key derived from
+  K_img, in the 32 bytes binary blocks already reserve (`putbin.py`,
+  [blocks.md](blocks.md)), or in a separate MAC table. **Decide** which. A
+  probe could still put back an older copy of a block with its old MAC;
+  **Decide** whether that matters for the data kept there.
+- **Confidentiality**, if the Forth source or fonts are IP worth
+  protecting: stage 0 can re-encrypt content with a per-device key as it
+  installs it (AES-CTR on the ECDC engine), so a dump of one unit's NOR
+  is useless without that unit's key. **Decide.**
 
 ### 5.4 Unique keys
 
@@ -209,37 +259,114 @@ who asked and why.
 
 ### 5.5 Secure firmware update
 
-Flow (USB CDC with XMODEM, or from the SD card):
+A production update is a file on a microSD card. The card is used for
+nothing else, so it's simply untrusted input: anyone can put any file on
+any card. Everything that decides whether to install happens in stage 0,
+after a reset, from a copy in NOR flash.
 
-1. Receive the package into staging (internal flash or SD). Nothing is
-   trusted yet.
-2. The RoT checks: format, product and hardware match, signature with a
-   known, non-retired key, payload hash, version >= the stored minimum.
-3. Decrypt if needed (AES-CTR via ECDC).
-4. Write it to its target pages. Mark "installing" in the security
-   sector first, so a power failure resumes or rolls back on the next boot.
-5. Read back, compute the device MAC with K_img, store MAC + version.
-6. Raise the anti-rollback minimum only after the new image boots and
-   confirms itself (**Decide** how: a first-boot health check, or
-   immediately).
+The file: one package (5.3), in the card's FAT32 partition, under a
+fixed 8.3 name such as `LITEFRTH/UPDATE.LFU`, so the reader needs no long
+file names. **Decide** whether to support exFAT too; cards over 32 GB come
+formatted exFAT, but a FAT32-only reader is much smaller and simpler, and
+technicians can use a small card.
 
-Points to settle:
+#### Who does what
 
-- **Atomicity.** 960 KB of flash doesn't fit a full A/B copy of the RoT
-  plus 4 x 64 KB pages comfortably. The simplest option: stage on the SD
-  card, keep the old image until the new one checks out, and allow
-  recovery from the SD card staging copy. **Decide.**
-- **Anti-rollback** stores a version counter in the security sector, so it
-  depends on the RoT being the only writer (5.6).
+The work is split so that the code facing the card is never trusted:
+
+| Phase | Runs in | Trusted? | Does |
+|---|---|---|---|
+| A. Find and copy | LiteForth core, normal run | No | Reads the card, copies the file into NOR staging |
+| B. Check and install | Stage 0, after a reset | Yes | Checks everything, installs, records the result |
+| C. Trial boot | The new firmware, then stage 0 | Checked by stage 0 | Confirms the new firmware works, or rolls back |
+
+A bug in the FAT reader, or a malicious card, can at worst produce a bad
+copy in staging, which stage 0 then refuses. It can't get code run.
+
+#### Phase A: find and copy
+
+1. At startup, or when a card is inserted, LiteForth looks for the file.
+   It reads only the manifest's plain fields (product, version, target)
+   to decide whether to offer the update: right product, newer than
+   what's installed, and for this unit if it names a UID. A same or older
+   version is ignored, so a card can be left in.
+2. It asks for confirmation (**Decide**: a button held, the `install`
+   word at the terminal, or automatic for unattended units), showing the
+   version on the terminal or LCD.
+3. It copies the file byte for byte into NOR staging, refusing anything
+   larger than staging. It checks nothing else; it isn't trusted to.
+4. It calls a RoT API function that records "package in staging" in the
+   security sector (only stage 0 code writes the security sector), then
+   resets.
+
+#### Phase B: check and install (stage 0)
+
+5. **Check.** The manifest signature, with a known key that hasn't been
+   retired; product and hardware revision; the target UID if there is
+   one; the package version against the anti-rollback minimum; and each
+   component's SHA-256, streamed from staging. Any failure: the update is
+   dropped, the reason is recorded, and the unit boots its old firmware
+   unchanged.
+6. **Back up** what will be replaced inside the chip (the app pages, and
+   the core if the package has one) into the NOR backup region, with its
+   hash.
+7. **Install,** recording progress in the security sector after each
+   step, so a power loss resumes the install from staging, which stays
+   intact until the end:
+   - app and core: erase and program internal flash, decrypting with
+     AES-CTR if the package is encrypted;
+   - content: write it into the inactive NOR bank, with its block-hash
+     table, then read it back and check it.
+8. **Commit.** Store the new image MACs, the new content table hash and
+   the versions; switch the active content bank; mark the update "on
+   trial". That one record is the point where the unit moves to the new
+   version.
+9. Reset into the new firmware.
+
+#### Phase C: trial boot
+
+10. The new firmware runs its own health check (the app defines what that
+    means: it starts, the display works, it reaches its main loop) and
+    then calls the RoT's `confirm`.
+11. On `confirm`, stage 0 raises the anti-rollback minimum to the
+    package's value and marks the update done. The backup stays until the
+    next update.
+12. If the new firmware doesn't confirm within a few boots (a counter in
+    the security sector), stage 0 restores the backup and switches the
+    content bank back, records "rolled back", and boots the old version.
+13. The result (installed, refused and why, rolled back) is shown on the
+    terminal or LCD and reported by `attest`. **Decide** whether to also
+    write a result file to the card for technicians; that needs FAT
+    writing, which the reader otherwise doesn't need.
+
+#### The same path over USB
+
+Service updates over the USB terminal use the same phases: kwai's `~x`
+sends the package by XMODEM, LiteForth writes it into NOR staging instead
+of into blocks, and phases B and C are unchanged. kwai needs no secrets.
+It could check the signature before sending, just to catch a wrong file
+early.
+
+#### Other points
+
+- **Anti-rollback**: the minimum version lives in the security sector,
+  which only stage 0 writes (5.6). A package can raise the minimum to stop
+  older, vulnerable versions from being installed again.
+- **What a bad card can do**: get an update refused. The old firmware
+  keeps running, and nothing on the card is ever run.
+- **Package encryption** (**Decide**): AES-CTR with a product-wide key
+  held by every unit's stage 0 keeps the card from revealing the code to
+  anyone who reads it. It's a shared secret, though, protected only by
+  RDP, so the security never rests on it: the signature does that.
+- **The FAT reader** gets fuzz-tested on the desktop build with malformed
+  card images, since it parses untrusted data, even though its output is
+  checked later.
 - **Field compilation vs signed images.** LiteForth can compile to flash
   at level 0, which makes code the vendor never signed. Policy: production
   units boot at level 2, flash compilation needs level 0, and level 0
   needs an authenticated unlock (5.4). A unit that's been unlocked and
   compiled on should say so (a flag in the security sector, shown by
   `attest`) so support can tell.
-- **kwai.** `~x` sends files by XMODEM; the RoT does the checking, so kwai
-  needs no secrets. kwai could check the signature itself before sending,
-  just to catch mistakes early.
 
 ### 5.6 Locking down the chip
 
@@ -266,6 +393,8 @@ to reach anything that can:
   - DMA: a DMA copy could move the security sector into RAM that Forth can
     read;
   - ECDC, while it holds keys;
+  - the SPI or QSPI controller wired to the NOR flash, and SDIO: Forth
+    reads blocks through LiteForth, which checks them (5.3);
   - RNG, PWR/RCC and the option bytes.
   **Decide** the allowlist per product (GPIO, timers, LCD SPI, ...).
 - **PMP:** if LiteForth's C runs in M mode, PMP can't fence it off from
@@ -304,6 +433,7 @@ What's in it (**Decide** the final list):
 | `response:` ( "hex" -- ) | Checks the signed response; on success, sets the level |
 | `lock` ( -- ) | Back to level 2. Never needs authentication |
 | `attest` ( -- ) | Prints the UID, device certificate, image versions and unlock count; signs a nonce on request |
+| `install` ( -- ) | Installs the update file on the card, after showing its version (5.5). Not `update`, which is the standard block word |
 | `.version`, `words`, `help` | Information only |
 
 The app's commands: a signed app can add words to its own `commands`
@@ -389,8 +519,9 @@ managed remotely).
 
 Flow per unit:
 
-1. Program the production RoT + app image (unlocked chip, debug probe or
-   boot ROM). The image has no secrets in it.
+1. Program the production image into internal flash (unlocked chip, debug
+   probe or boot ROM) and the vendor content into NOR bank A (or buy NOR
+   parts preprogrammed). Neither has secrets in it.
 2. Functional test.
 3. The RoT, on first boot in its "unprovisioned" state:
    - checks the RNG, generates K_img and the device identity key pair;
@@ -398,8 +529,9 @@ Flow per unit:
 4. Station: checks the UID isn't already in the database, has the
    manufacturing CA (in the HSM) sign the device certificate, sends it to
    the device.
-5. The device stores the certificate, computes the image MAC, marks itself
-   provisioned.
+5. The device stores the certificate, computes the image MAC, checks the
+   NOR content against its signed block-hash table and stores the table
+   hash, and marks itself provisioned.
 6. Lock down (5.6): USER bits, WRPR, then RDP, then a power-on reset.
 7. Verify: the unit boots, answers an `attest` challenge with a signature
    that checks against its certificate, and a debug probe can't read flash.
@@ -433,13 +565,19 @@ default) and the old certificate revoked.
 
 - On a locked unit: a debug probe can't read flash; boot ROM downloads are
   off; removing RDP wipes everything (and the wiped unit fails `attest`).
-- Updates: wrong signature, wrong product, older version, truncated
-  payload, corrupted byte, retired key: all refused, and the unit still
-  runs.
-- Power loss at each update step: the unit recovers.
+- Updates: wrong signature, retired key, truncated payload: refused.
 - Forth can't reach the FLASH controller, DMA, ECDC or security sector
   through the IO page or any API 0 word (a test script that tries).
-- SD card swap: unsigned or modified blocks don't `load` at level 2.
+- NOR content: a changed byte in a vendor block, or a device data block
+  with a bad MAC, fails when read; `load` refuses it.
+- Update cards: a corrupted file, an unsigned one, one for another
+  product or another UID, an older version, a file too big for staging,
+  a malformed FAT32 image (fuzzed on the desktop build): all refused, the
+  unit keeps running its old firmware.
+- Power loss during the copy (phase A) and at each install step (phase
+  B): the unit either finishes the install or keeps its old version.
+- A new version that never confirms: rolled back after the set number of
+  boots.
 - RNG health test runs and catches a stuck source (simulate).
 - Regression tests for all of this in LiteForth's `make test` on the
   desktop build where possible (simulated flash and security sector), and
@@ -450,10 +588,13 @@ default) and the old certificate revoked.
 1. Which regulations and standards apply (section 2), and the support period.
 2. Signature algorithm: Ed25519 or ECDSA P-256; which library.
 3. Image MAC: HMAC-SHA256 or AES-CMAC on the ECDC engine.
-4. Is the RoT core field-updatable, and how is stage 0 sized.
-5. Update atomicity: SD card staging, or internal staging space.
-6. When to raise the anti-rollback minimum.
-7. SD block authentication: per block, or a signed manifest.
+4. Is the LiteForth core field-updatable (then not under WRPR), and how
+   big is stage 0.
+5. The NOR part and its region sizes (5.1).
+6. Update trigger: button, `install`, or automatic; how many trial boots
+   before a rollback.
+7. Device data blocks: MAC in the block or in a table; whether replaying
+   an old block matters; whether NOR content is encrypted per device.
 8. The VM IO page allowlist for each product.
 9. Provisioning in-house or at a contract manufacturer; HSM choice.
 10. Key rotation schedule; how many vendor public keys the RoT holds.
@@ -469,6 +610,8 @@ default) and the old certificate revoked.
 15. **Verify:** RNG output quality on real parts.
 16. The safe wordlist's contents, the idle re-lock timeout, and the
     limit on failed unlocks (5.7).
+17. FAT32 only, or exFAT too; a result file on the card or not; package
+    encryption or not (5.5).
 
 ## 11. Suggested order of work
 
@@ -479,7 +622,8 @@ default) and the old certificate revoked.
 3. CH32H417: stage 0 RoT, lock-down self-test, IO page allowlist.
 4. Signing tool and key ceremony (dev keys first).
 5. Provisioning tool and station, a pilot run on a few boards.
-6. Update path end to end: kwai, SD card, recovery.
+6. Update path end to end: the package tool, NOR staging, phases A-C,
+   rollback, then the USB path with kwai.
 7. Policies, SBOM, vulnerability process, technical file.
 
 ## References

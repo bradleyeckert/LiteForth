@@ -60,8 +60,8 @@ int blk_write(uint32_t blk, uint32_t *src);
  * Starts reading block blk into dest (BLOCK_SIZE_CELLS cells) and returns
  * without waiting for it to finish; blk_status says when it has. dest must
  * stay valid and untouched until then.
- * For now the transfer is done before this returns (polling); DMA is
- * planned.
+ * The transfer runs by DMA (DMA2 channel 1); blk_status moves it along
+ * (BLK_DMA 0 in blocks.c: WCH's polling transfer, done before returning).
  * Returns 0 if the read started, ERR_BLK_BUSY if a transfer is still in
  * progress, ERR_BLK_BOUNDS if blk is past the capacity, or another
  * negative error code that shows up at once.
@@ -72,8 +72,8 @@ int blk_read_imm(uint32_t blk, uint32_t *dest);
  * Starts writing block blk from src (BLOCK_SIZE_CELLS cells) and returns
  * without waiting for it to finish; blk_status says when it has. src must
  * stay valid and unchanged until then.
- * For now the transfer is done before this returns (polling); DMA is
- * planned.
+ * The transfer runs by DMA (DMA2 channel 1); blk_status moves it along
+ * (BLK_DMA 0 in blocks.c: WCH's polling transfer, done before returning).
  * Returns 0 if the write started, ERR_BLK_BUSY if a transfer is still in
  * progress, ERR_BLK_WRITE_PROTECTED, ERR_BLK_BOUNDS, or another negative
  * error code that shows up at once.

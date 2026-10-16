@@ -65,17 +65,20 @@
  64 API_ALARM_STORE      alarmStore
  65 API_ALARM_QUERY      alarmQuery
  66 API_STANDBY          standby
- 67 API_ENDTEST          lfAPI_endTest
- 68 API_DOTEST           lfAPI_doTest
- 69 API_BEGINTEST        lfAPI_beginTest
- 70 API_HEX              lfAPI_hex
- 71 API_DECIMAL          lfAPI_decimal
- 72 API_DOTPAGE          lfAPI_dotPage
- 73 API_DOTPAGES         lfAPI_dotPages
- 74 API_DUMP             lfAPI_dump
- 75 API_DUMPI            lfAPI_dumpIns
- 76 API_DASM             lfAPI_dasm
- 77 API_DOTS             lfAPI_dotEss
- 78 API_DOT              lfAPI_dot
- 79 API_SEE              lfAPI_see
-count 80
+ 67 API_READ_BLOCK       readBlock
+ 68 API_WRITE_BLOCK      writeBlock
+ 69 API_BLOCK_STATUS     blockStatus
+ 70 API_ENDTEST          lfAPI_endTest
+ 71 API_DOTEST           lfAPI_doTest
+ 72 API_BEGINTEST        lfAPI_beginTest
+ 73 API_HEX              lfAPI_hex
+ 74 API_DECIMAL          lfAPI_decimal
+ 75 API_DOTPAGE          lfAPI_dotPage
+ 76 API_DOTPAGES         lfAPI_dotPages
+ 77 API_DUMP             lfAPI_dump
+ 78 API_DUMPI            lfAPI_dumpIns
+ 79 API_DASM             lfAPI_dasm
+ 80 API_DOTS             lfAPI_dotEss
+ 81 API_DOT              lfAPI_dot
+ 82 API_SEE              lfAPI_see
+count 83

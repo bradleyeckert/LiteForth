@@ -36,14 +36,18 @@
 int blk_init(char *filename, uint32_t *capacity);
 
 /**
- * Reads a single 4KB block payload into the destination buffer.
+ * Reads a single 4KB block payload into the destination buffer, and waits
+ * until it's done (blk_read_imm, then blk_status). A transfer still in
+ * progress is waited for first.
  * Returns 0 if okay, ERR_BLK_BOUNDS if blk is past the capacity, or
  * ERR_BLK_READ_FAIL if the card reports an error.
  */
 int blk_read(uint32_t blk, uint32_t *dest);
 
 /**
- * Writes a single 4KB block payload from the source buffer.
+ * Writes a single 4KB block payload from the source buffer, and waits
+ * until it's done (blk_write_imm, then blk_status). A transfer still in
+ * progress is waited for first.
  * Returns 0 if okay, ERR_BLK_WRITE_PROTECTED if the partition doesn't
  * start with BLK_SIGNATURE (or isn't 64 KB aligned), ERR_BLK_BOUNDS if blk
  * is past the capacity, or ERR_BLK_WRITE_FAIL if the card reports an
@@ -51,5 +55,38 @@ int blk_read(uint32_t blk, uint32_t *dest);
  * blk_init.
  */
 int blk_write(uint32_t blk, uint32_t *src);
+
+/**
+ * Starts reading block blk into dest (BLOCK_SIZE_CELLS cells) and returns
+ * without waiting for it to finish; blk_status says when it has. dest must
+ * stay valid and untouched until then.
+ * For now the transfer is done before this returns (polling); DMA is
+ * planned.
+ * Returns 0 if the read started, ERR_BLK_BUSY if a transfer is still in
+ * progress, ERR_BLK_BOUNDS if blk is past the capacity, or another
+ * negative error code that shows up at once.
+ */
+int blk_read_imm(uint32_t blk, uint32_t *dest);
+
+/**
+ * Starts writing block blk from src (BLOCK_SIZE_CELLS cells) and returns
+ * without waiting for it to finish; blk_status says when it has. src must
+ * stay valid and unchanged until then.
+ * For now the transfer is done before this returns (polling); DMA is
+ * planned.
+ * Returns 0 if the write started, ERR_BLK_BUSY if a transfer is still in
+ * progress, ERR_BLK_WRITE_PROTECTED, ERR_BLK_BOUNDS, or another negative
+ * error code that shows up at once.
+ */
+int blk_write_imm(uint32_t blk, uint32_t *src);
+
+/**
+ * The state of the last transfer started by blk_read_imm or blk_write_imm
+ * (blk_read and blk_write use them too).
+ * Returns 0 if it finished without error (or none was started), a negative
+ * error code if it failed, 1 while a read is in progress, or 2 while a
+ * write is in progress. The result stays until the next transfer starts.
+ */
+int blk_status(void);
 
 #endif /* BLOCKS_H */

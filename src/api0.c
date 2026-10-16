@@ -15,6 +15,7 @@
 #include "xmodem.h"
 #include "lcd.h"
 #include "lftime.h"
+#include "blocks.h"
 
 /*==========================================================================
 * API 0 
@@ -367,6 +368,46 @@ static int alarmQuery(void) {
 /* STANDBY  ( -- )  Power down until the alarm, then restart from the top */
 static int standby(void) {
     return lfStandby();
+}
+
+/* The C address of BLOCK_SIZE_CELLS cells at VM cell address a, or NULL
+   unless they are all in one mapped page (not the I/O page), and, if
+   written is set, past the page's write-protected cells. Address metadata
+   (slice fields) is ignored. */
+static uint32_t* blockCells(uint32_t a, int written) {
+    a &= 0x3FFFFF;
+    int page = a >> (22 - VM_LOG2_PAGES);
+    uint32_t cell = a & VM_PAGE_MASK;
+#ifdef VM_IO_PAGE
+    if (page == VM_IO_PAGE) return NULL;
+#endif
+    if (vm_memory[page] == NULL) return NULL;
+    if (cell + BLOCK_SIZE_CELLS > vm_memory_rd_limit[page]) return NULL;
+    if (written && cell < vm_memory_wp_limit[page]) return NULL;
+    return &vm_memory[page][cell];
+}
+
+/* READ-BLOCK  ( a u -- )  Start reading block u into the block-sized area
+   at a, without waiting (blocks.h); BLOCK-STATUS tells when it's done */
+static int readBlock(void) {
+    uint32_t blk = (uint32_t)vmPop();
+    uint32_t* dest = blockCells((uint32_t)vmPop(), 1);
+    if (dest == NULL) return ERR_INVALID_ADDRESS;
+    return blk_read_imm(blk, dest);
+}
+
+/* WRITE-BLOCK  ( a u -- )  Start writing block u from the block-sized area
+   at a, without waiting */
+static int writeBlock(void) {
+    uint32_t blk = (uint32_t)vmPop();
+    uint32_t* src = blockCells((uint32_t)vmPop(), 0);
+    if (src == NULL) return ERR_INVALID_ADDRESS;
+    return blk_write_imm(blk, src);
+}
+
+/* BLOCK-STATUS  ( -- n )  0 done, negative: failed, 1 reading, 2 writing */
+static int blockStatus(void) {
+    return vmPush(blk_status());
 }
 
 /* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */

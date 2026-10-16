@@ -1,26 +1,146 @@
 # Running Forth on the nanoCH32H417
 
-- Install MounRiver and open the `SimulateCDC` solution.
-- Connect the nanoCH32H417 "WCHLinkE" port to your PC with a USB-C cable.
-- If the "WCHLinkE" has a solid blue light, it is in ARM mode. Change it to RISC-V mode.
-- Click on "Build All Projects" or Ctrl+B.
-- Highlight the V5F project.
-- Click on "Download" or F8.
+The nanoCH32H417 board has two USB-C ports: **WCHLinkE**, the on-board
+debug probe (programming, plus a serial port for debug messages), and
+**USB-FS**, where LiteForth's terminal appears as a USB serial (CDC) port.
 
-At this point, the "USB-FS" USB-C may be connected to a PC running a terminal emulator.
-While any terminal emulator will work, [kwai](https://github.com/bradleyeckert/kwai) was written
-specifically to support embedded targets with cooked input. It has useful LifeForth-specific features.
+## What you need
 
-To extend the system:
+- The nanoCH32H417 board, two USB-C cables, and a microSD card.
+- Optional: the 1.54" 240 x 240 LCD module from the kit.
+- [MounRiver Studio](http://www.mounriver.com/) (Windows), to build and
+  download the firmware.
+- A terminal program. [kwai](https://github.com/bradleyeckert/kwai) was
+  written for embedded targets with cooked input and has LiteForth-specific
+  features; any terminal that raises DTR works (see below).
+- Python 3, only if you rebuild the block image (`forth/build.bat`).
 
-- Format a microSD card with 2 partitions: FAT32 (or whatever) in the first partition, and an unformatted (or type DA) second partition.
-- Run the `./forth/build.bat` batch file to build a disk image for mass storage.
-- Copy the generated `lfblocks.fb4` file to this second partition.
-- If you bought the kit with the 1.54" LCD module, plug in the LCD module.
-- Plug the microSD card into the nanoCH32H417 board and power it up.
+## 1. Program the board
+
+- Install MounRiver and open the solution
+  `src/target/CH32H417/SimulateCDC.wvsln`. It holds two projects, `V3F`
+  (the USB core) and `V5F` (the Forth core).
+- Connect the board's **WCHLinkE** port to your PC.
+- The WCHLinkE must be in RISC-V mode. A solid blue light means ARM mode:
+  switch it with WCH-LinkUtility (select `WCH-LinkRV`, then *Set*). In
+  RISC-V mode the blue light is off, except that it blinks while
+  programming.
+- Click *Build All Projects* (Ctrl+B).
+- Select the **V5F** project and click *Download* (F8). Its download
+  programs both cores. Downloading from the V3F project erases the chip and
+  writes only the V3F's half, which leaves the USB port dead.
+
+A download erases the whole chip, including the Forth dictionary in flash,
+so after each one you load the dictionary again (step 4).
+
+## 2. Connect a terminal
+
+Plug the **USB-FS** port into the PC. It shows up as a new COM port;
+`kwai -l` lists the ports and shows the board's (`(USB CDC)`, product
+`CH32H417`, with the chip's ID as its serial number). Then:
+
+```
+kwai COM17
+```
+
+with your port's name. Press Enter: LiteForth answers `ok>`.
+
+With another terminal program:
+
+- **Turn local echo on.** LiteForth reads a line at a time and doesn't
+  echo what you type.
+- **Raise DTR.** The board sends nothing while DTR is off. PuTTY, Tera
+  Term, minicom and screen raise it; kwai does too.
+- The baud rate doesn't matter. Lines may end in CR, LF or CR LF.
+
+The WCHLinkE's own COM port carries the debug messages of both cores
+(USART1, 9600 baud): startup, the SD card it found, the RTC, and errors.
+It's worth keeping open in a second window.
+
+## 3. Prepare the microSD card
+
+LiteForth keeps its source code and fonts in 4 KB blocks, in a raw
+partition on the card with no file system. The repo's `bin/lfblocks.fb4`
+is a ready-made image of those blocks: `core.f`, the other Forth source,
+and two fonts.
+
+- **Partition the card:** a FAT32 (or exFAT) first partition, for files
+  you share with a PC, and a second partition of type `DA` (64 MB is
+  plenty) starting on a 64 KB boundary. [doc/sdcard.md](../../../doc/sdcard.md)
+  gives the steps for Windows (`diskpart`), Linux and macOS.
+  **Partitioning erases the card.**
+- **Optional: rebuild the image.** After changing the Forth source, run
+  `forth/build.bat` in the `forth` folder. It writes the source into
+  `bin/lfblocks.fb4`, and also rebuilds the fonts, which needs Noto Sans
+  CJK SC installed and `py -m pip install pillow fonttools`.
+- **Copy the image to the second partition.** A raw partition can't take
+  a file by drag and drop. On Windows, run `bin/copy2microSD.ps1` in
+  PowerShell as administrator: first `Get-Disk` to find the card's disk
+  number, then set `$disk` at the top of the script to that number. It
+  finds the `DA` partition, writes the image, and reads it back to check.
+  (`powershell -ExecutionPolicy Bypass` lets an unsigned script run.)
+  The other systems use `dd`; see
+  [Copying lfblocks.fb4 to the card](../../../doc/sdcard.md#copying-lfblocksfb4-to-the-card).
+  Block 0 of the image holds the `LITEFORTH` signature, which LiteForth
+  needs before it will write to the partition.
+
+## 4. Load the dictionary
+
+- If you have the LCD module, plug it in.
+- Put the card in the board and power it up (or reset it). The debug port
+  says what it found, for example `V5F blocks: 16384 blocks at sector ...`;
+  `capacity .` at the terminal shows the same number.
 - Enter `1 load`.
 
-The board now has a Forth dictionary in Flash.
+Block 1 compiles the Forth lexicon (`core.f`, from block 7) and the demo
+application (block 50) into flash and saves a boot image. The board now
+has a Forth dictionary in flash, and boots from it at every reset until
+the next download from MounRiver.
 
-The boot demo bumps `counter`, so `counter @ .` shows it incrementing.
-`try` launches a clock demo, which uses the multitasker to maintain a clock display.
+## 5. Try it
+
+The demo application starts at the next reset, or now with `cold`. It
+bumps `counter` in a loop that runs whenever the terminal is idle, so
+`counter @ .` shows a bigger number each time.
+
+With the demo running, `try` starts a clock on the LCD, run by a second
+task in the multitasker. The real-time clock starts at zero (1970) when the board
+first gets power, and the board has no battery to keep it, so set it after
+powering up. `clock!` takes the time in UTC:
+
+```
+0 30 21 16 10 2026 clock!
+rtc@ dup .date space .time
+try
+```
+
+(seconds, minutes, hours, day, month, year: 21:30:00 UTC on 16 October
+2026). The clock keeps its time through resets, just not through a power
+loss.
+
+Some other things to type: `words` lists the dictionary, `7 list` shows a
+block of source, and `hi` prints a Chinese proverb (kwai shows CJK text).
+
+## If something goes wrong
+
+- **The app misbehaves at boot:** press Ctrl+X three times in a row (kwai:
+  `~r`). The board restarts without starting the app; `cold` starts it
+  again.
+- **No `ok>`:** check that the terminal raises DTR, and look at the debug
+  port. Downloading from the V3F project instead of the V5F one leaves
+  the USB port dead; download from the V5F project again.
+- **`1 load` fails at once or `capacity .` shows 0 or 1:** the board
+  didn't find the block partition, or block 0 lacks the `LITEFORTH`
+  signature. The debug port says which (see the table in
+  [README.md](README.md#blocks-v5fuserblocksc)).
+
+## Changing the source
+
+With the card in the board, kwai's `~x file` sends a source file into
+blocks over the terminal (XMODEM): for example `~x core.f`, run in the
+`forth` folder. The `( BLOCK n )` lines in the file say where each block
+goes, as with `putblocks.py`. Other terminals can send it too: type
+`xmodem`, then send the file with XMODEM (checksum). Then `1 load`
+compiles the dictionary again from the new source. See
+[doc/blocks.md](../../../doc/blocks.md) for blocks and the block editor in
+[doc/editor.md](../../../doc/editor.md).

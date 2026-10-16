@@ -30,7 +30,7 @@
 #define BLK_DMA_FLAG_TC     DMA2_FLAG_TC1
 #define BLK_DMAMUX_CHANNEL  DMA_MuxChannel9 /* feeds DMA2 channel 1 */
 #define BLK_DMA_REQUEST     111         /* SDIO, in the RM's DMAMUX table (1-based) */
-#define BLK_TIMEOUT_US      1000000u    /* a transfer that takes longer fails */
+#define BLK_TIMEOUT_US      1000000u    /* a transfer that takes longer fails: ERR_BLK_TIMEOUT */
 #define SDIO_DCTRL_DMAEN    (1u << 3)   /* SDIO_DCTRL: DMA enable (RM, SDIO chapter) */
 
 #define SECTOR_BYTES        512u
@@ -142,8 +142,11 @@ static int write_now(uint32_t blk, uint32_t *src) {
 * With DMA the transfer is a little state machine that blk_status steps
 * (no interrupts, so nothing to share with the V3F's handlers):
 *   start: data path, CMD18/CMD25, DMA          -> 1 reading / 2 writing
-*   SDIO DATAEND and DMA done: CMD12             -> 0, or for a write
-*   card still programming (CMD13 each call)     -> 2 until it's done
+*   SDIO DATAEND and DMA done: CMD12
+*   card not back in the transfer state (CMD13 each call): still 1 or 2;
+*   a read's CMD12 leaves the card busy for a moment too, and a command
+*   sent meanwhile gets no data (the board's second read in a row failed)
+*   back in the transfer state                   -> 0
 * An SDIO error flag or BLK_TIMEOUT_US ends it with an error.
 =========================================================================*/
 
@@ -155,7 +158,7 @@ static int status;                      /* blk_status: 0, an error, 1 reading, 2
 SD_Error CmdResp1Error(u8 cmd);         /* waits for and checks an R1 response */
 SD_Error IsCardProgramming(u8 *pstatus);    /* CMD13: the card's state */
 
-enum { IDLE, MOVING, PROGRAMMING };     /* DMA transfer steps */
+enum { IDLE, MOVING, SETTLING };        /* DMA transfer steps */
 static int step;
 static uint64_t started;                /* lfGetTimeMicroSec at the start */
 
@@ -264,12 +267,20 @@ static void advance(void) {
         return;
     }
     int err = (status == 1) ? ERR_BLK_READ_FAIL : ERR_BLK_WRITE_FAIL;
-    if (lfGetTimeMicroSec() - started > BLK_TIMEOUT_US) {
-        fail(err);
+    /* Signed: if the microsecond count ever reads a little lower than at
+       the start, that mustn't look like a huge time */
+    int64_t elapsed = (int64_t)(lfGetTimeMicroSec() - started);
+    if (elapsed > (int64_t)BLK_TIMEOUT_US) {
+        printf("V5F blk: %s timed out, STA %lX DCOUNT %lX\r\n", status == 1 ? "read" : "write",
+               (unsigned long)SDIO->STA, (unsigned long)SDIO->DCOUNT);
+        fail(ERR_BLK_TIMEOUT);
         return;
     }
     if (step == MOVING) {
-        if (SDIO->STA & SDIO_DATA_ERRORS) {
+        uint32_t sta = SDIO->STA;
+        if (sta & SDIO_DATA_ERRORS) {
+            printf("V5F blk: %s failed, STA %lX DCOUNT %lX\r\n", status == 1 ? "read" : "write",
+                   (unsigned long)sta, (unsigned long)SDIO->DCOUNT);
             fail(err);
             return;
         }
@@ -285,24 +296,20 @@ static void advance(void) {
             status = err;
             return;
         }
-        if (status == 1) {
-            step = IDLE;
-            status = 0;
-            return;
-        }
-        step = PROGRAMMING;             /* a write: the card is busy for a while */
+        step = SETTLING;                /* the card is busy for a while */
     }
-    uint8_t state = 0;                  /* PROGRAMMING: ask the card (CMD13) */
+    uint8_t state = 0;                  /* SETTLING: ask the card (CMD13) */
     if (IsCardProgramming(&state) != SD_OK) {
         step = IDLE;
         status = err;
-    } else if (state != SD_CARD_PROGRAMMING && state != SD_CARD_RECEIVING) {
+    } else if (state == SD_CARD_TRANSFER) {
         step = IDLE;
         status = 0;
     }
 }
 
 int blk_read_imm(uint32_t blk, uint32_t *dest) {
+    advance();                          /* a finished transfer isn't busy */
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
@@ -319,6 +326,7 @@ int blk_read_imm(uint32_t blk, uint32_t *dest) {
 }
 
 int blk_write_imm(uint32_t blk, uint32_t *src) {
+    advance();                          /* a finished transfer isn't busy */
     if (status > 0) {
         return ERR_BLK_BUSY;
     }

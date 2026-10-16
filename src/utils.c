@@ -490,7 +490,8 @@ static const ErrorMapping error_table[] = {
     { ERR_MUST_HAVE_HEADS, "Missing `-heads`, cannot save heads" },
     { ERR_XMODEM_TRANSFER, "XMODEM transfer failed or cancelled" },
     { ERR_XMODEM_SOURCE, "Bad block source in an XMODEM transfer" },
-    { ERR_BLK_BUSY, "A block transfer is still in progress" }
+    { ERR_BLK_BUSY, "A block transfer is still in progress" },
+    { ERR_BLK_TIMEOUT, "A block transfer took too long" }
 };
 
 /**

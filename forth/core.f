@@ -141,6 +141,8 @@ decimal _udata here 3 allot constant operator                                   
 : max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;               \ n3 is the greater of n1 and n2
 : rot       ( x1 x2 x3 -- x2 x3 x1 ) b! swap b swap ;                           \ rotate third item to top of stack
 : u<=       ( u1 u2 -- flag1 ) swap - drop cy ;                                 \ unsigned less than or equal
+: u<        ( u1 u2 -- flag ) swap u<= 0= ;                                     \ unsigned less than
+: u/mod     ( u1 u2 -- rem quot ) 0 swap mu/mod drop ;                          \ unsigned divide: remainder and quotient
 : */        ( n1 n2 n3 -- n4 ) */mod nip ;                                      \ n1 * n2 / n3 with double intermediate product
 : um/mod    ( ud u1 -- u2 u3 ) mu/mod drop ;                                    \ ud / u1; remainder u2, quotient u3
 : usec      ( u -- )        capusec x@ +                                        \ pause until u microseconds have passed
@@ -375,6 +377,10 @@ head-
 : _span     ( u1 u2 b -- )  _cmd  swap _w16 _w16 ;                              \ send command b with the range u1 to u2
 : _window   ( x y w h -- )  >r  rot tuck + 1- 42 _span                          \ write w x h pixels from x,y on (RAMWR)
                             r> over + 1- 43 _span  44 _cmd ;
+head+
+: clear-rect ( x y w h -- ) 2dup * >r  _window  r>                              \ paint w x h pixels at x,y with palette entry 0
+                            begin dup while  dup 512 min  dup 1- 16384 or lcd-decode  -  repeat  drop ;
+head-
 : _npx      ( x -- n )      dup 14 rshift  dup 0= if drop                       \ number of pixels a font code describes
                             dup 7 rshift 7 and  swap 7 and + 2 + exit then
                             dup 1 = if drop 511 and 1+ exit then
@@ -400,9 +406,7 @@ head+
     _w _h *  dup if  >r  lcd_x @ _xy @ 255 and +  lcd_y @ _xy @ 8 rshift +  _w _h _window
                      r> _draw  else  2drop  then
     r> kerning @ +  lcd_x +! ;
-: lcls      ( -- )          0 0 LCDwidth LCDheight _window                      \ clear the panel to palette entry 0
-    LCDwidth LCDheight *  begin dup while  dup 512 min  dup 1- 16384 or lcd-decode  -  repeat
-    drop  0 0 at ;
+: lcls      ( -- )          0 0 LCDwidth LCDheight clear-rect  0 0 at ;         \ clear the panel to palette entry 0
 : LCDstart  ( -- )          LCDwidth LCDheight 1 palette lcd-init  white fg!    \ start the IPS panel: 16-bit pixels, cleared
     32768 lcd-tx 1 ms  16384 lcd-tx 5 ms  17 _cmd 120 ms               ( reset, SLPOUT )
     58 _cmd 85 lcd-tx  54 _cmd 0 lcd-tx  33 _cmd  41 _cmd  lcls ; ( 16-bit pixels, INVON, DISPON )
@@ -450,6 +454,47 @@ head+
     _udata ." _udata " _udata0 _.map  _idata ." _idata " dp[] _.map
     _code  ." _code  "       0 _.map  _text  ." _text  " _text0 _.map  _udata
 ;
+-->
+( BLOCK++ )
+( Calendar ____________________________________________________ 10/16/26 BNE )
+\ A time is `rtc@` seconds since 1970-01-01 00:00:00 UTC; the dates run from 1970 to 2106.
+: leap?     ( year -- flag ) dup 400 u/mod drop 0= if drop -1 exit then         \ true if year has a February 29
+                            dup 100 u/mod drop 0= if drop 0 exit then  3 and 0= ;
+head-
+: year-days ( year -- n )   leap? 1 and 365 + ;                                 \ number of days in year
+_text create month-days                                                         \ days in each month of a common year
+    31 , 28 , 31 , 30 , 31 , 30 , 31 , 31 , 30 , 31 , 30 , 31 ,
+_udata variable year                                                            \ the year being converted
+: month-length ( month -- n ) dup 1- month-days + @                             \ number of days in month of year
+                            swap 2 =  year @ leap? and  1 and + ;
+head+
+: >time     ( u -- sec min hour ) 86400 u/mod drop  60 u/mod  60 u/mod ;        \ the time of day of time u
+: >date     ( u -- day month year ) 86400 u/mod nip  1970 year !                \ the date of time u
+    begin  year @ year-days  2dup u< 0= while  -  1 year +!  repeat  drop       ( day of the year from 0 )
+    1 swap  begin  over month-length  2dup u< 0= while  -  swap 1+ swap  repeat
+    drop  1+ swap  year @ ;
+: time>     ( sec min hour -- u ) 60 * +  60 * + ;                              \ seconds from midnight to a time of day
+: date>     ( day month year -- days ) year !  0 swap                           \ days from 1970-01-01 to a date
+    begin  1- dup while  dup month-length  rot + swap  repeat  drop  + 1-       ( day of the year from 0 )
+    year @ 1970 -  dup if  for  r@ 1969 + year-days +  next  exit  then  drop ;
+: clock!    ( sec min hour day month year -- )                                  \ set the RTC to a date and time, UTC
+                            date> 86400 *  >r  time>  r> +  rtc! ;
+-heads
+: .digits   ( u n -- )      base @ >r  decimal                                  \ print u in decimal as n digits, zero-filled
+                            >r 0 <#  r> for # next  #>  type  r> base! ;
+: .date     ( u -- )        >date  4 .digits  [char] - emit                     \ print the date of time u as yyyy-mm-dd
+                            2 .digits  [char] - emit  2 .digits ;
+: .time     ( u -- )        >time  2 .digits  [char] : emit                     \ print the time of day of u as hh:mm:ss
+                            2 .digits  [char] : emit  2 .digits ;
+-->
+( BLOCK++ )
+( LCD clock ___________________________________________________ 10/16/26 BNE )
+: show-time ( u -- )        emit_xt @ >r  lcd utf8reset                         \ draw the date and time of u on the LCD
+    8 16 LCDwidth 16 - fontheight 2* clear-rect                     ( u )
+    8 16 at  dup .date  8 16 fontheight + at  .time  r> emit_xt ! ;
+_udata variable shown                                                           \ the time show-time last drew
+: clock     ( -- )          begin  pause  rtc@ dup shown @ xor                  \ redraw the clock on the LCD each second
+                            if dup show-time then  shown !  again ;
 
 ( BLOCK 30 )
 ( Demo ________________________________________________________ 10/9/26 BNE )
@@ -466,11 +511,10 @@ variable looptime                                                               
         capusec x@  dup lastus @ -  looptime !  lastus !
     then ;
 
-20 32 32 task t1                                                                \ sample tasks 1
+20 32 32 task t1                                                                \ sample task 1: the LCD clock (try)
 10 20 20 task t2                                                                \ unused sample task
 
-variable ctr                                                                    \ starts incrementing after you type `try`
-: try       ( -- )          t1 activate  begin pause  1 ctr +!  again ;         \ give t1 something to do
+: try       ( -- )          LCDstart  t1 activate  clock ;                      \ start the LCD and run a clock on it in t1
 
 :noname ( demo application )
     init-idata

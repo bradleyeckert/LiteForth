@@ -94,7 +94,7 @@ bytes`. The glossary shows only this row, so the phrase must make sense
 alone.
 
 **H5. Every word gets a description,** even the obvious ones (`1+`,
-`max`). For internal `_` words, a few words are enough.
+`max`). For an internal factor, a few words are enough.
 
 **H6. One name per row.** Two headers on one row share a glossary entry.
 Data definitions get their own rows and descriptions. The stack picture
@@ -153,12 +153,22 @@ changes before it ends:
 ## 4. Names
 
 Write names in lowercase. If Forth-2012 has a word for the behavior, use
-its standard name (`compile,`, not `,compile`). Otherwise keep names short
-and pronounceable, and use these patterns, Brodie's plus LiteForth's own:
+its standard name (`compile,`, not `,compile`). Otherwise name a word for
+what it does, in plain English words that make sense to a reader: a verb
+for an action (`show-time`, `clear-rect`), a noun for a thing or a value
+(`month-days`, `fontheight`), joined by hyphens. That goes for internal
+factors too; no prefix marks a word as internal. To keep a helper's name
+out of the dictionary, make it a temporary header (`head-` ...
+`head+` ... `-heads`). Older code still has `_` names (`_window`,
+`_fcell`); rename them when you work on them, but the section words
+(`_udata`, `_idata`, `_code`, `_text`) and the names built into `forth.c`
+stay.
+
+Keep names short and pronounceable, and use these patterns, Brodie's plus
+LiteForth's own:
 
 | Pattern | Meaning | Examples |
 |---|---|---|
-| `_name` | Internal factor or run-time part, not for applications | `_section`, `_again`, `_does` |
 | `,name` | Compile a *name* into a section | `,inst`, `,jump` |
 | `.name` | Print | `.map`, `.wid` |
 | `name?` | Return a flag | `key?`, `emit?` |
@@ -179,7 +189,8 @@ and pronounceable, and use these patterns, Brodie's plus LiteForth's own:
 to about five rows is fine when the logic needs it (`multitask`). Factor
 anything longer.
 
-**F2. Factor repeated phrases** into `_` words rather than copying them.
+**F2. Factor repeated phrases** into small, well-named words rather than
+copying them.
 
 **F3. Keep at most three items in play** on the data stack. Forth has no
 `pick` or `roll` here, so use the A and B registers for addresses.

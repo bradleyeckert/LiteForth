@@ -30,7 +30,7 @@
 #define BLK_DMA_FLAG_TC     DMA2_FLAG_TC1
 #define BLK_DMAMUX_CHANNEL  DMA_MuxChannel9 /* feeds DMA2 channel 1 */
 #define BLK_DMA_REQUEST     111         /* SDIO, in the RM's DMAMUX table (1-based) */
-#define BLK_TIMEOUT_US      1000000u    /* a transfer that takes longer fails: ERR_BLK_TIMEOUT */
+#define BLK_TIMEOUT_US      1000000u    /* a step that takes longer fails: ERR_BLK_TIMEOUT */
 #define SDIO_DCTRL_DMAEN    (1u << 3)   /* SDIO_DCTRL: DMA enable (RM, SDIO chapter) */
 
 #define SECTOR_BYTES        512u
@@ -147,7 +147,10 @@ static int write_now(uint32_t blk, uint32_t *src) {
 *   a read's CMD12 leaves the card busy for a moment too, and a command
 *   sent meanwhile gets no data (the board's second read in a row failed)
 *   back in the transfer state                   -> 0
-* An SDIO error flag or BLK_TIMEOUT_US ends it with an error.
+* An SDIO error flag ends it with an error, and so does BLK_TIMEOUT_US
+* without progress: the data phase, and the card's busy time after
+* CMD12, each get that long. The time is checked only while the step
+* isn't finished, so a caller that asks late still gets 0.
 =========================================================================*/
 
 static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
@@ -261,21 +264,26 @@ static int start_write(uint32_t blk, uint32_t *src) {
     return 0;
 }
 
+/* Fails the transfer if this step has taken longer than BLK_TIMEOUT_US.
+   Called only when the step isn't finished yet, so a caller that comes
+   back late to a transfer that went through still gets 0. Signed: if the
+   microsecond count ever reads a little lower than at the start, that
+   mustn't look like a huge time. */
+static void check_timeout(void) {
+    int64_t elapsed = (int64_t)(lfGetTimeMicroSec() - started);
+    if (elapsed > (int64_t)BLK_TIMEOUT_US) {
+        printf("V5F blk: %s timed out, STA %lX DCOUNT %lX\r\n", status == 1 ? "read" : "write",
+               (unsigned long)SDIO->STA, (unsigned long)SDIO->DCOUNT);
+        fail(ERR_BLK_TIMEOUT);
+    }
+}
+
 /* One step of the transfer in progress; updates status */
 static void advance(void) {
     if (step == IDLE) {
         return;
     }
     int err = (status == 1) ? ERR_BLK_READ_FAIL : ERR_BLK_WRITE_FAIL;
-    /* Signed: if the microsecond count ever reads a little lower than at
-       the start, that mustn't look like a huge time */
-    int64_t elapsed = (int64_t)(lfGetTimeMicroSec() - started);
-    if (elapsed > (int64_t)BLK_TIMEOUT_US) {
-        printf("V5F blk: %s timed out, STA %lX DCOUNT %lX\r\n", status == 1 ? "read" : "write",
-               (unsigned long)SDIO->STA, (unsigned long)SDIO->DCOUNT);
-        fail(ERR_BLK_TIMEOUT);
-        return;
-    }
     if (step == MOVING) {
         uint32_t sta = SDIO->STA;
         if (sta & SDIO_DATA_ERRORS) {
@@ -285,7 +293,8 @@ static void advance(void) {
             return;
         }
         if (!(SDIO->STA & SDIO_FLAG_DATAEND) || !DMA_GetFlagStatus(DMA2, BLK_DMA_FLAG_TC)) {
-            return;                     /* still moving */
+            check_timeout();            /* still moving */
+            return;
         }
         SDIO->DCTRL = 0;
         DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
@@ -297,6 +306,7 @@ static void advance(void) {
             return;
         }
         step = SETTLING;                /* the card is busy for a while */
+        started = lfGetTimeMicroSec();  /* from now, however late this is */
     }
     uint8_t state = 0;                  /* SETTLING: ask the card (CMD13) */
     if (IsCardProgramming(&state) != SD_OK) {
@@ -305,6 +315,8 @@ static void advance(void) {
     } else if (state == SD_CARD_TRANSFER) {
         step = IDLE;
         status = 0;
+    } else {
+        check_timeout();                /* still programming */
     }
 }
 

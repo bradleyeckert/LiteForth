@@ -167,4 +167,16 @@ For the Claude desktop app on Windows, add it to
 }
 ```
 
-`unit_tests/lfmcp` tests it against the desktop `lf` over a pair of ptys.
+If the assistant can share a folder with your PC but can't start an MCP
+server (a cloud session linked to your computer), use the mailbox instead:
+
+```
+py scripts\lfmcp.py COM17 --mailbox
+```
+
+It watches `mailbox/` in the repo (ignored by git) for request files
+`NAME.json`, such as `{"tool": "forth", "arguments": {"text": "1 2 + ."}}`,
+answers each in `NAME.txt` and deletes the request. Ctrl+C stops it.
+
+`unit_tests/lfmcp` tests both modes against the desktop `lf` over a pair
+of ptys.

@@ -87,6 +87,30 @@ check("unknown method", r.get("error", {}).get("code") == -32601, r)
 
 srv.stdin.close()
 srv.wait(5)
+
+box = os.path.abspath("box")            # the same tools through files
+mb = subprocess.Popen([sys.executable, lfmcp, port, "--mailbox", box],
+                      stdout=subprocess.DEVNULL)
+time.sleep(0.5)
+with open(os.path.join(box, "r1.json"), "w", encoding="utf-8") as f:
+    json.dump({"tool": "forth", "arguments": {"text": "6 7 + ."}}, f)
+with open(os.path.join(box, "r2.json"), "w", encoding="utf-8") as f:
+    f.write("not json")
+os.utime(os.path.join(box, "r2.json"), (time.time() - 10, time.time() - 10))
+answers = {}
+for _ in range(100):
+    for n in ("r1", "r2"):
+        p = os.path.join(box, n + ".txt")
+        if n not in answers and os.path.exists(p):
+            answers[n] = open(p, encoding="utf-8").read()
+    if len(answers) == 2:
+        break
+    time.sleep(0.1)
+mb.kill()
+check("mailbox answer", answers.get("r1") == "> 6 7 + .\n13 ok>\n", answers.get("r1"))
+check("mailbox bad request", (answers.get("r2") or "").startswith("[error]"), answers.get("r2"))
+check("mailbox deletes requests", not [n for n in os.listdir(box) if n.endswith(".json")],
+      os.listdir(box))
 board.kill()
 os.close(b_s)                           # the port vanishes: a call says so
 srv = subprocess.Popen([sys.executable, lfmcp, "/nonexistent/port"], stdin=subprocess.PIPE,

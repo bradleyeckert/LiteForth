@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """MCP server that gives an AI assistant LiteForth's terminal on a serial port.
 
-Usage: lfmcp.py PORT [-b BAUD]        (COM17, /dev/ttyACM0, ...)
+Usage: lfmcp.py PORT [-b BAUD]                      (COM17, /dev/ttyACM0, ...)
+       lfmcp.py PORT [-b BAUD] --mailbox [DIR]
 
 It speaks the Model Context Protocol over stdin/stdout (newline-delimited
 JSON-RPC), so an MCP client such as the Claude desktop app can start it and
@@ -18,6 +19,13 @@ use it in between, but not at the same time: Windows lets one program open
 a COM port. Opening raises DTR, which the CH32H417's USB bridge needs before
 it sends anything; output the board made meanwhile (up to 4 KB) comes with
 the next call. No packages needed: Win32 through ctypes, or termios.
+
+With --mailbox it serves the same tools through files instead, for an
+assistant that can read and write a shared folder but can't start an MCP
+server: it watches DIR (default: mailbox/ in the repo) for request files
+`NAME.json`, each `{"tool": "forth", "arguments": {"text": "..."}}`, and
+answers each with `NAME.txt` (written whole, then renamed into place),
+deleting the request. Answers older than an hour are deleted. Ctrl+C stops it.
 """
 import json
 import os
@@ -266,6 +274,43 @@ def serve(board):
         out.flush()
 
 
+def mailbox(board, folder):
+    os.makedirs(folder, exist_ok=True)
+    print(f"lfmcp: answering requests in {folder} (Ctrl+C stops)", flush=True)
+    while True:
+        names = sorted(n for n in os.listdir(folder) if n.endswith(".json"))
+        for name in names:
+            path = os.path.join(folder, name)
+            try:
+                with open(path, encoding="utf-8") as f:
+                    req = json.load(f)
+            except (ValueError, OSError):
+                if time.time() - os.path.getmtime(path) < 5:
+                    continue                # maybe still being written
+                req = None
+            try:
+                if not isinstance(req, dict):
+                    raise ValueError("not a JSON request object")
+                text = call(board, req.get("tool", "forth"), req.get("arguments") or {})
+            except (ValueError, KeyError, OSError) as e:
+                text = f"[error] {e}"
+            base = os.path.join(folder, name[:-5])
+            with open(base + ".tmp", "w", encoding="utf-8", newline="\n") as f:
+                f.write(text)
+            os.replace(base + ".tmp", base + ".txt")
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+            print(f"lfmcp: {name}", flush=True)
+        now = time.time()
+        for n in os.listdir(folder):
+            p = os.path.join(folder, n)
+            if n.endswith(".txt") and now - os.path.getmtime(p) > 3600:
+                os.remove(p)
+        time.sleep(0.1)
+
+
 def main(argv):
     args = argv[1:]
     baud = 115200
@@ -273,9 +318,25 @@ def main(argv):
         i = args.index("-b")
         baud = int(args[i + 1])
         del args[i:i + 2]
+    box = None
+    if "--mailbox" in args:
+        i = args.index("--mailbox")
+        default = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "mailbox")
+        if i + 1 < len(args) and not args[i + 1].startswith("-") and len(args) > 2:
+            box = args[i + 1]
+            del args[i:i + 2]
+        else:
+            box = os.path.normpath(default)
+            del args[i]
     if len(args) != 1 or args[0].startswith("-"):
         sys.stderr.write(__doc__)
         return 2
+    if box:
+        try:
+            mailbox(Board(args[0], baud), box)
+        except KeyboardInterrupt:
+            pass
+        return 0
     sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     sys.stdin.reconfigure(encoding="utf-8")
     serve(Board(args[0], baud))

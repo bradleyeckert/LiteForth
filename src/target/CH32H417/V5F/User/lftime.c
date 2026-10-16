@@ -87,12 +87,12 @@ static int rtc_started;                 /* lfRtcInit succeeded */
 static int rtc_woke;                    /* this boot came from an alarm wake-up */
 static uint32_t rtc_alarm;              /* the alarm lfRtcSetAlarm set, 0 = off */
 
-/* RCC_BDCTLR is in the backup domain, and a write there takes a while to
-   land: read back at once, it still shows the old value, so a
-   read-modify-write right after a write (as WCH's RCC_LSEConfig and
-   RCC_RTCCLKCmd do) undoes it. On the board, setting RTCSEL then RTCEN
-   that way left BDCTLR at 100h, RTCEN without a clock. So bd_write
-   stores a whole value and waits until it reads back. */
+/* RCC_BDCTLR, the backup domain's control register, is written only
+   through bd_write: a whole 32-bit value, then a wait (up to RTC_SYNC_MS)
+   until it reads back. WCH's RCC_LSEConfig writes it a byte at a time,
+   and with it the board never started the crystal; RCC_RTCCLKConfig and
+   RCC_RTCCLKCmd are read-modify-writes. Whole values, one step at a
+   time, are what worked when typed at the REPL (BDRST, 1, 41, 141). */
 #define BD_BITS (RCC_LSEON | RCC_LSEBYP | RCC_RTCSEL | RCC_RTCEN | RCC_BDRST)
 
 static int bd_write(uint32_t value) {

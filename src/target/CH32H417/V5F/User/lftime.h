@@ -53,8 +53,8 @@ void lfWatchdogPing(void);
  * prescaler for 1 Hz, and sets the counter and the alarm to 0. An RTC
  * left enabled without a clock source (RTCSEL 00, which can't be changed
  * until the backup domain is reset) gets a backup domain reset first.
- * Writes to RCC_BDCTLR land slowly, so each is a whole value that is
- * read back before the next. It also
+ * RCC_BDCTLR is written one whole value at a time, each read back before
+ * the next (not with WCH's byte-wide RCC_LSEConfig). It also
  * reads and clears the wake-up mark lfStandby leaves (CDC_SHARED->rtc_wake).
  * Call after lfTimeInit: the timeouts use lfGetTimeMicroSec.
  * @return 0, or ERR_UNSUPPORTED_OPERATION (-21) if no clock starts.

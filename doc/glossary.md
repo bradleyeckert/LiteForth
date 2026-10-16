@@ -210,11 +210,16 @@ These are compiled by the boot script, not built in.
 | `-` | `( n1 n2 -- n3 )` | Subtracts `n2` from `n1`. |
 | `-if` | `( -- a )` | Immediate. Branches past `then` if T is not negative; keeps T. |
 | `."` | `( <text"> -- )` | Immediate. Compiles a string to print. |
+| `.date` | `( u -- )` | Prints the date of time `u` (seconds since 1970, as `rtc@` gives) as yyyy-mm-dd. |
+| `.digits` | `( u n -- )` | Prints `u` in decimal as `n` digits, with leading zeros. |
 | `.map` | `( -- )` | Prints the extent and free space of each memory space. |
+| `.time` | `( u -- )` | Prints the time of day of time `u` as hh:mm:ss (UTC). |
 | `0=` | `( x -- flag )` | True if `x` is 0. |
 | `1+` | `( n -- n+1 )` | Adds 1. |
 | `1-` | `( n -- n-1 )` | Subtracts 1. |
 | `=` | `( n1 n2 -- flag )` | True (-1) if `n1` equals `n2`, else 0. |
+| `>date` | `( u -- day month year )` | The date of time `u`, seconds since 1970-01-01 00:00:00 UTC; from 1970 to 2106. |
+| `>time` | `( u -- sec min hour )` | The time of day of time `u` (UTC). |
 | `@+` | `( a -- a+1 x )` | Fetches and advances the address. |
 | `_code` | `( -- )` | Selects the code space. |
 | `_idata` | `( -- )` | Selects the idata space. |
@@ -231,6 +236,10 @@ These are compiled by the boot script, not built in.
 | `begin` | `( -- a )` | Immediate. Starts a loop. |
 | `cells` | `( n -- n )` | Immediate no-op: addresses are cell addresses. |
 | `chere` | `( -- addr )` | Next free code address. |
+| `clear-rect` | `( x y w h -- )` | Paints `w` x `h` pixels at `x`,`y` on the LCD with palette entry 0. |
+| `clock` | `( -- )` | Redraws the date and time on the LCD whenever `rtc@` changes, pausing in between; never returns (the `try` demo runs it in task `t1`). |
+| `clock!` | `( sec min hour day month year -- )` | Sets the real-time clock to a date and time, UTC. |
+| `date>` | `( day month year -- days )` | Days from 1970-01-01 to a date. |
 | `decimal` | `( -- )` | Sets `base` to 10. |
 | `definitions` | `( -- )` | Makes the first wordlist in the search order the one new words go into. |
 | `else` | `( a1 -- a2 )` | Immediate. |
@@ -243,6 +252,7 @@ These are compiled by the boot script, not built in.
 | `if` | `( -- a )` | Immediate. Branches past `else`/`then` if T is 0; drops T. |
 | `key` | `( -- c )` | Reads a character (`t_rx`). |
 | `key?` | `( -- flag )` | Nonzero if a character is waiting (`t_rx?`). |
+| `leap?` | `( year -- flag )` | True if `year` has a February 29. |
 | `lshift` | `( u1 u2 -- u3 )` | Shifts `u1` left by `u2` bits. |
 | `multitask` | `( -- )` | Makes a ring of one task, the terminal (`operator`): sets U, NEXT = itself, ACTION = `awake`, and R:D. |
 | `negate` | `( n -- -n )` | Negates. |
@@ -252,9 +262,14 @@ These are compiled by the boot script, not built in.
 | `pause` | `( -- )` | Jumps to the running task's ACTION (`awake` or `asleep`), with NEXT and the address of its R:D cell on the stack. Needs a ring (`multitask`) first. See [Multitasking](multitasking.md). |
 | `repeat` | `( a1 a2 -- )` | Immediate. Ends a `begin ... while ... repeat` loop. |
 | `rshift` | `( u1 u2 -- u3 )` | Shifts `u1` right (unsigned) by `u2` bits. |
+| `show-time` | `( u -- )` | Draws the date and time of `u` on the LCD, at the top left, then puts `emit` back. |
 | `stop` | `( -- )` | Sets the running task's ACTION to `asleep`, then `pause`. |
 | `then` | `( a -- )` | Immediate. Resolves `if`, `-if`, `else` or `ahead`. |
+| `time>` | `( sec min hour -- u )` | Seconds from midnight to a time of day. |
+| `try` | `( -- )` | Demo: starts the LCD and runs `clock` in task `t1`. Needs the app running (`cold`), for the multitasker. |
 | `type` | `( ca n -- )` | Prints `n` characters from `ca`. |
+| `u/mod` | `( u1 u2 -- rem quot )` | Unsigned division: remainder and quotient. |
+| `u<` | `( u1 u2 -- flag )` | True if `u1` is less than `u2`, unsigned. |
 | `until` | `( a -- )` | Immediate. Branches back to `begin` while T is 0; drops T. |
 | `unused` | `( -- n )` | Free cells left in the current space. |
 | `variable` | `( <name> -- )` | Defines a 32-bit variable. |

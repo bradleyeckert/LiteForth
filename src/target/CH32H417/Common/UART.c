@@ -437,7 +437,7 @@ void UART_DataRx_Deal( void )
         {
             /* Overflow handling */
             /* Save frame error status */
-            printf("U0_O:%08lx\n",(uint32_t)Uart.Rx_RemainLen);
+            printf("U0_O:%08lx\r\n",(uint32_t)Uart.Rx_RemainLen);
         }
         else
         {

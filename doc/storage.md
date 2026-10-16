@@ -1,7 +1,7 @@
 # Recording to the microSD card
 
 Design note, draft, 2026-10-15. A production unit streams raw audio to
-the microSD card at 1 MB/s. This note covers the data path, the buffer
+the microSD card at 0.5 MB/s, or 1 MB/s where the card allows it. This note covers the data path, the buffer
 and where it lives, the card driver, files on exFAT, the RF64 header,
 power loss, and choosing and qualifying the card. The security side is
 in [security-plan.md](security-plan.md), section 5.8.
@@ -13,9 +13,9 @@ real parts. Section 11 collects them.
 
 | | |
 |---|---|
-| Rate | 1 MB/s sustained, raw audio |
+| Rate | 0.5 MB/s sustained, raw audio, as the baseline; 1 MB/s where the card allows it (section 4) |
 | File system | exFAT, through FatFs (ChaN) |
-| File format | WAV, becoming RF64 past 4 GB (a WAV file's 32-bit sizes stop there, about 70 minutes at 1 MB/s) |
+| File format | WAV, becoming RF64 past 4 GB (a WAV file's 32-bit sizes stop there: about 70 minutes at 1 MB/s, 2 h 20 min at 0.5 MB/s) |
 | Files | Pre-expanded as one contiguous run, so streaming never touches the allocation bitmap or a cluster chain |
 | Card | A specified part whose worst-case write latency is known (section 9) |
 | Buffer | From the RAM pool, shared with other uses while not recording |
@@ -86,17 +86,21 @@ With the 384 KB split proposed in section 5, less the 16 KB RAM page the
 pool always holds, about 360 KB is left for the ring. With 25% margin
 that allows:
 
-| Chunk C | Longest busy time L the ring covers |
-|---|---|
-| 64 KB | about 155 ms |
-| 32 KB | about 220 ms |
+| Rate R | Chunk C | Longest busy time L the ring covers |
+|---|---|---|
+| 1 MB/s | 64 KB | about 155 ms |
+| 1 MB/s | 32 KB | about 220 ms |
+| 0.5 MB/s | 64 KB | about 320 ms |
+| 0.5 MB/s | 32 KB | about 450 ms |
 
-So a card at the spec's 250 ms doesn't fit with margin. Either the
-qualified card's worst case is well under 250 ms, or the V5F gets more of
-the general SRAM (if the V3F can live in less than 128 KB), or the chunks
-shrink.
+At 1 MB/s, a card that only meets the spec's 250 ms doesn't fit with
+margin. At 0.5 MB/s it fits comfortably. So 0.5 MB/s is the baseline,
+and 1 MB/s is a mode enabled only for a card part whose qualification
+(section 9) shows a worst case well under the 1 MB/s limit. The unit can
+check this at `rec-start`: the ring size and the qualified worst case
+for the installed card set the highest rate it allows.
 
-So the card's real worst case decides whether this fits at all. The SD
+The card's real worst case decides what fits. The SD
 spec's 250 ms is a timeout, not a promise, and real cards sometimes go
 over it. That's why the card is a specified, qualified part (section 9),
 and why the writer counts overruns rather than assuming there are none.
@@ -244,13 +248,14 @@ busy time, which is what sizes the ring. So:
   controllers and flash without changing their label, so lock the part in
   the BOM.
 - **Qualify it, and each new lot,** with a long write test on the real
-  board: record at 1 MB/s for hours, at the temperature extremes, and log
+  board: record at the highest rate wanted (1 MB/s) for hours, at the temperature extremes, and log
   a histogram of busy times. Accept the lot if its longest busy time is
   comfortably under the L the ring was sized for (half, say). `rec-status`
   keeps measuring in the field.
 - **Endurance.** Recording around the clock at 1 MB/s writes about 86 GB a
-  day: a 64 GB card fills more than once a day, about 2,500 times in five
-  years. Consumer TLC cards aren't built for that; high-endurance or pSLC
+  day (43 GB at 0.5 MB/s): a 64 GB card fills more than once a day at
+  1 MB/s, about 2,500 times in five years, or half that at 0.5 MB/s.
+  Consumer TLC cards aren't built for that; high-endurance or pSLC
   industrial cards are, and quote a TBW figure. **Decide** the duty cycle,
   then the card's endurance rating follows.
 - **Capacity:** the largest qualified size that the product's recording

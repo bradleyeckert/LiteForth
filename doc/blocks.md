@@ -12,6 +12,10 @@ Chuck's Forths have always used modal editors, usable from the terminal, rather 
 VIM users can tell you there is a tradeoff between the speed of typing and the speed of cursor positioning.
 A non-modal editor is not necessarily faster to use.
 
+File and block abstractions are both a little old. They are blocking, which gives up the gains provided by DMA.
+LiteForth adds non-blocking block I/O.
+Code can kick off a read or write, then go off and do other things while waiting for the transfer to finish.
+
 Files increase complexity without actually adding anything.
 Blocks provide a clean way to order code for readability, since they control the load order.
 As a concession to modern times, LiteForth blocks are 4 KB instead of 1 KB, with 32 rows of 128 columns.

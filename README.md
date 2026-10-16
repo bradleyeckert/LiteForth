@@ -102,6 +102,7 @@ Visual Studio builds without the makefile.
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
 - [Security plan](doc/security-plan.md): root of trust, signed images, device keys, updates, provisioning (draft)
 - [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
+- [Recording to microSD](doc/storage.md): streaming audio to exFAT at 1 MB/s, buffer sizing, card choice (draft)
 - [Multitasking](doc/multitasking.md): user areas, `pause`, `task` and `activate`
 - [Adding to the API](doc/add2api.md): how to add a C function as a Forth word
 - [Terminals](doc/terminals.md): terminal emulators, raw vs cooked mode, serial setup

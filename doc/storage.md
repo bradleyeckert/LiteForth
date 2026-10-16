@@ -1,9 +1,10 @@
 # Recording to the microSD card
 
 Design note, draft, 2026-10-15. A production unit streams raw audio to
-the microSD card at 0.5 MB/s, or 1 MB/s where the card allows it. This note covers the data path, the buffer
-and where it lives, the card driver, files on exFAT, the RF64 header,
-power loss, and choosing and qualifying the card. The security side is
+the microSD card at 0.5 MB/s, or 1 MB/s where the card allows it. This
+note covers the data path, the buffer and where it lives, the card
+driver, files on exFAT, the RF64 header, power loss, and choosing and
+qualifying the card. The security side is
 in [security-plan.md](security-plan.md), section 5.8.
 
 Items marked **Decide** are open; **Verify** marks things to check on

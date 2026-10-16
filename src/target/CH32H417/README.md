@@ -236,8 +236,22 @@ three times will do). If transfers fail, try a slower SD clock: raise
 `blk_read_imm` and `blk_write_imm` start a transfer and `blk_status`
 reports on it (0 done, negative failed, 1 reading, 2 writing); the Forth
 words are `read-block`, `write-block` and `block-status`. `blk_read` and
-`blk_write` are built on them and wait. For now the transfer still
-finishes before `blk_*_imm` returns (polling); DMA comes next.
+`blk_write` are built on them and wait.
+
+Block transfers run by DMA, driven from `blocks.c` rather than WCH's
+driver, whose DMA mode waits for the transfer and uses DMA1 channel 1:
+the V3F's USART4 code has DMA1 channels 1 (TX) and 2 (RX), as the DMA
+registers on a running board show. `blocks.c` uses DMA2 channel 1,
+routed to the SDIO request (111) by DMAMUX channel 9 (`DMA_MuxChannelConfig`
+stores the request minus 1: USART4's 91 and 92 read back as `5A` and
+`5B`). `blk_*_imm` sets up the data path, sends CMD18 or CMD25 and starts
+the DMA; each `blk_status` call then checks the SDIO flags, sends CMD12
+when the data is through and, for a write, asks the card (CMD13) until it
+has finished programming. No interrupts are used. A transfer that takes
+more than `BLK_TIMEOUT_US` (1 s) fails. DMA can reach the V5F's DTCM,
+where the block buffers are (the RM lists DMA among the DTCM's bus
+masters, `MEMARY_CFGR`). `BLK_DMA 0` in `blocks.c` goes back to WCH's
+polling transfers.
 
 ### LCD: `V5F/User/lcd.c`
 

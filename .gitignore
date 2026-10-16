@@ -48,3 +48,4 @@ bin/lfflash.bin
 bin\lfflash.bin
 src/target/desktop/unit_tests/rtc/got.txt
 mailbox/
+bin/lfblocks.fb4

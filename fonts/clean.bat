@@ -1,2 +1,0 @@
-del *.fnt
-del *.png

@@ -281,12 +281,8 @@ top of the return stack and two for the top of the data stack.
 
 ## How fast is it?
 
-As a preliminary estimate, the execution rate on a CH32H417 (RV32) at 400 MHz
-should be 15 to 30 MIPS.
+On a CH32H417 (RV32) at 400 MHz, 10 to 20 MIPS. Not that it matters; hot code can use C API calls.
 
 ## Revision history
 
-- 0.00 Interpret-only, set up to run a short test. CI/CD is set up and working.
-- 0.01 Serial port is fixed, compiling works.
-- 0.02 Comprehensive cleanup by Claude Code.
-
+- 0.03 Current version, still in flux. The CH32H417 code compiles the Build date.

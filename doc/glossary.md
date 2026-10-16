@@ -22,7 +22,7 @@ Name lookup ignores case.
 | `*/mod` | `( n1 n2 n3 -- rem quot )` | Signed `n1 * n2 / n3` with a 64-bit intermediate product; symmetric division. |
 | `+` | `( n1 n2 -- n3 )` | Adds. Sets `cy` to the carry out of bit 31. |
 | `+*` | `( n1 n2 -- n1 n3 )` | Multiply step: if `A` is odd, adds `n1` to `n2`; then shifts `n3:A` right by one bit. 32 steps multiply `n1` by the original `A`. |
-| `block-status` | `( -- n )` | The state of the last `read-block` or `write-block`: 0 done (or none started), negative: the error it failed with, 1 still reading, 2 still writing. |
+| `block-status` | `( -- n )` | The state of the last `read-block` or `write-block`: 0 done (or none started), negative: the error it failed with, 1 still reading, 2 still writing. On the CH32H417 each call moves the transfer along, so keep calling it until it reads 0 or an error. |
 | `compile,` | `( xt -- )` | Compiles an execution token: inline micro-ops for a primitive, otherwise a call. The run-time half of `postpone`. |
 | `,inst` | `( inst -- )` | Compiles a raw 16-bit VM instruction. |
 | `-->` | `( -- )` | Stops interpreting the current block and continues with block `BLK`+1. Does nothing at the terminal (`BLK` = 0). |
@@ -116,7 +116,7 @@ Name lookup ignores case.
 | `postpone` | `( <name> -- )` | Immediate. Compiles an immediate word; for any other word, compiles code that will compile it. |
 | `r>` | `( -- x ) (R: x -- )` | Moves the top of the return stack to the data stack. |
 | `r@` | `( -- x ) (R: x -- x)` | Copies the top of the return stack. |
-| `read-block` | `( a u -- )` | Starts reading block `u` into the 1024 cells at `a` without waiting; `block-status` says when it's done. `a` must be writable and the cells in one page (-9 otherwise). Bypasses the block buffers. Gives -125 while a transfer is in progress, -92 past the capacity. On the desktop, and on the CH32H417 for now, the read is done before it returns. |
+| `read-block` | `( a u -- )` | Starts reading block `u` into the 1024 cells at `a` without waiting; `block-status` says when it's done. `a` must be writable and the cells in one page (-9 otherwise). Bypasses the block buffers. Gives -125 while a transfer is in progress, -92 past the capacity. On the desktop the read is done before it returns; on the CH32H417 it runs by DMA. See [blocks.md](blocks.md#transfers-without-waiting). |
 | `rtc!` | `( u -- )` | Sets the real-time clock, in seconds since 1970-01-01 00:00:00 UTC. On the desktop it only changes `lf`'s offset from the host's clock, until `lf` exits. |
 | `rtc@` | `( -- u )` | Reads the real-time clock: seconds since 1970-01-01 00:00:00 UTC (unsigned, good until 2106). On the desktop it's the host's clock unless `rtc!` set it. A time before 1767225600 (2026) means the clock hasn't been set since it lost power. |
 | `s@` | `( addr -- x )` | Fetches from `addr`, sign-extending a bit field. |
@@ -141,7 +141,7 @@ Name lookup ignores case.
 | `update` | `( -- )` | Marks the most recently used block buffer as modified. |
 | `wordlist` | `( -- wid )` | Creates a new wordlist and returns its number. |
 | `words` | `( -- )` | Lists the words in the first wordlist of the search order. |
-| `write-block` | `( a u -- )` | Starts writing block `u` from the 1024 cells at `a` without waiting; `block-status` says when it's done. Don't change the cells until then. Bypasses the block buffers. Gives -125 while a transfer is in progress, -96 on a write-protected device, -92 past the capacity. |
+| `write-block` | `( a u -- )` | Starts writing block `u` from the 1024 cells at `a` without waiting; `block-status` says when it's done. Don't change the cells until then. Bypasses the block buffers. Gives -125 while a transfer is in progress, -96 on a write-protected device, -92 past the capacity. See [blocks.md](blocks.md#transfers-without-waiting). |
 | `x'` | `( <name> -- w aux )` | Returns the header fields of `<name>`: `w` (its execution token or value) and `aux` (its flags). |
 | `x@` | `( -- x )` | Pushes register `X`. After an error in the app, `X` holds the PC just after the instruction that failed. |
 | `xmodem` | `( -- )` | Receives a source file over the terminal by XMODEM (8-bit checksum; 1K packets accepted) and writes it into blocks as `putblocks.py` does, with the same `( BLOCK n )`, `( BLOCK++ )` and `( BLOCK IGNORE )` markers. Writes each block as it completes and lists the blocks written at the end. Gives -124 for a problem in the source (reported with its line number; blocks before it stay written) and -123 if the transfer fails or is cancelled. See [blocks.md](blocks.md). |

@@ -3,6 +3,9 @@
 Not built by the makefile. Open `SimulateCDC.wvsln` in MounRiver Studio;
 it holds two projects, `V3F` and `V5F`, one per core.
 
+Where the chip, the reference manual and WCH's SDK disagree is collected
+in [doc/ch32h417-notes.md](../../../doc/ch32h417-notes.md).
+
 ## Layout
 
 | Path | What it is |
@@ -247,8 +250,9 @@ stores the request minus 1: USART4's 91 and 92 read back as `5A` and
 `5B`). `blk_*_imm` sets up the data path, sends CMD18 or CMD25 and starts
 the DMA; each `blk_status` call then checks the SDIO flags, sends CMD12
 when the data is through and, for a write, asks the card (CMD13) until it
-has finished programming. No interrupts are used. A transfer that takes
-more than `BLK_TIMEOUT_US` (1 s) fails. DMA can reach the V5F's DTCM,
+has finished programming. No interrupts are used. A step that makes no
+progress for `BLK_TIMEOUT_US` (1 s) fails with -126; the time is checked
+only while the step is unfinished, so asking late is harmless. DMA can reach the V5F's DTCM,
 where the block buffers are (the RM lists DMA among the DTCM's bus
 masters, `MEMARY_CFGR`). `BLK_DMA 0` in `blocks.c` goes back to WCH's
 polling transfers.

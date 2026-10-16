@@ -325,12 +325,17 @@ through resets and Stop mode. `lfRtcInit`, called after `lfTimeInit`,
 leaves a running RTC alone. After the backup domain has lost power it
 starts the board's 32.768 kHz crystal (LSE), or the LSI (about 40 kHz,
 a few percent off) if the crystal doesn't start within 3 s, sets the
-prescaler for 1 Hz and zeroes the counter and the alarm. RTCSEL takes
-only the first value written after a backup domain reset, so it is set
-in one write (WCH's `RCC_RTCCLKConfig` clears it first, which leaves it
-at "no clock"), and an RTC found enabled with no clock gets a backup
-domain reset (BDRST) before it is set up. USART1 shows
-`V5F: RTC running, N s`. The nanoCH32H417 has no battery on VBAT, so the
+prescaler for 1 Hz and zeroes the counter and the alarm. A write to
+`RCC_BDCTLR` (in the backup domain) seems to take a while to land, so
+that a read-modify-write right after it, such as WCH's
+`RCC_RTCCLKConfig` and `RCC_RTCCLKCmd` do, reads the old value and
+undoes it: setting RTCSEL then RTCEN that way left BDCTLR at `100`
+(RTCEN, no clock) on the board, while the same values typed one at a
+time worked. `lfRtcInit`
+writes whole values and waits for each to read back (`bd_write`), and it
+sets an RTC found enabled with no clock up from a backup domain reset
+(BDRST). USART1 shows `V5F: RTC running, N s`, with BDCTLR and
+RTC_CTLRL (`143` and `20` or `28` when it runs on the crystal). The nanoCH32H417 has no battery on VBAT, so the
 time is lost when the board loses power; `rtc@` below 1767225600 (2026)
 means it hasn't been set since. If the RTC doesn't count at all, check
 whether VBAT needs tying to 3.3 V (the RM's advice without a battery).

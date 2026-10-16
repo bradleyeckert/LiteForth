@@ -204,7 +204,8 @@ int main(void)
     printf("V5F released HSEM0, running LiteForth\r\n");
     lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
     int rtc = lfRtcInit();              /* the RTC (and an alarm wake-up mark) */
-    printf("V5F: RTC %s, %u s\r\n", rtc ? "failed" : "running", (unsigned)lfRtcGet());
+    printf("V5F: RTC %s, %u s (BDCTLR %lX, RTC_CTLRL %X)\r\n", rtc ? "failed" : "running",
+           (unsigned)lfRtcGet(), (unsigned long)RCC->BDCTLR, (unsigned)RTC->CTLRL);
     lfRestartListen();                  /* Ctrl+X x3 on the terminal restarts us */
     LiteForth();
 

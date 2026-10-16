@@ -87,6 +87,23 @@ static int rtc_started;                 /* lfRtcInit succeeded */
 static int rtc_woke;                    /* this boot came from an alarm wake-up */
 static uint32_t rtc_alarm;              /* the alarm lfRtcSetAlarm set, 0 = off */
 
+/* RCC_BDCTLR is in the backup domain, and a write there takes a while to
+   land: read back at once, it still shows the old value, so a
+   read-modify-write right after a write (as WCH's RCC_LSEConfig and
+   RCC_RTCCLKCmd do) undoes it. On the board, setting RTCSEL then RTCEN
+   that way left BDCTLR at 100h, RTCEN without a clock. So bd_write
+   stores a whole value and waits until it reads back. */
+#define BD_BITS (RCC_LSEON | RCC_LSEBYP | RCC_RTCSEL | RCC_RTCEN | RCC_BDRST)
+
+static int bd_write(uint32_t value) {
+    uint64_t t0 = lfGetTimeMicroSec();
+    RCC->BDCTLR = value;
+    while ((RCC->BDCTLR & BD_BITS) != (value & BD_BITS)) {
+        if (lfGetTimeMicroSec() - t0 > (uint64_t)RTC_SYNC_MS * 1000u) return 0;
+    }
+    return 1;
+}
+
 /* Waits up to ms milliseconds for an RCC flag (RCC_FLAG_LSERDY, ...) */
 static int rcc_wait(uint8_t flag, uint32_t ms) {
     uint64_t t0 = lfGetTimeMicroSec();
@@ -124,13 +141,6 @@ int lfRtcInit(void) {
     RCC_HB1PeriphClockCmd(RCC_HB1Periph_PWR | RCC_HB1Periph_BKP, ENABLE);
     PWR_BackupAccessCmd(ENABLE);
     uint32_t bd = RCC->BDCTLR;
-    if ((bd & RCC_RTCEN) && !(bd & RCC_RTCSEL)) {
-        /* Enabled with no clock: half set up, and RTCSEL can't be changed
-           now, so reset the backup domain and start over */
-        RCC->BDCTLR = RCC_BDRST;
-        RCC->BDCTLR = 0;
-        bd = 0;
-    }
     if ((bd & RCC_RTCEN) && (bd & RCC_RTCSEL)) {
         /* Running since before this reset. The LSI, unlike the LSE, is
            switched off by a reset, so start it again if the RTC uses it. */
@@ -143,22 +153,25 @@ int lfRtcInit(void) {
         return 0;
     }
 
-    /* The backup domain has lost power: choose a clock and start over */
-    uint32_t source = RCC_RTCCLKSource_LSE;
+    /* The backup domain has lost power, or the RTC is half set up (RTCEN
+       without a clock, and RTCSEL can't be changed until a backup domain
+       reset): reset it, choose a clock and start over */
+    if (!bd_write(RCC_BDRST) || !bd_write(0)) return ERR_UNSUPPORTED_OPERATION;
+    uint32_t sel = RCC_RTCSEL_LSE;
+    uint32_t on = RCC_LSEON;            /* keeps the crystal running */
     uint32_t reload = 32768 - 1;        /* 32.768 kHz: one count a second */
-    RCC_LSEConfig(RCC_LSE_ON);
-    if (!rcc_wait(RCC_FLAG_LSERDY, LFRTC_LSE_TIMEOUT_MS)) {
-        RCC_LSEConfig(RCC_LSE_OFF);
+    if (!bd_write(RCC_LSEON) || !rcc_wait(RCC_FLAG_LSERDY, LFRTC_LSE_TIMEOUT_MS)) {
+        if (!bd_write(0)) return ERR_UNSUPPORTED_OPERATION;
         RCC_LSICmd(ENABLE);
         if (!rcc_wait(RCC_FLAG_LSIRDY, RTC_SYNC_MS)) return ERR_UNSUPPORTED_OPERATION;
-        source = RCC_RTCCLKSource_LSI;
+        sel = RCC_RTCSEL_LSI;
+        on = 0;
         reload = 40000 - 1;             /* the LSI's nominal 40 kHz */
     }
-    /* One write: RTCSEL takes only the first value written to it after a
-       backup domain reset, so RCC_RTCCLKConfig's clear-then-set leaves it
-       at 00 (no clock) */
-    RCC->BDCTLR = (RCC->BDCTLR & ~RCC_RTCSEL) | source;
-    RCC->BDCTLR |= RCC_RTCEN;
+    /* RTCSEL in one write, then RTCEN */
+    if (!bd_write(on | sel) || !bd_write(on | sel | RCC_RTCEN)) {
+        return ERR_UNSUPPORTED_OPERATION;
+    }
     if (!rtc_sync() || !rtc_ready()) return ERR_UNSUPPORTED_OPERATION;
     RTC_SetPrescaler(reload);
     if (!rtc_ready()) return ERR_UNSUPPORTED_OPERATION;

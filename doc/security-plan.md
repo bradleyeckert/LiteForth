@@ -15,7 +15,8 @@ In scope:
 
 - The CH32H417 board running LiteForth (V5F core) with the V3F USB CDC
   bridge, its internal flash, an external NOR SPI flash for blocks and
-  fonts, and a microSD slot used only to deliver update files.
+  fonts, and a microSD card that holds recordings (raw audio, streamed
+  at 1 MB/s) and delivers update files.
 - The firmware image: the root of trust (RoT), LiteForth, and the Forth
   application in flash pages 0-3.
 - Content loaded at run time: NOR flash blocks (source, fonts, data).
@@ -88,7 +89,8 @@ Assets:
 - Vendor signing keys (the most valuable: they decide what runs everywhere)
 - Per-device keys (identity, the image HMAC key, the admin key)
 - Firmware and Forth application code (IP, and integrity)
-- Customer data on the device and in its NOR flash
+- Customer data on the device, in its NOR flash, and the recordings on
+  its microSD card
 - The device's behavior: it must not run unauthorized code
 
 Adversaries, by reach:
@@ -114,7 +116,7 @@ Internal flash:
 | Region | Size | Protection | Contents |
 |---|---|---|---|
 | Stage 0 | 8-24 KB | First 8 KB auto-WP under RDP, the rest WRPR | Self-test, SHA-256/512, signature check, NOR driver, update installer, rollback, recovery |
-| LiteForth core | N x 8 KB | Not WP; only stage 0 writes it (5.6) | LiteForth C, RoT API, SD and FAT32 reader, vendor public keys |
+| LiteForth core | N x 8 KB | Not WP; only stage 0 writes it (5.6) | LiteForth C, RoT API, SD driver and FatFs, vendor public keys |
 | Security sector | 8 KB | Not WP; only stage 0 writes it | Device keys, version counters, image MACs, NOR table hashes, update state, provisioning record |
 | Flash pages 0-3 | 4 x 64 KB | Not WP | Forth application dictionary |
 
@@ -264,11 +266,9 @@ nothing else, so it's simply untrusted input: anyone can put any file on
 any card. Everything that decides whether to install happens in stage 0,
 after a reset, from a copy in NOR flash.
 
-The file: one package (5.3), in the card's FAT32 partition, under a
-fixed 8.3 name such as `LITEFRTH/UPDATE.LFU`, so the reader needs no long
-file names. **Decide** whether to support exFAT too; cards over 32 GB come
-formatted exFAT, but a FAT32-only reader is much smaller and simpler, and
-technicians can use a small card.
+The file: one package (5.3) on the card's exFAT file system, under a
+fixed name such as `LITEFORTH/UPDATE.LFU`. It's read with FatFs, the same
+file system code that writes recordings (5.8).
 
 #### Who does what
 
@@ -358,9 +358,9 @@ early.
   held by every unit's stage 0 keeps the card from revealing the code to
   anyone who reads it. It's a shared secret, though, protected only by
   RDP, so the security never rests on it: the signature does that.
-- **The FAT reader** gets fuzz-tested on the desktop build with malformed
-  card images, since it parses untrusted data, even though its output is
-  checked later.
+- **FatFs** gets fuzz-tested on the desktop build with malformed card
+  images, since it parses untrusted data, even though nothing it reads
+  is run without stage 0's checks.
 - **Field compilation vs signed images.** LiteForth can compile to flash
   at level 0, which makes code the vendor never signed. Policy: production
   units boot at level 2, flash compilation needs level 0, and level 0
@@ -485,6 +485,35 @@ Other points:
   `: x ;`, `1 2 +` and `0 load` all fail, that `lock` works, and that a
   wrong `response:` is refused.
 
+### 5.8 Recordings on the card
+
+The device streams raw audio to the card at 1 MB/s. Decided so far:
+exFAT, through FatFs; RF64 files, since a WAV file's 32-bit sizes stop at
+4 GB (about 70 minutes at 1 MB/s); files pre-expanded as one contiguous
+run (`f_expand`), so streaming never touches the allocation table; and a
+specified card part, so the worst-case write latency is known. A storage
+design note will cover the details. What matters for security:
+
+- **The buffer.** It comes from the RAM pool, shared with other uses, and
+  must cover the specified card's worst-case busy time at 1 MB/s plus one
+  write. Retail cards change controllers without notice, so the part is
+  locked in the BOM and each new lot is checked with a long write test
+  that logs the longest busy time. An overrun is reported, never silent.
+- **Where it runs.** The streaming writer is C with DMA (SDIO, 4-bit),
+  started and stopped by Forth words. The SDIO registers stay out of the
+  VM's IO window (5.6).
+- **Untrusted, read-write.** FatFs now writes as well as reads, so more
+  code faces the card, but it's still outside the root of trust: nothing
+  on the card is ever run without stage 0's checks (5.5).
+- **Privacy.** The recordings are customer data on a removable card.
+  **Decide** whether to encrypt them (AES-CTR on the ECDC engine keeps up
+  with 1 MB/s easily). Encrypted recordings can't be played on a PC
+  without a tool that has the key, so this is a product decision as much
+  as a security one.
+- **Power loss** mid-recording: the file's size and RF64 header are
+  updated at checkpoints, so at most the last interval is lost, and a
+  check at boot trims a pre-expanded file back to its last checkpoint.
+
 ## 6. Key management
 
 Hierarchy:
@@ -572,7 +601,7 @@ default) and the old certificate revoked.
   with a bad MAC, fails when read; `load` refuses it.
 - Update cards: a corrupted file, an unsigned one, one for another
   product or another UID, an older version, a file too big for staging,
-  a malformed FAT32 image (fuzzed on the desktop build): all refused, the
+  a malformed exFAT image (fuzzed on the desktop build): all refused, the
   unit keeps running its old firmware.
 - Power loss during the copy (phase A) and at each install step (phase
   B): the unit either finishes the install or keeps its old version.
@@ -610,8 +639,9 @@ default) and the old certificate revoked.
 15. **Verify:** RNG output quality on real parts.
 16. The safe wordlist's contents, the idle re-lock timeout, and the
     limit on failed unlocks (5.7).
-17. FAT32 only, or exFAT too; a result file on the card or not; package
-    encryption or not (5.5).
+17. A result file on the card or not; package encryption or not (5.5).
+18. Whether recordings are encrypted (5.8). Decided: exFAT, RF64 and
+    FatFs, with pre-expanded files, on a specified card part.
 
 ## 11. Suggested order of work
 

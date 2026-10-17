@@ -186,7 +186,7 @@ _idata variable emit_xt
     begin 2dup xor while
         char- dup @  bl xor  if  over bytespan  1+ exit  then                   \ seek backward for nonblank
     repeat  dup xor ;       ( a' 0 )
-: fill      ( ca u c -- )   3parms swap >r swap a! |inst  dup !a+ unext drop ;  \ fill u cells or slices with c
+: fill      ( ca u c -- )   swap 3parms >r swap a! |inst  dup !a+ unext drop ;  \ fill u cells or slices with c
 : blank     ( ca u -- )     bl fill ;                                           \ fill u chars with spaces
 -->
 ( BLOCK++ )

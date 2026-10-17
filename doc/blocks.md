@@ -220,7 +220,10 @@ block may take it (with two buffers, the least recently used goes), and
 so may another task that uses blocks; the terminal empties the buffers at
 the end of each line, and the cells keep their contents, but the next
 block word may reuse them. Use the cells within one word or one line, and
-don't call block words in between.
+don't call block words in between. On the board, the demo's LCD clock
+reads font blocks whenever the terminal is idle, so even the next line is
+too late: a test that read into a buffer on one line and wrote it back on
+the next wrote font data.
 
 **Leave the cells alone until it's done.** During a read the cells fill
 up as the card delivers; during a write the DMA is still reading them. Use

@@ -389,6 +389,14 @@ T{ capacity -1 + block @ -> 12345 }T
 T{ 0  capacity -2 +  2 write-block  block-status -> 0 }T
 T{ capacity -2 + block @  0 @ xor  capacity -1 + block @  1024 @ xor -> 0 0 }T
 
+( fill, from core.f: a 0 or negative fill value must still fill, a 0 count must not )
+: 3parms    ( x1 x2 n -- | x1 x2 n ) 1- -if drop r> drop 2drop exit then 1+ ;
+: fill      ( ca u c -- )   swap 3parms >r swap a! |inst  dup !a+ unext drop ;
+T{ 100 buffer dup 5 5 fill  dup 4 7 fill  dup 2 0 fill  dup 1 -1 fill  0 9 fill -> }T
+T{ 100 buffer dup @ swap 1 + @ -> -1 0 }T
+T{ 100 buffer dup 2 + @ swap 3 + @ -> 7 7 }T
+T{ 100 buffer 4 + @ -> 5 }T
+
 ( create, does> and >body )
 create buf 2 allot
 T{ here buf - -> 2 }T

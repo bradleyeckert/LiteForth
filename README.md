@@ -12,6 +12,8 @@ A [CH32H417](https://www.lcsc.com/product-detail/C49363240.html)
 costs about $3.88.
 The official [dev board](https://www.aliexpress.us/item/3256812656099340.html)
 is about 10 times that. It has a built-in WCH-Link.
+To get LiteForth running on it, see the
+[quickstart](src/target/CH32H417/quickstart.md).
 
 The minimum hardware requirements for LiteForth are something like:
 

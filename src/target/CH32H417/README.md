@@ -3,6 +3,8 @@
 Not built by the makefile. Open `SimulateCDC.wvsln` in MounRiver Studio;
 it holds two projects, `V3F` and `V5F`, one per core.
 
+To get started on the nanoCH32H417 board, follow [quickstart.md](quickstart.md).
+
 Where the chip, the reference manual and WCH's SDK disagree is collected
 in [doc/ch32h417-notes.md](../../../doc/ch32h417-notes.md).
 

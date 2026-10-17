@@ -41,10 +41,39 @@ _Static_assert(BLK_SIZE_BYTES % SECTOR_BYTES == 0, "a block must be whole sector
 _Static_assert(BLK_MAX_SECTORS == BLK_MAX_LENGTH * SECTORS_PER_BLOCK, "runs of sectors and of blocks");
 
 static card_map map;                    /* where the block space is */
+static card_map map_copy;               /* what blk_init put there: see map_ok */
+static int map_bad;                     /* map changed: no more transfers */
 static uint32_t card_sectors;           /* the card's size */
 static int writable;                    /* block 0 has the signature */
 
 static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
+
+/* Debugging a stray write seen on the board ("1 block" gave -92 with a
+   capacity of 121, then the chip reset): map must not change after
+   blk_init. If it has, print both copies on USART1 once and refuse every
+   transfer from then on, so a damaged map can't aim a write anywhere. */
+static void dump(const char *name, const void *p) {
+    const uint8_t *b = (const uint8_t *)p;
+    printf("V5F blocks: %s at %08lX:", name, (unsigned long)(uintptr_t)p);
+    for (unsigned i = 0; i < sizeof(card_map); i++) {
+        printf("%s%02X", (i % 16) ? " " : "\r\n  ", b[i]);
+    }
+    printf("\r\n");
+}
+
+static int map_ok(void) {
+    if (map_bad) {
+        return 0;
+    }
+    if (memcmp(&map, &map_copy, sizeof map) != 0) {
+        map_bad = 1;
+        printf("V5F blocks: the block map changed after startup; transfers stopped\r\n");
+        dump("map", &map);
+        dump("copy", &map_copy);
+        return 0;
+    }
+    return 1;
+}
 
 /* Checks a request for length blocks from blk; on success *lba is the
    first card sector */
@@ -318,11 +347,17 @@ int blk_status(void) {
 #endif /* BLK_DMA */
 
 int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count) {
+    if (!map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
     int err = check_sectors(lba, count);
     return err ? err : start(lba, dest, count, 0);
 }
 
 int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count) {
+    if (!map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
     int err = check_sectors(lba, count);
     if (!err) {
         err = blk_write_fence(lba, count);
@@ -331,12 +366,18 @@ int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count) {
 }
 
 int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
+    if (!map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
     uint32_t lba;
     int err = check_run(blk, length, &lba);
     return err ? err : start(lba, dest, length * SECTORS_PER_BLOCK, 0);
 }
 
 int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
+    if (!map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
     if (!writable) {
         return ERR_BLK_WRITE_PROTECTED;
     }
@@ -371,15 +412,23 @@ int blk_sector_read(uint32_t lba, uint32_t *dest, int count) {
     return err ? err : finish();
 }
 
-/* card.c's sector reader */
+/* card.c's sector reader. map is still being filled in, so it bypasses
+   map_ok: card_find_blocks writes to it as it goes. */
 static int card_read(uint32_t sector, uint8_t *buf) {
-    return blk_sector_read(sector, (uint32_t *)buf, 1);
+    finish();
+    int err = check_sectors(sector, 1);
+    if (!err) {
+        err = start(sector, (uint32_t *)buf, 1, 0);
+    }
+    return err ? err : finish();
 }
 
 int blk_init(char *filename, uint32_t *capacity) {
     char msg[120];
     (void)filename;
     memset(&map, 0, sizeof map);
+    memset(&map_copy, 0, sizeof map_copy);
+    map_bad = 0;
     card_sectors = 0;
     writable = 0;
     status = 0;
@@ -413,7 +462,10 @@ int blk_init(char *filename, uint32_t *capacity) {
         return 0;
     }
     writable = map.writable;
+    map_copy = map;
     printf("V5F blocks: %s\r\n", msg);
+    printf("V5F blocks: map at %08lX, %u bytes\r\n", (unsigned long)(uintptr_t)&map,
+           (unsigned)sizeof map);
     if (capacity) *capacity = map.blocks;
     return 0;
 }

@@ -17,5 +17,8 @@ jobs:
     - name: Compile lf executable
       run: make
 
+    - name: Python's cryptography package, for the sealblocks.py tests
+      run: python3 -c "import cryptography" || (sudo apt-get update && sudo apt-get install -y python3-cryptography)
+
     - name: Run primitives test and unit tests
       run: make test

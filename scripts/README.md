@@ -1,7 +1,8 @@
 # Scripts
 
 Python tools for working with LiteForth's block files and fonts on the PC.
-They need Python 3; `mkfont.py` also needs Pillow and fontTools. The
+They need Python 3; `mkfont.py` also needs Pillow and fontTools, and
+`sealblocks.py` the `cryptography` package. The
 examples use `py`, the Windows launcher; on Linux and macOS use `python3`.
 Each script prints its full usage with `-h`.
 
@@ -13,6 +14,7 @@ Each script prints its full usage with `-h`.
 | `mkfont.py` | Makes 4-bit anti-aliased bitmap fonts for the graphic LCDs |
 | `lintf.py` | Checks Forth source against `doc/coding-rules.md` |
 | `mkexfat.py` | Builds small exFAT card images (with `lfblocks.fb4` inside) for testing; `lf -k card.img` uses one as the board uses its card |
+| `sealblocks.py` | Makes and checks sealed (encrypted, signed) block files for updates, and their keys |
 | `lfmcp.py` | Gives an AI assistant (an MCP client such as the Claude desktop app) LiteForth's terminal on a serial port |
 
 The other files here aren't Python: `regression.f` is the test script that
@@ -181,3 +183,30 @@ answers each in `NAME.txt` and deletes the request. Ctrl+C stops it.
 
 `unit_tests/lfmcp` tests both modes against the desktop `lf` over a pair
 of ptys.
+
+## sealblocks.py
+
+```
+py sealblocks.py root-key root
+py sealblocks.py release-key root.key 1 release1.key --product 0x4C46
+py sealblocks.py seal lfblocks.fb4 sealed.fb4 --release release1.key --boards boards.csv --revision 1
+py sealblocks.py check sealed.fb4 --root root.pub
+py sealblocks.py open sealed.fb4 opened.fb4 --root root.pub --board-key board.key
+```
+
+Makes a sealed block file from a plain one, as planned in
+[doc/encrypted-blocks.md](../doc/encrypted-blocks.md): the content blocks
+encrypted (AES-128 or SM4 in CTR mode) with a new key for each release,
+that key wrapped for each board in `boards.csv` (`UID,public key,name` in
+hex), the block hashes in hash table blocks after the content, and block 0
+signed by a release key that the root key certifies. `check` checks
+everything that needs no board key; `open` also unwraps and decrypts, as a
+board would, and refuses what a board would refuse (`--min-revision`,
+`--min-serial`, `--product`). `board-key` makes a board key pair on the PC
+for testing; a real board will make its own.
+
+Key files are JSON; `.key` files hold private keys. Keep the root's
+offline: `release-key` is the only command that needs it. Needs the
+`cryptography` package (`py -m pip install cryptography`).
+`unit_tests/seal` tests it: round trips with both ciphers, the layout
+against the formulas in the plan, and each refusal.

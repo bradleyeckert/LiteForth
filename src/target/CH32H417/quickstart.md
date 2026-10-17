@@ -18,7 +18,7 @@ debug probe (programming, plus a serial port for debug messages), and
 ## 1. Program the board
 
 - Install MounRiver and open the solution
-  `src/target/CH32H417/SimulateCDC.wvsln`. It holds two projects, `V3F`
+  `src/target/CH32H417/LiteForth.wvsln`. It holds two projects, `V3F`
   (the USB core) and `V5F` (the Forth core).
 - Connect the board's **WCHLinkE** port to your PC.
 - The WCHLinkE must be in RISC-V mode. A solid blue light means ARM mode.

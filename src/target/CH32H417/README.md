@@ -1,6 +1,6 @@
 # CH32H417 target
 
-Not built by the makefile. Open `SimulateCDC.wvsln` in MounRiver Studio;
+Not built by the makefile. Open `LiteForth.wvsln` in MounRiver Studio;
 it holds two projects, `V3F` and `V5F`, one per core.
 
 To get started on the nanoCH32H417 board, follow [quickstart.md](quickstart.md).

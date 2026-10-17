@@ -21,10 +21,16 @@ debug probe (programming, plus a serial port for debug messages), and
   `src/target/CH32H417/SimulateCDC.wvsln`. It holds two projects, `V3F`
   (the USB core) and `V5F` (the Forth core).
 - Connect the board's **WCHLinkE** port to your PC.
-- The WCHLinkE must be in RISC-V mode. A solid blue light means ARM mode:
-  switch it with WCH-LinkUtility (select `WCH-LinkRV`, then *Set*). In
-  RISC-V mode the blue light is off, except that it blinks while
-  programming.
+- The WCHLinkE must be in RISC-V mode. A solid blue light means ARM mode.
+  In RISC-V mode the blue light is off, except that it blinks while
+  programming. To switch modes, either:
+  - in MounRiver, open *Tools > WCH LinkUtility* and change the probe's
+    mode in its *Connected WCH-Link List*, or
+  - unplug the WCHLinkE port, hold the board's **ModeS** button while you
+    plug it back in, then let go. (The other button, **IAP**, is for
+    updating the probe's firmware.)
+
+  The probe remembers its mode.
 - Click *Build All Projects* (Ctrl+B).
 - Select the **V5F** project and click *Download* (F8). Its download
   programs both cores. Downloading from the V3F project erases the chip and
@@ -123,6 +129,11 @@ block of source, and `hi` prints a Chinese proverb (kwai shows CJK text).
 
 ## If something goes wrong
 
+- **MounRiver can't find the probe or won't download:** check the
+  WCHLinkE's blue light. A solid light means ARM mode, which is how some
+  kits ship; switch it to RISC-V mode (step 1). The probe keeps whatever
+  mode it was last set to, so a board that worked before can still
+  surprise you after someone else used it.
 - **The app misbehaves at boot:** press Ctrl+X three times in a row (kwai:
   `~r`). The board restarts without starting the app; `cold` starts it
   again.

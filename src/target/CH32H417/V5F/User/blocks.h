@@ -5,6 +5,7 @@
 #include "options.h"
 
 #define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
+#define BLK_MAX_LENGTH           8   /* most blocks one blk_*_imm call moves */
 
 /* The first bytes of block 0 of every LiteForth block device. Without
    them, the device isn't LiteForth's: it reports 1 block, which can be
@@ -57,28 +58,31 @@ int blk_read(uint32_t blk, uint32_t *dest);
 int blk_write(uint32_t blk, uint32_t *src);
 
 /**
- * Starts reading block blk into dest (BLOCK_SIZE_CELLS cells) and returns
+ * Starts reading length blocks (1 to BLK_MAX_LENGTH), from block blk on,
+ * into dest (length * BLOCK_SIZE_CELLS cells) and returns
  * without waiting for it to finish; blk_status says when it has. dest must
  * stay valid and untouched until then.
  * The transfer runs by DMA (DMA2 channel 1); blk_status moves it along
  * (BLK_DMA 0 in blocks.c: WCH's polling transfer, done before returning).
  * Returns 0 if the read started, ERR_BLK_BUSY if a transfer is still in
- * progress, ERR_BLK_BOUNDS if blk is past the capacity, or another
- * negative error code that shows up at once.
+ * progress, ERR_INVALID_NUMERIC if length is out of range, ERR_BLK_BOUNDS
+ * if the blocks go past the capacity, or another negative error code that
+ * shows up at once.
  */
-int blk_read_imm(uint32_t blk, uint32_t *dest);
+int blk_read_imm(uint32_t blk, uint32_t *dest, int length);
 
 /**
- * Starts writing block blk from src (BLOCK_SIZE_CELLS cells) and returns
+ * Starts writing length blocks (1 to BLK_MAX_LENGTH), from block blk on,
+ * from src (length * BLOCK_SIZE_CELLS cells) and returns
  * without waiting for it to finish; blk_status says when it has. src must
  * stay valid and unchanged until then.
  * The transfer runs by DMA (DMA2 channel 1); blk_status moves it along
  * (BLK_DMA 0 in blocks.c: WCH's polling transfer, done before returning).
  * Returns 0 if the write started, ERR_BLK_BUSY if a transfer is still in
- * progress, ERR_BLK_WRITE_PROTECTED, ERR_BLK_BOUNDS, or another negative
- * error code that shows up at once.
+ * progress, ERR_BLK_WRITE_PROTECTED, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS,
+ * or another negative error code that shows up at once.
  */
-int blk_write_imm(uint32_t blk, uint32_t *src);
+int blk_write_imm(uint32_t blk, uint32_t *src, int length);
 
 /**
  * The state of the last transfer started by blk_read_imm or blk_write_imm

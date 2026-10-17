@@ -393,7 +393,7 @@ static int readBlock(void) {
     uint32_t blk = (uint32_t)vmPop();
     uint32_t* dest = blockCells((uint32_t)vmPop(), 1);
     if (dest == NULL) return ERR_INVALID_ADDRESS;
-    return blk_read_imm(blk, dest);
+    return blk_read_imm(blk, dest, 1);
 }
 
 /* WRITE-BLOCK  ( a u -- )  Start writing block u from the block-sized area
@@ -402,7 +402,7 @@ static int writeBlock(void) {
     uint32_t blk = (uint32_t)vmPop();
     uint32_t* src = blockCells((uint32_t)vmPop(), 0);
     if (src == NULL) return ERR_INVALID_ADDRESS;
-    return blk_write_imm(blk, src);
+    return blk_write_imm(blk, src, 1);
 }
 
 /* BLOCK-STATUS  ( -- n )  0 done, negative: failed, 1 reading, 2 writing */

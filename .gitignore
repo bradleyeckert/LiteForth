@@ -49,3 +49,5 @@ bin\lfflash.bin
 src/target/desktop/unit_tests/rtc/got.txt
 mailbox/
 bin/lfblocks.fb4
+src/target/desktop/unit_tests/blkrun/test_blkrun
+src/target/desktop/unit_tests/blkrun/test_blkrun.fb4

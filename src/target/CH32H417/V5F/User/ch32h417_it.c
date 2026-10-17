@@ -35,8 +35,48 @@ void NMI_Handler(void)
  *
  * @return  none
  */
+/* LiteForth: say where the fault was on USART1 (the debug port) before
+   resetting. Writes the UART directly, not through printf, which takes a
+   hardware semaphore the fault may have interrupted. */
+static void fault_putc(char c)
+{
+  while ((USART1->STATR & USART_FLAG_TXE) == 0) {
+  }
+  USART1->DATAR = (uint8_t)c;
+}
+
+static void fault_puts(const char *s)
+{
+  while (*s) {
+    fault_putc(*s++);
+  }
+}
+
+static void fault_hex(const char *name, uint32_t x)
+{
+  fault_puts(name);
+  for (int i = 28; i >= 0; i -= 4) {
+    fault_putc("0123456789ABCDEF"[(x >> i) & 15]);
+  }
+}
+
 void HardFault_Handler(void)
 {
+  uint32_t mcause, mepc, mtval, ra, sp;
+  __asm volatile ("csrr %0, mcause" : "=r"(mcause));
+  __asm volatile ("csrr %0, mepc" : "=r"(mepc));
+  __asm volatile ("csrr %0, mtval" : "=r"(mtval));
+  __asm volatile ("mv %0, ra" : "=r"(ra));
+  __asm volatile ("mv %0, sp" : "=r"(sp));
+  fault_puts("\r\nV5F fault:");
+  fault_hex(" mcause ", mcause);
+  fault_hex(" mepc ", mepc);
+  fault_hex(" mtval ", mtval);
+  fault_hex(" ra ", ra);
+  fault_hex(" sp ", sp);
+  fault_puts("\r\n");
+  while ((USART1->STATR & USART_FLAG_TC) == 0) {
+  }
   NVIC_SystemReset();
   while (1)
   {

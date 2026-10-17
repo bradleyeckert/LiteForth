@@ -227,6 +227,15 @@ trusted just because they're in NOR:
   installs it (AES-CTR on the ECDC engine), so a dump of one unit's NOR
   is useless without that unit's key. **Decide.**
 
+[encrypted-blocks.md](encrypted-blocks.md) plans the block file itself as
+the update: a *sealed* `lfblocks.fb4`, encrypted with a fresh key per
+release that is wrapped for each board's own X25519 key (no key shared by
+all units), signed with a release key the root key certifies, and checked
+block by block with BLAKE2s hashes, which replace the SHA-256 table above.
+It reads blocks straight from the sealed file, decrypting each as it's
+read, so the questions of re-encrypting at install and of a product-wide
+package key (5.5) become questions about that format.
+
 ### 5.4 Unique keys
 
 Keys on each device:
@@ -354,7 +363,8 @@ early.
   older, vulnerable versions from being installed again.
 - **What a bad card can do**: get an update refused. The old firmware
   keeps running, and nothing on the card is ever run.
-- **Package encryption** (**Decide**): AES-CTR with a product-wide key
+- **Package encryption** (**Decide**; [encrypted-blocks.md](encrypted-blocks.md)
+  proposes per-board key wrapping instead): AES-CTR with a product-wide key
   held by every unit's stage 0 keeps the card from revealing the code to
   anyone who reads it. It's a shared secret, though, protected only by
   RDP, so the security never rests on it: the signature does that.

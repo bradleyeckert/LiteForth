@@ -143,13 +143,15 @@ It uses cell addressing, so an `a-addr` is just `addr`.
 
 `block`, `save-buffers` and the other words above wait for the storage.
 Three more words start a transfer and return at once, so a program can do
-other work while a block moves:
+other work while blocks move:
 
-- `read-block` `( a u -- )`  
-  Starts reading block `u` into the 1024 cells at `a`.
+- `read-block` `( a u n -- )`  
+  Starts reading `n` blocks (1 to 8), from block `u` on, into the
+  `n` × 1024 cells at `a`.
 
-- `write-block` `( a u -- )`  
-  Starts writing the 1024 cells at `a` to block `u`.
+- `write-block` `( a u n -- )`  
+  Starts writing the `n` × 1024 cells at `a` to `n` blocks (1 to 8), from
+  block `u` on.
 
 - `block-status` `( -- n )`  
   How the last transfer is doing: 1 still reading, 2 still writing, 0 done
@@ -157,7 +159,10 @@ other work while a block moves:
   until the next transfer starts.
 
 They bypass the block buffers: the data goes straight between the card and
-the cells at `a`. Only one transfer runs at a time.
+the cells at `a`. Only one transfer runs at a time. The `n` blocks are
+consecutive, block `u` at `a`, block `u`+1 at `a` + 1024, and so on; on
+the CH32H417 they move as one multi-block transfer of up to 32 KB, which
+is faster than `n` separate ones.
 
 ### How they run
 
@@ -187,17 +192,28 @@ the transfer finishes:
 
 It leaves 0 when the transfer went through, or the error code.
 
-**Find 1024 cells.** `a` must be writable, with all 1024 cells in one
-memory page (-9 otherwise). The RAM page is small (4096 cells on the
-CH32H417, half of them the two block buffers), so the handy source is a
-block buffer: `buffer` with a block number you aren't using gives one
-without reading anything.
+**Find the cells.** For a read, the `n` × 1024 cells at `a` must be
+writable; for either, they must all be in one memory page (-9 otherwise).
+The RAM page is small (4096 cells on the CH32H417, half of them the two
+block buffers), so the handy source is a block buffer: `buffer` with a
+block number you aren't using gives one without reading anything.
 
 ```forth
-500 buffer dup 9 read-block   ( other work here )   wait-block .
+500 buffer dup 9 1 read-block   ( other work here )   wait-block .
 ```
 
 That leaves the buffer's address on the stack, for working on the data.
+The two block buffers sit side by side, so the lower of the two has room
+for two blocks:
+
+```forth
+500 buffer 501 buffer min  dup 9 2 read-block   ( blocks 9 and 10 )   wait-block .
+```
+
+A write can come from anywhere readable, flash included: `0 3000 2
+write-block` copies the first 2048 cells of flash page 0 to blocks 3000
+and 3001. More than two blocks need a bigger writable area than the
+standard memory map has, for a read, or flash, for a write.
 
 The buffer is only borrowed. The next `block` or `buffer` for another
 block may take it (with two buffers, the least recently used goes), and
@@ -222,22 +238,23 @@ the buffer's old copy: `empty-buffers` after it, or write through the
 buffer instead (`update save-buffers`).
 
 **Double buffering.** To stream through a run of blocks, start reading
-block n+1 into one area, work on block n in the other, then
+block k+1 into one area, work on block k in the other, then
 `wait-block` and swap the two.
 
 **Errors.**
 
 | Code | Meaning |
 |---|---|
-| -9 | `a` isn't writable (for a read), or the 1024 cells cross a page, or `a` is in the I/O page |
-| -92 | Block number past the end of the storage |
+| -9 | `a` isn't writable (for a read), or the `n` × 1024 cells cross a page, or `a` is in the I/O page |
+| -24 | `n` isn't 1 to 8 |
+| -92 | The blocks go past the end of the storage |
 | -94 | The read failed (the card reported an error) |
 | -95 | The write failed |
 | -96 | The storage is write-protected (block 0 doesn't start with `LITEFORTH`) |
 | -125 | A transfer is still running |
 | -126 | A transfer made no progress for a second |
 
-The start words give -9, -92, -96 and -125 at once, and -94 or -95 if the
+The start words give -9, -24, -92, -96 and -125 at once, and -94 or -95 if the
 card refuses the command. Failures during the transfer show up in
 `block-status`. On the CH32H417, USART1 also gets a
 line (`V5F blk: read failed, STA ...`) with the SDIO status.

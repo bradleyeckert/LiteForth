@@ -382,9 +382,12 @@ T{ dp^ @ _idata dp^ @ _data dp^ @ -> 0 1 0 }T
 ( unwaited block transfers: read-block write-block block-status )
 ( a block buffer serves as the area: the RAM page has no room for another )
 T{ block-status -> 0 }T
-T{ 100 buffer dup 1 read-block  block-status  swap @  1 block @  xor -> 0 0 }T
-T{ 100 buffer  12345 over !  capacity -1 + write-block  block-status -> 0 }T
+T{ 100 buffer dup 1 1 read-block  block-status  swap @  1 block @  xor -> 0 0 }T
+T{ 100 buffer  12345 over !  capacity -1 + 1 write-block  block-status -> 0 }T
 T{ capacity -1 + block @ -> 12345 }T
+( two blocks in one transfer, from flash page 0: cells 0 and 1024 land in two blocks )
+T{ 0  capacity -2 +  2 write-block  block-status -> 0 }T
+T{ capacity -2 + block @  0 @ xor  capacity -1 + block @  1024 @ xor -> 0 0 }T
 
 ( create, does> and >body )
 create buf 2 allot

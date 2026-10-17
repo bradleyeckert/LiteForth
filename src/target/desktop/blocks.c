@@ -175,28 +175,47 @@ static int write_now(uint32_t blk, uint32_t *src) {
 
 static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
 
-int blk_read_imm(uint32_t blk, uint32_t *dest) {
-    if (status > 0) {
-        return ERR_BLK_BUSY;
+/* Checks a request for length blocks from blk */
+static int check_run(uint32_t blk, int length) {
+    if (length < 1 || length > BLK_MAX_LENGTH) {
+        return ERR_INVALID_NUMERIC;
     }
-    if (blk >= actual_blocks) {
+    if (blk >= actual_blocks || (uint32_t)length > actual_blocks - blk) {
         return ERR_BLK_BOUNDS;
     }
-    status = read_now(blk, dest);       /* done at once: a file or a raw disk */
     return 0;
 }
 
-int blk_write_imm(uint32_t blk, uint32_t *src) {
+int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
+    if (status > 0) {
+        return ERR_BLK_BUSY;
+    }
+    int err = check_run(blk, length);
+    if (err) {
+        return err;
+    }
+    status = 0;                         /* done at once: a file or a raw disk */
+    for (int i = 0; i < length && status == 0; i++) {
+        status = read_now(blk + i, dest + i * BLOCK_SIZE_CELLS);
+    }
+    return 0;
+}
+
+int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
     if (!writable) {
         return ERR_BLK_WRITE_PROTECTED;
     }
-    if (blk >= actual_blocks) {
-        return ERR_BLK_BOUNDS;
+    int err = check_run(blk, length);
+    if (err) {
+        return err;
     }
-    status = write_now(blk, src);
+    status = 0;
+    for (int i = 0; i < length && status == 0; i++) {
+        status = write_now(blk + i, src + i * BLOCK_SIZE_CELLS);
+    }
     return 0;
 }
 
@@ -214,12 +233,12 @@ static int finish(void) {
 
 int blk_read(uint32_t blk, uint32_t *dest) {
     finish();
-    int err = blk_read_imm(blk, dest);
+    int err = blk_read_imm(blk, dest, 1);
     return err ? err : finish();
 }
 
 int blk_write(uint32_t blk, uint32_t *src) {
     finish();
-    int err = blk_write_imm(blk, src);
+    int err = blk_write_imm(blk, src, 1);
     return err ? err : finish();
 }

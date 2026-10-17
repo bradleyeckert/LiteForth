@@ -8,8 +8,9 @@
  * here: WCH's DMA mode waits for the transfer and uses DMA1 channel 1,
  * which the V3F's UART code also uses (USART4 TX; channel 2 is its RX).
  * This file uses DMA2 channel 1 instead, routed to the SDIO request
- * through DMAMUX channel 9. A 4 KB block is 8 sectors, moved with one
- * multiple-block command (CMD18 or CMD25) and ended with CMD12. Block
+ * through DMAMUX channel 9. A 4 KB block is 8 sectors; a run of 1 to
+ * BLK_MAX_LENGTH blocks (up to 32 KB) is moved with one multiple-block
+ * command (CMD18 or CMD25) and ended with CMD12. Block
  * buffers are cell arrays, so they meet the 4-byte alignment DMA needs.
  *
  * The partition is the first MBR entry of type 0xDA. It must start on a
@@ -117,18 +118,31 @@ int blk_init(char *filename, uint32_t *capacity) {
     return 0;
 }
 
+/* Checks a request for length blocks from blk */
+static int check_run(uint32_t blk, int length) {
+    if (length < 1 || length > BLK_MAX_LENGTH) {
+        return ERR_INVALID_NUMERIC;
+    }
+    if (blk >= blocks || (uint32_t)length > blocks - blk) {
+        return ERR_BLK_BOUNDS;
+    }
+    return 0;
+}
+
 #if !BLK_DMA
-/* Reads block blk now; bounds already checked */
-static int read_now(uint32_t blk, uint32_t *dest) {
-    if (SD_ReadDisk((u8 *)dest, first_sector + blk * SECTORS_PER_BLOCK, SECTORS_PER_BLOCK) != SD_OK) {
+/* Reads length blocks from blk now; bounds already checked */
+static int read_now(uint32_t blk, uint32_t *dest, int length) {
+    if (SD_ReadDisk((u8 *)dest, first_sector + blk * SECTORS_PER_BLOCK,
+                    (u8)(SECTORS_PER_BLOCK * length)) != SD_OK) {
         return ERR_BLK_READ_FAIL;
     }
     return 0;
 }
 
-/* Writes block blk now; protection and bounds already checked */
-static int write_now(uint32_t blk, uint32_t *src) {
-    if (SD_WriteDisk((u8 *)src, first_sector + blk * SECTORS_PER_BLOCK, SECTORS_PER_BLOCK) != SD_OK) {
+/* Writes length blocks from blk now; protection and bounds already checked */
+static int write_now(uint32_t blk, uint32_t *src, int length) {
+    if (SD_WriteDisk((u8 *)src, first_sector + blk * SECTORS_PER_BLOCK,
+                     (u8)(SECTORS_PER_BLOCK * length)) != SD_OK) {
         return ERR_BLK_WRITE_FAIL;
     }
     return 0;
@@ -181,11 +195,11 @@ static SD_Error command(uint8_t index, uint32_t arg) {
     return CmdResp1Error(index);
 }
 
-/* Sets up the data path for one block in direction dir */
-static void data_path(uint32_t dir) {
+/* Sets up the data path for length blocks in direction dir */
+static void data_path(uint32_t dir, int length) {
     SDIO_DataInitTypeDef data;
     data.SDIO_DataTimeOut = SD_DATATIMEOUT;
-    data.SDIO_DataLength = BLK_SIZE_BYTES;
+    data.SDIO_DataLength = BLK_SIZE_BYTES * (uint32_t)length;
     data.SDIO_DataBlockSize = SDIO_DataBlockSize_512b;
     data.SDIO_TransferDir = dir;
     data.SDIO_TransferMode = SDIO_TransferMode_Block;
@@ -195,14 +209,14 @@ static void data_path(uint32_t dir) {
 
 /* Points DMA2 channel 1 at buf and the SDIO FIFO and starts it; dir is
    DMA_DIR_PeripheralSRC (card to memory) or DMA_DIR_PeripheralDST */
-static void dma_start(uint32_t *buf, uint32_t dir) {
+static void dma_start(uint32_t *buf, uint32_t dir, int length) {
     DMA_InitTypeDef d = {0};
     DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
     DMA_ClearFlag(DMA2, BLK_DMA_FLAG_TC);
     d.DMA_PeripheralBaseAddr = (uint32_t)&SDIO->FIFO;
     d.DMA_Memory0BaseAddr = (uint32_t)buf;
     d.DMA_DIR = dir;
-    d.DMA_BufferSize = BLOCK_SIZE_CELLS;
+    d.DMA_BufferSize = BLOCK_SIZE_CELLS * (uint32_t)length;
     d.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
     d.DMA_MemoryInc = DMA_MemoryInc_Enable;
     d.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
@@ -237,28 +251,28 @@ static int fail(int err) {
     return err;
 }
 
-static int start_read(uint32_t blk, uint32_t *dest) {
+static int start_read(uint32_t blk, uint32_t *dest, int length) {
     SDIO->DCTRL = 0;
     SDIO_ClearFlag(SDIO_STATIC_FLAGS);
-    data_path(SDIO_TransferDir_ToSDIO);
+    data_path(SDIO_TransferDir_ToSDIO, length);
     if (command(SD_CMD_READ_MULT_BLOCK, card_address(blk)) != SD_OK) {
         SDIO->DCTRL = 0;
         return ERR_BLK_READ_FAIL;
     }
-    dma_start(dest, DMA_DIR_PeripheralSRC);
+    dma_start(dest, DMA_DIR_PeripheralSRC, length);
     SDIO->DCTRL |= SDIO_DCTRL_DMAEN;
     status = 1;
     return 0;
 }
 
-static int start_write(uint32_t blk, uint32_t *src) {
+static int start_write(uint32_t blk, uint32_t *src, int length) {
     SDIO->DCTRL = 0;
     SDIO_ClearFlag(SDIO_STATIC_FLAGS);
     if (command(SD_CMD_WRITE_MULT_BLOCK, card_address(blk)) != SD_OK) {
         return ERR_BLK_WRITE_FAIL;
     }
-    dma_start(src, DMA_DIR_PeripheralDST);
-    data_path(SDIO_TransferDir_ToCard);
+    dma_start(src, DMA_DIR_PeripheralDST, length);
+    data_path(SDIO_TransferDir_ToCard, length);
     SDIO->DCTRL |= SDIO_DCTRL_DMAEN;
     status = 2;
     return 0;
@@ -320,16 +334,17 @@ static void advance(void) {
     }
 }
 
-int blk_read_imm(uint32_t blk, uint32_t *dest) {
+int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
     advance();                          /* a finished transfer isn't busy */
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
-    if (blk >= blocks) {
-        return ERR_BLK_BOUNDS;
+    int err = check_run(blk, length);
+    if (err) {
+        return err;
     }
     started = lfGetTimeMicroSec();
-    int err = start_read(blk, dest);
+    err = start_read(blk, dest, length);
     if (err) {
         return err;
     }
@@ -337,7 +352,7 @@ int blk_read_imm(uint32_t blk, uint32_t *dest) {
     return 0;
 }
 
-int blk_write_imm(uint32_t blk, uint32_t *src) {
+int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
     advance();                          /* a finished transfer isn't busy */
     if (status > 0) {
         return ERR_BLK_BUSY;
@@ -345,11 +360,12 @@ int blk_write_imm(uint32_t blk, uint32_t *src) {
     if (!writable) {
         return ERR_BLK_WRITE_PROTECTED;
     }
-    if (blk >= blocks) {
-        return ERR_BLK_BOUNDS;
+    int err = check_run(blk, length);
+    if (err) {
+        return err;
     }
     started = lfGetTimeMicroSec();
-    int err = start_write(blk, src);
+    err = start_write(blk, src, length);
     if (err) {
         return err;
     }
@@ -364,28 +380,30 @@ int blk_status(void) {
 
 #else /* BLK_DMA */
 
-int blk_read_imm(uint32_t blk, uint32_t *dest) {
+int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
-    if (blk >= blocks) {
-        return ERR_BLK_BOUNDS;
+    int err = check_run(blk, length);
+    if (err) {
+        return err;
     }
-    status = read_now(blk, dest);       /* WCH's polling transfer: done at once */
+    status = read_now(blk, dest, length);   /* WCH's polling transfer: done at once */
     return 0;
 }
 
-int blk_write_imm(uint32_t blk, uint32_t *src) {
+int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
     if (!writable) {
         return ERR_BLK_WRITE_PROTECTED;
     }
-    if (blk >= blocks) {
-        return ERR_BLK_BOUNDS;
+    int err = check_run(blk, length);
+    if (err) {
+        return err;
     }
-    status = write_now(blk, src);
+    status = write_now(blk, src, length);
     return 0;
 }
 
@@ -405,12 +423,12 @@ static int finish(void) {
 
 int blk_read(uint32_t blk, uint32_t *dest) {
     finish();
-    int err = blk_read_imm(blk, dest);
+    int err = blk_read_imm(blk, dest, 1);
     return err ? err : finish();
 }
 
 int blk_write(uint32_t blk, uint32_t *src) {
     finish();
-    int err = blk_write_imm(blk, src);
+    int err = blk_write_imm(blk, src, 1);
     return err ? err : finish();
 }

@@ -81,11 +81,9 @@ Right Click on the Title Bar, select Change Settings.
 When you get PuTTY set up like you want, click on Default Settings and hit the Save button.
 PuTTY displays CJK correctly.
 
-### Raw mode only
+### Kwai
 
-Realterm and Wezterm. Wezterm is CLI.
-
-`wezterm serial COM5 --baud 115200`
+[kwai](https://github.com/bradleyeckert/kwai) is specifically made for LiteForth.
 
 -----
 ## mouse usage

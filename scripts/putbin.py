@@ -14,8 +14,7 @@ cross block boundaries, and putbin.py says how many.
 The block file defaults to lfblocks.fb4 in the current directory, as for
 `lf`. It must already exist and start with the signature LITEFORTH, and
 block 0 is never written, as with putblocks.py. A block past the end of a
-regular file extends the file with blank (space) blocks; a device, such as
-a partition (/dev/sdb2), is never extended.
+file extends it with blank (space) blocks.
 
 It prints the blocks it wrote and the next free block, which is where the
 next file can go:
@@ -25,7 +24,6 @@ next file can go:
 -n  only show what would be written.
 """
 import os
-import stat
 import struct
 import sys
 
@@ -108,13 +106,8 @@ def main(argv):
             print(f"error: {target} doesn't start with {SIGNATURE.decode()}, "
                   f"so it isn't a LiteForth block file", file=sys.stderr)
             return 1
-        regular = stat.S_ISREG(os.fstat(f.fileno()).st_mode)
         f.seek(0, os.SEEK_END)
         capacity = f.tell() // BLOCK_BYTES
-        if last >= capacity and not regular:
-            print(f"error: block {last} is past the end of {target} "
-                  f"({capacity} blocks)", file=sys.stderr)
-            return 1
         span = f"block {first}" if count == 1 else f"blocks {first}-{last}"
         print(f"{source}: {len(data)} bytes at byte {OFFSET} of block {first}: "
               f"{span}, next free block {last + 1}")

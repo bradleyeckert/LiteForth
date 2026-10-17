@@ -284,12 +284,11 @@ executes a word. Execution continues until the return stack is empty.
 ## Block usage
 
 Each mass storage block is 4 KB, not 1 KB as with Forth 79, 83, or 94.
-An SD card with two MBR partitions, with a 16 GB second partition,
-would hold 4M 4KB blocks. MBR (an old classic!) supports 2TB partitions
-on SD cards.
-
-GPT partitioning supports essentially an infinite partition.
-However, a 32-bit block number can only address 16 TB of block storage.
+The blocks live in one file, `lfblocks.fb4`, in the root directory of the
+microSD card's exFAT volume ([sdcard.md](sdcard.md), [exfat.md](exfat.md)):
+block n is the file's n-th 4 KB, and the file's size sets the capacity.
+A 16 MB file holds 4K blocks. exFAT files can be far larger than anyone
+needs here; a 32-bit block number can address 16 TB.
 
 Supposing a code space of 256 KB, a 32:1 source-to-object ratio
 (the code has lots of comments) is 8 MB (2K blocks).
@@ -304,7 +303,7 @@ Today the only required content is the signature: block 0 must start with
 `LITEFORTH` (9 bytes). A block device without it reports a capacity of 1:
 block 0 can be read, to see what's there, but no block can be written.
 The fields below are planned and are not read yet.
-Essential boilerplate identifies the partition type, so block 0 starts with
+Essential boilerplate identifies the block file, so block 0 starts with
 the following human readable strings. Strings are ASCII with no delimiter.
 Blanks (leading or trailing) are ignored.
 Hex strings are hexadecimal (base 16) numbers.
@@ -314,7 +313,7 @@ Hex strings are hexadecimal (base 16) numbers.
 | LITEFORTHBLK | 00 | ASCII | Magic Number / Signature (Identifies it as Forth) |
 | 1       | 10 | hex | Version Number of block format |
 | 1000    | 14 | hex | Block size in bytes |
-| 100     | 18 | hex | Total Blocks allocated in this partition |
+| 100     | 18 | hex | Total Blocks allocated in this file |
 | 100     | 22 | hex | First write-protected block |
 | 2       | 2C | hex | First block of constants list |
 | 5       | 35 | hex | Length of constants list (at 128 bytes each) |
@@ -324,19 +323,14 @@ Hex strings are hexadecimal (base 16) numbers.
 Viewed as a 64-column screen, with column numbers:
 ```
 LITEFORTHBLK    1   1000       100       100        2  3E8   80
-PartitionType   Ver Size Allocated WRprotect EQUblock EQUs Cols
+FileType        Ver Size Allocated WRprotect EQUblock EQUs Cols
 0000000000000000111111111111111122222222222222223333333333333333
 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
 A description of this block file is here, maybe instructions too
 ```
-Raw drive partitions can be edited with various hex editors:
-
-- **[HxD Hex Editor]**(https://mh-nexus.de) – A popular, free, and lightweight Windows
-editor with "Open disk" menu feature.
-- **[WinHex]**(https://x-ways.net) – An industry-standard commercial tool for Windows,
-capable of parsing MBR/GPT structures natively.
-- **[Active@ Disk Editor]**(https://disk-editor.org) – A free cross-platform tool
-(Windows, Linux, macOS).
+`lfblocks.fb4` is an ordinary file, so on a PC it is read and written with
+`getblocks.py` and `putblocks.py`, or looked at with any hex editor (set
+to 128 bytes per row, a row matches a line of `list`).
 
 ### Block 1
 

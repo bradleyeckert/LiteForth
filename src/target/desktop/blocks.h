@@ -6,6 +6,8 @@
 
 #define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
 #define BLK_MAX_LENGTH           8   /* most blocks one blk_*_imm call moves */
+#define BLK_SECTOR_BYTES         512
+#define BLK_MAX_SECTORS          64  /* most sectors one blk_sector_*_imm call moves */
 
 /* The first bytes of block 0 of every LiteForth block device. Without
    them, the device isn't LiteForth's: it reports 1 block, which can be
@@ -20,11 +22,12 @@
  * spaces, with BLK_SIGNATURE at the start of block 0. A file that starts
  * with BLK_SIGNATURE is padded with spaces to a whole number of blocks,
  * and all its blocks can be read and written. A file that doesn't is left
- * untouched and offers only block 0, read-only.
- * filename: the block file, or NULL or "" for BLOCKFILENAME. On Windows,
- * a drive letter ("F:") selects the block partition of that removable
- * disk instead (rawdisk.h); it fails if the disk can't be opened or has no
- * block partition, and is never created or padded.
+ * untouched. If it is a card image (card.h: an MBR, or none, and an exFAT
+ * volume holding lfblocks.fb4), the blocks are in that file, as the
+ * CH32H417 finds them on its microSD card; else only block 0 is offered,
+ * read-only. On Windows, the card's own file works as a plain block file:
+ * `lf -k F:\lfblocks.fb4`.
+ * filename: the block file, or NULL or "" for BLOCKFILENAME.
  * capacity: if not NULL, receives the number of blocks (1 or 0 for a file
  * without the signature).
  * Returns 0 if okay, or a negative error code if the file can't be
@@ -85,5 +88,40 @@ int blk_write_imm(uint32_t blk, uint32_t *src, int length);
  * write is in progress. The result stays until the next transfer starts.
  */
 int blk_status(void);
+
+/**
+ * Starts reading count card sectors (512 bytes each, 1 to BLK_MAX_SECTORS)
+ * from sector lba into dest (count * 128 cells), without waiting;
+ * blk_status says when it's done. These reach the whole card, not just the
+ * block space, for code that reads the file system (exfat.c, Forth).
+ * Returns 0 if the read started, ERR_BLK_BUSY, ERR_INVALID_NUMERIC for a
+ * count out of range, ERR_BLK_BOUNDS past the end of the card,
+ * or another negative error code that shows up at once.
+ */
+int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count);
+
+/**
+ * Starts writing count card sectors from src, like blk_sector_read_imm.
+ * Writes are fenced to the card's exFAT volume (blk_write_fence), so they
+ * can't reach the partition table or anything outside the volume.
+ * Returns 0 if the write started, ERR_BLK_WRITE_PROTECTED outside the
+ * fence, or the errors of blk_sector_read_imm.
+ */
+int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count);
+
+/**
+ * Reads count card sectors and waits until it's done: blk_sector_read_imm,
+ * then blk_status, after waiting for a transfer still in progress.
+ * Returns 0 or a negative error code.
+ */
+int blk_sector_read(uint32_t lba, uint32_t *dest, int count);
+
+/**
+ * Tells whether count sectors from lba may be written by
+ * blk_sector_write_imm: they must all be inside the exFAT volume that
+ * blk_init found.
+ * Returns 0 if they may, else ERR_BLK_WRITE_PROTECTED.
+ */
+int blk_write_fence(uint32_t lba, int count);
 
 #endif /* BLOCKS_H */

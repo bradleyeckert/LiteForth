@@ -16,7 +16,7 @@ in [doc/ch32h417-notes.md](../../../doc/ch32h417-notes.md).
 | `V3F/`, `V5F/` | Per-core MounRiver projects: `User/` (`main.c`, interrupts, clock setup) and project files |
 | `SRC/` | WCH's SDK, copied from [openwch/ch32h417 `EVT/EXAM/SRC`](https://github.com/openwch/ch32h417/tree/main/EVT/EXAM/SRC) (commit 6d1e469): `Core/`, `Debug/`, `Ld/` (linker scripts), `Peripheral/` (standard peripheral library), `Startup/` |
 | `V5F/User/serial_io.c/.h` | LiteForth's terminal I/O for the V5F, over the shared rings (below) |
-| `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage on the microSD card, and options for the V5F (below) |
+| `V5F/User/flash.c/.h`, `blocks.c/.h`, `options.h` | LiteForth's flash pages, block storage on the microSD card (in `lfblocks.fb4`, found by `src/exfat.c` and `src/card.c`), and options for the V5F (below) |
 | `V5F/User/sdio.c/.h` | WCH's SD card driver for the SDIO peripheral, copied unmodified from `EVT/EXAM/SDIO/SDIO_SD` (commit 3924a05) |
 | `V5F/User/main.c/.h`, `lftime.c/.h`, `lf_*.c`, `lf_vm_rv32.S` | LiteForth on the V5F: startup, the microsecond time base, and wrappers that compile LiteForth's `src/*.c` (and the assembly VM, `src/vm_rv32.S`) into the project (below) |
 
@@ -215,28 +215,36 @@ so only the sectors in the image are erased.
 
 ### Blocks: `V5F/User/blocks.c`
 
-Blocks live in a raw partition on the microSD card;
-[doc/sdcard.md](../../../doc/sdcard.md) explains how to prepare the card.
-The card is on the SDIO peripheral, which on the nanoCH32H417 uses CLK PB11,
-CMD PB10 and D0-D3 PE8-PE11 (alternate function 8). `blocks.c` uses WCH's
-driver (`sdio.c`) in polling mode: its DMA mode would use DMA1 channel 1,
-which the V3F's UART code also uses.
+Blocks live in `lfblocks.fb4`, a file in the root directory of the
+microSD card's exFAT volume; [doc/sdcard.md](../../../doc/sdcard.md)
+explains how to prepare the card. The card is on the SDIO peripheral,
+which on the nanoCH32H417 uses CLK PB11, CMD PB10 and D0-D3 PE8-PE11
+(alternate function 8). `blocks.c` uses WCH's driver (`sdio.c`) only to
+bring the card up; transfers are its own (below).
 
-At startup `blk_init` brings up the card, reads the MBR and takes the first
-partition of type `DA`:
+At startup `blk_init` brings up the card and calls `card_find_blocks`
+(`src/card.c`), which mounts the exFAT volume (`src/exfat.c`: the first
+MBR partition of type `07`, or a volume at sector 0) and looks for
+`lfblocks.fb4` in the root directory:
 
 | Card | Capacity | Writable |
 |---|---|---|
-| No card, no MBR, or no type `DA` partition | 0 | no |
-| Partition not on a 64 KB boundary, or block 0 doesn't start with `LITEFORTH` | 1 (block 0, to see what's there) | no |
-| Aligned partition starting with `LITEFORTH` | its size in 4 KB blocks | yes |
+| No card, no exFAT volume, no `lfblocks.fb4`, or a fragmented one | 0 | no |
+| `lfblocks.fb4` whose block 0 doesn't start with `LITEFORTH` | 1 (block 0, to see what's there) | no |
+| `lfblocks.fb4` starting with `LITEFORTH` | its ValidDataLength / 4096 | yes |
 
-Block *n* is sectors `start + 8n` to `start + 8n + 7`. USART1 shows the
-outcome, e.g. `V5F blocks: 16384 blocks at sector 15392768` or
-`V5F blocks: block 0 doesn't start with LITEFORTH: read-only`. The card is
-read once at startup, so a card inserted later needs a restart (Ctrl+X
+Block *n* is card sectors `base + 8n` to `base + 8n + 7`, where `base` is
+the file's first sector. USART1 shows the outcome, e.g.
+`V5F blocks: lfblocks.fb4, 121 blocks at sector 34816 (exFAT)`. The card
+is read once at startup, so a card inserted later needs a restart (Ctrl+X
 three times will do). If transfers fail, try a slower SD clock: raise
 `SDIO_TRANSFER_CLK_DIV` in `sdio.h`.
+
+Underneath, every transfer is a run of 1 to 64 card sectors
+(`blk_sector_read_imm`, `blk_sector_write_imm`); a block is 8 of them.
+Sector writes are fenced to the exFAT volume (`blk_write_fence`), so they
+can't reach the partition table. They are there for exFAT code in Forth,
+which doesn't have words for them yet ([doc/exfat.md](../../../doc/exfat.md)).
 
 `blk_read_imm` and `blk_write_imm` start a transfer of 1 to 8
 consecutive blocks (`BLK_MAX_LENGTH`, up to 32 KB, one CMD18 or CMD25)
@@ -332,7 +340,7 @@ After it wakes the V3F, the V5F starts the time base (`lfTimeInit`), opens
 the terminal (first, because starting the SD card can take a second and
 `serial_open` is what tells the V3F a restart worked), maps
 LiteForth's memory as the desktop `main.c` does (flash pages 0-3 in the
-code flash, the RAM page from the pool, the block partition on the SD
+code flash, the RAM page from the pool, the block file on the SD
 card, the rest unmapped), and runs
 `lfQuit` on the USB terminal. If flash page 0 holds a saved image (cell 1,
 the boot record pointer that `core.f` stores, isn't `0xE339E339` or

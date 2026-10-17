@@ -12,6 +12,7 @@ Each script prints its full usage with `-h`.
 | `putbin.py` | Writes a binary file, such as a font, into blocks |
 | `mkfont.py` | Makes 4-bit anti-aliased bitmap fonts for the graphic LCDs |
 | `lintf.py` | Checks Forth source against `doc/coding-rules.md` |
+| `mkexfat.py` | Builds small exFAT card images (with `lfblocks.fb4` inside) for testing; `lf -k card.img` uses one as the board uses its card |
 | `lfmcp.py` | Gives an AI assistant (an MCP client such as the Claude desktop app) LiteForth's terminal on a serial port |
 
 The other files here aren't Python: `regression.f` is the test script that
@@ -22,9 +23,9 @@ booting `lf` (F9) and running the regression tests (F12).
 
 A block file (`lfblocks.fb4` by default) holds 4 KB blocks, block n at
 byte n × 4096. Block 0 starts with the signature `LITEFORTH` and is never
-written by these scripts. The scripts need an existing signed file; they
-extend a regular file as needed, but not a device such as an SD card
-partition (`/dev/sdb2`), which they can also write to directly.
+written by these scripts. The scripts need an existing signed file, and
+extend it as needed. The `lfblocks.fb4` on a LiteForth microSD card is
+such a file, so they can write to it in place (`F:\lfblocks.fb4`).
 
 ## putblocks.py
 

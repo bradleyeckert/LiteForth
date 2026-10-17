@@ -31,7 +31,7 @@ A 4 KB block eliminates the need for shadow blocks and allows for 79 columns of 
 
 In the PC environment, `./scripts` contains Python scripts to convert back and forth between files and blocks.
 
-On an MCU the blocks live in a raw partition on a microSD card; see [sdcard.md](sdcard.md) to prepare one.
+On an MCU the blocks live in `lfblocks.fb4` on an exFAT microSD card; see [sdcard.md](sdcard.md) to prepare one.
 
 ### Binary data: `putbin.py`
 
@@ -46,12 +46,13 @@ py ..\scripts\putbin.py cjk24.fnt 100 ..\bin\lfblocks.fb4
 cjk24.fnt: 107974 bytes at byte 32 of block 100: blocks 100-126, next free block 127
 ```
 
-Like `putblocks.py`, it needs a signed block file (or partition) and never
+Like `putblocks.py`, it needs a signed block file and never
 writes block 0. `getblocks.py` shows each binary block as one
 `( BLOCK IGNORE ) block n: binary, crc32 ...` line, which `putblocks.py`
 skips, so a dump written back leaves the binary blocks alone. `xmodem`
 only takes text, so to get binary data onto the board, write it into the
-block file on the PC and copy that to the card ([sdcard.md](sdcard.md)).
+block file on the PC and copy that to the card ([sdcard.md](sdcard.md)),
+or write it straight into the card's own `lfblocks.fb4`.
 
 ### Sending source over the terminal: `xmodem`
 

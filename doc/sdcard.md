@@ -1,498 +1,92 @@
 # Preparing a microSD card for LiteForth
 
-LiteForth keeps its blocks in a raw partition on the card, with no file
-system. The card gets two partitions:
+LiteForth keeps its blocks in an ordinary file, `lfblocks.fb4`, in the root
+directory of the card's exFAT volume. Preparing a card is: format it as
+exFAT (if it isn't already), copy the file, eject.
 
-| # | Holds | MBR type | Where |
-|---|---|---|---|
-| 1 | A FAT32 or exFAT file system, for files you share with a PC | `0C` (FAT32, LBA) or `07` (exFAT) | From 1 MiB to the start of partition 2 |
-| 2 | LiteForth blocks, 4 KB each | `DA` (non-FS data) | The last 64 MiB of the card (16,384 blocks), or whatever size you choose |
+## 1. Format the card as exFAT
 
-The partition table is the classic MBR ("DOS") kind that SD cards come
-with, not GPT. LiteForth reads it from sector 0 and uses the first entry of
-type `DA`:
+Cards over 32 GB (SDXC) come formatted as exFAT, so they're ready. Cards of
+32 GB or less (SDHC) usually come as FAT32, which LiteForth doesn't read;
+format those as exFAT. Formatting erases the card.
 
-- **Capacity:** the entry's sector count / 8 (a 4 KB block is eight 512-byte
-  sectors). 64 MiB gives 16,384 blocks.
-- **Alignment:** the partition must start on a 64 KB boundary, a multiple of
-  128 sectors. The steps below put both partitions on 1 MiB boundaries
-  (2048 sectors), which are always 64 KB aligned, and make the block
-  partition a whole number of MiB.
+- **Windows:** in File Explorer, right-click the card, *Format...*, File
+  system *exFAT*, *Quick Format*, *Start*.
+- **macOS:** Disk Utility, select the card (the device, not just the
+  volume), *Erase*, Format *ExFAT*, Scheme *Master Boot Record*.
+- **Linux:** `sudo mkfs.exfat -L LITEFORTH /dev/sdX1` (from `exfatprogs`),
+  on the card's first partition.
 
-Type `DA` keeps Windows and macOS from offering to format the block
-partition or mount it.
+What LiteForth needs from the card:
 
-The partition must also start with the signature `LITEFORTH`, the first 9
-bytes of block 0. It marks the card as LiteForth's: LiteForth never writes
-it, so it can't mistake another card's raw data for blocks and overwrite
-it. Without the signature, LiteForth reports a capacity of 1 block and
-lets you read block 0, to see what's there, but refuses to write any block.
-On the CH32H417, the debug UART (USART1) says which case it found at
-startup. Partitioning doesn't write the signature, so it's the last step for every system:
-[Marking the partition for LiteForth](#marking-the-partition-for-liteforth).
-Block 0 will hold more metadata as LiteForth develops; for now the
-signature is all it needs.
+- An MBR partition table with the exFAT volume in a partition of type `07`
+  (what all three formatters make), or no partition table, with the volume
+  starting at sector 0. GPT isn't read.
+- 512-byte sectors and one FAT: every SD card formatter makes those. Any
+  cluster size works.
 
-**Partitioning erases the whole card.** Each section below starts by
-finding the card's device name. Check it twice: choosing the wrong disk
-destroys that disk's contents.
+## 2. Copy lfblocks.fb4 to the root directory
 
-Pick the size of the block partition before you start: 64 MiB is plenty
-for source (the design notes in [popthehood.md](popthehood.md) estimate
-8 MB for a large system). Any whole number of MiB works.
+Drag `bin/lfblocks.fb4` (made by `forth/build.bat`) onto the card, into the
+top folder, not a subfolder. The name may be in any case.
 
----
+- **Its size sets the capacity.** The board gets the file's length / 4096
+  blocks. The board writes blocks inside the file but never makes it
+  longer, so give it room on the PC: `putblocks.py` and `putbin.py` extend
+  it as they write, and blank blocks can be added the same way.
+- **Block 0 must start with `LITEFORTH`.** Every block file the scripts and
+  `lf` make does. Without it the board can read block 0 but writes nothing.
+- **It must be in one piece.** LiteForth maps block n straight to the
+  file's n-th 4 KB, so the file's clusters must be contiguous. A file copied
+  onto a card with free space almost always is. If the board says it is
+  fragmented, delete it and copy it again, or reformat the card first.
 
-## Linux
+Eject the card before taking it out, so the PC finishes writing.
 
-You need `sfdisk` (in `util-linux`, already installed on most systems),
-plus `mkfs.vfat` (`dosfstools`) for FAT32 or `mkfs.exfat` (`exfatprogs`)
-for exFAT.
+## 3. On the board
 
-1. Find the card. Plug it in and run `lsblk`. It's the disk whose size
-   matches the card, for example `sdb` (USB reader) or `mmcblk0` (built-in
-   reader). Use the whole disk, not a partition such as `sdb1`.
-
-2. Set the device and the block partition size, and unmount anything the
-   desktop mounted from the card:
-
-   ```sh
-   DEV=/dev/sdb          # the card: check with lsblk!
-   BLOCKS_MIB=64         # size of the LiteForth block partition
-   sudo umount ${DEV}?* 2>/dev/null
-   ```
-
-3. Work out where the partitions go. Everything is in 512-byte sectors;
-   2048 sectors is 1 MiB.
-
-   ```sh
-   SECTORS=$(sudo blockdev --getsz $DEV)              # sectors on the card
-   P2_SIZE=$(( BLOCKS_MIB * 2048 ))                   # block partition
-   P2_START=$(( (SECTORS - P2_SIZE) / 2048 * 2048 ))  # at the end, on a MiB boundary
-   P1_START=2048                                      # FAT partition from 1 MiB
-   P1_SIZE=$(( P2_START - P1_START ))                 # up to the block partition
-   echo "FAT: $P1_START +$P1_SIZE  blocks: $P2_START +$P2_SIZE ($(( P2_SIZE / 8 )) blocks)"
-   ```
-
-4. Write the partition table. For exFAT, change `type=c` to `type=7`.
-
-   ```sh
-   sudo sfdisk $DEV <<EOF
-   label: dos
-   unit: sectors
-   start=$P1_START, size=$P1_SIZE, type=c
-   start=$P2_START, size=$P2_SIZE, type=da
-   EOF
-   ```
-
-5. Format partition 1. Partition names get a `p` when the disk name ends in
-   a digit: `/dev/sdb1`, but `/dev/mmcblk0p1`.
-
-   ```sh
-   P=$DEV; case $DEV in *[0-9]) P=${DEV}p ;; esac
-   sudo mkfs.vfat -F 32 -n LITEFORTH ${P}1     # FAT32
-   # or: sudo mkfs.exfat -L LITEFORTH ${P}1    # exFAT
-   ```
-
-6. Check: `sudo sfdisk -d $DEV` lists both partitions. Partition 2 should
-   have `type=da` and a `start=` that divides evenly by 128.
-
----
-
-## Windows
-
-Use `diskpart` from an administrator Command Prompt or PowerShell. It needs
-Windows 10 version 1703 or later to use more than one partition on a
-removable card.
-
-1. Start `diskpart` and find the card:
-
-   ```
-   diskpart
-   list disk
-   ```
-
-   The card is the disk whose size matches it, for example `Disk 2   29 GB`.
-
-2. Work out the size of partition 1 in MB: the card's size in MB minus
-   twice the block partition size. For a card listed as `29 GB` and a 64 MB
-   block partition: 29 × 1024 − 128 = 29568. Leaving a little more than
-   the block partition needs makes sure it fits after rounding; any unused
-   space at the end does no harm.
-
-3. Partition and format. Replace `2` with the card's disk number and
-   `29568` with your size. `clean` erases the card's partition table.
-
-   ```
-   select disk 2
-   detail disk
-   clean
-   create partition primary size=29568 align=1024
-   format fs=fat32 quick label=LITEFORTH
-   assign
-   create partition primary size=64 id=DA align=1024
-   list partition
-   exit
-   ```
-
-   Run `detail disk` first and make sure it describes the SD card, not
-   another drive. `align=1024` puts each partition on a 1 MB boundary.
-   `format fs=fat32` only works for partitions up to 32 GB; for a larger
-   card use `fs=exfat`. The block partition gets no drive letter, and
-   Windows leaves it alone.
-
-4. Check: `list partition` (before `exit`) shows partition 1 and a 64 MB
-   partition 2. Its offset is a whole number of MB, so it's 64 KB aligned.
-
----
-
-## macOS
-
-macOS's `diskutil` can't make a partition of type `DA`, so this uses
-`fdisk`'s interactive editor for the partition table and `diskutil` for the
-file system. These steps follow macOS's `fdisk` and `diskutil` documentation
-but haven't been tried on a Mac; the check in step 6 shows whether the
-result is right.
-
-1. Find the card: `diskutil list`. It's an `(external, physical)` disk whose
-   size matches, for example `/dev/disk4`. Then unmount it:
-
-   ```sh
-   DISK=disk4            # the card: check with diskutil list!
-   diskutil unmountDisk /dev/$DISK
-   ```
-
-2. Work out where the partitions go. `diskutil info` gives the size in
-   bytes:
-
-   ```sh
-   BLOCKS_MIB=64
-   BYTES=$(diskutil info /dev/$DISK | sed -n 's/.*Disk Size:.*(\([0-9]*\) Bytes).*/\1/p')
-   SECTORS=$(( BYTES / 512 ))
-   P2_SIZE=$(( BLOCKS_MIB * 2048 ))
-   P2_START=$(( (SECTORS - P2_SIZE) / 2048 * 2048 ))
-   P1_START=2048
-   P1_SIZE=$(( P2_START - P1_START ))
-   echo "FAT: $P1_START +$P1_SIZE  blocks: $P2_START +$P2_SIZE"
-   ```
-
-3. Edit the partition table with `sudo fdisk -e /dev/r$DISK`. At its
-   `fdisk:` prompt, enter the commands below. Each `edit` asks for the
-   partition ID, whether to use CHS mode, and then the offset and size in
-   sectors; answer with the numbers from step 2.
-
-   ```
-   erase
-   edit 1        ID: 0C   CHS mode: n   offset: P1_START   size: P1_SIZE
-   edit 2        ID: DA   CHS mode: n   offset: P2_START   size: P2_SIZE
-   print
-   write
-   quit
-   ```
-
-   For exFAT, give partition 1 the ID `07` instead of `0C`. If macOS
-   remounts or complains about the card afterwards, unmount it again.
-
-4. Format partition 1 (`s1`):
-
-   ```sh
-   diskutil eraseVolume FAT32 LITEFORTH ${DISK}s1
-   # or: diskutil eraseVolume ExFAT LITEFORTH ${DISK}s1
-   ```
-
-5. Eject the card with `diskutil eject /dev/$DISK`.
-
-6. Check: `sudo fdisk /dev/$DISK` prints the table. Partition 2 should have
-   ID `DA` and a start that divides evenly by 128.
-
----
-
-## Marking the partition for LiteForth
-
-Write `LITEFORTH` at the start of partition 2. Optionally, fill the
-partition with spaces (ASCII 20h) first: otherwise the blocks hold
-whatever the card held before, so `list` shows noise and `load` would
-interpret it. Filling overwrites the start of the partition too, so do it
-before writing the signature.
-
-### Linux
-
-With `P` and `BLOCKS_MIB` from the Linux steps:
-
-```sh
-# optional: fill the block partition with spaces
-tr '\000' ' ' < /dev/zero | head -c $(( BLOCKS_MIB * 1048576 )) | sudo dd of=${P}2 bs=1M status=progress
-# required: the signature
-printf 'LITEFORTH' | sudo dd of=${P}2 conv=notrunc
-sync
-```
-
-### macOS
-
-With `DISK` and `BLOCKS_MIB` from the macOS steps. Write to the
-partition's block device (`/dev/diskNs2`), not the raw `/dev/rdiskNs2`,
-which only takes whole sectors:
-
-```sh
-# optional: fill the block partition with spaces
-tr '\000' ' ' < /dev/zero | head -c $(( BLOCKS_MIB * 1048576 )) | sudo dd of=/dev/${DISK}s2 bs=1m
-# required: the signature
-printf 'LITEFORTH' | sudo dd of=/dev/${DISK}s2 conv=notrunc
-sync
-```
-
-### Windows
-
-Windows has no built-in disk editor. Either copy a block file to the
-partition with PowerShell, which writes the signature with block 0 (see
-[Copying lfblocks.fb4 to the card](#copying-lfblocksfb4-to-the-card)), or
-use a disk editor from the list below, running as administrator. In HxD: *Tools >
-Open disk*, choose the card's physical disk with *Open as Readonly*
-unchecked, *Search > Go to* byte offset `P2_START` × 512 (the start of
-partition 2; see [Finding a block](#finding-a-block)), type `LITEFORTH`
-over the first 9 bytes in the text column, and *File > Save*. In Active@
-Disk Editor, open partition 2 itself and type it at offset 0.
-
-### Checking it
-
-On Linux, `sudo head -c 9 ${P}2` prints `LITEFORTH` (on macOS,
-`sudo head -c 9 /dev/${DISK}s2`). On the board, `capacity .` shows the
-partition's size in blocks (16384 for 64 MiB) instead of 1.
-
----
-
-## Using the card with lf on Windows
-
-The desktop `lf` can use the card's block partition instead of
-`lfblocks.fb4`: give the card's drive letter (the FAT partition's) as the
-block file.
+At startup the debug UART (USART1, on the WCHLinkE's COM port) says what
+LiteForth found, for example:
 
 ```
-lf -k F:
+V5F blocks: lfblocks.fb4, 4096 blocks at sector 34816 (exFAT)
 ```
 
-`lf` finds the disk that holds `F:`, reads its MBR, and uses the block
-partition just as the board does: the first entry of type `DA`, which
-must be 64 KB aligned and start with the signature to be writable. At
-startup it says on stderr what it found, for example
-`blocks: 16384 blocks at sector 60751872`.
+and `capacity .` at the terminal shows the same number of blocks. If it's
+0, the debug line says why:
 
-- **Run it as administrator.** Windows only allows raw disk access to
-  administrators; otherwise `lf` says so and exits.
-- **Only removable drives.** `lf` refuses a drive that Windows doesn't
-  report as removable, so a slip of the letter can't reach a hard disk or
-  a USB SSD.
-- **The FAT partition stays usable.** `lf` only reads sector 0 and writes
-  inside the block partition, which has no volume, so Windows allows the
-  writes while `F:` is mounted.
-- Eject the card from Windows before moving it to the board: writes go
-  straight to the card, but ejecting makes sure the FAT side is flushed.
+| Message | What to do |
+|---|---|
+| `no SD card` | Check that the card is in |
+| `no exFAT volume` | Format the card as exFAT (step 1) |
+| `no lfblocks.fb4 in the exFAT root directory` | Copy the file to the top folder (step 2) |
+| `lfblocks.fb4 is fragmented: copy it to the card again` | Delete it and copy it again |
+| `lfblocks.fb4 is shorter than one block` | The file is empty or damaged |
+| `...: block 0 doesn't start with LITEFORTH, read-only` | The file isn't a LiteForth block file |
 
-On Linux or macOS, `-k` takes a path, and a drive letter is just a file
-name. Giving the partition device itself, such as `-k /dev/sdb2` (as root),
-should work as an ordinary block file, since it starts with the signature;
-this hasn't been tried.
+The card is read once at startup, so after changing cards, restart (Ctrl+X
+three times does).
 
----
+Don't edit the file on the PC and on the board at the same time: take the
+card out of one before using it in the other.
 
-## Editing blocks with a raw disk editor
+## Working with the card on the PC
 
-The block partition has no file system, so you look at and change its data
-with a raw disk (sector) editor. Run it as administrator (Windows) or root
-(Linux). The block partition is never mounted, so nothing else is using
-it; still, keep a copy before changing anything, since an editor writes
-straight to the card.
+The card's `lfblocks.fb4` is an ordinary block file, so everything that
+works on `bin/lfblocks.fb4` works on it:
 
-### Finding a block
+- `lf -k F:\lfblocks.fb4` runs the desktop LiteForth on the card's blocks.
+- `py scripts\putblocks.py forth\core.f F:\lfblocks.fb4` writes source into
+  it, and `getblocks.py` dumps it.
 
-Block *n* is the 4 KB (0x1000 bytes) at offset *n* × 4096 from the start
-of partition 2. Block 0 starts with the `LITEFORTH` signature.
+The desktop `lf -k` also takes an image of a whole card (an MBR and an
+exFAT volume holding `lfblocks.fb4`) and finds the file inside it as the
+board does. `scripts/mkexfat.py` makes small test images:
 
-- An editor that opens **partition 2 itself** (`/dev/sdb2` on Linux, or
-  the partition chosen in the editor's disk dialog) shows block *n* at
-  offset *n* × 0x1000.
-- An editor that opens **the whole card** needs the partition's start
-  sector first: `P2_START` from the steps above, `sudo sfdisk -d /dev/sdb`
-  on Linux, or `list partition` / `detail partition` in `diskpart`. Block
-  *n* is then at byte offset `P2_START` × 512 + *n* × 4096, or at sector
-  `P2_START` + 8 × *n*.
-
-Block text is UTF-8, 4096 bytes per block. LiteForth shows a block as 32
-lines of 128 columns (`SCREEN_COLUMNS`), so an editor set to 128 bytes per
-row lines up with what `list` shows. Overwrite characters rather than
-inserting or deleting them, so the block stays exactly 4096 bytes.
-
-### Windows
-
-- **[HxD](https://mh-nexus.de/en/hxd/)** (free). *Tools > Open disk*
-  lists physical disks and lettered volumes. The block partition has no
-  drive letter, so open the card's physical disk (with *Open as Readonly*
-  unchecked to edit), then use *Search > Go to* with the byte offset
-  above. *Edit > Select block* and *File > Save as* can copy a range of
-  sectors to a file.
-- **[Active@ Disk Editor](https://www.disk-editor.org/)** (free; Windows,
-  Linux and macOS). Lists the partitions on each disk, so you can open
-  partition 2 directly, and has templates for decoding the MBR.
-- **[WinHex](https://www.x-ways.net/winhex/)** (commercial). *Tools > Open
-  Disk* shows physical disks and their partitions, and it can interpret the
-  MBR and jump to a partition.
-- **[wxHexEditor](https://www.wxhexeditor.org/)** (free, open source;
-  Windows, Linux and macOS). Opens disk devices for editing. Its last
-  release is a 2017 beta.
-
-### Linux
-
-- **`hexedit`** (terminal, in most distributions' packages):
-  `sudo hexedit /dev/sdb2` opens the block partition. Enter jumps to an
-  offset (prefix hex with `0x`: `0x5000` is block 5), Tab switches between the
-  hex and text columns, F2 saves and Ctrl+C quits without saving.
-- **[wxHexEditor](https://www.wxhexeditor.org/)**: *Devices > Open Disk
-  Device*, then choose `/dev/sdb2`. Start it with `sudo`.
-- **[Active@ Disk Editor](https://www.disk-editor.org/)**: the Linux
-  version opens the partition directly, as on Windows.
-- **`dd`, for one block at a time.** Copy block *n* out, edit the copy with
-  any hex or text editor that keeps it at 4096 bytes, and write it back:
-
-  ```sh
-  N=5
-  sudo dd if=/dev/sdb2 of=block$N.bin bs=4096 skip=$N count=1        # read block N
-  fold -w 128 block$N.bin                                             # view it as LiteForth shows it
-  sudo dd if=block$N.bin of=/dev/sdb2 bs=4096 seek=$N count=1 conv=notrunc,fsync  # write it back
-  ```
-
-  Check the size before writing back: `stat -c %s block$N.bin` must say
-  4096.
-
----
-
-## Copying lfblocks.fb4 to the card
-
-A block file such as `bin/lfblocks.fb4` is the same 4 KB blocks as the
-block partition, block 0 first, so copying the file to the start of
-partition 2 puts its blocks on the card. Block 0 of the file holds the
-`LITEFORTH` signature, so this also marks the partition: on a freshly
-partitioned card you can do this instead of
-[Marking the partition for LiteForth](#marking-the-partition-for-liteforth).
-
-- The copy replaces blocks 0 to *n*−1 of the partition, where *n* is the
-  file's size / 4096, and leaves the blocks after them as they were.
-- The file must not be larger than the partition. Each method below checks.
-- Write to partition 2, never to partition 1 or the whole card's start:
-  that would destroy the FAT file system or the partition table.
-
-On Linux, `putblocks.py` can also write source straight into the
-partition, without a block file in between:
-`sudo python3 scripts/putblocks.py forth/core.f ${P}2`.
-
-### Linux
-
-With `P` from the Linux steps:
-
-```sh
-FILE=bin/lfblocks.fb4
-SIZE=$(stat -c %s $FILE)
-if [ $SIZE -le $(sudo blockdev --getsize64 ${P}2) ]; then
-    sudo dd if=$FILE of=${P}2 bs=4096 conv=notrunc,fsync status=progress
-    sudo cmp -n $SIZE $FILE ${P}2 && echo "copied"
-else
-    echo "$FILE is larger than the partition"
-fi
+```
+python3 scripts/mkexfat.py card.img --file lfblocks.fb4=bin/lfblocks.fb4
+./bin/lf -k card.img
 ```
 
-### macOS
-
-With `DISK` from the macOS steps. The raw device `/dev/rdiskNs2` is
-faster, and the file is whole sectors:
-
-```sh
-FILE=bin/lfblocks.fb4
-SIZE=$(stat -f %z $FILE)
-PART=$(diskutil info /dev/${DISK}s2 | sed -n 's/.*Disk Size:.*(\([0-9]*\) Bytes).*/\1/p')
-diskutil unmountDisk /dev/$DISK
-if [ $SIZE -le $PART ]; then
-    sudo dd if=$FILE of=/dev/r${DISK}s2 bs=4096
-    sudo cmp -n $SIZE $FILE /dev/${DISK}s2 && echo "copied"
-else
-    echo "$FILE is larger than the partition"
-fi
-diskutil eject /dev/$DISK
-```
-
-### Windows
-
-PowerShell can do it with .NET file I/O on the card's physical disk, as
-`lf -k` does (see [Using the card with lf on Windows](#using-the-card-with-lf-on-windows)).
-DISM can't: it applies `.wim` and `.ffu` images to a volume or to a whole
-disk, not a file to an offset inside a partition. These steps haven't been
-tried on Windows yet; the check at the end shows whether the copy worked.
-
-1. Open PowerShell as administrator, and find the card's disk number with
-   `Get-Disk` (check the size and name), or `Get-Partition -DriveLetter F`
-   for the card's drive letter (`DiskNumber`).
-
-2. Run this, with `$disk` set to that number and `$file` to the block
-   file. It finds the first partition of type `DA` itself, and stops if
-   there is none or the file doesn't fit:
-
-   ```powershell
-   $disk = 2                                  # the card: check with Get-Disk!
-   $file = "C:\LiteForth\bin\lfblocks.fb4"    # fill in the actual path
-
-   # 1. Launch Windows PowerShell in Administrator mode.
-   # 2. Enter `Get-Disk` to list the disk numbers. Verify that $disk matches.
-   # 3. Enter `powershell -ExecutionPolicy Bypass` to allow the script to run.
-
-   $part = Get-Partition -DiskNumber $disk | Where-Object MbrType -eq 0xDA | Select-Object -First 1
-   if (-not $part) { throw "disk $disk has no partition of type DA" }
-   $data = [System.IO.File]::ReadAllBytes($file)
-   if ($data.Length -gt $part.Size) { throw "$file is larger than the partition" }
-   if ($data.Length % 512) { throw "$file isn't whole sectors" }
-
-   # Windows PowerShell's FileStream won't open \\.\ devices by name, so
-   # open the disk with CreateFile and give FileStream the handle.
-   Add-Type -Namespace LF -Name Disk -MemberDefinition @'
-   [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-   public static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFile(
-       string name, int access, int share, IntPtr security, int creation, int flags, IntPtr template);
-   '@
-   # GENERIC_READ | GENERIC_WRITE, shared, OPEN_EXISTING
-   $h = [LF.Disk]::CreateFile("\\.\PhysicalDrive$disk", -1073741824, 3, [IntPtr]::Zero, 3, 0, [IntPtr]::Zero)
-   if ($h.IsInvalid) { throw "can't open disk ${disk}: run PowerShell as administrator" }
-   $s = New-Object System.IO.FileStream($h, [System.IO.FileAccess]::ReadWrite)
-   $s.Seek($part.Offset, [System.IO.SeekOrigin]::Begin) | Out-Null
-   $s.Write($data, 0, $data.Length)
-   $s.Flush()
-
-   # Check: read the blocks back and compare
-   $back = New-Object byte[] $data.Length
-   $s.Seek($part.Offset, [System.IO.SeekOrigin]::Begin) | Out-Null
-   $n = 0
-   while ($n -lt $back.Length) { $n += $s.Read($back, $n, $back.Length - $n) }
-   $s.Close()
-   if ([Convert]::ToBase64String($back) -eq [Convert]::ToBase64String($data)) { "copied" } else { "the card differs from $file" }
-   ```
-
-   The writes go to the block partition, which has no volume, so Windows
-   allows them while the card's FAT partition (`F:`) is mounted, as it
-   does for `lf -k F:`.
-
-3. Eject the card from Windows before moving it to the board.
-
-`lf -k F:` (as administrator) then shows the card's blocks: `1 list`
-should match `1 list` on `lf` with the file.
-
-### Copying the card to a file
-
-To go the other way, for example to keep the card's blocks in git or to
-look at them with `getblocks.py`, copy the first *n* blocks back to a file.
-On Linux:
-
-```sh
-N=64                  # blocks to copy
-sudo dd if=${P}2 of=card.fb4 bs=4096 count=$N
-python3 scripts/getblocks.py card.fb4
-```
-
-On macOS, use `if=/dev/r${DISK}s2`. On Windows, open the disk as above
-with `$s.Read` into a `byte[]` of *n* × 4096 bytes from `$part.Offset`,
-then `[System.IO.File]::WriteAllBytes("card.fb4", $bytes)`.
+[exfat.md](exfat.md) describes how LiteForth reads exFAT and what comes
+next (sector access for Forth, and files written by the board).

@@ -1,27 +1,26 @@
 /*
- * Block mass storage for the CH32H417 (V5F): a raw partition on the
- * microSD card. See blocks.h, and doc/sdcard.md for the card layout.
+ * Block mass storage for the CH32H417 (V5F), on the microSD card. See
+ * blocks.h, doc/exfat.md and doc/sdcard.md for the card layout.
  *
  * The card is reached through the SDIO peripheral. WCH's driver (sdio.c,
- * from EVT/EXAM/SDIO/SDIO_SD, unmodified) brings it up and reads the MBR
- * in polling mode. Block transfers use DMA (BLK_DMA, below), driven from
- * here: WCH's DMA mode waits for the transfer and uses DMA1 channel 1,
- * which the V3F's UART code also uses (USART4 TX; channel 2 is its RX).
- * This file uses DMA2 channel 1 instead, routed to the SDIO request
- * through DMAMUX channel 9. A 4 KB block is 8 sectors; a run of 1 to
- * BLK_MAX_LENGTH blocks (up to 32 KB) is moved with one multiple-block
- * command (CMD18 or CMD25) and ended with CMD12. Block
- * buffers are cell arrays, so they meet the 4-byte alignment DMA needs.
+ * from EVT/EXAM/SDIO/SDIO_SD, unmodified) brings it up. Transfers use DMA
+ * (BLK_DMA, below), driven from here: WCH's DMA mode waits for the
+ * transfer and uses DMA1 channel 1, which the V3F's UART code also uses
+ * (USART4 TX; channel 2 is its RX). This file uses DMA2 channel 1
+ * instead, routed to the SDIO request through DMAMUX channel 9.
  *
- * The partition is the first MBR entry of type 0xDA. It must start on a
- * 64 KB boundary (a multiple of 128 sectors), and its block 0 must start
- * with BLK_SIGNATURE; otherwise only block 0 is readable.
+ * Everything is a run of 1 to BLK_MAX_SECTORS 512-byte card sectors,
+ * moved with one multiple-block command (CMD18 or CMD25) and ended with
+ * CMD12. A 4 KB block is 8 sectors from the block space's base sector
+ * (card.c finds it: lfblocks.fb4 on the exFAT volume). Buffers
+ * are cell arrays, so they meet the 4-byte alignment DMA needs.
  */
 #include <string.h>
 #include "debug.h"
 #include "sdio.h"
 #include "blocks.h"
 #include "lftime.h"
+#include "../../../../card.h"       /* src/card.h */
 #include "../../../../errcodes.h"   /* src/errcodes.h */
 
 #ifndef BLK_DMA
@@ -36,113 +35,61 @@
 
 #define SECTOR_BYTES        512u
 #define SECTORS_PER_BLOCK   (BLK_SIZE_BYTES / SECTOR_BYTES)   /* 8 */
-#define ALIGN_SECTORS       128u        /* 64 KB */
-#define MBR_TABLE           446         /* offset of the 4 partition entries */
-#define MBR_ENTRY_SIZE      16
-#define MBR_TYPE            4           /* offsets within an entry */
-#define MBR_START           8
-#define MBR_SECTORS         12
-#define PART_TYPE_BLOCKS    0xDA        /* "non-FS data" */
+#define SECTOR_CELLS        (SECTOR_BYTES / 4)
 
 _Static_assert(BLK_SIZE_BYTES % SECTOR_BYTES == 0, "a block must be whole sectors");
+_Static_assert(BLK_MAX_SECTORS == BLK_MAX_LENGTH * SECTORS_PER_BLOCK, "runs of sectors and of blocks");
 
-static uint32_t first_sector;           /* the partition's first sector */
-static uint32_t blocks;                 /* blocks that can be read */
-static int writable;                    /* the partition has the signature */
+static card_map map;                    /* where the block space is */
+static uint32_t card_sectors;           /* the card's size */
+static int writable;                    /* block 0 has the signature */
 
-static uint32_t sector_buf[SECTOR_BYTES / 4];   /* MBR and signature reads */
+static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
 
-static uint32_t le32(const uint8_t *p) {
-    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
-}
-
-int blk_init(char *filename, uint32_t *capacity) {
-    const uint8_t *sec = (const uint8_t *)sector_buf;
-    (void)filename;
-    first_sector = 0;
-    blocks = 0;
-    writable = 0;
-    if (capacity) *capacity = 0;
-
-    SD_Error err = SD_Init();
-    NVIC_DisableIRQ(SDIO_IRQn);         /* polling: no SDIO interrupts on this core */
-#if BLK_DMA
-    RCC_HBPeriphClockCmd(RCC_HBPeriph_DMA1 | RCC_HBPeriph_DMA2, ENABLE);  /* DMA1 as WCH's driver has it for DMAMUX */
-#endif
-    if (err != SD_OK) {
-        printf("V5F blocks: no SD card (error %d)\r\n", (int)err);
-        return 0;
-    }
-
-    /* The MBR: find the block partition */
-    if (SD_ReadDisk((u8 *)sector_buf, 0, 1) != SD_OK) {
-        printf("V5F blocks: can't read the SD card's MBR\r\n");
-        return 0;
-    }
-    if (sec[510] != 0x55 || sec[511] != 0xAA) {
-        printf("V5F blocks: the SD card has no MBR partition table\r\n");
-        return 0;
-    }
-    uint32_t start = 0, sectors = 0;
-    int found = 0;
-    for (int i = 0; i < 4 && !found; i++) {
-        const uint8_t *e = &sec[MBR_TABLE + i * MBR_ENTRY_SIZE];
-        if (e[MBR_TYPE] == PART_TYPE_BLOCKS) {
-            start = le32(&e[MBR_START]);
-            sectors = le32(&e[MBR_SECTORS]);
-            found = 1;
-        }
-    }
-    if (!found || sectors < SECTORS_PER_BLOCK) {
-        printf("V5F blocks: no LiteForth block partition (type DA) on the SD card\r\n");
-        return 0;
-    }
-    first_sector = start;
-    blocks = 1;                         /* block 0, read-only, until proven */
-
-    /* Block 0 must start with the signature, on a 64 KB boundary */
-    if (start % ALIGN_SECTORS) {
-        printf("V5F blocks: the block partition at sector %lu isn't 64 KB aligned: read-only\r\n",
-               (unsigned long)start);
-    } else if (SD_ReadDisk((u8 *)sector_buf, start, 1) != SD_OK) {
-        printf("V5F blocks: can't read block 0\r\n");
-    } else if (memcmp(sec, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
-        printf("V5F blocks: block 0 doesn't start with " BLK_SIGNATURE ": read-only\r\n");
-    } else {
-        blocks = sectors / SECTORS_PER_BLOCK;
-        writable = 1;
-        printf("V5F blocks: %lu blocks at sector %lu\r\n",
-               (unsigned long)blocks, (unsigned long)start);
-    }
-    if (capacity) *capacity = blocks;
-    return 0;
-}
-
-/* Checks a request for length blocks from blk */
-static int check_run(uint32_t blk, int length) {
+/* Checks a request for length blocks from blk; on success *lba is the
+   first card sector */
+static int check_run(uint32_t blk, int length, uint32_t *lba) {
     if (length < 1 || length > BLK_MAX_LENGTH) {
         return ERR_INVALID_NUMERIC;
     }
-    if (blk >= blocks || (uint32_t)length > blocks - blk) {
+    if (blk >= map.blocks || (uint32_t)length > map.blocks - blk) {
+        return ERR_BLK_BOUNDS;
+    }
+    *lba = map.base + blk * SECTORS_PER_BLOCK;
+    return 0;
+}
+
+/* Checks a request for count sectors from lba */
+static int check_sectors(uint32_t lba, int count) {
+    if (count < 1 || count > BLK_MAX_SECTORS) {
+        return ERR_INVALID_NUMERIC;
+    }
+    if (lba >= card_sectors || (uint32_t)count > card_sectors - lba) {
         return ERR_BLK_BOUNDS;
     }
     return 0;
 }
 
+int blk_write_fence(uint32_t lba, int count) {
+    if (!map.mounted || lba < map.vol.start
+        || (uint64_t)lba + (uint32_t)count > (uint64_t)map.vol.start + map.vol.sectors) {
+        return ERR_BLK_WRITE_PROTECTED;
+    }
+    return 0;
+}
+
 #if !BLK_DMA
-/* Reads length blocks from blk now; bounds already checked */
-static int read_now(uint32_t blk, uint32_t *dest, int length) {
-    if (SD_ReadDisk((u8 *)dest, first_sector + blk * SECTORS_PER_BLOCK,
-                    (u8)(SECTORS_PER_BLOCK * length)) != SD_OK) {
+/* Reads count sectors from lba now; bounds already checked */
+static int read_now(uint32_t lba, uint32_t *dest, int count) {
+    if (SD_ReadDisk((u8 *)dest, lba, (u8)count) != SD_OK) {
         return ERR_BLK_READ_FAIL;
     }
     return 0;
 }
 
-/* Writes length blocks from blk now; protection and bounds already checked */
-static int write_now(uint32_t blk, uint32_t *src, int length) {
-    if (SD_WriteDisk((u8 *)src, first_sector + blk * SECTORS_PER_BLOCK,
-                     (u8)(SECTORS_PER_BLOCK * length)) != SD_OK) {
+/* Writes count sectors from lba now; protection and bounds already checked */
+static int write_now(uint32_t lba, uint32_t *src, int count) {
+    if (SD_WriteDisk((u8 *)src, lba, (u8)count) != SD_OK) {
         return ERR_BLK_WRITE_FAIL;
     }
     return 0;
@@ -150,8 +97,9 @@ static int write_now(uint32_t blk, uint32_t *src, int length) {
 #endif
 
 /*=========================================================================
-* Unwaited transfers: blk_read_imm and blk_write_imm start a transfer,
-* blk_status tells how it went. blk_read and blk_write are built on them.
+* Unwaited transfers: blk_sector_read_imm and blk_sector_write_imm start a
+* transfer of card sectors, blk_status tells how it went. The block
+* functions are built on them.
 *
 * With DMA the transfer is a little state machine that blk_status steps
 * (no interrupts, so nothing to share with the V3F's handlers):
@@ -166,8 +114,6 @@ static int write_now(uint32_t blk, uint32_t *src, int length) {
 * CMD12, each get that long. The time is checked only while the step
 * isn't finished, so a caller that asks late still gets 0.
 =========================================================================*/
-
-static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
 
 #if BLK_DMA
 
@@ -195,11 +141,11 @@ static SD_Error command(uint8_t index, uint32_t arg) {
     return CmdResp1Error(index);
 }
 
-/* Sets up the data path for length blocks in direction dir */
-static void data_path(uint32_t dir, int length) {
+/* Sets up the data path for count sectors in direction dir */
+static void data_path(uint32_t dir, int count) {
     SDIO_DataInitTypeDef data;
     data.SDIO_DataTimeOut = SD_DATATIMEOUT;
-    data.SDIO_DataLength = BLK_SIZE_BYTES * (uint32_t)length;
+    data.SDIO_DataLength = SECTOR_BYTES * (uint32_t)count;
     data.SDIO_DataBlockSize = SDIO_DataBlockSize_512b;
     data.SDIO_TransferDir = dir;
     data.SDIO_TransferMode = SDIO_TransferMode_Block;
@@ -209,14 +155,14 @@ static void data_path(uint32_t dir, int length) {
 
 /* Points DMA2 channel 1 at buf and the SDIO FIFO and starts it; dir is
    DMA_DIR_PeripheralSRC (card to memory) or DMA_DIR_PeripheralDST */
-static void dma_start(uint32_t *buf, uint32_t dir, int length) {
+static void dma_start(uint32_t *buf, uint32_t dir, int count) {
     DMA_InitTypeDef d = {0};
     DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
     DMA_ClearFlag(DMA2, BLK_DMA_FLAG_TC);
     d.DMA_PeripheralBaseAddr = (uint32_t)&SDIO->FIFO;
     d.DMA_Memory0BaseAddr = (uint32_t)buf;
     d.DMA_DIR = dir;
-    d.DMA_BufferSize = BLOCK_SIZE_CELLS * (uint32_t)length;
+    d.DMA_BufferSize = SECTOR_CELLS * (uint32_t)count;
     d.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
     d.DMA_MemoryInc = DMA_MemoryInc_Enable;
     d.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
@@ -229,10 +175,9 @@ static void dma_start(uint32_t *buf, uint32_t dir, int length) {
     DMA_Cmd(BLK_DMA_CHANNEL, ENABLE);
 }
 
-/* Card address of block blk: sectors on SDHC/SDXC, bytes on SDSC */
-static uint32_t card_address(uint32_t blk) {
-    uint32_t sector = first_sector + blk * SECTORS_PER_BLOCK;
-    return (SDCardInfo.CardType == SDIO_HIGH_CAPACITY_SD_CARD) ? sector : sector * SECTOR_BYTES;
+/* Card address of sector lba: sectors on SDHC/SDXC, bytes on SDSC */
+static uint32_t card_address(uint32_t lba) {
+    return (SDCardInfo.CardType == SDIO_HIGH_CAPACITY_SD_CARD) ? lba : lba * SECTOR_BYTES;
 }
 
 /* Stops a transfer: DMA off, data path off, CMD12, flags cleared */
@@ -251,28 +196,28 @@ static int fail(int err) {
     return err;
 }
 
-static int start_read(uint32_t blk, uint32_t *dest, int length) {
+static int start_read(uint32_t lba, uint32_t *dest, int count) {
     SDIO->DCTRL = 0;
     SDIO_ClearFlag(SDIO_STATIC_FLAGS);
-    data_path(SDIO_TransferDir_ToSDIO, length);
-    if (command(SD_CMD_READ_MULT_BLOCK, card_address(blk)) != SD_OK) {
+    data_path(SDIO_TransferDir_ToSDIO, count);
+    if (command(SD_CMD_READ_MULT_BLOCK, card_address(lba)) != SD_OK) {
         SDIO->DCTRL = 0;
         return ERR_BLK_READ_FAIL;
     }
-    dma_start(dest, DMA_DIR_PeripheralSRC, length);
+    dma_start(dest, DMA_DIR_PeripheralSRC, count);
     SDIO->DCTRL |= SDIO_DCTRL_DMAEN;
     status = 1;
     return 0;
 }
 
-static int start_write(uint32_t blk, uint32_t *src, int length) {
+static int start_write(uint32_t lba, uint32_t *src, int count) {
     SDIO->DCTRL = 0;
     SDIO_ClearFlag(SDIO_STATIC_FLAGS);
-    if (command(SD_CMD_WRITE_MULT_BLOCK, card_address(blk)) != SD_OK) {
+    if (command(SD_CMD_WRITE_MULT_BLOCK, card_address(lba)) != SD_OK) {
         return ERR_BLK_WRITE_FAIL;
     }
-    dma_start(src, DMA_DIR_PeripheralDST, length);
-    data_path(SDIO_TransferDir_ToCard, length);
+    dma_start(src, DMA_DIR_PeripheralDST, count);
+    data_path(SDIO_TransferDir_ToCard, count);
     SDIO->DCTRL |= SDIO_DCTRL_DMAEN;
     status = 2;
     return 0;
@@ -334,38 +279,14 @@ static void advance(void) {
     }
 }
 
-int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
+/* Starts a checked transfer of count sectors from lba */
+static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     advance();                          /* a finished transfer isn't busy */
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
-    int err = check_run(blk, length);
-    if (err) {
-        return err;
-    }
     started = lfGetTimeMicroSec();
-    err = start_read(blk, dest, length);
-    if (err) {
-        return err;
-    }
-    step = MOVING;
-    return 0;
-}
-
-int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
-    advance();                          /* a finished transfer isn't busy */
-    if (status > 0) {
-        return ERR_BLK_BUSY;
-    }
-    if (!writable) {
-        return ERR_BLK_WRITE_PROTECTED;
-    }
-    int err = check_run(blk, length);
-    if (err) {
-        return err;
-    }
-    started = lfGetTimeMicroSec();
-    err = start_write(blk, src, length);
+    int err = write ? start_write(lba, buf, count) : start_read(lba, buf, count);
     if (err) {
         return err;
     }
@@ -380,30 +301,13 @@ int blk_status(void) {
 
 #else /* BLK_DMA */
 
-int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
+/* Does a checked transfer of count sectors from lba */
+static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
-    int err = check_run(blk, length);
-    if (err) {
-        return err;
-    }
-    status = read_now(blk, dest, length);   /* WCH's polling transfer: done at once */
-    return 0;
-}
-
-int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
-    if (status > 0) {
-        return ERR_BLK_BUSY;
-    }
-    if (!writable) {
-        return ERR_BLK_WRITE_PROTECTED;
-    }
-    int err = check_run(blk, length);
-    if (err) {
-        return err;
-    }
-    status = write_now(blk, src, length);
+    status = write ? write_now(lba, buf, count)     /* WCH's polling transfer: */
+                   : read_now(lba, buf, count);     /* done at once */
     return 0;
 }
 
@@ -412,6 +316,34 @@ int blk_status(void) {
 }
 
 #endif /* BLK_DMA */
+
+int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count) {
+    int err = check_sectors(lba, count);
+    return err ? err : start(lba, dest, count, 0);
+}
+
+int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count) {
+    int err = check_sectors(lba, count);
+    if (!err) {
+        err = blk_write_fence(lba, count);
+    }
+    return err ? err : start(lba, src, count, 1);
+}
+
+int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
+    uint32_t lba;
+    int err = check_run(blk, length, &lba);
+    return err ? err : start(lba, dest, length * SECTORS_PER_BLOCK, 0);
+}
+
+int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
+    if (!writable) {
+        return ERR_BLK_WRITE_PROTECTED;
+    }
+    uint32_t lba;
+    int err = check_run(blk, length, &lba);
+    return err ? err : start(lba, src, length * SECTORS_PER_BLOCK, 1);
+}
 
 /* Waits for the transfer in progress, if any; returns its blk_status */
 static int finish(void) {
@@ -431,4 +363,57 @@ int blk_write(uint32_t blk, uint32_t *src) {
     finish();
     int err = blk_write_imm(blk, src, 1);
     return err ? err : finish();
+}
+
+int blk_sector_read(uint32_t lba, uint32_t *dest, int count) {
+    finish();
+    int err = blk_sector_read_imm(lba, dest, count);
+    return err ? err : finish();
+}
+
+/* card.c's sector reader */
+static int card_read(uint32_t sector, uint8_t *buf) {
+    return blk_sector_read(sector, (uint32_t *)buf, 1);
+}
+
+int blk_init(char *filename, uint32_t *capacity) {
+    char msg[120];
+    (void)filename;
+    memset(&map, 0, sizeof map);
+    card_sectors = 0;
+    writable = 0;
+    status = 0;
+    if (capacity) *capacity = 0;
+
+    SD_Error err = SD_Init();
+    NVIC_DisableIRQ(SDIO_IRQn);         /* polling: no SDIO interrupts on this core */
+#if BLK_DMA
+    RCC_HBPeriphClockCmd(RCC_HBPeriph_DMA1 | RCC_HBPeriph_DMA2, ENABLE);  /* DMA1 as WCH's driver has it for DMAMUX */
+#endif
+    if (err != SD_OK) {
+        printf("V5F blocks: no SD card (error %d)\r\n", (int)err);
+        return 0;
+    }
+#if BLK_DMA
+    /* SD_Init leaves the block length at 8 bytes (CMD16 for the SCR),
+       which an SDSC card keeps; WCH's own reads send CMD16 512 first, our
+       DMA transfers don't, so set it once here. SDHC/SDXC ignore it. */
+    if (command(SD_CMD_SET_BLOCKLEN, SECTOR_BYTES) != SD_OK) {
+        printf("V5F blocks: the SD card refused a 512-byte block length\r\n");
+        return 0;
+    }
+#endif
+    uint64_t n = (uint64_t)SDCardInfo.CardCapacity / SECTOR_BYTES;
+    card_sectors = (n > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)n;
+
+    int ior = card_find_blocks(card_read, card_sectors, &map, msg, sizeof msg);
+    if (ior) {
+        printf("V5F blocks: can't read the SD card (error %d)\r\n", ior);
+        memset(&map, 0, sizeof map);
+        return 0;
+    }
+    writable = map.writable;
+    printf("V5F blocks: %s\r\n", msg);
+    if (capacity) *capacity = map.blocks;
+    return 0;
 }

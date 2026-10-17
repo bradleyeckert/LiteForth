@@ -32,7 +32,7 @@ The LCD needs VIO18 (the high-speed GPIO supply) at 3.3 V, set in software by th
 (`PWR_VIO18ModeCfg(PWR_VIO18CFGMODE_SW)`, `PWR_VIO18LevelCfg(PWR_VIO18Level_MODE3)`), as the board's
 SPI_LCD example does; at the hardware setting the panel ignores the SPI.
 
-[sdcard.md](sdcard.md) explains how to partition a microSD card for LiteForth's blocks.
+[sdcard.md](sdcard.md) explains how to prepare a microSD card for LiteForth's blocks: an exFAT card with `lfblocks.fb4` in its root.
 
 The UART pins conflict with USB OTG_ID and OTG_VBUS pins, but that is not a problem if you only use
 the USB-C USB-FS connector as a device (such as a CDC port)

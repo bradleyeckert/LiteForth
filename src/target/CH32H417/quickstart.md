@@ -65,30 +65,22 @@ It's worth keeping open in a second window.
 
 ## 3. Prepare the microSD card
 
-LiteForth keeps its source code and fonts in 4 KB blocks, in a raw
-partition on the card with no file system. The repo's `bin/lfblocks.fb4`
-is a ready-made image of those blocks: `core.f`, the other Forth source,
+LiteForth keeps its source code and fonts in 4 KB blocks, in one file on
+the card: `lfblocks.fb4`, in the root directory of its exFAT volume. The
+repo's `bin/lfblocks.fb4` is ready-made: `core.f`, the other Forth source,
 and two fonts.
 
-- **Partition the card:** a FAT32 (or exFAT) first partition, for files
-  you share with a PC, and a second partition of type `DA` (64 MB is
-  plenty) starting on a 64 KB boundary. [doc/sdcard.md](../../../doc/sdcard.md)
-  gives the steps for Windows (`diskpart`), Linux and macOS.
-  **Partitioning erases the card.**
+- **The card must be exFAT.** Cards over 32 GB come that way; format a
+  smaller one as exFAT (File Explorer: right-click, *Format...*, *exFAT*).
+  [doc/sdcard.md](../../../doc/sdcard.md) has the details for Windows,
+  macOS and Linux.
 - **Optional: rebuild the image.** After changing the Forth source, run
   `forth/build.bat` in the `forth` folder. It writes the source into
   `bin/lfblocks.fb4`, and also rebuilds the fonts, which needs Noto Sans
   CJK SC installed and `py -m pip install pillow fonttools`.
-- **Copy the image to the second partition.** A raw partition can't take
-  a file by drag and drop. On Windows, run `bin/copy2microSD.ps1` in
-  PowerShell as administrator: first `Get-Disk` to find the card's disk
-  number, then set `$disk` at the top of the script to that number. It
-  finds the `DA` partition, writes the image, and reads it back to check.
-  (`powershell -ExecutionPolicy Bypass` lets an unsigned script run.)
-  The other systems use `dd`; see
-  [Copying lfblocks.fb4 to the card](../../../doc/sdcard.md#copying-lfblocksfb4-to-the-card).
-  Block 0 of the image holds the `LITEFORTH` signature, which LiteForth
-  needs before it will write to the partition.
+- **Copy `bin/lfblocks.fb4` to the card's top folder** by drag and drop,
+  then eject the card. Its block 0 holds the `LITEFORTH` signature, which
+  LiteForth needs before it will write to it.
 
 ## 4. Load the dictionary
 
@@ -141,9 +133,9 @@ block of source, and `hi` prints a Chinese proverb (kwai shows CJK text).
   port. Downloading from the V3F project instead of the V5F one leaves
   the USB port dead; download from the V5F project again.
 - **`1 load` fails at once or `capacity .` shows 0 or 1:** the board
-  didn't find the block partition, or block 0 lacks the `LITEFORTH`
-  signature. The debug port says which (see the table in
-  [README.md](README.md#blocks-v5fuserblocksc)).
+  didn't find `lfblocks.fb4` on an exFAT card, or its block 0 lacks the
+  `LITEFORTH` signature. The debug port says which (see the table in
+  [doc/sdcard.md](../../../doc/sdcard.md#3-on-the-board)).
 
 ## Changing the source
 

@@ -62,6 +62,7 @@ and `capacity .` at the terminal shows the same number of blocks. If it's
 | `no lfblocks.fb4 in the exFAT root directory` | Copy the file to the top folder (step 2) |
 | `lfblocks.fb4 is fragmented: copy it to the card again` | Delete it and copy it again |
 | `lfblocks.fb4 is shorter than one block` | The file is empty or damaged |
+| `...: block 0 doesn't start with LITEFORTH, read-only` | The file isn't a LiteForth block file |
 
 If the board resets while reading blocks (the USB port drops and comes
 back, often at the same block every time), suspect the card's power draw
@@ -69,7 +70,6 @@ before the software: a new SanDisk Ultra 256 GB SDXC (A1) card did exactly that 
 nanoCH32H417, and an older card worked. The startup log's
 `V5F crumbs: reset flags` line then shows `power`. Try another card, a
 powered USB hub, or a better supply to the slot.
-| `...: block 0 doesn't start with LITEFORTH, read-only` | The file isn't a LiteForth block file |
 
 The card is read once at startup, so after changing cards, restart (Ctrl+X
 three times does).

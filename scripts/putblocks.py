@@ -27,9 +27,8 @@ error, and nothing is written.
 The block file defaults to lfblocks.fb4 in the current directory, as for
 `lf`. It must already exist and start with the signature LITEFORTH, the way
 lf requires before it writes a block, and block 0 (which holds the
-signature) is never written. A block past the end of a regular file
-extends the file with blank (space) blocks; a device, such as a partition
-(/dev/sdb2), is never extended.
+signature) is never written. A block past the end of the file extends it
+with blank (space) blocks.
 
 It lists each block it writes with its line count and its first line,
 which by convention is a comment saying what the block holds.
@@ -38,7 +37,6 @@ which by convention is a comment saying what the block holds.
 """
 import os
 import re
-import stat
 import sys
 
 BLOCK_BYTES = 4096
@@ -150,14 +148,9 @@ def main(argv):
             print(f"error: {target} doesn't start with {SIGNATURE.decode()}, "
                   f"so it isn't a LiteForth block file", file=sys.stderr)
             return 1
-        regular = stat.S_ISREG(os.fstat(f.fileno()).st_mode)
         f.seek(0, os.SEEK_END)
         capacity = f.tell() // BLOCK_BYTES
         last = max(blocks)
-        if last >= capacity and not regular:
-            print(f"error: block {last} is past the end of {target} "
-                  f"({capacity} blocks)", file=sys.stderr)
-            return 1
         for n in sorted(blocks):
             lines = blocks[n]
             count = f"{len(lines)} line{'' if len(lines) == 1 else 's'}"

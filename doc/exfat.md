@@ -3,14 +3,10 @@
 Status: **Part 1 is done** (finding `lfblocks.fb4`, and the C sector
 functions under Part 2); the Forth words of Part 2 and the Forth file
 writing of Part 3 are still a plan. [Phases](#phases) has the details.
-The raw `DA` partition that held the blocks before is gone: the blocks
-are always in `lfblocks.fb4` now.
 
 ## Goal
 
-The blocks used to live in a raw partition of type `DA`, which took a
-partitioning step, a PowerShell script or `dd` to fill, and an
-administrator. Instead:
+No partitioning, no raw disk access, no administrator:
 
 - **Drag and drop.** `lfblocks.fb4` (10 to 20 MB, fonts included) is copied
   to the root directory of the card's ordinary exFAT volume, the one every
@@ -399,22 +395,21 @@ Phases 2 to 4 are enough for drag and drop.
 
 ## Open questions
 
-Settled: exFAT only, no `DA` partition (nobody depends on the old layout);
-a fragmented `lfblocks.fb4` is refused with a message.
+Settled: a fragmented `lfblocks.fb4` is refused with a message.
 
-3. **The "run of blocks"** in your note: is that another `.fb4`-style file
+1. **The "run of blocks"** in your note: is that another `.fb4`-style file
    mapped into the block space at some offset (say a second file starting
    at block 100000), or a file Forth reads with `read-sectors`? The plan
    covers the second; the first is a small addition to `blk_init`.
-4. **The update file:** what will it hold (a new flash image, new
+2. **The update file:** what will it hold (a new flash image, new
    firmware for a bootloader), and does C need to find it at startup, or
    only Forth?
-5. **How often to update ValidDataLength** while streaming, and how a
+3. **How often to update ValidDataLength** while streaming, and how a
    file left open by a power cut is recognized.
-6. **Sector words' units:** 512-byte sectors (plan), or 4 KB blocks at any
+4. **Sector words' units:** 512-byte sectors (plan), or 4 KB blocks at any
    sector? Sectors suit FAT, bitmap and directory updates; blocks suit
    streaming. The 1-to-64 sector range covers both.
-7. **Write fence:** is "inside the exFAT volume" enough, or should
+5. **Write fence:** is "inside the exFAT volume" enough, or should
    `write-sectors` need an explicit unlock word first?
 
 ## References

@@ -30,8 +30,8 @@
  *
  * The terminal is the USB CDC port: the V3F runs USB and passes the bytes
  * through the shared rings (serial_io.c). Flash pages are in the code
- * flash (flash.c), and blocks are in a raw partition on the microSD card
- * (blocks.c, doc/sdcard.md).
+ * flash (flash.c), and blocks are in lfblocks.fb4 on the microSD card's
+ * exFAT volume (blocks.c, src/card.c, doc/sdcard.md).
  */
 extern uint32_t g_block_capacity;
 

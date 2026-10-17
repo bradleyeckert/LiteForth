@@ -1,6 +1,7 @@
 # Sealed block files: encrypted, signed lfblocks.fb4
 
-Plan, 2026-10-17. Nothing here is implemented yet.
+Plan, 2026-10-17. Steps 1 and 2 of section 8 are done: BLAKE2s in `src/`
+and `scripts/sealblocks.py`. The boards can't read sealed files yet.
 
 A sealed block file is an `lfblocks.fb4` whose content blocks are encrypted
 and signed, so the same file can go on every unit's card as a firmware
@@ -229,13 +230,17 @@ One script, `scripts/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 
 | Command | Does |
 |---|---|
-| `root-key` | Makes the root key pair (on the offline machine) |
-| `release-key SERIAL` | Makes a release key pair and its certificate; the root's private key signs it, so this runs on the offline machine and only the release key and certificate leave it |
-| `seal PLAIN.fb4 SEALED.fb4 --boards boards.csv --revision N --cipher aes` | Builds a sealed file from a plain one |
-| `check SEALED.fb4` | Checks everything a board would that needs no board key: certificate, signature, table hashes, block hashes |
-| `open SEALED.fb4 --board-key KEY` | Decrypts back to a plain file, for testing |
+| `root-key ROOT` | Makes the root key pair, `ROOT.key` and `ROOT.pub` (on the offline machine) |
+| `release-key ROOT.key SERIAL OUT --product P` | Makes a release key pair and its certificate; the root's private key signs it, so this runs on the offline machine and only the release key file leaves it |
+| `board-key OUT [--uid HEX]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1) |
+| `seal PLAIN SEALED --release R --boards boards.csv --revision N [--cipher aes\|sm4]` | Builds a sealed file from a plain one |
+| `check SEALED --root ROOT.pub` | Checks everything a board would that needs no board key: certificate, signature, header fields, table hashes, block hashes |
+| `open SEALED PLAIN --root ROOT.pub --board-key B [--min-revision N] [--min-serial N] [--product P]` | Checks and decrypts as a board would, refusing what it would refuse, and writes a plain file (with a new block 0) |
 
-`boards.csv`: one line per board, `UID,public key,name`, in hex.
+`boards.csv`: one line per board, `UID,public key,name`, in hex; `#`
+lines are comments. Key files are JSON, and `.key` files hold private
+keys. `unit_tests/seal` tests the script: round trips with AES and SM4,
+the layout against the formulas above, and each refusal.
 
 The desktop `lf` gets a board key file (an option like `-K`, beside
 `-k`), so the whole path can be tested with `make test`: seal a copy of
@@ -292,8 +297,10 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 
 ## 8. Steps
 
-1. Add BLAKE2s to `src/` (with `b2s_init`) and its tests.
+1. Add BLAKE2s to `src/` (with `b2s_init`) and its tests. **Done**
+   (`src/blake2s.c`, `unit_tests/blake2s`).
 2. `sealblocks.py`, with its own round-trip tests (`unit_tests/seal`).
+   **Done.**
 3. Desktop `lf`: mount and read sealed files (software AES), with the
    failure tests in section 5.
 4. CH32H417: ECDC CTR decryption after the DMA read, X25519 and Ed25519,

@@ -65,7 +65,7 @@ and `capacity .` at the terminal shows the same number of blocks. If it's
 
 If the board resets while reading blocks (the USB port drops and comes
 back, often at the same block every time), suspect the card's power draw
-before the software: a new 256 GB card did exactly that on the
+before the software: a new SanDisk Ultra 256 GB SDXC (A1) card did exactly that on the
 nanoCH32H417, and an older card worked. The startup log's
 `V5F crumbs: reset flags` line then shows `power`. Try another card, a
 powered USB hub, or a better supply to the slot.

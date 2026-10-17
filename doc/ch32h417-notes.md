@@ -169,7 +169,8 @@ call. Worth a note in `debug.h`.
   example does, fixed it.
 - **VBAT is not connected.** The RTC keeps time through resets and Stop,
   but loses it when the board loses power.
-- **Some microSD cards brown the board out.** With a new 256 GB card, an
+- **Some microSD cards brown the board out.** With a new SanDisk Ultra
+  256 GB SDXC card (A1), an
   8-sector read of one particular spot on the card reset the whole chip
   every time, partway through the transfer. Other sectors read fine, and
   so did the same code on an older card. The reset left no fault behind:

@@ -7,6 +7,7 @@
  * Each index is written by only one core, so these functions need no lock:
  * the V5F writes rx.tail and tx.head, and only reads the others.
  */
+#include "v5f_crumbs.h"
 #include "serial_io.h"
 #include "cdc_shared.h"
 
@@ -62,6 +63,9 @@ int serial_getc(void) {
     int c = r->data[tail & RING_MASK];
     CDC_FENCE();                        /* data read before tail */
     r->tail = tail + 1;
+    if (c == '\n' || c == '\r') {
+        crumb(TAG('L','I','N','E'), tail + 1, (uint32_t)c);
+    }
     return c;
 }
 

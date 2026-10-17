@@ -23,6 +23,7 @@
 #include "blocks.h"
 #include "lftime.h"
 #include "main.h"
+#include "v5f_crumbs.h"                /* reset debugging trail */
 
 /*********************************************************************
  * LiteForth on the V5F, after src/target/desktop/main.c.
@@ -167,6 +168,7 @@ static void LiteForth(void)
         CDC_SHARED->safe_boot = 0;
         g_lf_sys_options |= SYS_OPTION_NO_AUTORUN;
     }
+    crumb(TAG('Q','U','I','T'), g_block_capacity, (uint32_t)g_lf_sys_options);
     printf("V5F: LiteForth starting, %s%s\r\n",
            (g_lf_sys_options & SYS_OPTION_BOOTING) ? "booting from flash" : "flash is blank",
            safe ? ", safe boot (app not started)" : "");
@@ -203,6 +205,8 @@ int main(void)
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
     printf("V5F released HSEM0, running LiteForth\r\n");
     lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
+    crumbs_report();                    /* what happened before the last reset */
+    crumb(TAG('B','O','O','T'), RCC->RSTSCKR, 0);
     int rtc = lfRtcInit();              /* the RTC (and an alarm wake-up mark) */
     printf("V5F: RTC %s, %u s (BDCTLR %lX, RTC_CTLRL %X)\r\n", rtc ? "failed" : "running",
            (unsigned)lfRtcGet(), (unsigned long)RCC->BDCTLR, (unsigned)RTC->CTLRL);

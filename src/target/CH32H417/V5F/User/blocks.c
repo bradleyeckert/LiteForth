@@ -288,6 +288,13 @@ static void advance(void) {
             return;
         }
         if (!(SDIO->STA & SDIO_FLAG_DATAEND) || !DMA_GetFlagStatus(DMA2, BLK_DMA_FLAG_TC)) {
+            /* debugging: a crumb each time another sector's worth has arrived */
+            static uint32_t last_left;
+            uint32_t left = SDIO->DCOUNT;
+            if (left + SECTOR_BYTES <= last_left || left > last_left) {
+                crumb(TAG('P','R','O','G'), left, BLK_DMA_CHANNEL->CNTR);
+                last_left = left;
+            }
             check_timeout();            /* still moving */
             return;
         }

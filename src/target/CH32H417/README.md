@@ -241,8 +241,8 @@ three times will do). If transfers fail, try a slower SD clock: raise
 `blk_read_imm` and `blk_write_imm` start a transfer of 1 to 8
 consecutive blocks (`BLK_MAX_LENGTH`, up to 32 KB, one CMD18 or CMD25)
 and `blk_status` reports on it (0 done, negative failed, 1 reading,
-2 writing); the Forth words are `read-block`, `write-block` and
-`block-status`, which move one block. `blk_read` and `blk_write` are built
+2 writing); the Forth words are `read-block` and `write-block`
+(`( a u n -- )`, n blocks from block u) and `block-status`. `blk_read` and `blk_write` are built
 on them and wait.
 
 Block transfers run by DMA, driven from `blocks.c` rather than WCH's

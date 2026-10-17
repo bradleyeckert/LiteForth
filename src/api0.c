@@ -370,11 +370,11 @@ static int standby(void) {
     return lfStandby();
 }
 
-/* The C address of BLOCK_SIZE_CELLS cells at VM cell address a, or NULL
-   unless they are all in one mapped page (not the I/O page), and, if
+/* The C address of n * BLOCK_SIZE_CELLS cells at VM cell address a, or
+   NULL unless they are all in one mapped page (not the I/O page), and, if
    written is set, past the page's write-protected cells. Address metadata
    (slice fields) is ignored. */
-static uint32_t* blockCells(uint32_t a, int written) {
+static uint32_t* blockCells(uint32_t a, int n, int written) {
     a &= 0x3FFFFF;
     int page = a >> (22 - VM_LOG2_PAGES);
     uint32_t cell = a & VM_PAGE_MASK;
@@ -382,27 +382,34 @@ static uint32_t* blockCells(uint32_t a, int written) {
     if (page == VM_IO_PAGE) return NULL;
 #endif
     if (vm_memory[page] == NULL) return NULL;
-    if (cell + BLOCK_SIZE_CELLS > vm_memory_rd_limit[page]) return NULL;
+    if (cell + (uint32_t)n * BLOCK_SIZE_CELLS > vm_memory_rd_limit[page]) return NULL;
     if (written && cell < vm_memory_wp_limit[page]) return NULL;
     return &vm_memory[page][cell];
 }
 
-/* READ-BLOCK  ( a u -- )  Start reading block u into the block-sized area
-   at a, without waiting (blocks.h); BLOCK-STATUS tells when it's done */
+/* READ-BLOCK  ( a u n -- )  Start reading n blocks (1 to BLK_MAX_LENGTH),
+   from block u on, into the n block-sized areas at a, without waiting
+   (blocks.h); BLOCK-STATUS tells when it's done */
 static int readBlock(void) {
+    int n = (int)vmPop();
     uint32_t blk = (uint32_t)vmPop();
-    uint32_t* dest = blockCells((uint32_t)vmPop(), 1);
+    uint32_t a = (uint32_t)vmPop();
+    if (n < 1 || n > BLK_MAX_LENGTH) return ERR_INVALID_NUMERIC;
+    uint32_t* dest = blockCells(a, n, 1);
     if (dest == NULL) return ERR_INVALID_ADDRESS;
-    return blk_read_imm(blk, dest, 1);
+    return blk_read_imm(blk, dest, n);
 }
 
-/* WRITE-BLOCK  ( a u -- )  Start writing block u from the block-sized area
-   at a, without waiting */
+/* WRITE-BLOCK  ( a u n -- )  Start writing n blocks, from block u on, from
+   the n block-sized areas at a, without waiting */
 static int writeBlock(void) {
+    int n = (int)vmPop();
     uint32_t blk = (uint32_t)vmPop();
-    uint32_t* src = blockCells((uint32_t)vmPop(), 0);
+    uint32_t a = (uint32_t)vmPop();
+    if (n < 1 || n > BLK_MAX_LENGTH) return ERR_INVALID_NUMERIC;
+    uint32_t* src = blockCells(a, n, 0);
     if (src == NULL) return ERR_INVALID_ADDRESS;
-    return blk_write_imm(blk, src, 1);
+    return blk_write_imm(blk, src, n);
 }
 
 /* BLOCK-STATUS  ( -- n )  0 done, negative: failed, 1 reading, 2 writing */

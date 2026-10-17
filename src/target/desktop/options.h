@@ -20,7 +20,7 @@
 #define RAM_PAGE              4 // The memory page used by system variables
 #define RAM_PAGE_CELLS     4096 // RAM page size [2]
 #define _UDATA0     (LF_HERE0 + 0x400)      // start of UDATA space
-#define _TEXT0      (FLASH_PAGE_CELLS / 4)  // start of TEXT space
+#define _TEXT0      (FLASH_PAGE_CELLS / 2)  // start of TEXT space
 // memalloc.c
 #define POOL_CAPACITY     24576 // cells of the system memory pool
 #define TEMP_HEAD_CELLS    2048 // pool buffer for temporary headers (head-)

@@ -24,7 +24,7 @@
 #define RAM_PAGE              4 // The memory page used by system variables. CH32H417: 4 flash pages, 256KB
 #define RAM_PAGE_CELLS     4096 // RAM page size [2]
 #define _UDATA0     (LF_HERE0 + 0x400)      // start of UDATA space
-#define _TEXT0      (FLASH_PAGE_CELLS / 4)  // start of TEXT space
+#define _TEXT0      (FLASH_PAGE_CELLS / 2)  // start of TEXT space
 #define VM_IO_PAGE            5 // CH32H417: the peripheral registers [4]
 #define IO_BASE      0x40000000u // CH32H417: PERIPH_BASE in ch32h417.h
 #define IO_CELLS  (0x38400u / 4) // CH32H417: the peripheral block, through UHSIF

@@ -34,7 +34,7 @@ debug probe (programming, plus a serial port for debug messages), and
 - Click *Build All Projects* (Ctrl+B).
 - Select the **V5F** project and click *Download* (F8). Its download
   programs both cores. Downloading from the V3F project erases the chip and
-  writes only the V3F's half, which leaves the USB port dead.
+  writes only the V3F's half, which leaves LiteForth dead.
 
 A download erases the whole chip, including the Forth dictionary in flash,
 so after each one you load the dictionary again (step 4).

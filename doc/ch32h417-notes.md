@@ -169,6 +169,16 @@ call. Worth a note in `debug.h`.
   example does, fixed it.
 - **VBAT is not connected.** The RTC keeps time through resets and Stop,
   but loses it when the board loses power.
+- **Some microSD cards brown the board out.** With a new 256 GB card, an
+  8-sector read of one particular spot on the card reset the whole chip
+  every time, partway through the transfer. Other sectors read fine, and
+  so did the same code on an older card. The reset left no fault behind:
+  `RCC_RSTSCKR` showed the power-down flag (PORRSTF, with SFTRSTF also set),
+  and breadcrumbs kept in the shared SRAM showed the last step was the
+  read command, with the data still arriving. Large cards can draw sharp
+  current peaks while they read. When feeding 3.3 V to a microSD slot, give
+  the card a supply that can take them: a regulator with headroom, and bulk
+  plus local decoupling capacitance right at the slot.
 
 ## What matched the documents
 

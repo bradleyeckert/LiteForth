@@ -387,7 +387,9 @@ ValidDataLength.
    Desktop card images. `lf_exfat.c` and `lf_card.c` wrappers for the V5F.
    Docs: `sdcard.md`, `quickstart.md`, the CH32 README. Done; the V5F code
    is compile-checked with clang for RV32.
-4. **On the board** with an exFAT card. Next.
+4. **On the board** with an exFAT card. Done: `1 load` and every block
+   of `lfblocks.fb4` read on the board (a new 256 GB card browned the
+   board out on some reads; an older card works).
 5. **Sector words and `root-file` for Forth.** Regression tests on a card
    image.
 6. **Forth file writing** (Part 3), in its own block range of `core.f` or

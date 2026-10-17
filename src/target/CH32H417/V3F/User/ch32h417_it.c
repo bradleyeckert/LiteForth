@@ -10,6 +10,7 @@
 * microcontroller manufactured by Nanjing Qinheng Microelectronics.
 *******************************************************************************/
 #include "ch32h417_it.h"
+#include "crumbs.h"                     /* LiteForth: notes that survive the reset */
 
 void NMI_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
 void HardFault_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
@@ -68,6 +69,7 @@ void HardFault_Handler(void)
   __asm volatile ("csrr %0, mtval" : "=r"(mtval));
   __asm volatile ("mv %0, ra" : "=r"(ra));
   __asm volatile ("mv %0, sp" : "=r"(sp));
+  crumb_v3f_note(TAG('F','L','T','3'), mepc, mcause);
   fault_puts("\r\nV3F fault:");
   fault_hex(" mcause ", mcause);
   fault_hex(" mepc ", mepc);

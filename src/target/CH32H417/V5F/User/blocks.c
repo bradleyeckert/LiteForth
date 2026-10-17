@@ -21,6 +21,9 @@
 #include "blocks.h"
 #include "lftime.h"
 #include "../../../../card.h"       /* src/card.h */
+#include "v5f_crumbs.h"                /* reset debugging trail */
+
+extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
 #include "../../../../errcodes.h"   /* src/errcodes.h */
 
 #ifndef BLK_DMA
@@ -67,6 +70,7 @@ static int map_ok(void) {
     }
     if (memcmp(&map, &map_copy, sizeof map) != 0) {
         map_bad = 1;
+        crumb(TAG('M','A','P','!'), map.base, map.blocks);
         printf("V5F blocks: the block map changed after startup; transfers stopped\r\n");
         dump("map", &map);
         dump("copy", &map_copy);
@@ -82,6 +86,7 @@ static int check_run(uint32_t blk, int length, uint32_t *lba) {
         return ERR_INVALID_NUMERIC;
     }
     if (blk >= map.blocks || (uint32_t)length > map.blocks - blk) {
+        crumb(TAG('B','N','D','!'), blk, map.blocks);
         return ERR_BLK_BOUNDS;
     }
     *lba = map.base + blk * SECTORS_PER_BLOCK;
@@ -260,6 +265,7 @@ static int start_write(uint32_t lba, uint32_t *src, int count) {
 static void check_timeout(void) {
     int64_t elapsed = (int64_t)(lfGetTimeMicroSec() - started);
     if (elapsed > (int64_t)BLK_TIMEOUT_US) {
+        crumb(TAG('T','O','U','T'), SDIO->STA, SDIO->DCOUNT);
         printf("V5F blk: %s timed out, STA %lX DCOUNT %lX\r\n", status == 1 ? "read" : "write",
                (unsigned long)SDIO->STA, (unsigned long)SDIO->DCOUNT);
         fail(ERR_BLK_TIMEOUT);
@@ -275,6 +281,7 @@ static void advance(void) {
     if (step == MOVING) {
         uint32_t sta = SDIO->STA;
         if (sta & SDIO_DATA_ERRORS) {
+            crumb(TAG('F','A','I','L'), sta, SDIO->DCOUNT);
             printf("V5F blk: %s failed, STA %lX DCOUNT %lX\r\n", status == 1 ? "read" : "write",
                    (unsigned long)sta, (unsigned long)SDIO->DCOUNT);
             fail(err);
@@ -284,9 +291,11 @@ static void advance(void) {
             check_timeout();            /* still moving */
             return;
         }
+        crumb(TAG('D','E','N','D'), SDIO->STA, DMA2->INTFR);
         SDIO->DCTRL = 0;
         DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
         SD_Error e = command(SD_CMD_STOP_TRANSMISSION, 0);
+        crumb(TAG('C','M','1','2'), (uint32_t)e, SDIO->STA);
         SDIO_ClearFlag(SDIO_STATIC_FLAGS);
         if (e != SD_OK) {
             step = IDLE;
@@ -303,6 +312,7 @@ static void advance(void) {
     } else if (state == SD_CARD_TRANSFER) {
         step = IDLE;
         status = 0;
+        crumb(TAG('D','O','N','E'), 0, 0);
     } else {
         check_timeout();                /* still programming */
     }
@@ -315,7 +325,9 @@ static int start(uint32_t lba, uint32_t *buf, int count, int write) {
         return ERR_BLK_BUSY;
     }
     started = lfGetTimeMicroSec();
+    crumb(write ? TAG('W','R','I','T') : TAG('R','E','A','D'), lba, (uint32_t)buf);
     int err = write ? start_write(lba, buf, count) : start_read(lba, buf, count);
+    crumb(TAG('S','T','R','T'), (uint32_t)err, (uint32_t)count);
     if (err) {
         return err;
     }
@@ -366,6 +378,7 @@ int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count) {
 }
 
 int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
+    crumb(TAG('B','L','K','R'), blk, g_block_capacity);
     if (!map_ok()) {
         return ERR_BLK_OPEN_FAIL;
     }
@@ -455,7 +468,9 @@ int blk_init(char *filename, uint32_t *capacity) {
     uint64_t n = (uint64_t)SDCardInfo.CardCapacity / SECTOR_BYTES;
     card_sectors = (n > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)n;
 
+    crumb(TAG('C','A','R','D'), card_sectors, 0);
     int ior = card_find_blocks(card_read, card_sectors, &map, msg, sizeof msg);
+    crumb(TAG('M','A','P',' '), map.base, map.blocks);
     if (ior) {
         printf("V5F blocks: can't read the SD card (error %d)\r\n", ior);
         memset(&map, 0, sizeof map);

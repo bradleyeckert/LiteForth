@@ -52,6 +52,7 @@
  * Changes to the driver's state are made with the USB interrupt disabled.
  */
 #include "cdc_bridge.h"
+#include "crumbs.h"
 #include "cdc_shared.h"
 #include "ch32h417_usbfs_device.h"  /* USBFSD, USBFS_EP3_Buf, Uart, UART_Tx_Buf */
 
@@ -151,6 +152,7 @@ static void v5f_safe_restart(void) {
         }
     }
     printf("V5F didn't restart: resetting the chip\r\n");
+    crumb_v3f_note(TAG('R','S','T','3'), sh->v5f_starts, starts);
     debug_uart_drain();
     NVIC_SystemReset();
 }

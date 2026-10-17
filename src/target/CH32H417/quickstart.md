@@ -129,6 +129,11 @@ block of source, and `hi` prints a Chinese proverb (kwai shows CJK text).
 
 ## If something goes wrong
 
+- **MounRiver can't find the probe or won't download:** check the
+  WCHLinkE's blue light. A solid light means ARM mode, which is how some
+  kits ship; switch it to RISC-V mode (step 1). The probe keeps whatever
+  mode it was last set to, so a board that worked before can still
+  surprise you after someone else used it.
 - **The app misbehaves at boot:** press Ctrl+X three times in a row (kwai:
   `~r`). The board restarts without starting the app; `cold` starts it
   again.

@@ -6,6 +6,8 @@
 
 #define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
 #define BLK_MAX_LENGTH           8   /* most blocks one blk_*_imm call moves */
+#define BLK_SECTOR_BYTES         512
+#define BLK_MAX_SECTORS          64  /* most sectors one blk_sector_*_imm call moves */
 
 /* The first bytes of block 0 of every LiteForth block device. Without
    them, the device isn't LiteForth's: it reports 1 block, which can be
@@ -15,21 +17,21 @@
 #define BLK_SIGNATURE_LEN        9
 
 /*
- * Block mass storage for the CH32H417 (V5F): a raw partition on the
- * microSD card, reached through the SDIO peripheral (WCH's driver in
- * sdio.c; nanoCH32H417 pins CLK PB11, CMD PB10, D0-D3 PE8-PE11).
- * Same interface as src/target/desktop/blocks.h. doc/sdcard.md explains
- * how to prepare a card.
+ * Block mass storage for the CH32H417 (V5F), on the microSD card, reached
+ * through the SDIO peripheral (WCH's driver in sdio.c; nanoCH32H417 pins
+ * CLK PB11, CMD PB10, D0-D3 PE8-PE11). Same interface as
+ * src/target/desktop/blocks.h. doc/exfat.md and doc/sdcard.md explain how
+ * to prepare a card.
  */
 
 /**
- * Starts the SD card and finds the block partition: the first entry of
- * type 0xDA in the card's MBR. If the partition starts on a 64 KB
- * boundary and its block 0 starts with BLK_SIGNATURE, all its blocks can
- * be read and written (capacity = its size in 4 KB blocks). If not, the
+ * Starts the SD card and finds the block space (card.h): lfblocks.fb4 in
+ * the root directory of the card's exFAT volume, if it is contiguous. If
+ * its block 0 starts with BLK_SIGNATURE, all its blocks can be read and
+ * written: the capacity is the file's ValidDataLength / 4096. If not, the
  * capacity is 1: block 0 can be read, to see what's there, and nothing
- * can be written. With no card, no MBR or no type 0xDA partition, the
- * capacity is 0. The reason goes to the debug UART (USART1).
+ * can be written. With no card, no exFAT volume or no lfblocks.fb4, the
+ * capacity is 0. What was found goes to the debug UART (USART1).
  * filename: ignored.
  * capacity: if not NULL, receives the number of blocks.
  * Returns 0: a missing or unusable card isn't an error, just no blocks.
@@ -49,8 +51,8 @@ int blk_read(uint32_t blk, uint32_t *dest);
  * Writes a single 4KB block payload from the source buffer, and waits
  * until it's done (blk_write_imm, then blk_status). A transfer still in
  * progress is waited for first.
- * Returns 0 if okay, ERR_BLK_WRITE_PROTECTED if the partition doesn't
- * start with BLK_SIGNATURE (or isn't 64 KB aligned), ERR_BLK_BOUNDS if blk
+ * Returns 0 if okay, ERR_BLK_WRITE_PROTECTED if block 0 doesn't start
+ * with BLK_SIGNATURE, ERR_BLK_BOUNDS if blk
  * is past the capacity, or ERR_BLK_WRITE_FAIL if the card reports an
  * error. Overwriting the signature in block 0 takes effect at the next
  * blk_init.
@@ -92,5 +94,40 @@ int blk_write_imm(uint32_t blk, uint32_t *src, int length);
  * write is in progress. The result stays until the next transfer starts.
  */
 int blk_status(void);
+
+/**
+ * Starts reading count card sectors (512 bytes each, 1 to BLK_MAX_SECTORS)
+ * from sector lba into dest (count * 128 cells), without waiting;
+ * blk_status says when it's done. These reach the whole card, not just the
+ * block space, for code that reads the file system (exfat.c, Forth).
+ * Returns 0 if the read started, ERR_BLK_BUSY, ERR_INVALID_NUMERIC for a
+ * count out of range, ERR_BLK_BOUNDS past the end of the card,
+ * or another negative error code that shows up at once.
+ */
+int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count);
+
+/**
+ * Starts writing count card sectors from src, like blk_sector_read_imm.
+ * Writes are fenced to the card's exFAT volume (blk_write_fence), so they
+ * can't reach the partition table or anything outside the volume.
+ * Returns 0 if the write started, ERR_BLK_WRITE_PROTECTED outside the
+ * fence, or the errors of blk_sector_read_imm.
+ */
+int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count);
+
+/**
+ * Reads count card sectors and waits until it's done: blk_sector_read_imm,
+ * then blk_status, after waiting for a transfer still in progress.
+ * Returns 0 or a negative error code.
+ */
+int blk_sector_read(uint32_t lba, uint32_t *dest, int count);
+
+/**
+ * Tells whether count sectors from lba may be written by
+ * blk_sector_write_imm: they must all be inside the exFAT volume that
+ * blk_init found.
+ * Returns 0 if they may, else ERR_BLK_WRITE_PROTECTED.
+ */
+int blk_write_fence(uint32_t lba, int count);
 
 #endif /* BLOCKS_H */

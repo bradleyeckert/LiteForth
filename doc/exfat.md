@@ -1,13 +1,15 @@
-# exFAT on the microSD card: plan
+# exFAT on the microSD card
 
-Status: **plan only**. Nothing here is implemented yet. Once the open
-questions at the end are settled, the steps under
-[Phases](#phases) are the work list.
+Status: **Part 1 is done** (finding `lfblocks.fb4`, and the C sector
+functions under Part 2); the Forth words of Part 2 and the Forth file
+writing of Part 3 are still a plan. [Phases](#phases) has the details.
+The raw `DA` partition that held the blocks before is gone: the blocks
+are always in `lfblocks.fb4` now.
 
 ## Goal
 
-Today the blocks live in a raw partition of type `DA` ([sdcard.md](sdcard.md)),
-which takes a partitioning step, a PowerShell script or `dd` to fill, and an
+The blocks used to live in a raw partition of type `DA`, which took a
+partitioning step, a PowerShell script or `dd` to fill, and an
 administrator. Instead:
 
 - **Drag and drop.** `lfblocks.fb4` (10 to 20 MB, fonts included) is copied
@@ -31,10 +33,10 @@ sector access.
 
 | Part | Where | Does |
 |---|---|---|
-| Find the volume | C, `src/exfat.c` (new, shared by both targets) | MBR, boot sector checks, cluster geometry |
+| Find the volume | C, `src/exfat.c` (shared by both targets) | MBR, boot sector checks, cluster geometry |
 | Find a root file | C, `src/exfat.c` | Walk the root directory, match a name, return the file's extent |
-| Block space | C, each target's `blocks.c` | Map block *n* onto `lfblocks.fb4` (or, as now, onto a `DA` partition) |
-| Raw sectors | C, each target's `blocks.c`, new words | Read and write 512-byte sectors anywhere in the exFAT partition, unwaited, with the existing DMA engine |
+| Block space | C, `src/card.c` and each target's `blocks.c` | Map block *n* onto `lfblocks.fb4` |
+| Raw sectors | C, each target's `blocks.c` (done); Forth words (to do) | Read 512-byte sectors anywhere on the card, write them inside the exFAT volume, unwaited, with the DMA engine |
 | Root-file lookup for Forth | C word | `( c-addr u -- ... )` gives a file's first sector, length and flags |
 | Create, pre-expand, stream, trim | Forth | Allocation bitmap, directory entry sets, checksums, timestamps |
 | Subdirectories | Forth | The same directory code, starting from another cluster |
@@ -148,7 +150,8 @@ valid, UTC + 0. LiteForth's RTC keeps UTC, so it writes `80`.
 ### `src/exfat.c` interface
 
 Portable C with no target code. It reads sectors through a callback
-supplied by the target:
+supplied by the target. As built (see `src/exfat.h` for the exact
+definitions):
 
 ```c
 typedef int (*exfat_read_fn)(uint32_t sector, uint8_t *buf512);
@@ -203,19 +206,26 @@ checksum (11 sectors read for little gain); that could be a later option.
    128 KB clusters is 160 FAT entries, one or two sectors).
 
 Names are ASCII in C (`"lfblocks.fb4"`), widened to UTF-16 for the
-comparison. One 512-byte sector buffer, static. About 250 lines.
+comparison. An entry set whose SetChecksum or NameHash doesn't match is
+skipped, as is a set broken off by an entry that isn't part of it. Two
+static 512-byte buffers (directory and FAT): 2.7 KB of RV32 code and 1 KB
+of RAM.
+
+A corrupt card can't hang or mislead it: the boot sector must fit its
+partition and keep the FAT before the cluster heap; a directory walk stops
+after 65,536 entries (2 MB, against a FAT that loops); a file's clusters
+must lie inside the volume, and ValidDataLength can't exceed DataLength.
+VolumeDirty is reported but not acted on.
 
 ### The block space on `lfblocks.fb4`
 
-`blk_init` (both targets) looks for its block space in this order:
-
-1. **`lfblocks.fb4` in the root of an exFAT volume.** Block *n* is sector
-   `first_sector + 8n`. The capacity is ValidDataLength / 4096, rounded
-   down, so the block words never read past the written data. Block 0
-   must still start with `LITEFORTH` to be writable, as now.
-2. **A `DA` partition**, as now ([sdcard.md](sdcard.md)), so existing
-   cards keep working.
-3. Neither: capacity 0.
+`blk_init` (both targets) calls `card_find_blocks` (`src/card.c`), which
+mounts the volume and looks for **`lfblocks.fb4` in the root
+directory**. Block *n* is sector `first_sector + 8n`. The capacity is
+ValidDataLength / 4096, rounded down, so the block words never read past
+the written data. Block 0 must start with `LITEFORTH` to be writable;
+without it the capacity is 1, read-only. No volume or no file: capacity
+0.
 
 USART1 says which it found, for example
 `V5F blocks: lfblocks.fb4, 4096 blocks at sector 34816 (exFAT)`.
@@ -223,22 +233,42 @@ USART1 says which it found, for example
 - **Contiguous files only.** `exfat_find` reports whether the file is
   contiguous, and `blk_init` only uses one that is. A file copied onto a
   card with plenty of free space comes out contiguous. If it isn't,
-  `blk_init` says `lfblocks.fb4 is fragmented: copy it again` and falls
-  back to step 2. An extent table (say 8 runs) could lift this later.
+  `blk_init` says `lfblocks.fb4 is fragmented: copy it to the card again`
+  and offers no blocks. An extent table (say 8 runs) could lift this
+  later.
 - **Writes stay inside the file**, at sector granularity, so they change
   no file system metadata and are safe: `update save-buffers`, the block
-  editor and `write-block` work as they do on a `DA` partition. The
-  file's modified time doesn't change, which is harmless.
+  editor and `write-block` work as before. The file's modified time
+  doesn't change, which is harmless.
 - **Eject on the PC first.** The card mustn't be in the PC while the board
   writes, nor the other way round. That's nothing new.
 
-The DMA engine stays as it is: it already takes any start sector and runs
-of 8 sectors per block. `blk_init` reads the boot region and the root
-directory with WCH's polling `SD_ReadDisk`, as it reads the MBR now.
+On the CH32H417, everything underneath is a run of 1 to 64 card sectors
+through the DMA engine; a block is 8 of them. `blk_init` reads the boot
+sector, the root directory and the FAT through the same engine, one
+sector at a time (`blk_sector_read`).
 
-## Part 2: C words for the Forth file system
+On the desktop, `lf -k card.img` does the same with an image of a whole
+card (an unsigned file holding an MBR or an exFAT boot sector), and a
+plain signed block file works as before. The Windows raw-disk access
+(`-k F:`) is gone: `lf -k F:\lfblocks.fb4` opens the card's file
+through Windows instead.
 
-Four words give Forth the card itself, inside the exFAT volume:
+## Part 2: sector access for the Forth file system
+
+The C side is done, in both targets' `blocks.h`:
+
+```c
+int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count);   /* 1..64 sectors */
+int blk_sector_write_imm(uint32_t lba, uint32_t *src, int count);
+int blk_sector_read(uint32_t lba, uint32_t *dest, int count);       /* waits */
+int blk_write_fence(uint32_t lba, int count);   /* 0 if inside the exFAT volume */
+```
+
+Reads reach the whole card; writes outside the exFAT volume give -96.
+They share `blk_status` with the block functions.
+
+Still to do: four Forth words on top of them:
 
 | Word | Stack | Does |
 |---|---|---|
@@ -252,10 +282,11 @@ Four words give Forth the card itself, inside the exFAT volume:
   thing with 8 sectors per block.
 - **Writes are fenced to the exFAT volume.** `write-sectors` refuses any
   sector outside `start .. start + sectors − 1` (-96), so it can't touch
-  the MBR, a `DA` partition or anything else on the card. Inside the
+  the MBR or anything else on the card. Inside the
   volume, keeping the file system consistent is the Forth code's job.
-- On the desktop the same words work on a card image (below), and give
-  -21 on a plain `lfblocks.fb4`, which has no sectors around it.
+- On the desktop the same words work on a card image. On a plain block
+  file, its own sectors can be read and none written (there is no
+  volume around it).
 
 `exfat_vol` and `exfat_file` records live in C (a static `exfat_vol` and
 one `exfat_file` slot for `root-file`); Forth reads their fields with
@@ -316,19 +347,30 @@ ValidDataLength.
 - **Card images on the desktop.** `lf -k card.img` takes an image file
   with an MBR, an exFAT partition and `lfblocks.fb4` in its root, and maps
   the file as on the board. The C code is the same.
-- **Test images.** A new `scripts/mkexfat.py` builds
-  small test images: MBR, boot region with checksum, FAT, bitmap, up-case
-  table, root directory, and files, contiguous or fragmented, with or
-  without NoFatChain. Then a few images made by real formatters, kept as
-  compressed fixtures: one formatted and filled by Windows (from the user's
-  PC: format a small partition or a spare card, copy `lfblocks.fb4`, `dd`
-  or HxD the first few MB), and one from Linux `mkfs.exfat` +
-  `fsck.exfat`, where available. The container here can't install
-  exfatprogs, so the Linux image is made on the PC.
-- **`unit_tests/exfat`** (Unity): mount, find (names in different cases,
-  a deleted entry before the right one, an entry set crossing a sector and
-  a cluster, a name longer than 15 characters, not found), contiguity, and
-  the bounds of `write-sectors`.
+- **Test images (done).** `scripts/mkexfat.py` builds small test images:
+  MBR or none, boot regions with checksum, FAT, bitmap, up-case table,
+  root directory, and files: contiguous or fragmented, with or without
+  NoFatChain, short ValidDataLength, deleted copies, padding to move a set
+  across sector and cluster ends, a spoiled checksum. Its checksum and
+  hash code follows the exFAT reference implementation's.
+- **Images made by real formatters (to do).** One formatted and filled by
+  Windows (format a spare card or a small partition, copy `lfblocks.fb4`,
+  then save the first few MB with HxD or `dd`), and one from Linux
+  `mkfs.exfat` + `fsck.exfat`. The container here can't install
+  exfatprogs, so these come from the PC. They would catch anything
+  `mkexfat.py` and `exfat.c` both get wrong the same way.
+- **`unit_tests/exfat` (done, Unity):** mount (with and without an MBR,
+  dirty, and rejecting NTFS, a non-zero MustBeZero, 4 KB sectors, a wrong
+  partition type and no MBR), find (names in any case, not found, a long
+  name after a deleted copy, a set crossing a sector, a fragmented root
+  crossing clusters mid-set, fragmented and FAT-chained files,
+  ValidDataLength, a directory, an empty file, a bad checksum),
+  `card_find_blocks` (signed, unsigned, fragmented, partial last block,
+  too big for the card, no volume), and the desktop `blocks.c` on a card
+  image: block reads and writes, sector reads, the write fence. `run_lf.sh`
+  then runs `lf -k` on an image holding a block file built from `core.f`,
+  compares it with the same file used directly, and compiles `core.f`
+  from it.
 - **Part 3** is checked by the PC: an image the Forth code wrote must pass
   `chkdsk /f` on Windows and `fsck.exfat -n`, and show the right size and
   contents.
@@ -338,14 +380,16 @@ ValidDataLength.
 
 ## Phases
 
-1. **This plan.** Settle the open questions.
-2. **`src/exfat.c` + `unit_tests/exfat` + `scripts/mkexfat.py`.** Desktop
-   only.
-3. **`blk_init` on both targets:** exFAT `lfblocks.fb4` first, then `DA`.
-   Desktop card images. `lf_exfat.c` wrapper for the V5F. Docs:
-   `sdcard.md` (just copy the file), `quickstart.md`, the CH32 README.
-4. **On the board** with the user's card.
-5. **Sector words and `root-file`.** Regression tests on a card image.
+1. **This plan.** Done.
+2. **`src/exfat.c`, `src/card.c`, `unit_tests/exfat`,
+   `scripts/mkexfat.py`.** Done.
+3. **`blk_init` on both targets**, exFAT only, and the sector functions.
+   Desktop card images. `lf_exfat.c` and `lf_card.c` wrappers for the V5F.
+   Docs: `sdcard.md`, `quickstart.md`, the CH32 README. Done; the V5F code
+   is compile-checked with clang for RV32.
+4. **On the board** with an exFAT card. Next.
+5. **Sector words and `root-file` for Forth.** Regression tests on a card
+   image.
 6. **Forth file writing** (Part 3), in its own block range of `core.f` or
    a separate source file, with the PC checks.
 
@@ -353,11 +397,9 @@ Phases 2 to 4 are enough for drag and drop.
 
 ## Open questions
 
-1. **Which comes first, `lfblocks.fb4` on exFAT or a `DA` partition?** The
-   plan says exFAT first, so a card that has both uses the file. Or should
-   a card with a `DA` partition keep using it?
-2. **Fragmented `lfblocks.fb4`:** refuse with a message (plan), or
-   support a few extents?
+Settled: exFAT only, no `DA` partition (nobody depends on the old layout);
+a fragmented `lfblocks.fb4` is refused with a message.
+
 3. **The "run of blocks"** in your note: is that another `.fb4`-style file
    mapped into the block space at some offset (say a second file starting
    at block 100000), or a file Forth reads with `read-sectors`? The plan

@@ -10,7 +10,7 @@ TARGET = test_blkrun
 CC     ?= gcc
 CFLAGS  = -Wall -Wextra -std=c99 -g -I$(DESKTOP_DIR) -I$(SRC_DIR) -I$(UNITY_DIR)
 
-SRC = $(DESKTOP_DIR)/blocks.c $(DESKTOP_DIR)/rawdisk.c test_blkrun.c $(UNITY_DIR)/unity.c
+SRC = $(DESKTOP_DIR)/blocks.c $(SRC_DIR)/card.c $(SRC_DIR)/exfat.c test_blkrun.c $(UNITY_DIR)/unity.c
 
 .PHONY: all test clean
 

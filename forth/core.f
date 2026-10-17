@@ -488,10 +488,12 @@ head+
                             2 .digits  [char] : emit  2 .digits ;
 -->
 ( BLOCK++ )
-( LCD clock ___________________________________________________ 10/16/26 BNE )
-: show-time ( u -- )        emit_xt @ >r  lcd utf8reset                         \ draw the date and time of u on the LCD
-    8 16 LCDwidth 16 - fontheight 2* clear-rect                     ( u )
-    8 16 at  dup .date  8 16 fontheight + at  .time  r> emit_xt ! ;
+( LCD clock ___________________________________________________ 10/17/26 BNE )
+_text create bigfont  120 , 100 , 0 ,                                           \ the double-size digits, then font 100
+: _line     ( y -- )        8 swap  2dup at  LCDwidth 16 - fontheight clear-rect ; \ clear a line of text at y and start it
+: show-time ( u -- )        emit_xt @ >r  font @ >r  lcd utf8reset              \ draw the date and time of u on the LCD
+    16 _line  dup .date  16 fontheight +                            ( u y )
+    bigfont font !  _line  .time  r> font !  r> emit_xt ! ;         ( the time in double size )
 _udata variable shown                                                           \ the time show-time last drew
 : clock     ( -- )          begin  pause  rtc@ dup shown @ xor                  \ redraw the clock on the LCD each second
                             if dup show-time then  shown !  again ;

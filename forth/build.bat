@@ -6,4 +6,4 @@ py ../scripts/mkfont.py -f NotoSansCJKsc-Regular.otf -s 48 -o cjk48.fnt --blocks
 py ../scripts/putbin.py cjk24.fnt 100 ../bin/lfblocks.fb4
 py ../scripts/putbin.py cjk48.fnt 120 ../bin/lfblocks.fb4
 del *.fnt
-echo "Copy lfblocks.fb4 to the first DA partition on your microSD card to use it on your nanoCH32H417 board"
+echo "Copy lfblocks.fb4 to the top folder of an exFAT microSD card to use it on your nanoCH32H417 board"

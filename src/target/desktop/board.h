@@ -15,6 +15,8 @@
  *   product 0x4C46              the product ID (C number syntax)
  *   min-revision 0              optional, default 0
  *   min-serial 0                optional, default 0
+ *   sealed-only 1               optional, default 0: as a CH32H417 built
+ *                               with SEALED_ONLY, refuse plain block files
  */
 
 /**

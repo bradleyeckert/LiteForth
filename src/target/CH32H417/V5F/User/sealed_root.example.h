@@ -21,4 +21,9 @@
 /* The product ID that release keys and sealed files name */
 #define SEALED_PRODUCT 0x00000000u
 
+/* Optional: 1 makes the board refuse plain block files, so it runs only
+   sealed releases: a plain lfblocks.fb4 offers no blocks, and `-1 ymodem`
+   takes only sealed files. Leave it out while developing. */
+/* #define SEALED_ONLY 1 */
+
 #endif /* SEALED_ROOT_H */

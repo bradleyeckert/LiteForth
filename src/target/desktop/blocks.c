@@ -133,6 +133,16 @@ static void check_sealed(uint32_t file_blocks) {
     }
 }
 
+/* A plain block file on a board that takes only sealed ones (sealed-only
+   in the board file): offers nothing. Install space is kept. */
+static void check_plain(void) {
+    if (!sealed && writable && board != NULL && board->sealed_only) {
+        writable = 0;
+        actual_blocks = 0;
+        fprintf(stderr, "blocks: a plain block file, but this board takes only sealed files\n");
+    }
+}
+
 /* card.c's sector reader, for a card image */
 static int card_read(uint32_t sector, uint8_t *buf) {
     if (sector >= dev_sectors) {
@@ -193,6 +203,7 @@ int blk_init(char* filename, uint32_t* capacity) {
             fprintf(stderr, "blocks: %s\n", msg);
             if (writable) {
                 check_sealed(actual_blocks);
+                check_plain();
             }
         } else {
             // Block 0 can be read, if it's all there
@@ -204,7 +215,8 @@ int blk_init(char* filename, uint32_t* capacity) {
         space = actual_blocks;
         writable = 1;
         check_sealed(actual_blocks);
-        if (!writable) {                // sealed: never padded or written
+        check_plain();
+        if (!writable) {                // sealed or refused: never padded or written
             if (capacity != NULL) {
                 *capacity = actual_blocks;
             }
@@ -404,6 +416,10 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
     if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
         if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
             snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
+            return ERR_BLK_PARSE_FAIL;
+        }
+        if (board != NULL && board->sealed_only) {
+            snprintf(msg, len, "a plain block file, but this board takes only sealed files");
             return ERR_BLK_PARSE_FAIL;
         }
         snprintf(msg, len, "a plain block file");

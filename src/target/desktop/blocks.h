@@ -31,7 +31,8 @@
  * starts with SEALED_MAGIC): then, with the board set by blk_set_board,
  * it's mounted read-only (sealed.c), its content blocks checked and
  * decrypted as they're read; without a board, or if the board refuses it,
- * the capacity is 0. A line on stderr says which.
+ * the capacity is 0. A board file with `sealed-only 1` refuses plain
+ * files too (capacity 0). A line on stderr says which.
  * filename: the block file, or NULL or "" for BLOCKFILENAME.
  * capacity: if not NULL, receives the number of blocks (1 or 0 for a file
  * without the signature).
@@ -170,7 +171,8 @@ int blk_raw_write(uint32_t blk, const uint32_t *src, int length);
 
 /**
  * Checks block 0 of an image of `blocks` blocks before it's installed: a
- * plain one (BLK_SIGNATURE, not SEALED_MAGIC) passes; a sealed one must
+ * plain one (BLK_SIGNATURE, not SEALED_MAGIC) passes unless the board is
+ * sealed-only; a sealed one must
  * be one this board would mount (sealed_mount: certificate, signature,
  * product, revision, release key serial, a recipient), so a file the
  * board can't use never replaces one it can. Unmounts a mounted sealed

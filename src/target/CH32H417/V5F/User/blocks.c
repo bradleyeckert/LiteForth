@@ -521,6 +521,16 @@ static int card_read(uint32_t sector, uint8_t *buf) {
     return err ? err : finish();
 }
 
+/* SEALED_ONLY in sealed_root.h: plain block files are refused */
+static int sealed_only(void) {
+    sealed_board board;
+    char msg[80];
+    board_get(&board, msg, sizeof msg);
+    int only = board.sealed_only != 0;
+    memset(&board, 0, sizeof board);
+    return only;
+}
+
 /* If the block file is sealed, mounts it with what the board holds and
    offers its content read-only; if it can't, offers nothing */
 static void mount_sealed(void) {
@@ -578,6 +588,11 @@ static uint32_t find(void) {
     printf("V5F blocks: %s\r\n", msg);
     if (writable) {
         mount_sealed();
+    }
+    if (writable && !sealed && sealed_only()) {
+        writable = 0;
+        limit = 0;
+        printf("V5F blocks: a plain block file, but this build takes only sealed files (SEALED_ONLY)\r\n");
     }
     printf("V5F blocks: map at %08lX, %u bytes\r\n", (unsigned long)(uintptr_t)&map,
            (unsigned)sizeof map);
@@ -673,6 +688,10 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
     if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
         if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
             snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
+            return ERR_BLK_PARSE_FAIL;
+        }
+        if (sealed_only()) {
+            snprintf(msg, len, "a plain block file, but this build takes only sealed files");
             return ERR_BLK_PARSE_FAIL;
         }
         snprintf(msg, len, "a plain block file");

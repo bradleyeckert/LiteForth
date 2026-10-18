@@ -159,6 +159,46 @@ The debug helpers in `SRC/Debug/debug.c` take over the V5F's SysTick
 (`SysTick1`), so any time base built on it stops working after a delay
 call. Worth a note in `debug.h`.
 
+### ECDC (the AES/SM4 engine): what its registers really do
+
+Tested from the Forth prompt through VM page 5 (ECDC at `0x40016C00`, VM
+cell `0x285B00`; its clock is bit 26 of `RCC_HB2PCENR`, its reset the same
+bit of `RCC_HB2PRSTR`), with single-block operations only (SGSD in, SGRT
+out), on 2026-10-18. The RM and the SDK disagree with the chip on several
+points:
+
+- **CTRL bit 9 set is CTR, clear is ECB.** `ch32h417_ecdc.h` has
+  `ECDCBlockCipherMode_CTR = 0, ECDCBlockCipherMode_ECB = 1`, the other way
+  round. WCH's examples ask for ECB and get CTR with a zero counter, which
+  their print-only demos can't show.
+- **Bit 8 set is AES, clear is SM4**, as the header says.
+- **With DAT_MOD (bit 13, "big") set, everything is natural big-endian
+  words:** `KEY_127T96` holds key bytes 0-3 and so on down to `KEY_31T0`
+  (bytes 12-15) for a 128-bit key, `IV_127T96` counter bytes 0-3, `SGSD_127T96`
+  data bytes 0-3, and `SGRT_127T96` result bytes 0-3. With it clear the data
+  is taken byte-reversed and the key differently again. DAT_MOD reads back
+  as 0 even when set.
+- **Known answers match** with DAT_MOD set: AES-128 FIPS-197 (key
+  `000102...0f`, `00112233...eeff` -> `69c4e0d8 6a7b0430 d8cdb780 70b4c55a`),
+  in ECB and through the counter; SM4 GB/T 32907 (`0123456789abcdef
+  fedcba9876543210` as key and data -> `681edf34 d206965e 86b3e94f 536e4246`);
+  and both with all-zero key and data.
+- **In single-block CTR the counter neither advances nor reloads.** Each
+  operation uses the counter loaded at the last key expansion (KEYEX_EN 0 to
+  1); writing the IV registers afterwards changes nothing, and they read
+  back unchanged. Whether RAM (DMA) mode steps the counter is still to test.
+- **Key expansion isn't reliable without a reset.** After a reset through
+  `RCC_HB2PRSTR` it ran every time (`INT_FG` bit 16, EKDONE, set). Without
+  one, successive expansions alternated between running and silently not
+  running; when one doesn't run, the engine keeps the previous key (and
+  algorithm) and still loads the new counter. Reset the engine before each
+  new key, and check EKDONE.
+- **The flags are bits 16-18 of `INT_FG`** (EKDONE, single done, RAM done),
+  cleared by writing 1s there: writing `0xFF`, as `ECDC_Init` does, clears
+  none of them. In the SDK, `ECDC_IT_*` are cast to `uint8_t`, which makes
+  them all 0, and `ECDC_ITConfig` clears with a `uint8_t` mask, so neither
+  can work.
+
 ## The nanoCH32H417 board
 
 - **VIO18 for the LCD connector.** VIO18 supplies the high-speed GPIOs,

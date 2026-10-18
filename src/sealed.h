@@ -35,6 +35,18 @@ typedef struct {
                                        doesn't look at it */
 } sealed_board;
 
+/* A firmware update package's description (doc/firmware-updates.md
+   section 5), from block 0 */
+enum { SEALED_V5F = 1, SEALED_STAGE1 = 2 };
+typedef struct {
+    uint32_t component;             /* SEALED_V5F or SEALED_STAGE1 */
+    uint32_t hw_rev;                /* 0: any */
+    uint32_t length;                /* the image's bytes */
+    uint32_t min_version;           /* the new minimum, or 0 */
+    uint32_t version;               /* the revision field: the image's version */
+    uint8_t image_hash[32];         /* BLAKE2s(image, 32, person "LFimage") */
+} sealed_package;
+
 /* Reads raw block blk (4096 bytes) of the file into buf, bypassing
    decryption: for the hash table blocks. buf is 4-byte aligned, so a
    target can read into it by DMA. Returns 0 or an error code. */
@@ -52,6 +64,18 @@ typedef int (*sealed_read_fn)(uint32_t blk, uint8_t *buf);
  */
 int sealed_mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
                  sealed_read_fn read, char *msg, int len);
+
+/**
+ * sealed_mount for a firmware update package (PACKAGE_MAGIC): the same
+ * checks (board->min_revision is then the lowest version the board takes
+ * for this kind of image), with block 0's description, which fills pkg.
+ * Its content blocks, 1 to sealed_blocks() - 1, are the image, padded,
+ * read with sealed_open_block. The image hash isn't checked here: it's
+ * of the decrypted image, so the caller checks it as it reads the blocks.
+ * Returns 0 or ERR_BLK_PARSE_FAIL.
+ */
+int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
+                         sealed_read_fn read, char *msg, int len, sealed_package *pkg);
 
 /**
  * Forgets the mounted file and erases its key.

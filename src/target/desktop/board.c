@@ -121,9 +121,3 @@ int lfAPI_ecdcTest(void) {
     lfCR();
     return ERR_UNSUPPORTED_OPERATION;
 }
-
-int lfAPI_pmpTest(void) {
-    lf_puts("pmp-test: no PMP on the desktop");
-    lfCR();
-    return ERR_UNSUPPORTED_OPERATION;
-}

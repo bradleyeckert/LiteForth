@@ -2,8 +2,6 @@
 
 LiteForth uses blocks rather than files.
 
-I know what you're thinking: *For God's sake, why?*
-
 The desktop ecosystem is stream-based, with source code in text files.
 Desktop Forth moved away from blocks. The MCU environment has no such ecosystem.
 
@@ -12,7 +10,7 @@ Chuck's Forths have always used modal editors, usable from the terminal, rather 
 VIM users can tell you there is a tradeoff between the speed of typing and the speed of cursor positioning.
 A non-modal editor is not necessarily faster to use.
 
-File and block abstractions are both a little old. They are blocking, which gives up the gains provided by DMA.
+File and block abstractions are both very 20th-Century. They are blocking, which gives up the gains provided by DMA.
 LiteForth adds non-blocking block I/O.
 Code can kick off a read or write, then go off and do other things while waiting for the transfer to finish.
 

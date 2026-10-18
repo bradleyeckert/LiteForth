@@ -10,8 +10,8 @@ The clock speed of PCs didn't reach 400 MHz until about 1999.
 
 A [CH32H417](https://www.lcsc.com/product-detail/C49363240.html)
 costs about $3.88.
-The official [dev board](https://www.aliexpress.us/item/3256812656099340.html)
-is about 10 times that. It has a built-in WCH-Link.
+The [nanoCH32H417](https://github.com/wuxx/nanoCH32H417)
+is about 10 times that. It has a built-in WCH-Link. Try to find a kit with a 1.54" LCD.
 To get LiteForth running on it, see the
 [quickstart](src/target/CH32H417/quickstart.md).
 

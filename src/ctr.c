@@ -2,6 +2,7 @@
    the CTR mode of sealed block files. Small rather than fast: the desktop
    uses it, and the CH32H417 has the ECDC engine. Table-driven, so not
    hardened against cache-timing side channels (encrypted-blocks.md 9). */
+#include <stdint.h>
 #include <string.h>
 #include "ctr.h"
 
@@ -160,6 +161,7 @@ int ctr_setkey(ctr_key *k, int cipher, const uint8_t key[16]) {
         return -1;
     }
     k->cipher = cipher;
+    memcpy(k->key, key, 16);
     return 0;
 }
 
@@ -173,6 +175,24 @@ void ctr_encrypt_block(const ctr_key *k, const uint8_t in[16], uint8_t out[16]) 
 
 void ctr_crypt_block(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
                      uint8_t *buf, size_t len) {
+#ifdef CTR_HW
+    if ((len & 15) == 0 && ((uintptr_t)buf & 3) == 0) {
+        uint8_t ctr[16];
+        uint64_t count = (uint64_t)n * 256;
+        memcpy(ctr, nonce, 8);
+        for (int i = 0; i < 8; i++) {
+            ctr[8 + i] = (uint8_t)(count >> (56 - 8 * i));
+        }
+        if (ctr_hw_crypt(k, ctr, buf, len) == 0) {
+            return;
+        }
+    }
+#endif
+    ctr_crypt_block_sw(k, nonce, n, buf, len);
+}
+
+void ctr_crypt_block_sw(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
+                        uint8_t *buf, size_t len) {
     uint8_t ctr[16], ks[16];
     uint64_t count = (uint64_t)n * 256;
     memcpy(ctr, nonce, 8);

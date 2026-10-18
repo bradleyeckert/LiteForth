@@ -36,4 +36,12 @@ int board_load(const char *path, sealed_board *b, char *msg, int len);
  */
 int lfAPI_enroll(void);
 
+/**
+ * Forth word `ecdc-test`  ( -- )
+ * Tests the CH32H417's AES/SM4 engine (V5F/User/ecdc.h). The desktop has
+ * none: it says so.
+ * Returns ERR_UNSUPPORTED_OPERATION.
+ */
+int lfAPI_ecdcTest(void);
+
 #endif /* BOARD_H */

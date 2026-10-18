@@ -207,6 +207,7 @@ static const struct s_head forth_heads[] = {
     { PREV, ".s",           API0(API_DOTS),                           184},
     { PREV, ".",            API0(API_DOT),                            185},
     { PREV, "see",          API0(API_SEE),                            186},
+    { PREV, "ecdc-test",    API0(API_ECDC_TEST),                      205},
 #endif
 };
 #undef PREV

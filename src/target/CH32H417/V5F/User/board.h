@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include "../../../../sealed.h"     /* src/sealed.h */
+#include "ecdc.h"                   /* lfAPI_ecdcTest, for api0.c */
 
 /*
  * What this board keeps for sealed block files (doc/encrypted-blocks.md):

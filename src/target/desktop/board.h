@@ -44,4 +44,12 @@ int lfAPI_enroll(void);
  */
 int lfAPI_ecdcTest(void);
 
+/**
+ * Forth word `pmp-test`  ( -- )
+ * Tests the CH32H417 V5F's PMP (V5F/User/pmptest.h). The desktop has
+ * none: it says so.
+ * Returns ERR_UNSUPPORTED_OPERATION.
+ */
+int lfAPI_pmpTest(void);
+
 #endif /* BOARD_H */

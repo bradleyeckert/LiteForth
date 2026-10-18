@@ -10,6 +10,16 @@
 
 #define REPORT_LAST     40u             /* crumbs shown from the previous run */
 
+/* 1: list the previous run's crumbs after every reset. 0 (the default): only
+   after a reset by a watchdog, a lockup or software, the ones that mean
+   something went wrong; after a pin or power-on reset, one line says how
+   many there were. The debug UART runs at 9600 baud and printf waits, so
+   the 40 crumbs hold up the start by about 1.5 s. */
+#ifndef CRUMBS_TRAIL
+#define CRUMBS_TRAIL    0
+#endif
+#define RESET_TROUBLE   ((1u << 31) | (1u << 30) | (1u << 29) | (1u << 28))
+
 void crumb(uint32_t tag, uint32_t a, uint32_t b) {
     crumb_log_t *c = CRUMBS;
     if (c->magic != CRUMB_MAGIC) {
@@ -35,17 +45,21 @@ static void print_tag(uint32_t tag) {
 void crumbs_report(void) {
     crumb_log_t *c = CRUMBS;
     uint32_t why = RCC->RSTSCKR;
-    printf("V5F crumbs: reset flags %08lX:%s%s%s%s%s%s\r\n", (unsigned long)why,
+    RCC->RSTSCKR |= RCC_RMVF;           /* so the next boot sees only its own */
+    printf("V5F crumbs: reset by%s%s%s%s%s%s%s",
            (why & (1u << 31)) ? " LOCKUP" : "", (why & (1u << 30)) ? " WWDG" : "",
            (why & (1u << 29)) ? " IWDG" : "", (why & (1u << 28)) ? " software" : "",
-           (why & (1u << 27)) ? " power" : "", (why & (1u << 26)) ? " pin" : "");
-    RCC->RSTSCKR |= RCC_RMVF;           /* so the next boot sees only its own */
+           (why & (1u << 27)) ? " power" : "", (why & (1u << 26)) ? " pin" : "",
+           (why & (0x3Fu << 26)) ? "" : " the V3F");
 
     if (c->magic == CRUMB_MAGIC) {
         uint32_t n = c->next;
         uint32_t shown = (n < REPORT_LAST) ? n : REPORT_LAST;
-        printf("V5F crumbs: boot %lu; the previous run left %lu crumbs, the last %lu:\r\n",
-               (unsigned long)c->boots, (unsigned long)n, (unsigned long)shown);
+        if (!CRUMBS_TRAIL && !(why & RESET_TROUBLE)) {
+            shown = 0;
+        }
+        printf(", boot %lu; the previous run left %lu crumbs%s\r\n",
+               (unsigned long)c->boots, (unsigned long)n, shown ? ", the last:" : "");
         for (uint32_t i = n - shown; i != n; i++) {
             const crumb_t *e = &c->e[i % CRUMB_COUNT];
             printf("  %10lu ", (unsigned long)e->t);
@@ -59,7 +73,7 @@ void crumbs_report(void) {
         }
         c->boots = c->boots + 1;
     } else {
-        printf("V5F crumbs: none from before (power-up)\r\n");
+        printf("; none from before (power-up)\r\n");
         c->boots = 1;
     }
     c->v3f_note = 0;

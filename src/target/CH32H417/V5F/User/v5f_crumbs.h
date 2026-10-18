@@ -13,8 +13,9 @@ void crumb(uint32_t tag, uint32_t a, uint32_t b);
 
 /**
  * At startup: prints on USART1 the reset flags (RCC_RSTSCKR, then
- * clears them), the last crumbs of the previous run and any note the V3F
- * left, then starts a new trail.
+ * clears them) and how many crumbs the previous run left, then the last
+ * of them if the reset was by a watchdog, a lockup or software (or always,
+ * with CRUMBS_TRAIL 1), and any note the V3F left; then starts a new trail.
  */
 void crumbs_report(void);
 

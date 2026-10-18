@@ -203,12 +203,17 @@ flash holds the board's record for sealed block files (`V5F/User/board.c`,
 private key, made by `enroll`, and the lowest revision and release key
 serial it takes. It lies inside the 480K of single-flash mode. A MounRiver
 download with *Erase All* wipes it, so the board needs `enroll` again
-(and a new line in `boards.csv`).
+(a new key, so a new line in `boards.csv` and files sealed again).
 
 **Sealed block files.** If `lfblocks.fb4` on the card is sealed, `blk_init`
 mounts it with the board's record and the root key in
 `V5F/User/sealed_root.h`, which the application's build supplies (copy
 `sealed_root.example.h`, or `sealblocks.py root-header`; git ignores it).
+After adding or changing `sealed_root.h`, clean the V5F project before
+building: `board.c` finds it with `__has_include`, and MounRiver's
+dependency lists don't notice a header that didn't exist at the last
+build, so an incremental build keeps the old `board.o` (the board then
+says `no root key built in`).
 The debug UART then says, for example,
 `V5F blocks: sealed file, revision 5, release key 1, AES-128, 121 blocks (checked in 31 ms)`,
 or why it refused the file. Its blocks are checked and decrypted in

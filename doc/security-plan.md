@@ -107,6 +107,11 @@ Adversaries, by reach:
 
 ### 5.1 Flash layout
 
+[firmware-updates.md](firmware-updates.md) works this out for the
+CH32H417 board: stage 0 and an updatable stage 1 in the V3F, staging and
+backups on the microSD card instead of NOR flash. It supersedes the layout
+below where they differ.
+
 LiteForth's current plan ([flashmem.md](flashmem.md)): RoT in sectors 0..N-1, a
 security sector N, then four flash pages for the dictionary. A proposal to
 pin down (**Decide** sizes):
@@ -269,6 +274,9 @@ doesn't give away unlock codes. Every unlock is logged server-side with
 who asked and why.
 
 ### 5.5 Secure firmware update
+
+For the CH32H417 board, see [firmware-updates.md](firmware-updates.md),
+which puts phase B in the V3F's stage 1 and staging on the card.
 
 A production update is a file on a microSD card. The card is used for
 nothing else, so it's simply untrusted input: anyone can put any file on

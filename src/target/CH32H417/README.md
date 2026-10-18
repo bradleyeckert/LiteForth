@@ -210,6 +210,10 @@ again).
 mounts it with the board's record and the root key in
 `V5F/User/sealed_root.h`, which the application's build supplies (copy
 `sealed_root.example.h`, or `sealblocks.py root-header`; git ignores it).
+With `SEALED_ONLY` defined there, the board takes only sealed files: a
+plain `lfblocks.fb4` offers no blocks and `-1 ymodem` refuses plain files
+([doc/updates.md](../../../doc/updates.md) covers the whole process and
+these options).
 After adding or changing `sealed_root.h`, clean the V5F project before
 building: `board.c` finds it with `__has_include`, and MounRiver's
 dependency lists don't notice a header that didn't exist at the last

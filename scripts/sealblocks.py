@@ -7,11 +7,12 @@
     sealblocks.py board-key OUT [--uid HEX]        make a board key pair (for testing; a real
                                                    board makes its own) and print its boards.csv line
     sealblocks.py lf-board OUT --board-key B --root ROOT.pub --product P
-                  [--min-revision N] [--min-serial N]
+                  [--min-revision N] [--min-serial N] [--sealed-only]
                                                    write a board file for the desktop lf (-K)
-    sealblocks.py root-header ROOT.pub --product P [-o FILE]
+    sealblocks.py root-header ROOT.pub --product P [--sealed-only] [-o FILE]
                                                    write sealed_root.h (the root key and product
-                                                   ID that a CH32H417 build reads sealed files with)
+                                                   ID that a CH32H417 build reads sealed files with;
+                                                   --sealed-only: SEALED_ONLY, no plain files)
     sealblocks.py seal PLAIN SEALED --release R --boards CSV --revision N [--cipher aes|sm4]
     sealblocks.py check SEALED --root ROOT.pub     check everything that needs no board key
     sealblocks.py open SEALED PLAIN --root ROOT.pub --board-key B
@@ -313,7 +314,8 @@ def cmd_lf_board(a):
         f.write('# lf -K board file: what a board keeps for sealed block files\n'
                 f'uid {uid.hex()}\nprivate {priv.hex()}\nroot {pub.hex()}\n'
                 f'product {a.product:#x}\nmin-revision {a.min_revision}\n'
-                f'min-serial {a.min_serial}\n')
+                f'min-serial {a.min_serial}\n'
+                + ('sealed-only 1\n' if a.sealed_only else ''))
     print(f'{a.out}: board {uid.hex()} for lf -K')
 
 
@@ -326,14 +328,17 @@ def cmd_root_header(a):
             '   files with (doc/encrypted-blocks.md, V5F/User/board.h). */\n'
             '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'
             '#define SEALED_ROOT_KEY { \\\n%s }\n\n'
-            '#define SEALED_PRODUCT 0x%08xu\n\n#endif /* SEALED_ROOT_H */\n'
-            % (os.path.basename(a.root), rows.replace('\n', ' \\\n'), a.product))
+            '#define SEALED_PRODUCT 0x%08xu\n\n%s#endif /* SEALED_ROOT_H */\n'
+            % (os.path.basename(a.root), rows.replace('\n', ' \\\n'), a.product,
+               '/* Only sealed block files: plain ones are refused */\n'
+               '#define SEALED_ONLY 1\n\n' if a.sealed_only else ''))
     if a.out:
         if os.path.exists(a.out) and not a.force:
             raise SealError(f'{a.out} exists (use --force to replace it)')
         with open(a.out, 'w', newline='\n') as f:
             f.write(text)
-        print(f'{a.out}: root key {pub.hex()[:16]}..., product {a.product:#x}')
+        print(f'{a.out}: root key {pub.hex()[:16]}..., product {a.product:#x}'
+              + (', sealed files only' if a.sealed_only else ''))
     else:
         sys.stdout.write(text)
 
@@ -447,10 +452,14 @@ def main(argv=None):
     s.add_argument('--product', type=num, required=True)
     s.add_argument('--min-revision', type=num, default=0)
     s.add_argument('--min-serial', type=num, default=0)
+    s.add_argument('--sealed-only', action='store_true',
+                   help='refuse plain block files, as a SEALED_ONLY build does')
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('root-header', help='write sealed_root.h for a CH32H417 build')
     s.add_argument('root', help='the root .pub file')
     s.add_argument('--product', type=num, required=True)
+    s.add_argument('--sealed-only', action='store_true',
+                   help='define SEALED_ONLY: the board refuses plain block files')
     s.add_argument('-o', dest='out', help='the file (default: standard output)')
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('seal', help='make a sealed file from a plain one')

@@ -66,6 +66,8 @@ int board_load(const char *path, sealed_board *b, char *msg, int len) {
             err = number(value, &b->min_revision);
         } else if (!err && !strcmp(name, "min-serial")) {
             err = number(value, &b->min_serial);
+        } else if (!err && !strcmp(name, "sealed-only")) {
+            err = number(value, &b->sealed_only);
         } else {
             err = 1;
         }

@@ -16,6 +16,8 @@
  * Fills b with what the board holds: its UID (ESIG UNIID1 and UNIID2, as
  * they lie in memory), its private key, the root key and product ID from
  * sealed_root.h, and its minimums. msg receives the reason if it can't.
+ * b->sealed_only is SEALED_ONLY from sealed_root.h (0 if it isn't
+ * defined), set even when it fails.
  * Returns 0, or ERR_UNSUPPORTED_OPERATION if there is no root key built
  * in or the board hasn't been enrolled.
  */

@@ -29,7 +29,7 @@
 #include "../../../../errcodes.h"
 #include "../../../../tools.h"
 #if __has_include("sealed_root.h")
-#include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT */
+#include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT, SEALED_ONLY */
 #endif
 
 extern const uint32_t __lf_flash_start[];   /* Link_v5f.ld */
@@ -124,6 +124,9 @@ static void put_hex(const uint8_t *p, int n) {
 
 int board_get(sealed_board *b, char *msg, int len) {
     memset(b, 0, sizeof *b);
+#ifdef SEALED_ONLY
+    b->sealed_only = SEALED_ONLY;       /* set even if the rest fails */
+#endif
 #ifndef SEALED_ROOT_KEY
     snprintf(msg, len, "no root key built in (V5F/User/sealed_root.h)");
     return ERR_UNSUPPORTED_OPERATION;

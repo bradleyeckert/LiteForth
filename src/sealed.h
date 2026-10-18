@@ -26,6 +26,9 @@ typedef struct {
     uint32_t product;
     uint32_t min_revision;
     uint32_t min_serial;
+    uint32_t sealed_only;           /* nonzero: the block layer refuses plain
+                                       block files (SEALED_ONLY); sealed.c
+                                       doesn't look at it */
 } sealed_board;
 
 /* Reads raw block blk (4096 bytes) of the file into buf, bypassing

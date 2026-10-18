@@ -119,6 +119,25 @@ def install_tests(c, sums, damaged):
     got = install('aes.fb4', 'aes.fb4', '-k', 'space.fb4')
     expect('install sealed without -K', 'lf has no board file (-K); nothing written' in got, got)
 
+    # a sealed-only board (SEALED_ONLY): no plain files, mounted or installed
+    tool('lf-board', 'only.lfb', '--board-key', 'a.key', '--root', 'root.pub',
+         '--product', PRODUCT, '--sealed-only')
+    only = ('-k', 'space.fb4', '-K', 'only.lfb')
+    _, got = lf('capacity .\nbye\n', *only)
+    expect('sealed-only: a plain file offers nothing', 'takes only sealed files' in got
+           and body(got).strip().startswith('0'), got)
+    before = sha('space.fb4')
+    got = install('plain.fb4', 'plain.fb4', *only)
+    expect('sealed-only: a plain install refused', 'takes only sealed files; nothing written'
+           in got, got)
+    expect('sealed-only: file unchanged', sha('space.fb4') == before)
+    got = install('aes.fb4', 'aes.fb4', *only)
+    expect('sealed-only: a sealed install over a plain file',
+           f'revision 5: all {c - 1} content blocks pass' in got, got)
+    _, got = lf(LOAD, *only)
+    expect('sealed-only: loads core.f from the sealed file', body(got) == sums, got)
+    got = install('plain.fb4', 'plain.fb4', *board)     # back to plain for the card test
+
     subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'card2.img',
                     '--file', f'lfblocks.fb4=space.fb4'], check=True, capture_output=True)
     got = install('aes.fb4', 'aes.fb4', '-k', 'card2.img', '-K', 'a.lfb')

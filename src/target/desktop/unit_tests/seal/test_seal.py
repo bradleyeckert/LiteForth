@@ -108,6 +108,12 @@ def main():
         expect('root-header holds the product', 'SEALED_PRODUCT 0x00004c46u' in header, header)
         expect_refused('root-header not overwritten', 'exists', 'root-header', 'root.pub',
                        '--product', 1, '-o', 'root.h')
+        expect('root-header: plain files allowed by default', 'SEALED_ONLY' not in header, header)
+        expect_ok('root-header --sealed-only', 'root-header', 'root.pub', '--product', 0x4C46,
+                  '--sealed-only', '-o', 'only.h')
+        with open('only.h') as f:
+            expect('root-header --sealed-only defines SEALED_ONLY',
+                   '#define SEALED_ONLY 1' in f.read())
 
         # round trips
         for cipher in ('aes', 'sm4'):

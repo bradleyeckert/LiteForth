@@ -2,8 +2,8 @@
 
 Plan, 2026-10-17. Steps 1 to 4 of section 8 are done: BLAKE2s in `src/`,
 `scripts/sealblocks.py`, the desktop `lf` reading sealed files (`lf -K`),
-and the CH32H417 reading them with software AES and SM4 (not yet tested
-on the board). The ECDC engine and the anti-rollback minimums come next.
+and the CH32H417 reading them with software AES and SM4 (tested on a
+nanoCH32H417, 2026-10-17). The ECDC engine and the anti-rollback minimums come next.
 
 A sealed block file is an `lfblocks.fb4` whose content blocks are encrypted
 and signed, so the same file can go on every unit's card as a firmware
@@ -261,6 +261,12 @@ Counted in an RV32IMC emulator (clang `-Os`, instructions retired):
 
 The ECDC engine would take the CTR pass off the CPU, leaving the hash.
 
+On the nanoCH32H417 (V5F at 400 MHz, MounRiver's GCC at `-Os`): mounting
+took 18 ms, and reading 40 blocks that weren't in a buffer took 148 ms,
+3.7 ms a block including the card transfer. `1 load` built the whole
+dictionary from the sealed file, the blocks read back the same as the
+plain file's, and a write gave -96.
+
 ## 5. On the PC
 
 One script, `scripts/sealblocks.py` (needs `cryptography`; BLAKE2s is in
@@ -372,8 +378,8 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 4. CH32H417: X25519 and Ed25519, the board key in flash, `enroll`, and
    checking and decrypting each block after its DMA read. **Done**, with
    software AES and SM4 (`V5F/User/board.c`, `blocks.c`), to try on the
-   board. Still to do: CTR on the ECDC engine, once a known-answer test
-   shows how it counts.
+   board. Tested on a nanoCH32H417. Still to do: CTR on the ECDC engine,
+   once a known-answer test shows how it counts.
 5. Anti-rollback minimums, and key replacement.
 
 ## 9. Known holes, for later

@@ -33,15 +33,16 @@ int lfAPI_pmpTest(void);
  *    loads and stores of the buffer, and a user-mode load elsewhere with
  *    and without entry 3 (does a user access that matches no entry fail,
  *    as the RISC-V spec says?).
- * 3. Entry 2 locked: machine-mode load and store of the buffer, then an
- *    attempt to clear it, read back.
+ * 3. Entry 3 locked (still all memory, RWX), with a machine-mode load;
+ *    then entry 2 locked: machine-mode load and store of the buffer, then
+ *    an attempt to clear it, read back.
  * 4. Compares the code flash's two windows, 0x00000000 and 0x08000000,
  *    at the V3F's code (0x0) and the V5F's (0x10000).
  * 5. Reads the V3F's RAM at 0x20100000.
  * 6. Calls a `c.ret` found in the V3F's flash.
- * Before each step it writes a mark on the debug UART, so a hang shows
- * where it stopped.
- * Leaves entry 3 as all memory RWX, and entry 2 locked, until reset.
+ * Everything it says also goes straight to the debug UART, with a mark
+ * before each step, so a hang or a lockup shows where it stopped.
+ * Leaves entries 2 and 3 locked (3 open: all memory) until reset.
  */
 void pmp_test_m(void);
 

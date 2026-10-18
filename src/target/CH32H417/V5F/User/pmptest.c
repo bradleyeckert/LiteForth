@@ -128,6 +128,9 @@ static char out[2048];
 static size_t out_len;
 
 static void say(const char *s) {
+    for (const char *p = s; *p; p++) {                  /* the debug UART too, at once */
+        mark(*p == '\n' ? "\r\n" : (char[2]){ *p, 0 });
+    }
     size_t n = strlen(s);
     if (out_len + n < sizeof out) {
         memcpy(out + out_len, s, n);
@@ -280,7 +283,19 @@ void pmp_test_m(void) {
     say_cr();
 
     mark("pmp: 3 locking\r\n");
-    say("3. entry 2 locked:");
+    /* The last run locked up here, as if a locked entry turned PMP on for
+       machine mode with everything else denied, the unlocked entry 3 not
+       counting. So lock entry 3 (all memory, RWX) first and see whether
+       machine mode survives that, then lock entry 2. */
+    say("3. entry 3 (all memory, RWX) locked: ");
+    set_cfg(3, CFG_LOCK | CFG_NAPOT | CFG_RWX);
+    t = pmp_traps;
+    (void)pmp_load((uintptr_t)&elsewhere);
+    say("machine-mode load elsewhere: ");
+    say_trap(t);
+    say_cr();
+    mark("pmp: 3 locking entry 2\r\n");
+    say("   entry 2 locked too:");
     say_cr();
     set_cfg(2, CFG_LOCK | CFG_NAPOT);
     say_pmp("   ");
@@ -336,7 +351,7 @@ void pmp_test_m(void) {
     CSR_WRITE(mtvec, saved_mtvec);
     CSR_WRITE(mstatus, saved_mstatus);
     CSR_WRITE(mepc, saved_mepc);
-    say("Done. Entry 2 stays locked and entry 3 open (all memory) until a reset.");
+    say("Done. Entries 2 and 3 stay locked (entry 3 open: all memory) until a reset.");
     say_cr();
 }
 

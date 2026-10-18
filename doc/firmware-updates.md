@@ -226,11 +226,17 @@ token.
   build it's an allowlist without the flash controller, the DMA
   controllers, SDIO, the ECDC, the RNG, RCC/PWR and the option bytes
   ([security-plan.md](security-plan.md) section 5.6).
-- **The V5F's C code:** PMP. The V5F's start-up code sets *locked* PMP
-  entries, which apply in machine mode too and can't be changed until
-  reset, so LiteForth keeps running in machine mode with interrupts as
-  they are. There are only four entries per core (NAPOT regions), so they
-  go to what matters most:
+- **The V5F's C code:** PMP. LiteForth already runs in user mode (see
+  *What the board showed*, below), and only machine-mode code can change
+  the PMP: in the V5F image that's the start-up code before its `mret`
+  into `main`, and the trap handlers. So the start-up code sets the
+  entries, locked, and nothing in LiteForth can undo them. The last
+  entry, locked, opens all memory (RWX) to everything the others don't
+  fence off. LiteForth's own flash writes (`close-flash`, the board
+  record) then can't reach the flash controller directly: they become an
+  `ecall` service in machine mode that checks what's written where. There
+  are only four entries per core (NAPOT or TOR), so they go to what
+  matters most:
   1. the V3F's flash: stage 0, the security sector and both stage 1
      slots, 0x00000-0x2FFFF. Entry 0 in TOR mode covers 0 up to its
      address, so that's one entry. The same flash also appears at
@@ -241,7 +247,10 @@ token.
   3. the V3F's RAM (0x20100000-0x20177FFF, its running code and data:
      the V5F could otherwise patch stage 1 in RAM), leaving the shared
      32 KB at 0x20178000;
-  4. spare (the RNG, or the option bytes).
+  4. the locked catch-all: all memory, RWX.
+
+  That leaves nothing for the RNG or the option bytes; the IO allowlist
+  above keeps Forth away from them, and the C code is trusted.
 - **What PMP doesn't stop:** DMA. A DMA controller isn't the core, so the
   V5F's C code could still use DMA to read the token. So the V5F's C code
   is trusted (it's signed and checked), and PMP is a second line against
@@ -253,6 +262,44 @@ token.
   code from the V3F's flash.
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
+
+### What the board showed (`pmp-test`, 18 October 2026)
+
+Runs of `pmp-test` (PR #164, #165) on the nanoCH32H417 at RDP 0:
+
+- **LiteForth runs in user mode.** The first `csrr pmpcfg0` faulted with
+  mcause 2 (illegal instruction, mtval `3A0025F3`). WCH's start-up code
+  writes `mstatus = 0x6088`, MPP = 0, before its `mret` into `main`, so
+  `main` and everything after it run in user mode. The V3F's start-up
+  does the same. Machine mode then runs only in trap handlers.
+- **An `ecall` from user mode has its own vector:** entry 8 of the V5F's
+  table, `Ecall_U_Mode_Handler` (and 5, `Ecall_M_Mode_Handler`, for one
+  from machine mode), not `HardFault_Handler`. WCH's start-up code points
+  both at a weak handler that loops forever, so an `ecall` hangs until a
+  handler is defined. A plain `__attribute__((interrupt))` handler works:
+  `pmp-test`'s ran, read and wrote the PMP CSRs, and returned.
+- **The PMP starts unused:** `pmpcfg0` reads 0 after reset; the
+  `pmpaddr` registers hold junk (not the manual's 0).
+- **A locked entry applies to machine mode.** With entry 2 locked over a
+  32-byte buffer with no access, a machine-mode load of the buffer
+  faulted.
+- **A fault inside a trap handler locks the core up** (the reset flags
+  say LOCKUP). That machine-mode fault came while the `ecall` handler was
+  running, and the core reset instead of taking it. So machine-mode code
+  must never touch what a locked entry denies, and faults can't be caught
+  and skipped from inside a handler.
+- **A locked entry open to all memory (RWX) is harmless:** machine mode
+  carried on normally with it locked. That's the catch-all in the list
+  above.
+- **Not settled:** whether user-mode accesses are checked, and whether a
+  user-mode access that matches no entry fails (the RISC-V spec says it
+  does once any entry is set). The test made those accesses from machine
+  mode with MPRV set, as user mode, and none faulted, even with no entry
+  open to them: this core most likely ignores MPRV. They need probes from
+  real user mode, one per run, letting `HardFault_Handler` report the
+  fault and reset.
+- **Not yet run:** the code flash's two windows, the V5F reading the
+  V3F's RAM, and the V5F running code in the V3F's flash.
 
 ## 9. Testing, without bricking anything
 
@@ -271,10 +318,13 @@ The V3F keeps its own PMP unlocked: it's the trusted side.
 
 - **Verify** how the code flash's two windows (0x00000000 and 0x08000000)
   map, for the PMP entries in section 8.
-- **Verify** that a locked PMP entry applies in machine mode on both
-  cores. The manual says PMP "can take effect optionally in machine mode"
-  and calls L "Lock Enable, Unlockable in Machine Mode"; test on the board
-  at RDP 0 (a locked entry clears at reset, so this risks nothing).
+- ~~**Verify** that a locked PMP entry applies in machine mode.~~ It
+  does, on the V5F (section 8, *What the board showed*); the V3F not yet
+  tested.
+- **Verify,** from real user mode: that user-mode accesses are checked,
+  and whether one that matches no entry fails.
+- **Verify** whether the clearing of a locked entry is ignored (the test
+  locked up before it got that far).
 - **Verify** that the V5F can execute from the V3F's flash (for the shim
   in section 8).
 - **Verify,** on the spare board only: that under RDP 2 nothing clears

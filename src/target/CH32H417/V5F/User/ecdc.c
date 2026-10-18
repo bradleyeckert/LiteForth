@@ -53,6 +53,8 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
     return ecdc_ctr_order(cipher, key, counter, src, dst, units, div, 1);
 }
 
+static uint32_t settle_us;              /* ecdc-test: a pause before the transfer */
+
 int ecdc_ctr_order(int cipher, const uint8_t key[16], const uint8_t counter[16],
                    const void *src, void *dst, uint32_t units, int div, int big) {
     RCC_HB2PeriphClockCmd(RCC_HB2Periph_ECDC, ENABLE);
@@ -78,6 +80,11 @@ int ecdc_ctr_order(int cipher, const uint8_t key[16], const uint8_t counter[16],
     ECDC->CTRL = ctrl;
     if (err) {
         return err;
+    }
+    if (settle_us) {
+        uint64_t t0 = lfGetTimeMicroSec();
+        while (lfGetTimeMicroSec() - t0 < settle_us) {
+        }
     }
     ECDC->CTRL = ctrl | CTRL_WRSRAM | CTRL_NORMAL;          /* RAM-to-RAM, encrypt */
     ECDC->DST_ADDR = (uint32_t)dst;
@@ -239,18 +246,34 @@ static void run(int cipher, int div, int in_place, int big) {
     int err = ecdc_ctr_order(cipher, test_key, c0, src, hard, UNITS, div, big);
     uint32_t t_hard = (uint32_t)(lfGetTimeMicroSec() - t0);
 
-    int match = 0, first_bad = -1;
+    int match = 0, first_bad = -1, listed = 0;
+    char bad[160] = "";
     for (int i = 0; i < UNITS; i++) {
         if (!memcmp(&hard[i * 4], &soft[i * 4], 16)) {
             match++;
-        } else if (first_bad < 0) {
+            continue;
+        }
+        if (first_bad < 0) {
             first_bad = i;
+        }
+        for (int w = 0; w < 4 && listed < 12; w++) {    /* unit.word, and the xor */
+            if (hard[i * 4 + w] != soft[i * 4 + w]) {
+                size_t at = strlen(bad);
+                snprintf(bad + at, sizeof bad - at, " %d.%d^%08lx", i, w,
+                         (unsigned long)(hard[i * 4 + w] ^ soft[i * 4 + w]));
+                listed++;
+            }
         }
     }
     say(cipher == ECDC_AES ? "AES" : "SM4");
     say(" div ");
     say_u((uint32_t)div);
     say(big ? " big" : " little");
+    if (settle_us) {
+        say(", pause ");
+        say_u(settle_us);
+        say(" us");
+    }
     say(in_place ? ", in place: " : ", out of place: ");
     if (err) {
         say("timed out (ior ");
@@ -264,11 +287,12 @@ static void run(int cipher, int div, int in_place, int big) {
         say(" us, software ");
         say_u(t_soft);
         say(" us");
-        if (first_bad >= 0) {
-            say("; first mismatch at unit ");
-            say_u((uint32_t)first_bad);
-        }
         lfCR();
+        if (first_bad >= 0 && match) {
+            say("    wrong (unit.word^difference):");
+            say(bad);
+            lfCR();
+        }
         if (match == 0) {
             diagnose(&k, c0);
             check_reversed(&k, c0);
@@ -282,9 +306,14 @@ int lfAPI_ecdcTest(void) {
     for (int i = 0; i < UNITS * 4; i++) {
         plain[i] = (uint32_t)i * 0x9E3779B9u;
     }
-    run(ECDC_AES, 1, 0, 1);
     run(ECDC_AES, 1, 0, 0);
-    run(ECDC_AES, 1, 1, 1);
+    run(ECDC_AES, 2, 0, 0);
+    run(ECDC_AES, 6, 0, 0);
+    run(ECDC_AES, 1, 1, 0);
+    settle_us = 20;
+    run(ECDC_AES, 1, 0, 0);
+    settle_us = 0;
+    run(ECDC_SM4, 1, 0, 0);
     run(ECDC_SM4, 1, 0, 1);
     say("buffers at ");
     char b[12];

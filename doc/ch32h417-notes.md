@@ -250,3 +250,24 @@ which may save the next person some time:
   and `NVIC_SystemReset`.
 - `STK_ISR` is shared: bit 0 is SysTick0 (V3F), bit 1 SysTick1 (V5F).
 - The DMAMUX request numbers in Table 10-2 are right (SDIO = 111).
+
+## Privilege modes and PMP
+
+Found with `pmp-test` on the V5F (details in
+[firmware-updates.md](firmware-updates.md) section 8):
+
+- WCH's start-up code (`startup_ch32h417_v5f.S`, and the V3F's) writes
+  `mstatus = 0x6088` before its `mret` into `main`. MPP is 0, so `main`
+  runs in **user mode**, not machine mode: any machine CSR (`pmpcfg0`,
+  `mtvec`, `mstatus`...) is an illegal instruction there (mcause 2).
+  Machine mode runs only in trap handlers.
+- An `ecall` from user mode goes to vector 8, `Ecall_U_Mode_Handler`;
+  from machine mode, vector 5, `Ecall_M_Mode_Handler`. Not to
+  `HardFault_Handler`. Both default to a weak handler that loops forever.
+- After reset `pmpcfg0` is 0 but the `pmpaddr` registers hold junk.
+- A locked PMP entry applies to machine mode.
+- A fault inside a trap handler resets the chip with LOCKUP rather than
+  being taken.
+- MPRV seems to be ignored: with it set and MPP = user, machine-mode loads
+  and stores weren't checked as user mode.
+

@@ -21,6 +21,7 @@
  * checks each block against its hash and decrypts it (sealed.c), reading
  * the hash table block it needs first, before it reports the read done.
  */
+#include <stdio.h>
 #include <string.h>
 #include "debug.h"
 #include "sdio.h"
@@ -548,18 +549,45 @@ static void mount_sealed(void) {
            (unsigned long)((lfGetTimeMicroSec() - t0) / 1000));
 }
 
-int blk_init(char *filename, uint32_t *capacity) {
-    char msg[120];
-    (void)filename;
+/* Clears what blk_init or blk_remount found */
+static void forget(void) {
     memset(&map, 0, sizeof map);
     memset(&map_copy, 0, sizeof map_copy);
     map_bad = 0;
-    card_sectors = 0;
     writable = 0;
     limit = 0;
     sealed = 0;
     post_len = 0;
     sealed_unmount();
+}
+
+/* Finds the block space on the card and mounts it; returns the capacity */
+static uint32_t find(void) {
+    char msg[120];
+    crumb(TAG('C','A','R','D'), card_sectors, 0);
+    int ior = card_find_blocks(card_read, card_sectors, &map, msg, sizeof msg);
+    crumb(TAG('M','A','P',' '), map.base, map.blocks);
+    if (ior) {
+        printf("V5F blocks: can't read the SD card (error %d)\r\n", ior);
+        memset(&map, 0, sizeof map);
+        return 0;
+    }
+    writable = map.writable;
+    limit = map.blocks;
+    map_copy = map;
+    printf("V5F blocks: %s\r\n", msg);
+    if (writable) {
+        mount_sealed();
+    }
+    printf("V5F blocks: map at %08lX, %u bytes\r\n", (unsigned long)(uintptr_t)&map,
+           (unsigned)sizeof map);
+    return limit;
+}
+
+int blk_init(char *filename, uint32_t *capacity) {
+    (void)filename;
+    forget();
+    card_sectors = 0;
     status = 0;
     if (capacity) *capacity = 0;
 
@@ -583,24 +611,83 @@ int blk_init(char *filename, uint32_t *capacity) {
 #endif
     uint64_t n = (uint64_t)SDCardInfo.CardCapacity / SECTOR_BYTES;
     card_sectors = (n > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)n;
+    uint32_t c = find();
+    if (capacity) *capacity = c;
+    return 0;
+}
 
-    crumb(TAG('C','A','R','D'), card_sectors, 0);
-    int ior = card_find_blocks(card_read, card_sectors, &map, msg, sizeof msg);
-    crumb(TAG('M','A','P',' '), map.base, map.blocks);
-    if (ior) {
-        printf("V5F blocks: can't read the SD card (error %d)\r\n", ior);
-        memset(&map, 0, sizeof map);
+int blk_remount(uint32_t *capacity) {
+    finish();
+    forget();
+    uint32_t c = card_sectors ? find() : 0;
+    if (capacity) *capacity = c;
+    return 0;
+}
+
+/*=========================================================================
+* Installing a whole block file (`-1 ymodem`): raw transfers of the
+* space's blocks, whatever block 0 says, and a check of the new block 0
+=========================================================================*/
+
+uint32_t blk_space(void) {
+    return map_bad ? 0 : map.space;
+}
+
+/* A raw transfer of length blocks from blk, waited for */
+static int raw(uint32_t blk, uint32_t *buf, int length, int write) {
+    if (!map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
+    if (length < 1 || length > BLK_MAX_LENGTH) {
+        return ERR_INVALID_NUMERIC;
+    }
+    if (blk >= map.space || (uint32_t)length > map.space - blk) {
+        return ERR_BLK_BOUNDS;
+    }
+    uint32_t lba = map.base + blk * SECTORS_PER_BLOCK;
+    int count = length * SECTORS_PER_BLOCK;
+    int err = write ? blk_write_fence(lba, count) : 0;
+    finish();
+    post_len = 0;                       /* nothing to decrypt */
+    if (!err) {
+        err = start(lba, buf, count, write);
+    }
+    if (err) {
+        return err;
+    }
+    int st;
+    while ((st = poll()) > 0) {
+    }
+    return st;
+}
+
+int blk_raw_read(uint32_t blk, uint32_t *dest, int length) {
+    return raw(blk, dest, length, 0);
+}
+
+int blk_raw_write(uint32_t blk, const uint32_t *src, int length) {
+    return raw(blk, (uint32_t *)src, length, 1);
+}
+
+int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
+    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
+        if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
+            snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
+            return ERR_BLK_PARSE_FAIL;
+        }
+        snprintf(msg, len, "a plain block file");
         return 0;
     }
-    writable = map.writable;
-    limit = map.blocks;
-    map_copy = map;
-    printf("V5F blocks: %s\r\n", msg);
-    if (writable) {
-        mount_sealed();
+    if (sealed) {                       /* sealed_mount forgets it: offer nothing */
+        sealed = 0;
+        limit = 0;
     }
-    printf("V5F blocks: map at %08lX, %u bytes\r\n", (unsigned long)(uintptr_t)&map,
-           (unsigned)sizeof map);
-    if (capacity) *capacity = limit;
-    return 0;
+    sealed_board board;
+    int err = board_get(&board, msg, len);
+    if (!err) {
+        err = sealed_mount(b0, blocks, &board, raw_block, msg, len);
+    }
+    memset(&board, 0, sizeof board);
+    sealed_unmount();
+    return err ? ERR_BLK_PARSE_FAIL : 0;
 }

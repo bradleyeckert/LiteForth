@@ -34,6 +34,9 @@ static uint32_t actual_blocks = 0;
 /* Block 0 starts with BLK_SIGNATURE, so the blocks can be written */
 static int writable = 0;
 
+/* Blocks an installed image may fill (blk_space) */
+static uint32_t space = 0;
+
 /* A sealed file is mounted: its content blocks are checked and decrypted
    as they're read (sealed.c), and nothing can be written */
 static int sealed = 0;
@@ -145,6 +148,7 @@ int blk_init(char* filename, uint32_t* capacity) {
     strncpy(active_blk_filename, target_file, sizeof(active_blk_filename) - 1);
     actual_blocks = 0;
     writable = 0;
+    space = 0;
     sealed = 0;
     sealed_unmount();
     mode = MODE_FILE;
@@ -185,6 +189,7 @@ int blk_init(char* filename, uint32_t* capacity) {
             base = map.base;
             actual_blocks = map.blocks;
             writable = map.writable;
+            space = map.space;
             fprintf(stderr, "blocks: %s\n", msg);
             if (writable) {
                 check_sealed(actual_blocks);
@@ -196,6 +201,7 @@ int blk_init(char* filename, uint32_t* capacity) {
         }
     } else {
         actual_blocks = (uint32_t)(file_len / BLK_SIZE_BYTES);
+        space = actual_blocks;
         writable = 1;
         check_sealed(actual_blocks);
         if (!writable) {                // sealed: never padded or written
@@ -219,6 +225,7 @@ int blk_init(char* filename, uint32_t* capacity) {
             }
         }
         actual_blocks = (uint32_t)(file_len / BLK_SIZE_BYTES);
+        space = actual_blocks;
         dev_sectors = (uint32_t)(file_len / BLK_SECTOR_BYTES);
         writable = 1;
     }
@@ -355,4 +362,69 @@ int blk_sector_read(uint32_t lba, uint32_t *dest, int count) {
     finish();
     int err = blk_sector_read_imm(lba, dest, count);
     return err ? err : finish();
+}
+
+/*=========================================================================
+* Installing a whole block file (`-1 ymodem`)
+=========================================================================*/
+
+uint32_t blk_space(void) {
+    return space;
+}
+
+/* Checks a raw request for length blocks from blk; on success *lba is the
+   first sector */
+static int check_raw(uint32_t blk, int length, uint32_t *lba) {
+    if (length < 1 || length > BLK_MAX_LENGTH) {
+        return ERR_INVALID_NUMERIC;
+    }
+    if (blk >= space || (uint32_t)length > space - blk) {
+        return ERR_BLK_BOUNDS;
+    }
+    *lba = base + blk * SECTORS_PER_BLOCK;
+    return 0;
+}
+
+int blk_raw_read(uint32_t blk, uint32_t *dest, int length) {
+    uint32_t lba;
+    int err = check_raw(blk, length, &lba);
+    return err ? err : read_now(lba, dest, length * SECTORS_PER_BLOCK);
+}
+
+int blk_raw_write(uint32_t blk, const uint32_t *src, int length) {
+    uint32_t lba;
+    int err = check_raw(blk, length, &lba);
+    if (!err && mode == MODE_CARD) {
+        err = blk_write_fence(lba, length * SECTORS_PER_BLOCK);
+    }
+    return err ? err : write_now(lba, (uint32_t *)src, length * SECTORS_PER_BLOCK);
+}
+
+int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
+    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
+        if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
+            snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
+            return ERR_BLK_PARSE_FAIL;
+        }
+        snprintf(msg, len, "a plain block file");
+        return 0;
+    }
+    if (sealed) {                       /* sealed_mount forgets it: offer nothing */
+        sealed = 0;
+        actual_blocks = 0;
+    }
+    if (board == NULL) {
+        snprintf(msg, len, "a sealed file, but lf has no board file (-K)");
+        sealed_unmount();
+        return ERR_BLK_PARSE_FAIL;
+    }
+    int err = sealed_mount(b0, blocks, board, raw_block, msg, len);
+    sealed_unmount();
+    return err;
+}
+
+int blk_remount(uint32_t *capacity) {
+    char name[sizeof active_blk_filename];
+    memcpy(name, active_blk_filename, sizeof name);
+    return blk_init(name, capacity);
 }

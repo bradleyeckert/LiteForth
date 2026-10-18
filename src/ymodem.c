@@ -8,7 +8,8 @@
  * a file is EOT (NAKed once, then ACKed), and an empty packet 0 ends the
  * batch. CAN CAN cancels. The source side splits the data into lines and
  * blocks with the same `( BLOCK ... )` markers as scripts/putblocks.py; the
- * binary side lays a file out as scripts/putbin.py does.
+ * binary side lays a file out as scripts/putbin.py does; the install side
+ * writes a whole block file into the block space (blocks.h).
  */
 #include <stdint.h>
 #include <string.h>
@@ -20,6 +21,9 @@
 #include "tools.h"
 #include "vm.h"
 #include "api0.h"
+#include "blocks.h"
+#include "blake2s.h"
+#include "sealed.h"
 #include "ymodem.h"
 
 #define SOH 0x01
@@ -326,6 +330,149 @@ static void binEnd(bin_state* b) {
 }
 
 /* ------------------------------------------------------------------------
+ * The install side: a whole block file, block 0 included, written into
+ * the space the block file has (blk_space), as it is. Block 0 comes first,
+ * so it's checked (blk_check_image) before anything is written. While the
+ * other blocks go in, block 0 is MARKER, a plain block file's block 0 that
+ * says the install didn't finish; the real one is written last. Then
+ * everything is read back and compared with what came, by BLAKE2s, and
+ * the file is mounted again.
+ */
+#define MARKER BLK_SIGNATURE " ( an install by -1 ymodem didn't finish: send the block file again )"
+
+typedef struct {
+    int on;                             // this file is being installed
+    uint32_t blocks;                    // blocks in the image
+    uint32_t block;                     // block being filled
+    int pos;                            // bytes in it so far
+    int started;                        // MARKER is in block 0: the old file is gone
+    int done;                           // all of it written, block 0 too
+    int sealed;                         // the image is a sealed file
+    int ior;                            // the first problem, or 0
+    const char* err_msg;
+    char msg[120];                      // blk_check_image's reason
+    blake2s_state hash;                 // of the bytes that came
+} inst_state;
+
+static uint32_t inst_b0[BLOCK_SIZE_CELLS];      // block 0, written last
+static uint32_t inst_buf[BLOCK_SIZE_CELLS];     // the block being filled
+
+static uint8_t* instBuffer(inst_state* t) {
+    return (uint8_t*)((t->block == 0) ? inst_b0 : inst_buf);
+}
+
+static void instFail(inst_state* t, int ior, const char* msg) {
+    if (t->ior == 0) {
+        t->ior = ior;
+        t->err_msg = msg;
+    }
+}
+
+// Starts a file of length bytes (or -1: unknown)
+static void instBegin(inst_state* t, int64_t length, int files) {
+    memset(t, 0, sizeof(*t));
+    if (files > 1) {
+        instFail(t, ERR_YMODEM_SOURCE, "one block file at a time");
+        return;
+    }
+    if (length < 0) {
+        instFail(t, ERR_YMODEM_SOURCE, "the header gives no length");
+        return;
+    }
+    if ((length == 0) || (length % BLOCK_BYTES)) {
+        instFail(t, ERR_YMODEM_SOURCE, "a block file is a whole number of 4 KB blocks");
+        return;
+    }
+    if (length / BLOCK_BYTES > blk_space()) {
+        instFail(t, ERR_BLK_BOUNDS, blk_space() ? "it's bigger than the block file's space"
+                                                : "there's no block file to install into");
+        return;
+    }
+    t->on = 1;
+    t->blocks = (uint32_t)(length / BLOCK_BYTES);
+    lfAPI_emptyBuffers();               // nothing old written over the new
+    b2s_init(&t->hash, 32, NULL, 0, NULL, NULL);
+}
+
+// A block has come
+static void instBlock(inst_state* t) {
+    int ior;
+    if (t->block == 0) {
+        const uint8_t* b0 = (const uint8_t*)inst_b0;
+        t->sealed = !memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN);
+        if (blk_check_image(b0, t->blocks, t->msg, sizeof(t->msg))) {
+            instFail(t, ERR_YMODEM_SOURCE, t->msg);
+            return;
+        }
+        memset(inst_buf, ' ', BLOCK_BYTES);
+        memcpy(inst_buf, MARKER, sizeof(MARKER) - 1);
+        ior = blk_raw_write(0, inst_buf, 1);
+        if (ior == 0) t->started = 1;
+    } else {
+        ior = blk_raw_write(t->block, inst_buf, 1);
+    }
+    if (ior) instFail(t, ior, "can't write the block");
+}
+
+static void instBytes(inst_state* t, const uint8_t* data, int size) {
+    if (!t->on || t->ior) return;
+    b2s_puts(&t->hash, data, size);
+    while ((size > 0) && (t->ior == 0)) {
+        int n = BLOCK_BYTES - t->pos;
+        if (n > size) n = size;
+        memcpy(instBuffer(t) + t->pos, data, (size_t)n);
+        t->pos += n;
+        data += n;
+        size -= n;
+        if (t->pos == BLOCK_BYTES) {
+            instBlock(t);
+            t->block++;
+            t->pos = 0;
+        }
+    }
+}
+
+// Writes block 0 and reads everything back; returns 0 if it's all there
+static int instFinish(inst_state* t) {
+    uint8_t want[32], got[32];
+    blake2s_state h;
+    int ior = blk_raw_write(0, inst_b0, 1);
+    if (ior) {
+        instFail(t, ior, "can't write block 0");
+        return ior;
+    }
+    t->done = 1;
+    b2s_final(&t->hash, want);
+    b2s_init(&h, 32, NULL, 0, NULL, NULL);
+    for (uint32_t i = 0; i < t->blocks; i++) {
+        ior = blk_raw_read(i, inst_buf, 1);
+        if (ior) {
+            instFail(t, ior, "can't read it back");
+            return ior;
+        }
+        b2s_puts(&h, (const uint8_t*)inst_buf, BLOCK_BYTES);
+        lfWatchdogPing();
+    }
+    b2s_final(&h, got);
+    if (memcmp(want, got, sizeof(want))) {
+        instFail(t, ERR_BLK_WRITE_FAIL, "what was read back differs from what came");
+        return ERR_BLK_WRITE_FAIL;
+    }
+    return 0;
+}
+
+// Ends a file; complete: all of its bytes came
+static void instEnd(inst_state* t, int complete) {
+    if (t->on && (t->ior == 0)) {
+        if (!complete || (t->block != t->blocks)) {
+            instFail(t, ERR_YMODEM_TRANSFER, "the transfer stopped");
+        } else {
+            instFinish(t);
+        }
+    }
+}
+
+/* ------------------------------------------------------------------------
  * The transfer side
  */
 
@@ -481,6 +628,50 @@ static void reportBinary(const char* name, const bin_state* b, uint32_t length) 
     rCR();
 }
 
+static void reportInstall(const char* name, const inst_state* t, uint32_t bad, uint32_t checked) {
+    rPuts("ymodem: ");
+    rPuts(name);
+    rPuts(": ");
+    if (t->ior == 0) {
+        rPuts("installed, ");
+        putU(t->blocks);
+        rPuts(" blocks, read back and checked; capacity now ");
+        putU(g_block_capacity);
+        rCR();
+        if (t->sealed) {
+            rPuts("ymodem: sealed file, revision ");
+            putU(sealed_revision());
+            rPuts(": ");
+            if (bad) {
+                putU(bad);
+                rPuts(" of ");
+                putU(checked);
+                rPuts(" content blocks fail their hashes");
+            } else if (checked == 0) {
+                rPuts("the sealed file wasn't mounted");
+            } else {
+                rPuts("all ");
+                putU(checked);
+                rPuts(" content blocks pass their hashes");
+            }
+            rCR();
+        }
+        return;
+    }
+    rPuts(t->err_msg);
+    if (t->started && !t->done) {
+        rPuts(" (block ");
+        putU(t->block);
+        rPuts(")");
+    }
+    if (t->started) {
+        rPuts("; block 0 now says the install didn't finish: send the file again");
+    } else {
+        rPuts("; nothing written");
+    }
+    rCR();
+}
+
 // Waits for a packet to start, sending 'C' every POLL_US until give_up.
 // Returns SOH, STX, EOT or CAN, or -1 on timeout.
 static int awaitPacket(uint64_t give_up) {
@@ -557,9 +748,13 @@ int lfAPI_ymodem(void) {
     static uint8_t data[1024];
     static src_state st;
     static bin_state bin;
-    char name[64];
+    static inst_state inst;
+    char name[64], inst_name[64] = "";
     uint32_t first = vmPop();
-    int binary = (first != 0);
+    int install = (first == YMODEM_INSTALL);
+    int binary = (first != 0) && !install;
+    int inst_complete = 0, inst_extra = 0;
+    memset(&inst, 0, sizeof(inst));
     memset(&bin, 0, sizeof(bin));
     bin.next = first;
 
@@ -582,7 +777,12 @@ int lfAPI_ymodem(void) {
         }
         if (h == 0) break;              // the end of the batch
         files++;
-        if (binary) {
+        if (install) {
+            if (files == 1) {
+                instBegin(&inst, length, files);
+                memcpy(inst_name, name, sizeof(inst_name));
+            }
+        } else if (binary) {
             binBegin(&bin, length);
         } else {
             memset(&st, 0, sizeof(st));
@@ -623,7 +823,9 @@ int lfAPI_ymodem(void) {
                     int keep = size;
                     if ((left >= 0) && (left < keep)) keep = (int)left;
                     if (left >= 0) left -= keep;
-                    if (binary) {
+                    if (install) {
+                        if (files == 1) instBytes(&inst, data, keep);
+                    } else if (binary) {
                         binBytes(&bin, data, keep);
                     } else {
                         sourceBytes(&st, data, keep, length < 0);
@@ -652,7 +854,13 @@ int lfAPI_ymodem(void) {
             }
         }
         if (ior) break;
-        if (binary) {                   // not for a transfer cut short
+        if (install) {                  // finished after the batch
+            if (files == 1) {
+                inst_complete = 1;
+            } else {
+                inst_extra++;
+            }
+        } else if (binary) {            // not for a transfer cut short
             binEnd(&bin);
             reportBinary(name, &bin, (uint32_t)length);
             if ((result == 0) && bin.ior) result = bin.ior;
@@ -664,6 +872,33 @@ int lfAPI_ymodem(void) {
         give_up = lfGetTimeMicroSec() + PACKET_US;     // the next header
     }
     serial_binary(0);
+    if (install && files) {
+        instEnd(&inst, inst_complete);
+        if (inst.on) {                  // the block file may have changed
+            uint32_t bad = 0, checked = 0;
+            blk_remount(&g_block_capacity);
+            lfAPI_emptyBuffers();
+            if (inst.done && (inst.ior == 0) && inst.sealed) {
+                for (uint32_t i = 1; i < g_block_capacity; i++) {
+                    checked++;
+                    if (blk_read(i, inst_buf)) bad++;
+                    lfWatchdogPing();
+                }
+            }
+            reportInstall(inst_name, &inst, bad, checked);
+            if (bad && (result == 0)) result = ERR_BLOCK_READ_ERROR;
+        } else {
+            reportInstall(inst_name, &inst, 0, 0);
+        }
+        if (inst.ior && (ior == 0) && (result == 0)) result = inst.ior;
+        if (inst_extra) {
+            rPuts("ymodem: ");
+            putU((uint32_t)inst_extra);
+            rPuts(" more file(s) not written: one block file at a time");
+            rCR();
+            if (result == 0) result = ERR_YMODEM_SOURCE;
+        }
+    }
     rFlush();
     if (ior) {
         if (files) {

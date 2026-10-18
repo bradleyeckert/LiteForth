@@ -1,6 +1,8 @@
 #ifndef YMODEM_H
 #define YMODEM_H
 
+#define YMODEM_INSTALL  0xFFFFFFFFu     /* -1 ymodem: a whole block file */
+
 /**
  * @brief Forth word `ymodem`  ( n -- )
  * Receives files over the terminal by YMODEM (batch; CRC-16; 128-byte and
@@ -33,9 +35,25 @@
  * one. A file that wouldn't fit, or whose header has no length, isn't
  * written.
  *
+ * n = -1: one whole block file (an lfblocks.fb4, plain or sealed) replaces
+ * the one there, block 0 included, so the card needn't come out of the
+ * board. It goes into the space the block file has (blk_space: on a card,
+ * lfblocks.fb4's size, which the board can't change), so it must be whole
+ * 4 KB blocks and fit; any blocks after it are left as they were. Block 0
+ * is checked first (blk_check_image): it must start with BLK_SIGNATURE,
+ * and a sealed file must be one this board would mount. Nothing is
+ * written until it passes. Then block 0 says the install hasn't finished
+ * while the other blocks are written, and the real block 0 goes in last,
+ * so a transfer cut short leaves a plain block file saying so: send the
+ * file again. When the batch ends, the file is read back and compared
+ * with what came (BLAKE2s), and mounted again (blk_remount), which sets
+ * `capacity`; every content block of a sealed file is read to check its
+ * hash. The block buffers are emptied before and after, discarding
+ * unsaved changes. One file per batch.
+ *
  * After `ymodem`, start the send in the terminal program (kwai: `~x FILE`
- * types `0 ymodem` or `BLOCK ymodem` itself; in RealTerm: Send tab,
- * YMODEM). `ymodem` asks with `C` every 3 seconds and gives up after
+ * types `0 ymodem`, and `~x FILE N` types `N ymodem`; in RealTerm: Send
+ * tab, YMODEM). `ymodem` asks with `C` every 3 seconds and gives up after
  * YMODEM_START_SECONDS (default 60). It reports each file as it ends: the
  * blocks it wrote and any problem.
  *
@@ -44,8 +62,10 @@
  *
  * @return 0 on success; ERR_YMODEM_TRANSFER if the sender never started,
  *         cancelled, or the transfer failed after YMODEM_RETRIES tries;
- *         ERR_YMODEM_SOURCE for a problem with a file; or the error from
- *         writing a block. With several files, the first problem's.
+ *         ERR_YMODEM_SOURCE for a problem with a file; ERR_BLOCK_READ_ERROR
+ *         if an installed sealed file's blocks fail their hashes; or the
+ *         error from writing a block. With several files, the first
+ *         problem's.
  */
 int lfAPI_ymodem(void);
 

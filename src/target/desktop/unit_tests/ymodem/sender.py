@@ -44,8 +44,8 @@ def packets(data, size):
 
 
 class Lf:
-    def __init__(self, lf, cwd):
-        self.p = subprocess.Popen([lf, "-o", "3"], cwd=cwd, stdin=subprocess.PIPE,
+    def __init__(self, lf, cwd, args=()):
+        self.p = subprocess.Popen([lf, "-o", "3"] + list(args), cwd=cwd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.fd = self.p.stdout.fileno()
         self.text = bytearray()                 # lf's output, without protocol bytes
@@ -192,6 +192,45 @@ def same_as_putbin(work, files, first):
           "are the same as" if got == want else "DIFFER from"))
 
 
+def install_tests(lf, work):
+    """-1 ymodem: whole block files into the 64-block file's space."""
+    with open(os.path.join(work, "lfblocks.fb4"), "rb") as f:
+        image = bytearray(f.read())
+    row = b".( five, installed ) cr"
+    image[5 * 4096:6 * 4096] = row + b" " * (4096 - len(row))
+    image = bytes(image)
+    print("-- install a whole block file (block 5 changed)")
+    transfer(lf, [("new.fb4", image)], block=-1, size=1024, corrupt=3)
+    lf.show()
+    with open(os.path.join(work, "lfblocks.fb4"), "rb") as f:
+        print("the file %s the image" % ("is" if f.read() == image else "ISN'T"))
+    lf.write(b"capacity . 5 load\n")
+    lf.drain(0.5)
+    lf.show()
+    for title, data in (
+            ("bigger than the space", image + b" " * 4096),
+            ("not whole blocks", image[:8193]),
+            ("no signature", b"NOTFORTH" + image[8:8192])):
+        print("-- refused: " + title)
+        transfer(lf, [("bad.fb4", data)], block=-1, size=1024)
+        lf.show()
+    with open(os.path.join(work, "lfblocks.fb4"), "rb") as f:
+        print("the file %s the image" % ("is still" if f.read() == image else "ISN'T"))
+    print("-- the sender cancels after block 1")
+    transfer(lf, [("new.fb4", image)], block=-1, size=1024, cancel_at=6)
+    lf.show()
+    lf.write(b"capacity . cr\n")
+    lf.drain(0.5)
+    lf.show()
+    with open(os.path.join(work, "lfblocks.fb4"), "rb") as f:
+        print("block 0: " + f.read(4096).decode().rstrip())
+    print("-- two files: the second isn't written")
+    transfer(lf, [("new.fb4", image), ("more.fb4", image)], block=-1, size=1024)
+    lf.show()
+    with open(os.path.join(work, "lfblocks.fb4"), "rb") as f:
+        print("the file %s the image" % ("is" if f.read() == image else "ISN'T"))
+
+
 def main():
     lf = Lf(sys.argv[1], sys.argv[2])
     lf.drain(0.5)
@@ -244,6 +283,7 @@ def main():
     print("-- the sender cancels")
     transfer(lf, [("cancel.f", b"( BLOCK 30 )\n" + b".( thirty ) cr\n" * 20)], cancel_at=1)
     lf.show()
+    install_tests(lf, sys.argv[2])
     lf.write(b"bye\n")
     lf.drain(1.0)
     lf.p.wait(timeout=5)

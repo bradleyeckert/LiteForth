@@ -17,6 +17,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, '../../../../..'))
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 import sealblocks as sb  # noqa: E402
+sys.path.insert(0, os.path.join(HERE, '..', 'ymodem'))
+import sender  # noqa: E402
 
 LF = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(ROOT, 'bin', 'lf')
 BLOCK = 4096
@@ -64,6 +66,67 @@ def sha(path):
         return hashlib.sha256(f.read()).hexdigest()
 
 
+def install(name, path, *args):
+    """Runs lf with args, installs the file at path with -1 ymodem, and
+    returns what lf said."""
+    shutil.copy(os.path.join(ROOT, 'bin', 'lfflash.bin'), 'lfflash.bin')
+    with open(path, 'rb') as f:
+        data = f.read()
+    p = sender.Lf(LF, '.', [str(a) for a in args])
+    p.drain(0.5)
+    sender.transfer(p, [(name, data)], block=-1, size=1024)
+    p.write(b'capacity .\nbye\n')
+    p.drain(0.5)
+    p.p.wait(timeout=10)
+    return p.text.decode('utf-8', 'replace')
+
+
+def install_tests(c, sums, damaged):
+    with open('plain.fb4', 'rb') as f:
+        plain = f.read()
+    with open('space.fb4', 'wb') as f:          # room for the hash table and more
+        f.write(plain + b' ' * (4 * BLOCK))
+    board = ('-k', 'space.fb4', '-K', 'a.lfb')
+    with open('aes.fb4', 'rb') as f:
+        sealed = f.read()
+    n = len(sealed) // BLOCK
+
+    got = install('aes.fb4', 'aes.fb4', *board)
+    expect('install sealed: checked', f'installed, {n} blocks, read back and checked; '
+           f'capacity now {c}' in got and f'revision 5: all {c - 1} content blocks pass' in got, got)
+    with open('space.fb4', 'rb') as f:
+        expect('install sealed: in the space', f.read()[:len(sealed)] == sealed)
+    _, got = lf(LOAD, *board)
+    expect('install sealed: loads core.f and reads every block', body(got) == sums, got)
+
+    before = sha('space.fb4')
+    got = install('c.fb4', 'c.fb4', *board)
+    expect('install refused: not a recipient', "isn't one of its recipients; nothing written"
+           in got, got)
+    expect('install refused: file unchanged', sha('space.fb4') == before)
+
+    damaged('blk.fb4', 7 * BLOCK + 100)
+    got = install('blk.fb4', 'blk.fb4', *board)
+    expect('install damaged: block 7 fails its hash', f'1 of {c - 1} content blocks fail' in got
+           and 'ior=-33' in got, got)
+
+    got = install('plain.fb4', 'plain.fb4', *board)
+    expect('install plain over sealed', f'installed, {c} blocks, read back and checked; '
+           f'capacity now {c + 4}' in got, got)
+    with open('space.fb4', 'rb') as f:
+        expect('install plain: in the space', f.read()[:len(plain)] == plain)
+
+    got = install('aes.fb4', 'aes.fb4', '-k', 'space.fb4')
+    expect('install sealed without -K', 'lf has no board file (-K); nothing written' in got, got)
+
+    subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'card2.img',
+                    '--file', f'lfblocks.fb4=space.fb4'], check=True, capture_output=True)
+    got = install('aes.fb4', 'aes.fb4', '-k', 'card2.img', '-K', 'a.lfb')
+    expect('install on a card image', f'all {c - 1} content blocks pass' in got, got)
+    _, got = lf(LOAD, '-k', 'card2.img', '-K', 'a.lfb')
+    expect('card image: loads after the install', body(got) == sums, got)
+
+
 def main():
     tmp = tempfile.mkdtemp()
     try:
@@ -94,6 +157,12 @@ def main():
              '--product', PRODUCT)
         tool('seal', 'plain.fb4', 'aes.fb4', '--release', 'rel1.key', '--boards',
              'boards.csv', '--revision', 5)
+        with open('c.key') as f:
+            ck = sb.json.load(f)
+        with open('boards_c.csv', 'w') as f:
+            f.write(f'{ck["uid"]},{ck["public"]},c\n')
+        tool('seal', 'plain.fb4', 'c.fb4', '--release', 'rel1.key', '--boards',
+             'boards_c.csv', '--revision', 5)
         tool('seal', 'plain.fb4', 'sm4.fb4', '--release', 'rel1.key', '--boards',
              'boards.csv', '--revision', 5, '--cipher', 'sm4')
 
@@ -172,6 +241,9 @@ def main():
         expect('enroll prints the boards.csv line', f'{a["uid"]},{a["public"]}' in got, got)
         _, got = lf('enroll\nbye\n', '-k', 'plain.fb4')
         expect('enroll without -K', 'no board file' in got and 'ior=-21' in got, got)
+
+        # -1 ymodem installs whole files into a block file's space
+        install_tests(c, sums, damaged)
 
         # a bad board file stops lf
         with open('bad.lfb', 'w') as f:

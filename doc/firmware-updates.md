@@ -99,10 +99,11 @@ Proposed:
 
 Everything the V3F owns is below 0x30000, so one PMP entry can fence it
 off (section 8). This moves the V5F (now at 0x10000) and LiteForth's flash
-(now at 0x30000), so it changes both cores' linker scripts and `flash.c`. The
-sizes wait on one measurement: how big today's V3F image is (**Measure**).
-Stage 1 runs from the V3F's 64 KB of RAM_CODE, which caps it at 64 KB of
-code whatever the slot size.
+(now at 0x30000), so it changes both cores' linker scripts and `flash.c`. Sizes: today's V3F image (`LiteForth_V3F.bin`) is 17.3 KB.
+Stage 1 adds about 25-30 KB (SD driver, `card.c`/`exfat.c`, `sealed.c` with
+Monocypher, the installer), so about 45-50 KB, in a 68 KB slot. Stage 1
+runs from the V3F's 64 KB of RAM_CODE, which caps it at 64 KB of code
+whatever the slot size.
 
 Each slot starts with the 4 KB header of the package that installed it
 (section 5), so stage 0 checks the slot exactly as it was signed.
@@ -268,7 +269,6 @@ The V3F keeps its own PMP unlocked: it's the trusted side.
 
 ## 10. To verify or decide
 
-- **Measure** today's V3F image, to size stage 1 and settle section 2.
 - **Verify** how the code flash's two windows (0x00000000 and 0x08000000)
   map, for the PMP entries in section 8.
 - **Verify** that a locked PMP entry applies in machine mode on both

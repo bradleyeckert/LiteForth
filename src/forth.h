@@ -21,12 +21,12 @@ locations for accessibility by Forth or by C.
 
 #define F_CURRENT    1
 #define F_TIB        2
-#define F_BLK        (F_TIB + TIBCELLS)
-#define F_CREATED    (F_BLK + 1)
-#define F_CONTEXT    (F_CREATED + 1)
-#define F_PTRS       (F_CONTEXT + ((CONTEXT_SIZE + 3) / 4))
-#define F_BLOCKBUFS  ((F_PTRS + 15) & ~7)
-#define F_HERE0      (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
+#define F_BLK        (F_TIB + TIBCELLS + 1)
+#define F_CONTEXT    (F_BLK + 1)
+#define F_CREATED    (F_CONTEXT + ((CONTEXT_SIZE + 7) / 4))
+#define F_BLOCKBUFS  ((F_CREATED + 8) & ~7)
+#define F_PTRS       (F_BLOCKBUFS + (BLOCK_SIZE_CELLS * SYSTEM_BLOCKS))
+#define F_HERE0      (F_PTRS + 8)
 
 #define F_PTRS_UDP   (F_PTRS)
 #define F_PTRS_IDP   (F_PTRS + 2)

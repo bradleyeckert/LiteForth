@@ -3,6 +3,10 @@
 #include <string.h>
 #include "board.h"
 #include "errcodes.h"
+#include "monocypher.h"
+#include "tools.h"
+
+static const sealed_board *loaded;      /* the -K board, for enroll */
 
 /* Converts exactly 2 * n hex digits at s into out; returns 0 or -1 */
 static int hex(const char *s, uint8_t *out, int n) {
@@ -79,5 +83,33 @@ int board_load(const char *path, sealed_board *b, char *msg, int len) {
         memset(b, 0, sizeof *b);
         return ERR_BLK_PARSE_FAIL;
     }
+    loaded = b;
+    return 0;
+}
+
+static void put_hex(const uint8_t *p, int n) {
+    static const char digits[] = "0123456789abcdef";
+    char s[3] = {0};
+    for (int i = 0; i < n; i++) {
+        s[0] = digits[p[i] >> 4];
+        s[1] = digits[p[i] & 15];
+        lf_puts(s);
+    }
+}
+
+int lfAPI_enroll(void) {
+    if (loaded == NULL) {
+        lf_puts("enroll: no board file (lf -K)");
+        lfCR();
+        return ERR_UNSUPPORTED_OPERATION;
+    }
+    uint8_t pub[32];
+    crypto_x25519_public_key(pub, loaded->private_key);
+    lf_puts("boards.csv line:");
+    lfCR();
+    put_hex(loaded->uid, 8);
+    lf_puts(",");
+    put_hex(pub, 32);
+    lfCR();
     return 0;
 }

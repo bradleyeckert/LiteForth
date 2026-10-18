@@ -194,6 +194,7 @@ py sealblocks.py seal lfblocks.fb4 sealed.fb4 --release release1.key --boards bo
 py sealblocks.py check sealed.fb4 --root root.pub
 py sealblocks.py open sealed.fb4 opened.fb4 --root root.pub --board-key board.key
 py sealblocks.py lf-board board.lfb --board-key board.key --root root.pub --product 0x4C46
+py sealblocks.py root-header root.pub --product 0x4C46 -o ..\src\target\CH32H417\V5F\User\sealed_root.h
 ```
 
 Makes a sealed block file from a plain one, as planned in
@@ -207,7 +208,8 @@ board would, and refuses what a board would refuse (`--min-revision`,
 `--min-serial`, `--product`). `board-key` makes a board key pair on the PC
 for testing; a real board will make its own. `lf-board` writes a board
 file for the desktop `lf -K`, which then reads the sealed file as that
-board would.
+board would, and `root-header` the `sealed_root.h` a CH32H417 build reads
+them with. On the board, `enroll` prints its `boards.csv` line.
 
 Key files are JSON; `.key` files hold private keys. Keep the root's
 offline: `release-key` is the only command that needs it. Needs the

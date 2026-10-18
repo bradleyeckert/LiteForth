@@ -29,7 +29,8 @@ typedef struct {
 } sealed_board;
 
 /* Reads raw block blk (4096 bytes) of the file into buf, bypassing
-   decryption: for the hash table blocks. Returns 0 or an error code. */
+   decryption: for the hash table blocks. buf is 4-byte aligned, so a
+   target can read into it by DMA. Returns 0 or an error code. */
 typedef int (*sealed_read_fn)(uint32_t blk, uint8_t *buf);
 
 /**

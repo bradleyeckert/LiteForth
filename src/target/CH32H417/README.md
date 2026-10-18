@@ -197,6 +197,23 @@ cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
 256K DTCM). Other geometries work too, as long as a page is a whole number
 of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 
+**The board's key record: `0x08070000`.** The 8K sector after LiteForth's
+flash holds the board's record for sealed block files (`V5F/User/board.c`,
+[doc/encrypted-blocks.md](../../../doc/encrypted-blocks.md)): its X25519
+private key, made by `enroll`, and the lowest revision and release key
+serial it takes. It lies inside the 480K of single-flash mode. A MounRiver
+download with *Erase All* wipes it, so the board needs `enroll` again
+(and a new line in `boards.csv`).
+
+**Sealed block files.** If `lfblocks.fb4` on the card is sealed, `blk_init`
+mounts it with the board's record and the root key in
+`V5F/User/sealed_root.h`, which the application's build supplies (copy
+`sealed_root.example.h`, or `sealblocks.py root-header`; git ignores it).
+The debug UART then says, for example,
+`V5F blocks: sealed file, revision 5, release key 1, AES-128, 121 blocks (checked in 31 ms)`,
+or why it refused the file. Its blocks are checked and decrypted in
+`blk_status` as each read finishes.
+
 **Peripheral registers in page 5.** `VM_IO_PAGE` = 5 in `options.h` maps
 the peripheral block at `0x40000000` (`IO_BASE`, through UHSIF, `0x38400`
 bytes) as VM page 5: writable, not executable. A register at

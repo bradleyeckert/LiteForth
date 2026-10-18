@@ -9,6 +9,9 @@
     sealblocks.py lf-board OUT --board-key B --root ROOT.pub --product P
                   [--min-revision N] [--min-serial N]
                                                    write a board file for the desktop lf (-K)
+    sealblocks.py root-header ROOT.pub --product P [-o FILE]
+                                                   write sealed_root.h (the root key and product
+                                                   ID that a CH32H417 build reads sealed files with)
     sealblocks.py seal PLAIN SEALED --release R --boards CSV --revision N [--cipher aes|sm4]
     sealblocks.py check SEALED --root ROOT.pub     check everything that needs no board key
     sealblocks.py open SEALED PLAIN --root ROOT.pub --board-key B
@@ -314,6 +317,27 @@ def cmd_lf_board(a):
     print(f'{a.out}: board {uid.hex()} for lf -K')
 
 
+def cmd_root_header(a):
+    pub = hexbytes(read_json(a.root, 'root'), 'public', 32, a.root)
+    rows = ',\n'.join('    ' + ', '.join('0x%02x' % b for b in pub[i:i + 8])
+                      for i in range(0, 32, 8))
+    text = ('/* sealed_root.h, written by scripts/sealblocks.py root-header from %s:\n'
+            '   the root public key and product ID this build reads sealed block\n'
+            '   files with (doc/encrypted-blocks.md, V5F/User/board.h). */\n'
+            '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'
+            '#define SEALED_ROOT_KEY { \\\n%s }\n\n'
+            '#define SEALED_PRODUCT 0x%08xu\n\n#endif /* SEALED_ROOT_H */\n'
+            % (os.path.basename(a.root), rows.replace('\n', ' \\\n'), a.product))
+    if a.out:
+        if os.path.exists(a.out) and not a.force:
+            raise SealError(f'{a.out} exists (use --force to replace it)')
+        with open(a.out, 'w', newline='\n') as f:
+            f.write(text)
+        print(f'{a.out}: root key {pub.hex()[:16]}..., product {a.product:#x}')
+    else:
+        sys.stdout.write(text)
+
+
 def cmd_seal(a):
     rel = read_json(a.release, 'release')
     rel_priv = Ed25519PrivateKey.from_private_bytes(hexbytes(rel, 'private', 32, a.release))
@@ -424,6 +448,11 @@ def main(argv=None):
     s.add_argument('--min-revision', type=num, default=0)
     s.add_argument('--min-serial', type=num, default=0)
     s.add_argument('--force', action='store_true')
+    s = sub.add_parser('root-header', help='write sealed_root.h for a CH32H417 build')
+    s.add_argument('root', help='the root .pub file')
+    s.add_argument('--product', type=num, required=True)
+    s.add_argument('-o', dest='out', help='the file (default: standard output)')
+    s.add_argument('--force', action='store_true')
     s = sub.add_parser('seal', help='make a sealed file from a plain one')
     s.add_argument('plain')
     s.add_argument('sealed')
@@ -451,7 +480,7 @@ def main(argv=None):
         p.error('product must fit in 32 bits')
     try:
         {'root-key': cmd_root_key, 'release-key': cmd_release_key, 'board-key': cmd_board_key,
-         'lf-board': cmd_lf_board,
+         'lf-board': cmd_lf_board, 'root-header': cmd_root_header,
          'seal': cmd_seal, 'check': cmd_check, 'open': cmd_open}[a.cmd](a)
     except SealError as e:
         print(f'sealblocks: {e}', file=sys.stderr)

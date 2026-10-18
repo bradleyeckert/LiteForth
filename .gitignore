@@ -54,3 +54,6 @@ src/target/desktop/unit_tests/blkrun/test_blkrun.fb4
 src/target/desktop/unit_tests/exfat/test_exfat
 src/target/desktop/unit_tests/exfat/*.img
 src/target/desktop/unit_tests/exfat/core.fb4
+
+# The application's root key for sealed block files (see sealed_root.example.h)
+src/target/CH32H417/V5F/User/sealed_root.h

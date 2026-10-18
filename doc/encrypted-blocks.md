@@ -1,8 +1,9 @@
 # Sealed block files: encrypted, signed lfblocks.fb4
 
-Plan, 2026-10-17. Steps 1 to 3 of section 8 are done: BLAKE2s in `src/`,
-`scripts/sealblocks.py`, and the desktop `lf` reading sealed files
-(`lf -K`). The CH32H417 can't read them yet.
+Plan, 2026-10-17. Steps 1 to 4 of section 8 are done: BLAKE2s in `src/`,
+`scripts/sealblocks.py`, the desktop `lf` reading sealed files (`lf -K`),
+and the CH32H417 reading them with software AES and SM4 (not yet tested
+on the board). The ECDC engine and the anti-rollback minimums come next.
 
 A sealed block file is an `lfblocks.fb4` whose content blocks are encrypted
 and signed, so the same file can go on every unit's card as a firmware
@@ -211,6 +212,28 @@ block costs one extra read when it isn't already in a buffer; with only
 two block buffers (`SYSTEM_BLOCKS`), a third buffer for tables may be
 worth having.
 
+### On the CH32H417
+
+- **The board's record** is the 8 KB flash sector at `0x08070000`, after
+  LiteForth's flash pages (`V5F/User/board.c`): the X25519 private key and
+  the two minimums, with a BLAKE2s check value. Erased flash reads
+  `0xE339E339` on this chip, so only a record with the right magic and
+  check counts.
+- **`enroll ( -- )`** makes the key from the RNG (64 words, each checked
+  for data ready, seed and clock errors and repeats, hashed together with
+  BLAKE2s), stores it, and prints the board's line for `boards.csv`. A
+  board that already has a key just prints its line. The desktop's
+  `enroll` prints the line from its `-K` board file.
+- **The root key and product ID** come from `V5F/User/sealed_root.h`,
+  which the application supplies, since LiteForth is a platform and each
+  product has its own root. `sealblocks.py root-header ROOT.pub --product P
+  -o sealed_root.h` writes it; git ignores it; without it the board reads
+  no sealed files.
+- **Reading:** `blk_read_imm` starts the DMA read as usual; when
+  `blk_status` sees it finish, it checks and decrypts each block
+  (`sealed_open_block`), reading and checking the hash table block first
+  if it isn't the one it has, then reports the read done.
+
 ### What the board needs in code
 
 | Part | Source |
@@ -224,8 +247,19 @@ worth having.
 Built for RV32IMAC at `-Os` and linked with unused code dropped, all of
 it takes about 22 KB of code, with software AES and SM4. Its RAM is
 static: 8 KB in `sealed.c` (block 0 and the last hash table block) plus a
-4 KB buffer in `blocks.c` at mount. X25519 and the two signature checks
-run once per mount: to measure on the board.
+4 KB buffer in `blocks.c` at mount.
+
+Counted in an RV32IMC emulator (clang `-Os`, instructions retired):
+
+| Work | Instructions | At 400 MHz, about |
+|---|---|---|
+| Mounting (two Ed25519 checks, X25519, unwrap) | 12.3 million | 31 ms |
+| Reading a block: BLAKE2s of 4 KB | 0.47 million | 1.2 ms |
+| Reading a block: AES-128-CTR of 4 KB, software | 1.19 million | 3 ms |
+| Reading a block: SM4-CTR of 4 KB, software | 0.50 million | 1.2 ms |
+| The first block under a hash table block: the table's BLAKE2s too | +0.49 million | +1.2 ms |
+
+The ECDC engine would take the CTR pass off the CPU, leaving the hash.
 
 ## 5. On the PC
 
@@ -335,8 +369,11 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 3. Desktop `lf`: mount and read sealed files (software AES), with the
    failure tests in section 5. **Done** (`src/sealed.c`, `src/ctr.c`,
    `lf -K`, `unit_tests/ctr`, `unit_tests/sealed`).
-4. CH32H417: ECDC CTR decryption after the DMA read, X25519 and Ed25519,
-   the board key in protected flash, `enroll`.
+4. CH32H417: X25519 and Ed25519, the board key in flash, `enroll`, and
+   checking and decrypting each block after its DMA read. **Done**, with
+   software AES and SM4 (`V5F/User/board.c`, `blocks.c`), to try on the
+   board. Still to do: CTR on the ECDC engine, once a known-answer test
+   shows how it counts.
 5. Anti-rollback minimums, and key replacement.
 
 ## 9. Known holes, for later

@@ -13,6 +13,8 @@ src/target/desktop/unit_tests/flash/lfflash.bin
 src/target/desktop/unit_tests/memalloc/test_memalloc
 src/target/desktop/unit_tests/blake2s/test_blake2s
 src/target/desktop/unit_tests/ctr/test_ctr
+src/target/desktop/unit_tests/update/test_update
+src/target/desktop/unit_tests/update/work/
 src/target/desktop/unit_tests/serial_io/test_serial_io
 src/target/desktop/unit_tests/serial_io/demo_terminal
 src/target/desktop/unit_tests/vmasm/rv32emu

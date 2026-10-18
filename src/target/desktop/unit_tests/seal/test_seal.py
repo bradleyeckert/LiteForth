@@ -98,6 +98,17 @@ def main():
         with open('boards.csv', 'w') as f:
             f.write('# test boards\n' + lines[0] + '\n\n' + lines[1] + '\n')
 
+        # root-header: the C header a CH32H417 build reads the root key from
+        expect_ok('root-header', 'root-header', 'root.pub', '--product', 0x4C46, '-o', 'root.h')
+        with open('root.h') as f:
+            header = f.read()
+        pub = bytes.fromhex(sb.read_json('root.pub', 'root')['public'])
+        listed = bytes(int(x, 16) for x in __import__('re').findall(r'0x([0-9a-f]{2}),?', header.split('SEALED_ROOT_KEY')[1].split('}')[0]))
+        expect('root-header holds the root key', listed == pub, header)
+        expect('root-header holds the product', 'SEALED_PRODUCT 0x00004c46u' in header, header)
+        expect_refused('root-header not overwritten', 'exists', 'root-header', 'root.pub',
+                       '--product', 1, '-o', 'root.h')
+
         # round trips
         for cipher in ('aes', 'sm4'):
             sealed = f'sealed-{cipher}.fb4'

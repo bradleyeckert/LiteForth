@@ -97,7 +97,8 @@
     X(API_STANDBY,          standby)            \
     X(API_READ_BLOCK,       readBlock)          \
     X(API_WRITE_BLOCK,      writeBlock)         \
-    X(API_BLOCK_STATUS,     blockStatus)
+    X(API_BLOCK_STATUS,     blockStatus)        \
+    X(API_ENROLL,           lfAPI_enroll)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

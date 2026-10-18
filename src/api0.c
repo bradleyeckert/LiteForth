@@ -16,6 +16,7 @@
 #include "lcd.h"
 #include "lftime.h"
 #include "blocks.h"
+#include "board.h"
 
 /*==========================================================================
 * API 0 

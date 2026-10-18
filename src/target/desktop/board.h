@@ -24,4 +24,14 @@
  */
 int board_load(const char *path, sealed_board *b, char *msg, int len);
 
+/**
+ * Forth word `enroll`  ( -- )
+ * Prints the board's line for boards.csv (UID and X25519 public key, in
+ * hex), from the board file lf was given with -K, as the CH32H417's
+ * `enroll` does from its flash record. The desktop never makes a key: the
+ * board file holds it (sealblocks.py board-key, lf-board).
+ * Returns 0, or ERR_UNSUPPORTED_OPERATION without -K.
+ */
+int lfAPI_enroll(void);
+
 #endif /* BOARD_H */

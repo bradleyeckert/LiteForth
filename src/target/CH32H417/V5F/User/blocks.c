@@ -14,6 +14,12 @@
  * CMD12. A 4 KB block is 8 sectors from the block space's base sector
  * (card.c finds it: lfblocks.fb4 on the exFAT volume). Buffers
  * are cell arrays, so they meet the 4-byte alignment DMA needs.
+ *
+ * A sealed lfblocks.fb4 (block 0 starts with SEALED_MAGIC,
+ * doc/encrypted-blocks.md) is mounted at blk_init with what board.c holds,
+ * and offered read-only: when a read of its blocks finishes, blk_status
+ * checks each block against its hash and decrypts it (sealed.c), reading
+ * the hash table block it needs first, before it reports the read done.
  */
 #include <string.h>
 #include "debug.h"
@@ -21,6 +27,8 @@
 #include "blocks.h"
 #include "lftime.h"
 #include "../../../../card.h"       /* src/card.h */
+#include "../../../../sealed.h"     /* src/sealed.h */
+#include "board.h"
 #include "v5f_crumbs.h"                /* reset debugging trail */
 
 extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
@@ -48,6 +56,11 @@ static card_map map_copy;               /* what blk_init put there: see map_ok *
 static int map_bad;                     /* map changed: no more transfers */
 static uint32_t card_sectors;           /* the card's size */
 static int writable;                    /* block 0 has the signature */
+static uint32_t limit;                  /* blocks offered: map.blocks, or a sealed file's */
+static int sealed;                      /* a sealed file is mounted */
+static uint32_t post_blk;               /* a read of sealed blocks to finish: */
+static uint8_t *post_buf;               /* check and decrypt them when it's done */
+static int post_len;
 
 static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
 
@@ -85,8 +98,8 @@ static int check_run(uint32_t blk, int length, uint32_t *lba) {
     if (length < 1 || length > BLK_MAX_LENGTH) {
         return ERR_INVALID_NUMERIC;
     }
-    if (blk >= map.blocks || (uint32_t)length > map.blocks - blk) {
-        crumb(TAG('B','N','D','!'), blk, map.blocks);
+    if (blk >= limit || (uint32_t)length > limit - blk) {
+        crumb(TAG('B','N','D','!'), blk, limit);
         return ERR_BLK_BOUNDS;
     }
     *lba = map.base + blk * SECTORS_PER_BLOCK;
@@ -325,9 +338,14 @@ static void advance(void) {
     }
 }
 
+static void finish_sealed(void);
+
 /* Starts a checked transfer of count sectors from lba */
 static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     advance();                          /* a finished transfer isn't busy */
+    if (post_len && status == 0) {
+        finish_sealed();                /* a sealed read nobody asked about yet */
+    }
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
@@ -342,15 +360,21 @@ static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     return 0;
 }
 
-int blk_status(void) {
+/* Steps the transfer in progress; returns its status */
+static int poll(void) {
     advance();
     return status;
 }
 
 #else /* BLK_DMA */
 
+static void finish_sealed(void);
+
 /* Does a checked transfer of count sectors from lba */
 static int start(uint32_t lba, uint32_t *buf, int count, int write) {
+    if (post_len) {
+        finish_sealed();                /* a sealed read nobody asked about yet */
+    }
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
@@ -359,11 +383,56 @@ static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     return 0;
 }
 
-int blk_status(void) {
+static int poll(void) {
     return status;
 }
 
 #endif /* BLK_DMA */
+
+/* sealed.c's raw block reader, for block 0 and the hash table blocks: a
+   transfer of its own, waited for, with no post-processing */
+static int raw_block(uint32_t blk, uint8_t *buf) {
+    if (blk >= map.blocks) {
+        return ERR_BLK_BOUNDS;
+    }
+    while (poll() > 0) {
+    }
+    int err = start(map.base + blk * SECTORS_PER_BLOCK, (uint32_t *)buf, SECTORS_PER_BLOCK, 0);
+    if (err) {
+        return err;
+    }
+    int s;
+    while ((s = poll()) > 0) {
+    }
+    return s;
+}
+
+/* A read of sealed blocks has finished: check and decrypt them. On a
+   failure the rest of the run is zeroed and the read fails. */
+static void finish_sealed(void) {
+    int n = post_len;
+    post_len = 0;                       /* raw_block below doesn't come back here */
+    for (int i = 0; i < n; i++) {
+        int err = sealed_open_block(post_blk + (uint32_t)i, post_buf + i * BLK_SIZE_BYTES);
+        if (err) {
+            memset(post_buf + i * BLK_SIZE_BYTES, 0, (size_t)(n - i) * BLK_SIZE_BYTES);
+            status = err;
+            return;
+        }
+    }
+    status = 0;
+}
+
+int blk_status(void) {
+    int s = poll();
+    if (s == 0 && post_len) {
+        finish_sealed();
+        s = status;
+    } else if (s < 0) {
+        post_len = 0;                   /* the read failed: nothing to decrypt */
+    }
+    return s;
+}
 
 int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count) {
     if (!map_ok()) {
@@ -391,7 +460,15 @@ int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
     }
     uint32_t lba;
     int err = check_run(blk, length, &lba);
-    return err ? err : start(lba, dest, length * SECTORS_PER_BLOCK, 0);
+    if (!err) {
+        err = start(lba, dest, length * SECTORS_PER_BLOCK, 0);
+    }
+    if (!err && sealed) {               /* blk_status finishes it */
+        post_blk = blk;
+        post_buf = (uint8_t *)dest;
+        post_len = length;
+    }
+    return err;
 }
 
 int blk_write_imm(uint32_t blk, uint32_t *src, int length) {
@@ -443,6 +520,34 @@ static int card_read(uint32_t sector, uint8_t *buf) {
     return err ? err : finish();
 }
 
+/* If the block file is sealed, mounts it with what the board holds and
+   offers its content read-only; if it can't, offers nothing */
+static void mount_sealed(void) {
+    static uint32_t b0[BLK_SIZE_BYTES / 4];
+    char msg[120];
+    if (raw_block(0, (uint8_t *)b0) != 0
+        || memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
+        return;                         /* a plain block file */
+    }
+    writable = 0;
+    limit = 0;
+    sealed_board board;
+    uint64_t t0 = lfGetTimeMicroSec();
+    int err = board_get(&board, msg, sizeof msg);
+    if (!err) {
+        err = sealed_mount((const uint8_t *)b0, map.blocks, &board, raw_block, msg, sizeof msg);
+    }
+    memset(&board, 0, sizeof board);
+    if (err) {
+        printf("V5F blocks: sealed file refused: %s\r\n", msg);
+        return;
+    }
+    sealed = 1;
+    limit = sealed_blocks();
+    printf("V5F blocks: %s (checked in %lu ms)\r\n", msg,
+           (unsigned long)((lfGetTimeMicroSec() - t0) / 1000));
+}
+
 int blk_init(char *filename, uint32_t *capacity) {
     char msg[120];
     (void)filename;
@@ -451,6 +556,10 @@ int blk_init(char *filename, uint32_t *capacity) {
     map_bad = 0;
     card_sectors = 0;
     writable = 0;
+    limit = 0;
+    sealed = 0;
+    post_len = 0;
+    sealed_unmount();
     status = 0;
     if (capacity) *capacity = 0;
 
@@ -484,10 +593,14 @@ int blk_init(char *filename, uint32_t *capacity) {
         return 0;
     }
     writable = map.writable;
+    limit = map.blocks;
     map_copy = map;
     printf("V5F blocks: %s\r\n", msg);
+    if (writable) {
+        mount_sealed();
+    }
     printf("V5F blocks: map at %08lX, %u bytes\r\n", (unsigned long)(uintptr_t)&map,
            (unsigned)sizeof map);
-    if (capacity) *capacity = map.blocks;
+    if (capacity) *capacity = limit;
     return 0;
 }

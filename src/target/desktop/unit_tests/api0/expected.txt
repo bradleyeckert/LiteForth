@@ -68,17 +68,18 @@
  67 API_READ_BLOCK       readBlock
  68 API_WRITE_BLOCK      writeBlock
  69 API_BLOCK_STATUS     blockStatus
- 70 API_ENDTEST          lfAPI_endTest
- 71 API_DOTEST           lfAPI_doTest
- 72 API_BEGINTEST        lfAPI_beginTest
- 73 API_HEX              lfAPI_hex
- 74 API_DECIMAL          lfAPI_decimal
- 75 API_DOTPAGE          lfAPI_dotPage
- 76 API_DOTPAGES         lfAPI_dotPages
- 77 API_DUMP             lfAPI_dump
- 78 API_DUMPI            lfAPI_dumpIns
- 79 API_DASM             lfAPI_dasm
- 80 API_DOTS             lfAPI_dotEss
- 81 API_DOT              lfAPI_dot
- 82 API_SEE              lfAPI_see
-count 83
+ 70 API_ENROLL           lfAPI_enroll
+ 71 API_ENDTEST          lfAPI_endTest
+ 72 API_DOTEST           lfAPI_doTest
+ 73 API_BEGINTEST        lfAPI_beginTest
+ 74 API_HEX              lfAPI_hex
+ 75 API_DECIMAL          lfAPI_decimal
+ 76 API_DOTPAGE          lfAPI_dotPage
+ 77 API_DOTPAGES         lfAPI_dotPages
+ 78 API_DUMP             lfAPI_dump
+ 79 API_DUMPI            lfAPI_dumpIns
+ 80 API_DASM             lfAPI_dasm
+ 81 API_DOTS             lfAPI_dotEss
+ 82 API_DOT              lfAPI_dot
+ 83 API_SEE              lfAPI_see
+count 84

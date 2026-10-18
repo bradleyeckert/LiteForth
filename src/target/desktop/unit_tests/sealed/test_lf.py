@@ -167,6 +167,12 @@ def main():
                got)
         expect('file unchanged after a write', sha('aes.fb4') == before)
 
+        # enroll prints the board's boards.csv line from the board file
+        _, got = lf('enroll\nbye\n', '-k', 'aes.fb4', '-K', 'a.lfb')
+        expect('enroll prints the boards.csv line', f'{a["uid"]},{a["public"]}' in got, got)
+        _, got = lf('enroll\nbye\n', '-k', 'plain.fb4')
+        expect('enroll without -K', 'no board file' in got and 'ior=-21' in got, got)
+
         # a bad board file stops lf
         with open('bad.lfb', 'w') as f:
             f.write('uid 0102\n')

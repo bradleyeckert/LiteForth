@@ -17,7 +17,8 @@
 #define SIG_AT          (SEALED_BLOCK_BYTES - 64)
 
 static uint8_t header[SEALED_BLOCK_BYTES];      /* the mounted block 0 */
-static uint8_t table[SEALED_BLOCK_BYTES];       /* the last table block read */
+static uint32_t table_cells[SEALED_BLOCK_BYTES / 4];   /* cells: a DMA target */
+#define table ((uint8_t *)table_cells)          /* the last table block read */
 static uint32_t table_index = UINT32_MAX;       /* which one, or none */
 static ctr_key key;
 static uint8_t nonce[8];

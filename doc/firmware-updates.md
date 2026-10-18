@@ -265,7 +265,9 @@ The V3F keeps its own PMP unlocked: it's the trusted side.
 
 ### What the board showed (`pmp-test`, 18 October 2026)
 
-Runs of `pmp-test` (PR #164, #165) on the nanoCH32H417 at RDP 0:
+Runs of `pmp-test` (PR #164, #165; the word was removed afterwards, since
+the version on `main` faulted at once in user mode) on the nanoCH32H417 at
+RDP 0:
 
 - **LiteForth runs in user mode.** The first `csrr pmpcfg0` faulted with
   mcause 2 (illegal instruction, mtval `3A0025F3`). WCH's start-up code

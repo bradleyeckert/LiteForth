@@ -115,8 +115,7 @@
     X(API_DOTS,             lfAPI_dotEss)       \
     X(API_DOT,              lfAPI_dot)          \
     X(API_SEE,              lfAPI_see)          \
-    X(API_ECDC_TEST,        lfAPI_ecdcTest)     \
-    X(API_PMP_TEST,         lfAPI_pmpTest)
+    X(API_ECDC_TEST,        lfAPI_ecdcTest)
 #else
 #define API0_TOOLS_LIST(X)
 #endif

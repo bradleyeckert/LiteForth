@@ -86,7 +86,7 @@
     X(API_HEADMINUS,        lfAPI_headMinus)    \
     X(API_HEADPLUS,         lfAPI_headPlus)     \
     X(API_TRIMHEADS,        lfAPI_trimHeads)    \
-    X(API_XMODEM,           lfAPI_xmodem)       \
+    X(API_YMODEM,           lfAPI_ymodem)       \
     X(API_LCD_INIT,         lcdInit)            \
     X(API_LCD_TX,           lcdTx)              \
     X(API_LCD_DECODE,       lcdDecode)          \

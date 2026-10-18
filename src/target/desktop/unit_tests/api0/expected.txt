@@ -56,7 +56,7 @@
  55 API_HEADMINUS        lfAPI_headMinus
  56 API_HEADPLUS         lfAPI_headPlus
  57 API_TRIMHEADS        lfAPI_trimHeads
- 58 API_XMODEM           lfAPI_xmodem
+ 58 API_YMODEM           lfAPI_ymodem
  59 API_LCD_INIT         lcdInit
  60 API_LCD_TX           lcdTx
  61 API_LCD_DECODE       lcdDecode

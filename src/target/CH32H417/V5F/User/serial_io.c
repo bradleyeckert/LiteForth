@@ -35,6 +35,7 @@ int serial_open(char* name, int baudrate) {
     CDC_FENCE();
     r->tail = r->head;                  /* drop input from before this start, */
     CDC_FENCE();                        /* e.g. the Ctrl+X that restarted us */
+    CDC_SHARED->binary = 0;             /* a transfer cut short by a restart */
     CDC_SHARED->v5f_starts++;           /* tells the V3F we're running */
     return 0;
 }
@@ -81,4 +82,10 @@ int serial_putc(char c) {
     CDC_FENCE();                        /* data before head */
     t->head = head + 1;
     return 0;
+}
+
+void serial_binary(int on) {
+    CDC_FENCE();
+    CDC_SHARED->binary = on ? CDC_BINARY_MAGIC : 0;
+    CDC_FENCE();
 }

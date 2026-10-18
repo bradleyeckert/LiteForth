@@ -78,6 +78,7 @@ void cdc_shared_init(void) {
     sh->tx.head = sh->tx.tail = 0;
     sh->host_open = 0;                  /* until the host sets DTR */
     sh->standby = 0;                    /* a standby ends with a chip reset */
+    sh->binary = 0;                     /* the Ctrl+X escape is on */
     /* safe_boot is left alone: it must survive the chip reset that
        v5f_safe_restart falls back on. v5f_starts only ever counts up. */
     CDC_FENCE();
@@ -111,9 +112,10 @@ static void slot_release(void) {
 
 static uint8_t ctrl_x_run;              /* consecutive Ctrl+X bytes seen */
 
-/* Counts consecutive Ctrl+X. Returns 1 on the third. */
+/* Counts consecutive Ctrl+X. Returns 1 on the third. Not during a file
+   transfer (binary set by the V5F), whose data may hold any bytes. */
 static int ctrl_x_seen(uint8_t b) {
-    if (b != CDC_CTRL_X) {
+    if (b != CDC_CTRL_X || CDC_SHARED->binary == CDC_BINARY_MAGIC) {
         ctrl_x_run = 0;
         return 0;
     }

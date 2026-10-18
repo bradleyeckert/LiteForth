@@ -502,3 +502,7 @@ int serial_putc(char c) {
     return ERR_TERM_TX_FAILED;
 #endif
 }
+
+void serial_binary(int on) {
+    (void)on;                           // no escape sequence to turn off here
+}

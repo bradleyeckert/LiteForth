@@ -293,7 +293,7 @@ vectors and the CTR mode against the `cryptography` package.
 ### 6.2 A release
 
 `seal` with the current release key, the board list and the next
-revision number. The file goes onto cards, or to a board by XMODEM
+revision number. The file goes onto cards, or to a board by YMODEM
 (`~x`).
 
 ### 6.3 Replacing a release key

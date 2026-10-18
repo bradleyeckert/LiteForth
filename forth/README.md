@@ -8,5 +8,5 @@ Forth source code is kept in text files for compatibility with repositories.
 Code that is meant to reside in blocks uses the `.fs` file extension.
 In a desktop environment, `putblocks.py` inserts `.fs` files into a blocks image file like `lfblocks.fb4`.
 
-With RealTerm connected to an MCU target over a serial port, use `xmodem` and follow the prompts for
-File > Transfer > XMODEM > Send.
+With kwai connected to an MCU target over a serial port, `~x core.f` sends a file into blocks by YMODEM.
+With another terminal, type `0 ymodem` and send the file with YMODEM (Tera Term: File > Transfer > YMODEM > Send).

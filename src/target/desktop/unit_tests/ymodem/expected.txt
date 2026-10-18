@@ -1,0 +1,111 @@
+-- 128-byte packets, a corrupt one and a repeated one
+sender: corrupt packet NAKed
+sender: repeated packet ACKed
+ymodem: send the file(s) now (YMODEM)
+ymodem: src.f: 4 blocks written: 3 4 10 11
+note: 2 non-blank line(s) outside blocks ignored
+-- 1K packets, the same file
+ymodem: send the file(s) now (YMODEM)
+ymodem: src.f: 4 blocks written: 3 4 10 11
+note: 2 non-blank line(s) outside blocks ignored
+-- loading what came
+three 
+eleven, last line without a newline 
+-- two source files in one batch
+ymodem: send the file(s) now (YMODEM)
+ymodem: a.f: 1 block written: 12
+ymodem: b.f: 1 block written: 13
+-- a line longer than 128 bytes
+ymodem: send the file(s) now (YMODEM)
+ymodem: long.f: 1 block written: 20
+line 4, block 21: line is longer than 128 bytes; nothing written from there on
+Error: ior=-124 Bad file in a YMODEM transfer
+-- the largest block number, past the end of the storage
+ymodem: send the file(s) now (YMODEM)
+ymodem: far.f: 0 blocks written
+line 1, block 4294967295: past the end of the block storage; nothing written from there on
+Error: ior=-92 Target block index exceeds allocated file capacity
+-- block 0
+ymodem: send the file(s) now (YMODEM)
+ymodem: zero.f: 0 blocks written
+line 1, block 0: block 0 holds the signature and isn't written; nothing written from there on
+Error: ior=-124 Bad file in a YMODEM transfer
+-- ( BLOCK++ ) first
+ymodem: send the file(s) now (YMODEM)
+ymodem: where.f: 0 blocks written
+line 1: ( BLOCK++ ) before any numbered block; nothing written from there on
+Error: ior=-124 Bad file in a YMODEM transfer
+-- binary files from block 40: Ctrl+X runs, SUBs at the end, exact lengths
+sender: corrupt packet NAKed
+ymodem: send the file(s) now (YMODEM)
+ymodem: one.bin: 5008 bytes from byte 32 of block 40 to block 41, next free block 42
+ymodem: two.bin: 104 bytes from byte 32 of block 42, next free block 43
+binary blocks 40-42 are the same as putbin.py's
+-- a binary file that doesn't fit
+ymodem: send the file(s) now (YMODEM)
+ymodem: big.bin: doesn't fit before the end of the block storage (block 60); not written
+Error: ior=-92 Target block index exceeds allocated file capacity
+-- a binary file with no length in its header
+ymodem: send the file(s) now (YMODEM)
+ymodem: nolen.bin: the header gives no length, so it can't be placed; not written
+Error: ior=-124 Bad file in a YMODEM transfer
+-- an XMODEM sender (no header)
+ymodem: send the file(s) now (YMODEM)
+ymodem: the sender didn't send a YMODEM header (an XMODEM sender?)
+Error: ior=-123 YMODEM transfer failed or cancelled
+-- the sender cancels
+ymodem: send the file(s) now (YMODEM)
+ymodem: the transfer failed
+Error: ior=-123 YMODEM transfer failed or cancelled
+-- the blocks
+( BLOCK 3 )
+( Test block three )
+.( three ) cr
+( BLOCK 4 )
+.( four, after three ) cr  ( a comment )
+( the line below is exactly 128 bytes )
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+( BLOCK 10 )
+( row  0 )
+( row  1 )
+( row  2 )
+( row  3 )
+( row  4 )
+( row  5 )
+( row  6 )
+( row  7 )
+( row  8 )
+( row  9 )
+( row 10 )
+( row 11 )
+( row 12 )
+( row 13 )
+( row 14 )
+( row 15 )
+( row 16 )
+( row 17 )
+( row 18 )
+( row 19 )
+( row 20 )
+( row 21 )
+( row 22 )
+( row 23 )
+( row 24 )
+( row 25 )
+( row 26 )
+( row 27 )
+( row 28 )
+( row 29 )
+( row 30 )
+( row 31 )
+( BLOCK 11 )
+.( eleven, last line without a newline ) cr
+( BLOCK 12 )
+.( twelve ) cr
+( BLOCK 13 )
+.( thirteen ) cr
+( BLOCK 20 )
+.( twenty ) cr
+( BLOCK IGNORE ) block 40: binary, crc32 94eb9a04
+( BLOCK IGNORE ) block 41: binary, crc32 b5a12678
+( BLOCK IGNORE ) block 42: binary, crc32 6480d036

@@ -42,6 +42,12 @@
  * the whole chip. safe_boot lives here, outside both cores' .bss, so a
  * restart doesn't clear it; the V5F clears it once it has seen it.
  *
+ * File transfers: while `ymodem` receives a file, the bytes from the host
+ * are data and may hold three 0x18 in a row, so the V5F sets binary to
+ * CDC_BINARY_MAGIC (serial_binary) and the V3F doesn't count Ctrl+X until
+ * it's cleared. serial_open clears it, so a V5F restart can't leave the
+ * escape off.
+ *
  * Standby (lfStandby, V5F/User/lftime.c): the chip powers down only when
  * both cores sleep, so the V5F sets standby to CDC_STANDBY_MAGIC; the
  * V3F's bridge sees it, detaches USB and sleeps for good (cdc_standby).
@@ -71,6 +77,7 @@ extern "C" {
 #define CDC_CTRL_X          0x18            /* three in a row restart the V5F */
 #define CDC_STANDBY_MAGIC   0x5133B00Bu     /* standby: the V5F asks the V3F to sleep */
 #define CDC_RTC_WAKE_MAGIC  0xA1A4A4E0u     /* rtc_wake: the RTC alarm caused this reset */
+#define CDC_BINARY_MAGIC    0xB1A4DA7Au     /* binary: host bytes are data, no Ctrl+X escape */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -85,6 +92,7 @@ typedef struct {
     volatile uint32_t v5f_starts;           /* V5F: counts serial_open calls */
     volatile uint32_t standby;              /* V5F: CDC_STANDBY_MAGIC asks the V3F to sleep */
     volatile uint32_t rtc_wake;             /* V5F: CDC_RTC_WAKE_MAGIC after an alarm wake-up */
+    volatile uint32_t binary;               /* V5F: CDC_BINARY_MAGIC during a file transfer */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
 } cdc_shared_t;

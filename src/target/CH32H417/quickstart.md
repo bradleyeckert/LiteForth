@@ -140,10 +140,11 @@ block of source, and `hi` prints a Chinese proverb (kwai shows CJK text).
 ## Changing the source
 
 With the card in the board, kwai's `~x file` sends a source file into
-blocks over the terminal (XMODEM): for example `~x core.f`, run in the
+blocks over the terminal (YMODEM): for example `~x core.f`, run in the
 `forth` folder. The `( BLOCK n )` lines in the file say where each block
-goes, as with `putblocks.py`. Other terminals can send it too: type
-`xmodem`, then send the file with XMODEM (checksum). Then `1 load`
+goes, as with `putblocks.py`. A binary file such as a font goes in with a
+block number: `~x cjk24.fnt 100`. Other terminals can send them too: type
+`0 ymodem` (or `100 ymodem`), then send the file with YMODEM. Then `1 load`
 compiles the dictionary again from the new source. See
 [doc/blocks.md](../../../doc/blocks.md) for blocks and the block editor in
 [doc/editor.md](../../../doc/editor.md).

@@ -140,8 +140,8 @@
 #define ERR_CANNOT_DOES            (-120)   /* Cannot resolve the CREATE of DOES> */
 #define ERR_EMPTY_TASKER           (-121)   /* Attempt to `activate` a task before `multitask` */
 #define ERR_MUST_HAVE_HEADS        (-122)   /* Missing `-heads`, cannot save heads */
-#define ERR_XMODEM_TRANSFER        (-123)   /* XMODEM transfer failed or cancelled */
-#define ERR_XMODEM_SOURCE          (-124)   /* Bad block source in an XMODEM transfer */
+#define ERR_YMODEM_TRANSFER        (-123)   /* YMODEM transfer failed or cancelled */
+#define ERR_YMODEM_SOURCE          (-124)   /* Bad file in a YMODEM transfer */
 #define ERR_BLK_BUSY               (-125)   /* A block transfer is still in progress */
 #define ERR_BLK_TIMEOUT            (-126)   /* A block transfer took too long */
 

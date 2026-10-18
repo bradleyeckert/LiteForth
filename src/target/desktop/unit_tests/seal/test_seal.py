@@ -7,6 +7,7 @@ import io
 import os
 import shutil
 import struct
+import hashlib
 import sys
 import tempfile
 
@@ -16,6 +17,7 @@ sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 import sealblocks as sb  # noqa: E402
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey  # noqa: E402,E501
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes  # noqa: E402
 
 BLOCK = sb.BLOCK
@@ -98,6 +100,24 @@ def main():
         with open('boards.csv', 'w') as f:
             f.write('# test boards\n' + lines[0] + '\n\n' + lines[1] + '\n')
 
+        # board-key --insecure: the key an INSECURE CH32H417 build derives
+        # from its UID, BLAKE2s (person LFinsec1) of the UID's 8 bytes
+        uid = '69a90e647f9cf6a9'
+        l1 = expect_ok('insecure board key', 'board-key', 'i1.json', '--uid', uid,
+                       '--insecure').strip()
+        l2 = expect_ok('insecure board key again', 'board-key', 'i2.json', '--uid', uid,
+                       '--insecure').strip()
+        expect('insecure board key is the same each time',
+               l1.split(',')[:2] == l2.split(',')[:2], l1 + ' / ' + l2)
+        priv = hashlib.blake2s(bytes.fromhex(uid), digest_size=32,
+                               person=b'LFinsec1').digest()
+        expect('insecure board key is BLAKE2s of the UID',
+               sb.read_json('i1.json', 'board')['private'] == priv.hex())
+        expect('insecure board line', l1.split(',')[:2] == [uid, sb.raw_public(
+            X25519PrivateKey.from_private_bytes(priv)).hex()], l1)
+        expect_refused('insecure board key needs a UID', '--uid', 'board-key', 'i3.json',
+                       '--insecure')
+
         # root-header: the C header a CH32H417 build reads the root key from
         expect_ok('root-header', 'root-header', 'root.pub', '--product', 0x4C46, '-o', 'root.h')
         with open('root.h') as f:
@@ -152,9 +172,6 @@ def main():
 
         # The layout of doc/encrypted-blocks.md, computed here from its formulas
         # and offsets rather than with sealblocks.py's own helpers.
-        import hashlib
-        from cryptography.hazmat.primitives.asymmetric.x25519 import (
-            X25519PrivateKey, X25519PublicKey)
         b0 = sdata[:BLOCK]
         ver, ciph, flags, prod, rev, cc, tt, rr = struct.unpack_from('<BBIIIIHH', b0, 10)
         expect('doc: header fields', (ver, ciph, flags, prod, rev, cc, tt, rr)

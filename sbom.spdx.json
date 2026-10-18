@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/13a2bd521e7917a3553c9cf18cc73005",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/2e7cdaa6e93c4167f3e0b59f3a88e4f0",
   "creationInfo": {
-    "created": "2026-10-18T01:01:35Z",
+    "created": "2026-10-18T16:29:16Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
@@ -72,9 +72,9 @@
     {
       "SPDXID": "SPDXRef-Package-blake2s",
       "name": "blake2s",
-      "versionInfo": "d887870",
+      "versionInfo": "ec4029e",
       "supplier": "Person: Bradley N Eckert",
-      "downloadLocation": "git+https://github.com/bradleyeckert/blake2s@d887870",
+      "downloadLocation": "git+https://github.com/bradleyeckert/blake2s@ec4029e",
       "licenseConcluded": "CC0-1.0 OR OpenSSL OR Apache-2.0",
       "licenseDeclared": "CC0-1.0 OR OpenSSL OR Apache-2.0",
       "copyrightText": "Copyright 2012 Samuel Neves; changes by Bradley N Eckert",
@@ -84,7 +84,7 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:github/bradleyeckert/blake2s@d887870"
+          "referenceLocator": "pkg:github/bradleyeckert/blake2s@ec4029e"
         }
       ],
       "hasFiles": [
@@ -93,7 +93,7 @@
       ],
       "filesAnalyzed": true,
       "packageVerificationCode": {
-        "packageVerificationCodeValue": "4cd8a569174002d8432d027380338136c8543f4d"
+        "packageVerificationCodeValue": "153bb062b6d24ad31d8bf11dd9432a7e2cb0f96c"
       },
       "licenseInfoFromFiles": [
         "NOASSERTION"
@@ -447,11 +447,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "147ff73b9fd41188a541bdbf164c728ced339748"
+          "checksumValue": "7609a3479d9c753e5264f87dc834566915c63042"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "0f6d98a91ff61157ef5d0acd8588fc5c05e70ee0736b996db084287839475214"
+          "checksumValue": "9682ba8bf0add4ac60a2eaddedd07436a47823da1e31d897f90eeb8a0e2b40c3"
         }
       ],
       "licenseConcluded": "CC0-1.0 OR OpenSSL OR Apache-2.0",

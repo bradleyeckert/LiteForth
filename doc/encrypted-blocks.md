@@ -276,7 +276,7 @@ One script, `scripts/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 |---|---|
 | `root-key ROOT` | Makes the root key pair, `ROOT.key` and `ROOT.pub` (on the offline machine) |
 | `release-key ROOT.key SERIAL OUT --product P` | Makes a release key pair and its certificate; the root's private key signs it, so this runs on the offline machine and only the release key file leaves it |
-| `board-key OUT [--uid HEX]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1) |
+| `board-key OUT [--uid HEX] [--insecure]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1). `--insecure` gives the key a board built with `INSECURE` derives from its UID ([updates.md](updates.md) section 6) |
 | `seal PLAIN SEALED --release R --boards boards.csv --revision N [--cipher aes\|sm4]` | Builds a sealed file from a plain one |
 | `check SEALED --root ROOT.pub` | Checks everything a board would that needs no board key: certificate, signature, header fields, table hashes, block hashes |
 | `open SEALED PLAIN --root ROOT.pub --board-key B [--min-revision N] [--min-serial N] [--product P]` | Checks and decrypts as a board would, refusing what it would refuse, and writes a plain file (with a new block 0) |
@@ -407,5 +407,9 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
   install cut short still leaves it without a usable file until the file
   is sent again: that needs two copies on the card, switching only after
   the new one checks out.
+- **An `INSECURE` build** ([updates.md](updates.md) section 6) derives
+  its key from its UID, so anyone who knows the UID can open what is sealed
+  for it. It's for development boards whose flash gets erased by
+  downloads.
 - **Side channels** on the engine and in the software X25519 aren't
   considered (security-plan.md section 1 rules them out for now).

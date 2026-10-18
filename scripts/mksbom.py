@@ -79,10 +79,10 @@ COMPONENTS = [
         'summary': 'X25519 and Ed25519 (with SHA-512) for sealed block files',
     },
     {
-        'id': 'blake2s', 'name': 'blake2s', 'version': 'd887870', 'kind': 'code',
+        'id': 'blake2s', 'name': 'blake2s', 'version': 'ec4029e', 'kind': 'code',
         'supplier': 'Person: Bradley N Eckert',
-        'download': 'git+https://github.com/bradleyeckert/blake2s@d887870',
-        'purl': 'pkg:github/bradleyeckert/blake2s@d887870',
+        'download': 'git+https://github.com/bradleyeckert/blake2s@ec4029e',
+        'purl': 'pkg:github/bradleyeckert/blake2s@ec4029e',
         'license': 'CC0-1.0 OR OpenSSL OR Apache-2.0',
         'copyright': 'Copyright 2012 Samuel Neves; changes by Bradley N Eckert',
         'files': ['src/blake2s.c', 'src/blake2s.h'],

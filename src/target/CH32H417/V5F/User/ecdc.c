@@ -15,6 +15,10 @@
  *   wasn't ready yet), 4 units at divider 1 and 7 at divider 2. A pause
  *   of SETTLE_US after the flag fixes it.
  * - Flags are INT_FG bits 16-18, cleared by writing 1s.
+ * - Buffers need more than 4-byte alignment: 32-byte aligned buffers
+ *   worked, and the first check here, on plain uint32_t arrays, failed
+ *   (and the board hung later, as if the engine had written elsewhere).
+ *   So the engine only ever sees ALIGN-aligned buffers of this file.
  */
 #include <stdio.h>
 #include <string.h>
@@ -40,6 +44,7 @@
 #define WAIT_US         10000u          /* far longer than any step takes */
 #define SETTLE_US       5u              /* after EKDONE: 20 measured good, under 1 needed */
 #define MAX_UNITS       256u            /* 16-byte units per transfer: a 4 KB block */
+#define ALIGNED         __attribute__((aligned(32)))
 
 static uint32_t settle_us = SETTLE_US;  /* ecdc-test changes it */
 
@@ -98,15 +103,17 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
 
 /* ------------------------------------------------------------------------
  * ctr.c's hardware path: checked once against software for each cipher.
- * The engine writes into scratch, copied over buf only when the whole run
- * went through, so a failure leaves buf as it was for software to do.
+ * buf is copied into scratch (aligned for the engine), run in place there,
+ * and copied back only when the whole run went through, so the engine
+ * never sees an unaligned buffer, and a failure leaves buf as it was for
+ * software to do.
  */
 static int checked[3];                  /* by ctr cipher: 0 not yet, 1 good, -1 off */
-static uint32_t scratch[MAX_UNITS * 4] __attribute__((aligned(32)));
+static uint32_t scratch[MAX_UNITS * 4] ALIGNED;
 
 /* Runs 16 units through the engine and through software; 1 if they match */
 static int check_engine(int cipher) {
-    static uint32_t a[64], b[64];
+    static uint32_t a[64] ALIGNED, b[64] ALIGNED;
     static const uint8_t key[16] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
                                      0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
     static const uint8_t nonce[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -140,21 +147,22 @@ int ctr_hw_crypt(const ctr_key *k, const uint8_t counter[16], uint8_t *buf, size
         return -1;
     }
     int cipher = (k->cipher == CTR_SM4) ? ECDC_SM4 : ECDC_AES;
-    if (ecdc_ctr(cipher, k->key, counter, buf, scratch, (uint32_t)(len / 16)) != 0) {
-        return -1;                      /* buf untouched: software does it */
+    memcpy(scratch, buf, len);
+    int err = ecdc_ctr(cipher, k->key, counter, scratch, scratch, (uint32_t)(len / 16));
+    if (!err) {
+        memcpy(buf, scratch, len);
     }
-    memcpy(buf, scratch, len);
     memset(scratch, 0, len);
-    return 0;
+    return err ? -1 : 0;                /* on failure buf is untouched: software does it */
 }
 
 /* ------------------------------------------------------------------------
  * ecdc-test
  */
 #define UNITS 256                       /* a 4 KB block */
-static uint32_t plain[UNITS * 4] __attribute__((aligned(32)));
-static uint32_t soft[UNITS * 4] __attribute__((aligned(32)));
-static uint32_t hard[UNITS * 4] __attribute__((aligned(32)));
+static uint32_t plain[UNITS * 4] ALIGNED;
+static uint32_t soft[UNITS * 4] ALIGNED;
+static uint32_t hard[UNITS * 4] ALIGNED;
 
 static const uint8_t test_key[16] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -256,7 +264,14 @@ int lfAPI_ecdcTest(void) {
     run("AES, in place", ECDC_AES, 1, SETTLE_US, 0);
     run("AES, no pause after key expansion", ECDC_AES, 0, 0, 0);
     run("SM4, out of place", ECDC_SM4, 0, SETTLE_US, 0);
-    run("AES through ctr_crypt_block", ECDC_AES, 0, SETTLE_US, 1);
-    run("SM4 through ctr_crypt_block", ECDC_SM4, 0, SETTLE_US, 1);
+    run("AES through ctr_crypt_block (first use: checks the engine)", ECDC_AES, 0, SETTLE_US, 1);
+    run("AES through ctr_crypt_block again", ECDC_AES, 0, SETTLE_US, 1);
+    run("SM4 through ctr_crypt_block (first use)", ECDC_SM4, 0, SETTLE_US, 1);
+    run("SM4 through ctr_crypt_block again", ECDC_SM4, 0, SETTLE_US, 1);
+    say("ctr_crypt_block uses the engine for AES: ");
+    say(checked[CTR_AES128] > 0 ? "yes" : "no");
+    say(", SM4: ");
+    say(checked[CTR_SM4] > 0 ? "yes" : "no");
+    lfCR();
     return 0;
 }

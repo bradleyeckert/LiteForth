@@ -19,8 +19,9 @@ enum { ECDC_AES = 1, ECDC_SM4 = 2 };    /* as CTR_AES128 and CTR_SM4 (ctr.h) */
  * 128-bit key, and the 16-byte counter block for the first unit, which
  * the engine steps by one per unit. Resets the engine, loads the key and
  * counter, expands the key and waits a little past its flag, then runs
- * RAM-to-RAM at the undivided clock. src and dst must be 4-byte aligned
- * RAM the engine's DMA reaches (the V5F's DTCM does), and may be the same.
+ * RAM-to-RAM at the undivided clock. src and dst must be 32-byte aligned
+ * RAM the engine's DMA reaches (the V5F's DTCM does), and may be the same:
+ * 4-byte aligned buffers failed.
  * Returns 0, or ERR_BLK_TIMEOUT if the key expansion or the transfer
  * didn't finish.
  */

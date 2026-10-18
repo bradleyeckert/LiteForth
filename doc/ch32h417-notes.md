@@ -186,7 +186,18 @@ points:
 - **In single-block CTR the counter neither advances nor reloads.** Each
   operation uses the counter loaded at the last key expansion (KEYEX_EN 0 to
   1); writing the IV registers afterwards changes nothing, and they read
-  back unchanged. Whether RAM (DMA) mode steps the counter is still to test.
+  back unchanged.
+- **RAM-to-RAM mode** (`ecdc-test`, `V5F/User/ecdc.c`): with DAT_MOD
+  *clear* the engine reads and writes memory in its natural byte order
+  (with it set, each 16-byte unit comes out byte-reversed), and it steps the
+  counter by one per unit, so one key setup covers a 4 KB block: 24 us for
+  AES and 29 us for SM4, against 2.4 ms and 0.8 ms in software. It reaches
+  the V5F's DTCM. Undivided clock (`CLOCK_SELECT`); at divider 6 a transfer
+  didn't finish.
+- **EKDONE comes a little early.** Started right after the flag, AES got
+  the last word of its first units wrong by a fixed difference (4 units at
+  divider 1, 7 at divider 2), as if the last round key wasn't ready; SM4
+  didn't. A pause after the flag fixes it (20 us tested; `ecdc.c` waits 5).
 - **Key expansion isn't reliable without a reset.** After a reset through
   `RCC_HB2PRSTR` it ran every time (`INT_FG` bit 16, EKDONE, set). Without
   one, successive expansions alternated between running and silently not

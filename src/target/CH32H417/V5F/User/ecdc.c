@@ -1,29 +1,36 @@
 /*
- * The ECDC engine in CTR mode (ecdc.h), and `ecdc-test`.
+ * The ECDC engine in CTR mode (ecdc.h), the hardware path of ctr.c
+ * (ctr_hw_crypt), and `ecdc-test`.
  *
- * What the registers do, measured from Forth (doc/ch32h417-notes.md):
- * CTRL bit 9 set is CTR, bit 8 set AES (clear SM4), bit 13 (DAT_MOD) set
- * makes key, counter and data natural big-endian words, with KEY_127T96,
- * IV_127T96 and so on holding bytes 0-3. The counter loads at key
- * expansion, and key expansion is reliable only after a reset. Flags are
- * INT_FG bits 16-18, cleared by writing 1s.
+ * What the engine does, measured on the board (doc/ch32h417-notes.md):
+ * - CTRL bit 9 set is CTR (the SDK header says ECB), bit 8 set AES, clear
+ *   SM4. With DAT_MOD (bit 13) clear, RAM-to-RAM mode reads and writes
+ *   memory in its own byte order, and the key and counter registers take
+ *   natural big-endian words: KEY_127T96 and IV_127T96 hold bytes 0-3.
+ * - The counter loads at key expansion and, in RAM-to-RAM mode, steps by
+ *   one per 16 bytes.
+ * - Key expansion is reliable only after a reset, and its "done" flag
+ *   (INT_FG bit 16) comes a little early: AES units started at once had
+ *   their last word wrong (a fixed difference, so the last round key
+ *   wasn't ready yet), 4 units at divider 1 and 7 at divider 2. A pause
+ *   of SETTLE_US after the flag fixes it.
+ * - Flags are INT_FG bits 16-18, cleared by writing 1s.
  */
 #include <stdio.h>
 #include <string.h>
 #include "ch32h417.h"
 #include "ecdc.h"
 #include "lftime.h"
+#define CTR_HW 1                        /* the prototype of ctr_hw_crypt, as lf_ctr.c has it */
 #include "../../../../ctr.h"
 #include "../../../../errcodes.h"
 #include "../../../../tools.h"
 
 #define CTRL_KEYEX      (1u << 0)
 #define CTRL_NORMAL     (1u << 1)
-#define CTRL_DIV_SHIFT  4
 #define CTRL_WRSRAM     (1u << 7)
 #define CTRL_AES        (1u << 8)
-#define CTRL_CTR        (1u << 9)       /* measured: set is CTR (the SDK says ECB) */
-#define CTRL_BIG        (1u << 13)      /* DAT_MOD: natural byte order */
+#define CTRL_CTR        (1u << 9)       /* measured: set is CTR */
 #define CTRL_CLKSEL     (1u << 24)      /* PLLCLK undivided */
 #define CTRL_CLKEN      (1u << 25)
 #define FLAG_EKDONE     (1u << 16)
@@ -31,12 +38,16 @@
 #define FLAG_RAM        (1u << 18)
 #define FLAGS           (FLAG_EKDONE | FLAG_SINGLE | FLAG_RAM)
 #define WAIT_US         10000u          /* far longer than any step takes */
+#define SETTLE_US       5u              /* after EKDONE: 20 measured good, under 1 needed */
+#define MAX_UNITS       256u            /* 16-byte units per transfer: a 4 KB block */
+
+static uint32_t settle_us = SETTLE_US;  /* ecdc-test changes it */
 
 static uint32_t be32(const uint8_t *p) {
     return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) | ((uint32_t)p[2] << 8) | p[3];
 }
 
-/* Waits for flag in INT_FG; returns 0 or ERR_BLK_TIMEOUT */
+/* Waits for flag in INT_FG and clears it; returns 0 or ERR_BLK_TIMEOUT */
 static int wait_flag(uint32_t flag) {
     uint64_t t0 = lfGetTimeMicroSec();
     while (!(ECDC->INT_FG & flag)) {
@@ -49,20 +60,12 @@ static int wait_flag(uint32_t flag) {
 }
 
 int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
-             const void *src, void *dst, uint32_t units, int div) {
-    return ecdc_ctr_order(cipher, key, counter, src, dst, units, div, 1);
-}
-
-static uint32_t settle_us;              /* ecdc-test: a pause before the transfer */
-
-int ecdc_ctr_order(int cipher, const uint8_t key[16], const uint8_t counter[16],
-                   const void *src, void *dst, uint32_t units, int div, int big) {
+             const void *src, void *dst, uint32_t units) {
     RCC_HB2PeriphClockCmd(RCC_HB2Periph_ECDC, ENABLE);
     RCC_HB2PeriphResetCmd(RCC_HB2Periph_ECDC, ENABLE);     /* or key expansion may not run */
     RCC_HB2PeriphResetCmd(RCC_HB2Periph_ECDC, DISABLE);
 
-    uint32_t ctrl = CTRL_CLKEN | CTRL_CTR | (big ? CTRL_BIG : 0) | (cipher == ECDC_AES ? CTRL_AES : 0);
-    ctrl |= (div <= 1) ? CTRL_CLKSEL : ((uint32_t)(div & 7) << CTRL_DIV_SHIFT);
+    uint32_t ctrl = CTRL_CLKEN | CTRL_CLKSEL | CTRL_CTR | (cipher == ECDC_AES ? CTRL_AES : 0);
     ECDC->INT_FG = FLAGS;
     ECDC->CTRL = ctrl;
     ECDC->KEY_255T224 = ECDC->KEY_223T192 = ECDC->KEY_191T160 = ECDC->KEY_159T128 = 0;
@@ -81,18 +84,68 @@ int ecdc_ctr_order(int cipher, const uint8_t key[16], const uint8_t counter[16],
     if (err) {
         return err;
     }
-    if (settle_us) {
-        uint64_t t0 = lfGetTimeMicroSec();
-        while (lfGetTimeMicroSec() - t0 < settle_us) {
-        }
+    uint64_t t0 = lfGetTimeMicroSec();
+    while (lfGetTimeMicroSec() - t0 < settle_us) {          /* the last round key */
     }
     ECDC->CTRL = ctrl | CTRL_WRSRAM | CTRL_NORMAL;          /* RAM-to-RAM, encrypt */
     ECDC->DST_ADDR = (uint32_t)dst;
     ECDC->SRC_ADDR = (uint32_t)src;
-    ECDC->SRAM_LEN = units;                                 /* starts it, as in WCH's example */
+    ECDC->SRAM_LEN = units;                                 /* starts it */
     err = wait_flag(FLAG_RAM);
     ECDC->CTRL = ctrl;
     return err;
+}
+
+/* ------------------------------------------------------------------------
+ * ctr.c's hardware path: checked once against software for each cipher.
+ * The engine writes into scratch, copied over buf only when the whole run
+ * went through, so a failure leaves buf as it was for software to do.
+ */
+static int checked[3];                  /* by ctr cipher: 0 not yet, 1 good, -1 off */
+static uint32_t scratch[MAX_UNITS * 4] __attribute__((aligned(32)));
+
+/* Runs 16 units through the engine and through software; 1 if they match */
+static int check_engine(int cipher) {
+    static uint32_t a[64], b[64];
+    static const uint8_t key[16] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+                                     0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
+    static const uint8_t nonce[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    ctr_key k;
+    uint8_t c[16];
+    for (int i = 0; i < 64; i++) {
+        a[i] = (uint32_t)i * 0x01010101u;
+    }
+    ctr_setkey(&k, cipher, key);
+    memcpy(b, a, sizeof a);
+    ctr_crypt_block_sw(&k, nonce, 7, (uint8_t *)a, sizeof a);
+    memcpy(c, nonce, 8);
+    memset(c + 8, 0, 8);
+    c[14] = 7;                          /* 7 * 256, big-endian */
+    int ok = ecdc_ctr(cipher == CTR_SM4 ? ECDC_SM4 : ECDC_AES, key, c, b, b, 16) == 0
+             && memcmp(a, b, sizeof a) == 0;
+    ctr_wipe(&k);
+    printf("V5F ecdc: %s %s\r\n", cipher == CTR_SM4 ? "SM4" : "AES-128",
+           ok ? "on the engine" : "failed its check: software from now on");
+    return ok;
+}
+
+int ctr_hw_crypt(const ctr_key *k, const uint8_t counter[16], uint8_t *buf, size_t len) {
+    if ((k->cipher != CTR_AES128 && k->cipher != CTR_SM4) || len > sizeof scratch) {
+        return -1;
+    }
+    if (checked[k->cipher] == 0) {
+        checked[k->cipher] = check_engine(k->cipher) ? 1 : -1;
+    }
+    if (checked[k->cipher] < 0) {
+        return -1;
+    }
+    int cipher = (k->cipher == CTR_SM4) ? ECDC_SM4 : ECDC_AES;
+    if (ecdc_ctr(cipher, k->key, counter, buf, scratch, (uint32_t)(len / 16)) != 0) {
+        return -1;                      /* buf untouched: software does it */
+    }
+    memcpy(buf, scratch, len);
+    memset(scratch, 0, len);
+    return 0;
 }
 
 /* ------------------------------------------------------------------------
@@ -119,144 +172,23 @@ static void say_u(uint32_t v) {
     lf_puts(b);
 }
 
-static void say_hex(const void *p, int n) {
-    char b[3];
-    for (int i = 0; i < n; i++) {
-        snprintf(b, sizeof b, "%02x", ((const uint8_t *)p)[i]);
-        lf_puts(b);
-        if ((i & 3) == 3 && i + 1 < n) lf_puts(" ");
-    }
-}
-
-/* Prints units 0 and 1: the input, the engine's output, and what the
-   software's keystream is for the same counters, all as bytes in memory */
-static void dump(const ctr_key *k, const uint8_t c0[16]) {
-    uint8_t c[16], e[16];
-    for (int i = 0; i < 2; i++) {
-        memcpy(c, c0, 16);
-        c[15] = (uint8_t)(c[15] + i);   /* n*256 + i: no carry for i < 2 */
-        ctr_encrypt_block(k, c, e);
-        say("    unit "); say_u((uint32_t)i); say(" in  "); say_hex(&plain[i * 4], 16); lfCR();
-        say("           out "); say_hex(&hard[i * 4], 16); lfCR();
-        say("           E(counter) "); say_hex(e, 16); lfCR();
-    }
-}
-
-/* The keystream of unit i: hard xor plain */
-static void keystream(const uint32_t *out, int i, uint8_t ks[16]) {
-    const uint8_t *o = (const uint8_t *)&out[i * 4], *p = (const uint8_t *)&plain[i * 4];
-    for (int j = 0; j < 16; j++) {
-        ks[j] = o[j] ^ p[j];
-    }
-}
-
-/* The software's keystream for unit i of a block starting at counter c0 */
-static void soft_ks(const ctr_key *k, const uint8_t c0[16], int i, uint8_t e[16]) {
-    uint8_t c[16];
-    memcpy(c, c0, 16);
-    for (int j = 15, carry = i; j >= 8 && carry; j--) {     /* the 64-bit count + i */
-        int v = c[j] + (carry & 255);
-        c[j] = (uint8_t)v;
-        carry = (carry >> 8) + (v >> 8);
-    }
-    ctr_encrypt_block(k, c, e);
-}
-
-/* Checks whether every unit's keystream is the software's, with the 16
-   bytes reversed (memory word 0 at SGSD_31T0, words read little-endian) */
-static void check_reversed(const ctr_key *k, const uint8_t c0[16]) {
-    int n = 0, same0 = 0;
-    uint8_t ks[16], e[16], e0[16];
-    soft_ks(k, c0, 0, e0);
-    for (int i = 0; i < UNITS; i++) {
-        keystream(hard, i, ks);
-        soft_ks(k, c0, i, e);
-        int ok = 1, ok0 = 1;
-        for (int j = 0; j < 16; j++) {
-            ok &= ks[j] == e[15 - j];
-            ok0 &= ks[j] == e0[15 - j];
-        }
-        n += ok;
-        same0 += ok0;
-    }
-    say("    reversed 16 bytes: ");
-    say_u((uint32_t)n);
-    say("/256 units are the software's keystream reversed; ");
-    say_u((uint32_t)same0);
-    say(" are unit 0's (counter not stepped)");
-    lfCR();
-}
-
-/* Says how the engine's counter went when it doesn't match software */
-static void diagnose(const ctr_key *k, const uint8_t c0[16]) {
-    uint8_t ks0[16], ks1[16], e[16], c[16];
-    keystream(hard, 0, ks0);
-    keystream(hard, 1, ks1);
-    ctr_encrypt_block(k, c0, e);
-    if (memcmp(ks0, e, 16)) {
-        say("    unit 0 isn't E(counter): the key or counter didn't load");
+/* Compares hard with soft and says how many units match, listing wrong
+   words as unit.word^difference */
+static void report(const char *what, int err, uint32_t t_hard, uint32_t t_soft) {
+    say(what);
+    if (err) {
+        say(": timed out");
         lfCR();
         return;
     }
-    if (!memcmp(ks1, ks0, 16)) {
-        say("    every unit used the first counter: the engine doesn't step it");
-        lfCR();
-        return;
-    }
-    memcpy(c, c0, 16);                  /* little-endian step: byte 0 counts */
-    for (int j = 0; j < 16 && ++c[j] == 0; j++) {
-    }
-    ctr_encrypt_block(k, c, e);
-    if (!memcmp(ks1, e, 16)) {
-        say("    unit 1 is E(counter stepped little-endian, from byte 0)");
-        lfCR();
-        return;
-    }
-    memcpy(c, c0, 16);                  /* the low 32-bit word only */
-    uint32_t w = be32(c + 12) + 1;
-    c[12] = (uint8_t)(w >> 24); c[13] = (uint8_t)(w >> 16); c[14] = (uint8_t)(w >> 8); c[15] = (uint8_t)w;
-    ctr_encrypt_block(k, c, e);
-    say(!memcmp(ks1, e, 16) ? "    unit 1 is E(counter + 1) (32-bit step)"
-                            : "    unit 1 is something else");
-    lfCR();
-}
-
-static void run(int cipher, int div, int in_place, int big) {
-    ctr_key k;
-    uint8_t c0[16];
-    ctr_setkey(&k, cipher == ECDC_AES ? CTR_AES128 : CTR_SM4, test_key);
-    memcpy(c0, test_nonce, 8);
-    uint64_t count = (uint64_t)TEST_BLOCK * 256;
-    for (int i = 0; i < 8; i++) {
-        c0[8 + i] = (uint8_t)(count >> (56 - 8 * i));
-    }
-
-    memcpy(soft, plain, sizeof soft);
-    uint64_t t0 = lfGetTimeMicroSec();
-    ctr_crypt_block(&k, test_nonce, TEST_BLOCK, (uint8_t *)soft, sizeof soft);
-    uint32_t t_soft = (uint32_t)(lfGetTimeMicroSec() - t0);
-
-    memset(hard, 0x55, sizeof hard);
-    const void *src = plain;
-    if (in_place) {
-        memcpy(hard, plain, sizeof hard);
-        src = hard;
-    }
-    t0 = lfGetTimeMicroSec();
-    int err = ecdc_ctr_order(cipher, test_key, c0, src, hard, UNITS, div, big);
-    uint32_t t_hard = (uint32_t)(lfGetTimeMicroSec() - t0);
-
-    int match = 0, first_bad = -1, listed = 0;
+    int match = 0, listed = 0;
     char bad[160] = "";
     for (int i = 0; i < UNITS; i++) {
         if (!memcmp(&hard[i * 4], &soft[i * 4], 16)) {
             match++;
             continue;
         }
-        if (first_bad < 0) {
-            first_bad = i;
-        }
-        for (int w = 0; w < 4 && listed < 12; w++) {    /* unit.word, and the xor */
+        for (int w = 0; w < 4 && listed < 12; w++) {
             if (hard[i * 4 + w] != soft[i * 4 + w]) {
                 size_t at = strlen(bad);
                 snprintf(bad + at, sizeof bad - at, " %d.%d^%08lx", i, w,
@@ -265,40 +197,54 @@ static void run(int cipher, int div, int in_place, int big) {
             }
         }
     }
-    say(cipher == ECDC_AES ? "AES" : "SM4");
-    say(" div ");
-    say_u((uint32_t)div);
-    say(big ? " big" : " little");
-    if (settle_us) {
-        say(", pause ");
-        say_u(settle_us);
-        say(" us");
-    }
-    say(in_place ? ", in place: " : ", out of place: ");
-    if (err) {
-        say("timed out (ior ");
-        say_u((uint32_t)-err);
-        say(")");
+    say(": ");
+    say_u((uint32_t)match);
+    say("/256 units match software; ");
+    say_u(t_hard);
+    say(" us, software ");
+    say_u(t_soft);
+    say(" us");
+    lfCR();
+    if (match < UNITS) {
+        say("    wrong (unit.word^difference):");
+        say(bad);
         lfCR();
+    }
+}
+
+static void run(const char *what, int cipher, int in_place, uint32_t settle, int via_ctr) {
+    ctr_key k;
+    uint8_t c0[16];
+    ctr_setkey(&k, cipher == ECDC_AES ? CTR_AES128 : CTR_SM4, test_key);
+    memcpy(c0, test_nonce, 8);
+    uint64_t count = (uint64_t)TEST_BLOCK * 256;
+    for (int i = 0; i < 8; i++) {
+        c0[8 + i] = (uint8_t)(count >> (56 - 8 * i));
+    }
+    memcpy(soft, plain, sizeof soft);
+    uint64_t t0 = lfGetTimeMicroSec();
+    ctr_crypt_block_sw(&k, test_nonce, TEST_BLOCK, (uint8_t *)soft, sizeof soft);
+    uint32_t t_soft = (uint32_t)(lfGetTimeMicroSec() - t0);
+
+    int err = 0;
+    settle_us = settle;
+    if (via_ctr) {                      /* the path sealed files take */
+        memcpy(hard, plain, sizeof hard);
+        t0 = lfGetTimeMicroSec();
+        ctr_crypt_block(&k, test_nonce, TEST_BLOCK, (uint8_t *)hard, sizeof hard);
     } else {
-        say_u((uint32_t)match);
-        say("/256 units match software; engine ");
-        say_u(t_hard);
-        say(" us, software ");
-        say_u(t_soft);
-        say(" us");
-        lfCR();
-        if (first_bad >= 0 && match) {
-            say("    wrong (unit.word^difference):");
-            say(bad);
-            lfCR();
+        memset(hard, 0x55, sizeof hard);
+        const void *src = plain;
+        if (in_place) {
+            memcpy(hard, plain, sizeof hard);
+            src = hard;
         }
-        if (match == 0) {
-            diagnose(&k, c0);
-            check_reversed(&k, c0);
-            dump(&k, c0);
-        }
+        t0 = lfGetTimeMicroSec();
+        err = ecdc_ctr(cipher, test_key, c0, src, hard, UNITS);
     }
+    uint32_t t_hard = (uint32_t)(lfGetTimeMicroSec() - t0);
+    settle_us = SETTLE_US;
+    report(what, err, t_hard, t_soft);
     ctr_wipe(&k);
 }
 
@@ -306,19 +252,11 @@ int lfAPI_ecdcTest(void) {
     for (int i = 0; i < UNITS * 4; i++) {
         plain[i] = (uint32_t)i * 0x9E3779B9u;
     }
-    run(ECDC_AES, 1, 0, 0);
-    run(ECDC_AES, 2, 0, 0);
-    run(ECDC_AES, 6, 0, 0);
-    run(ECDC_AES, 1, 1, 0);
-    settle_us = 20;
-    run(ECDC_AES, 1, 0, 0);
-    settle_us = 0;
-    run(ECDC_SM4, 1, 0, 0);
-    run(ECDC_SM4, 1, 0, 1);
-    say("buffers at ");
-    char b[12];
-    snprintf(b, sizeof b, "%08lX", (unsigned long)(uintptr_t)plain);
-    say(b);
-    lfCR();
+    run("AES, out of place", ECDC_AES, 0, SETTLE_US, 0);
+    run("AES, in place", ECDC_AES, 1, SETTLE_US, 0);
+    run("AES, no pause after key expansion", ECDC_AES, 0, 0, 0);
+    run("SM4, out of place", ECDC_SM4, 0, SETTLE_US, 0);
+    run("AES through ctr_crypt_block", ECDC_AES, 0, SETTLE_US, 1);
+    run("SM4 through ctr_crypt_block", ECDC_SM4, 0, SETTLE_US, 1);
     return 0;
 }

@@ -109,6 +109,18 @@ static uint32_t elsewhere = 0x5A5A5A5Au;                    /* a user load outsi
 #define CSR_WRITE(name, v) __asm volatile ("csrw " #name ", %0" :: "r"(v) : "memory")
 
 /* ------------------------------------------------------------------------
+ * Progress marks straight to the debug UART (USART1, polled, as
+ * HardFault_Handler writes it), so a hang shows where it stopped
+ */
+static void mark(const char *s) {
+    while (*s) {
+        while ((USART1->STATR & USART_FLAG_TXE) == 0) {
+        }
+        USART1->DATAR = (uint8_t)*s++;
+    }
+}
+
+/* ------------------------------------------------------------------------
  * Output, kept until lfAPI_pmpTest prints it
  */
 static char out[2048];
@@ -213,6 +225,7 @@ void pmp_test_m(void) {
     uint32_t saved_mepc = CSR_READ(mepc);
     uint32_t saved_mstatus = CSR_READ(mstatus);
     uint32_t saved_mtvec = CSR_READ(mtvec);
+    mark("pmp: 0 in the trap handler\r\n");
     out_len = 0;
     out[0] = 0;
 
@@ -233,23 +246,66 @@ void pmp_test_m(void) {
         return;
     }
 
+    mark("pmp: 1 in machine mode\r\n");
     CSR_WRITE(mtvec, (uint32_t)(uintptr_t)pmp_trap);   /* mode 0: one entry for every trap */
     pmp_traps = 0;
     uint32_t t;
 
-    say("2. the code flash's windows:");
+    uintptr_t base = (uintptr_t)target;
+    CSR_WRITE(pmpaddr3, 0x1FFFFFFFu);                   /* NAPOT, all 4 GB */
+    set_cfg(3, CFG_NAPOT | CFG_RWX);
+    CSR_WRITE(pmpaddr2, (uint32_t)(base >> 2) | 3u);    /* NAPOT, 32 bytes */
+    set_cfg(2, CFG_NAPOT);                              /* no R/W/X, not locked */
+    mark("pmp: 2 entries set\r\n");
+    say_hex("2. entry 2 over ", (uint32_t)base);
+    say(" (32 bytes), no access, unlocked; entry 3 all memory, RWX:");
+    say_cr();
+    say_pmp("   ");
+    target[0] = 0x12345678u;
+    probe_buffer("machine-mode", 0);
+    mark("pmp: 2 first fault due\r\n");
+    probe_buffer("user-mode", 1);
+    mark("pmp: 2 came back from it\r\n");
+    say("   user-mode load elsewhere: ");
+    t = pmp_traps;
+    (void)pmp_load_u((uintptr_t)&elsewhere);
+    say_trap(t);
+    set_cfg(3, 0);                                      /* no entry matches it now */
+    say("; with entry 3 off: ");
+    t = pmp_traps;
+    (void)pmp_load_u((uintptr_t)&elsewhere);
+    say_trap(t);
+    set_cfg(3, CFG_NAPOT | CFG_RWX);
+    say_cr();
+
+    mark("pmp: 3 locking\r\n");
+    say("3. entry 2 locked:");
+    say_cr();
+    set_cfg(2, CFG_LOCK | CFG_NAPOT);
+    say_pmp("   ");
+    probe_buffer("machine-mode", 0);
+    say("   cleared (as far as it lets us): ");
+    set_cfg(2, 0);
+    CSR_WRITE(pmpaddr2, 0);
+    say_pmp("");
+    probe_buffer("machine-mode", 0);
+
+    mark("pmp: 4 flash windows\r\n");
+    say("4. the code flash's windows:");
     say_cr();
     compare_windows(0x00000000u, 0x08000000u);
     compare_windows(0x00010000u, 0x08010000u);
 
-    say("3. the V3F's RAM, 0x20100000: ");
+    mark("pmp: 5 V3F RAM\r\n");
+    say("5. the V3F's RAM, 0x20100000: ");
     t = pmp_traps;
     say_hex("", pmp_load(0x20100000u));
     say(", ");
     say_trap(t);
     say_cr();
 
-    say("4. running code in the V3F's flash: ");
+    mark("pmp: 6 V3F flash\r\n");
+    say("6. running code in the V3F's flash: ");
     uintptr_t ret = 0;
     t = pmp_traps;
     for (uintptr_t a = 0x100; a < 0x4000 && !ret && pmp_traps == t; a += 4) {
@@ -269,46 +325,13 @@ void pmp_test_m(void) {
         say_hex("a c.ret at ", (uint32_t)ret);
         say(": ");
         t = pmp_traps;
+        mark("pmp: 6 calling it\r\n");
         pmp_exec(ret);
         say_trap(t);
     }
     say_cr();
 
-    uintptr_t base = (uintptr_t)target;
-    CSR_WRITE(pmpaddr3, 0x1FFFFFFFu);                   /* NAPOT, all 4 GB */
-    set_cfg(3, CFG_NAPOT | CFG_RWX);
-    CSR_WRITE(pmpaddr2, (uint32_t)(base >> 2) | 3u);    /* NAPOT, 32 bytes */
-    set_cfg(2, CFG_NAPOT);                              /* no R/W/X, not locked */
-    say_hex("5. entry 2 over ", (uint32_t)base);
-    say(" (32 bytes), no access, unlocked; entry 3 all memory, RWX:");
-    say_cr();
-    say_pmp("   ");
-    target[0] = 0x12345678u;
-    probe_buffer("machine-mode", 0);
-    probe_buffer("user-mode", 1);
-    say("   user-mode load elsewhere: ");
-    t = pmp_traps;
-    (void)pmp_load_u((uintptr_t)&elsewhere);
-    say_trap(t);
-    set_cfg(3, 0);                                      /* no entry matches it now */
-    say("; with entry 3 off: ");
-    t = pmp_traps;
-    (void)pmp_load_u((uintptr_t)&elsewhere);
-    say_trap(t);
-    set_cfg(3, CFG_NAPOT | CFG_RWX);
-    say_cr();
-
-    say("6. entry 2 locked:");
-    say_cr();
-    set_cfg(2, CFG_LOCK | CFG_NAPOT);
-    say_pmp("   ");
-    probe_buffer("machine-mode", 0);
-    say("   cleared (as far as it lets us): ");
-    set_cfg(2, 0);
-    CSR_WRITE(pmpaddr2, 0);
-    say_pmp("");
-    probe_buffer("machine-mode", 0);
-
+    mark("pmp: 7 done, back to user mode\r\n");
     CSR_WRITE(mtvec, saved_mtvec);
     CSR_WRITE(mstatus, saved_mstatus);
     CSR_WRITE(mepc, saved_mepc);
@@ -319,7 +342,13 @@ void pmp_test_m(void) {
 int lfAPI_pmpTest(void) {
     out_len = 0;
     out[0] = 0;
-    __asm volatile ("ecall" ::: "memory");              /* HardFault_Handler: pmp_test_m */
+    mark("pmp: ecall\r\n");
+    /* Every caller-saved register clobbered: HardFault_Handler is a "fast"
+       handler that leaves saving them to the hardware stack (HPE), and if
+       HPE doesn't stack exceptions, pmp_test_m's calls change them */
+    __asm volatile ("ecall" ::: "memory", "ra", "t0", "t1", "t2", "t3", "t4", "t5", "t6",
+                    "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7");
+    mark("pmp: back from the ecall\r\n");
     char *p = out;
     while (*p) {
         char *e = strchr(p, '\n');

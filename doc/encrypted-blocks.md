@@ -217,7 +217,7 @@ worth having.
 |---|---|
 | Mounting and reading | `src/sealed.c`: `sealed_mount` checks block 0 and unwraps the CEK; `sealed_open_block` checks and decrypts each block as it's read. The targets' `blocks.c` call them |
 | BLAKE2s | `src/blake2s.c`, from [bradleyeckert/blake2s](https://github.com/bradleyeckert/blake2s), with `b2s_init` for salt and personalization |
-| X25519, Ed25519 check (with SHA-512) | `src/monocypher.c`, `src/monocypher-ed25519.c`: [Monocypher](https://monocypher.org) 4.0.2 (CC0 or BSD-2, `src/monocypher-LICENCE.md`) |
+| X25519, Ed25519 check (with SHA-512) | `src/monocypher.c`, `src/monocypher-ed25519.c`: [Monocypher](https://monocypher.org) 4.0.2 (CC0 or BSD-2, `src/monocypher-LICENCE.md`), with one cast added for MSVC |
 | AES-128 / SM4 CTR | `src/ctr.c` in software; the ECDC engine on the CH32H417 (step 4) |
 | Protected storage for the board key and minimums | The security sector of [security-plan.md](security-plan.md) 5.1; a board file on the desktop (`lf -K`) |
 

@@ -15,6 +15,10 @@
 
 #define SEALED_MAGIC        "LITEFORTHS"
 #define SEALED_MAGIC_LEN    10
+/* A firmware update package (doc/firmware-updates.md section 5): a sealed
+   file whose content is a firmware image, not blocks. Never mounted as a
+   block file; `-1 ymodem` refuses it. Also SEALED_MAGIC_LEN long. */
+#define PACKAGE_MAGIC       "LITEFORTHF"
 #define SEALED_BLOCK_BYTES  4096
 
 /* What a board holds: its own key, the root public key, its product, and

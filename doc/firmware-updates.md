@@ -170,11 +170,25 @@ The 12 reserved bytes at offset 180 describe the image:
 The revision field at offset 20 is the image's version. A package for one
 board only (from support) lists just that board as a recipient.
 
-A stage 1 slot holds the package's block 0 followed by the decrypted
-image, and stage 0 checks the slot against block 0's signature and a hash
-of the image. So for stage 1 the package also carries, in block 0's
-content hash, the plaintext image's BLAKE2s: **Decide** where (a second
-table entry, or encrypt stage 1 not at all).
+Bytes 4000-4031, just before the signature, hold the plaintext image's
+hash: `BLAKE2s(image, digest_size=32, person="LFimage")`, over exactly
+the image's length. So the table hashes and recipients must end by 4000
+(32 bytes less room than a sealed block file). The image is padded with
+0xFF (erased flash) to whole blocks before it's encrypted.
+
+The hash is what makes an installed image checkable without the board's
+key. A stage 1 slot holds the package's block 0 followed by the decrypted
+image, so stage 0 checks the slot with block 0's signature and this hash.
+Stage 1 also checks the decrypted V5F image against it before it stores
+the image's MAC.
+
+Made by `sealblocks.py package IMAGE PACKAGE --component v5f|stage1
+--release R --boards CSV --revision N [--hw-rev N] [--min-version N]
+[--cipher aes|sm4]`; `check` and `open` read packages too (`open` writes
+the image itself and checks its hash). A package is never a block file:
+`lf` and the board offer nothing from one (capacity 0, "a firmware update
+package, not a block file"), and `-1 ymodem` refuses it
+(`PACKAGE_MAGIC` in `sealed.h`).
 
 ## 6. Installing an update
 

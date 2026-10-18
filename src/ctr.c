@@ -173,8 +173,8 @@ void ctr_encrypt_block(const ctr_key *k, const uint8_t in[16], uint8_t out[16]) 
     }
 }
 
-void ctr_crypt_block(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
-                     uint8_t *buf, size_t len) {
+int ctr_crypt_block(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
+                    uint8_t *buf, size_t len) {
 #ifdef CTR_HW
     if ((len & 15) == 0 && ((uintptr_t)buf & 3) == 0) {
         uint8_t ctr[16];
@@ -183,12 +183,14 @@ void ctr_crypt_block(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
         for (int i = 0; i < 8; i++) {
             ctr[8 + i] = (uint8_t)(count >> (56 - 8 * i));
         }
-        if (ctr_hw_crypt(k, ctr, buf, len) == 0) {
-            return;
+        int r = ctr_hw_crypt(k, ctr, buf, len);
+        if (r >= 0) {
+            return r ? -1 : 0;          /* done, or buf damaged */
         }
     }
 #endif
     ctr_crypt_block_sw(k, nonce, n, buf, len);
+    return 0;
 }
 
 void ctr_crypt_block_sw(const ctr_key *k, const uint8_t nonce[8], uint32_t n,

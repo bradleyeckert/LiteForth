@@ -32,9 +32,11 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
  * Forth word `ecdc-test`  ( -- )
  * Runs a 4 KB block through the engine (AES out of place and in place,
  * AES without the pause after key expansion, SM4, and both through
- * ctr_crypt_block, the path sealed files take) and through the software
- * CTR (ctr_crypt_block_sw), and prints how many 16-byte units match, the
- * wrong words if any, and the times.
+ * ctr_crypt_block, the path sealed files take, with a 32-byte aligned
+ * buffer, run in place, and one that isn't, copied) and through the
+ * software CTR (ctr_crypt_block_sw), and prints how many 16-byte units
+ * match, the wrong words if any, the times, and whether the block buffers
+ * are aligned for the engine.
  * Returns 0.
  */
 int lfAPI_ecdcTest(void);

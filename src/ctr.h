@@ -39,8 +39,10 @@ void ctr_encrypt_block(const ctr_key *k, const uint8_t in[16], uint8_t out[16]);
  * at counter nonce || n * 256. len need not be a multiple of 16. With
  * CTR_HW, a whole number of 16-byte units at a 4-byte aligned buf goes to
  * ctr_hw_crypt first, and to software only if that declines.
+ * Returns 0, or -1 if the engine failed partway and buf is garbage (it
+ * never fails without CTR_HW).
  */
-void ctr_crypt_block(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
+int ctr_crypt_block(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
                      uint8_t *buf, size_t len);
 
 /**
@@ -56,7 +58,8 @@ void ctr_crypt_block_sw(const ctr_key *k, const uint8_t nonce[8], uint32_t n,
  * bytes (a multiple of 16) at buf (4-byte aligned) in place in CTR mode
  * with k's key, from the 16-byte counter block counter, stepping its low
  * 64 bits by one per 16 bytes.
- * Returns 0 if it did, or nonzero to leave it to software.
+ * Returns 0 if it did, -1 to leave it to software (buf unchanged), or 1 if
+ * it failed partway, so buf may be changed and can't be finished.
  */
 int ctr_hw_crypt(const ctr_key *k, const uint8_t counter[16], uint8_t *buf, size_t len);
 #endif

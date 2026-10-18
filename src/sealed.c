@@ -218,6 +218,9 @@ int sealed_open_block(uint32_t n, uint8_t *buf) {
         memset(buf, 0, SEALED_BLOCK_BYTES);
         return ERR_BLOCK_READ_ERROR;
     }
-    ctr_crypt_block(&key, nonce, n, buf, SEALED_BLOCK_BYTES);
+    if (ctr_crypt_block(&key, nonce, n, buf, SEALED_BLOCK_BYTES) != 0) {
+        memset(buf, 0, SEALED_BLOCK_BYTES);     /* the engine failed partway */
+        return ERR_BLOCK_READ_ERROR;
+    }
     return 0;
 }

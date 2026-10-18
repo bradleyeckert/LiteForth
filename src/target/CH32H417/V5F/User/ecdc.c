@@ -28,6 +28,8 @@
 #define CTR_HW 1                        /* the prototype of ctr_hw_crypt, as lf_ctr.c has it */
 #include "../../../../ctr.h"
 #include "../../../../errcodes.h"
+#include "../../../../vm.h"             /* vm_memory, RAM_PAGE (options.h) */
+#include "../../../../forth.h"          /* F_BLOCKBUFS */
 #include "../../../../tools.h"
 
 #define CTRL_KEYEX      (1u << 0)
@@ -98,15 +100,22 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
     ECDC->SRAM_LEN = units;                                 /* starts it */
     err = wait_flag(FLAG_RAM);
     ECDC->CTRL = ctrl;
+    if (err) {                                              /* stop its DMA */
+        RCC_HB2PeriphResetCmd(RCC_HB2Periph_ECDC, ENABLE);
+        RCC_HB2PeriphResetCmd(RCC_HB2Periph_ECDC, DISABLE);
+    }
     return err;
 }
 
 /* ------------------------------------------------------------------------
  * ctr.c's hardware path: checked once against software for each cipher.
- * buf is copied into scratch (aligned for the engine), run in place there,
- * and copied back only when the whole run went through, so the engine
- * never sees an unaligned buffer, and a failure leaves buf as it was for
- * software to do.
+ * A 32-byte aligned buf (the block buffers: memalloc.c aligns the pool and
+ * forth.h the buffers in the RAM page) runs in place. Any other buf is
+ * copied into scratch, run in place there, and copied back only when the
+ * whole run went through, so the engine never sees an unaligned buffer and
+ * a failure leaves buf as it was for software to do. A failure in place
+ * may have changed buf, so it's reported as such, and the engine is turned
+ * off for that cipher from then on.
  */
 static int checked[3];                  /* by ctr cipher: 0 not yet, 1 good, -1 off */
 static uint32_t scratch[MAX_UNITS * 4] ALIGNED;
@@ -147,6 +156,15 @@ int ctr_hw_crypt(const ctr_key *k, const uint8_t counter[16], uint8_t *buf, size
         return -1;
     }
     int cipher = (k->cipher == CTR_SM4) ? ECDC_SM4 : ECDC_AES;
+    if (((uintptr_t)buf & 31) == 0) {   /* no copy */
+        if (ecdc_ctr(cipher, k->key, counter, buf, buf, (uint32_t)(len / 16)) == 0) {
+            return 0;
+        }
+        checked[k->cipher] = -1;
+        printf("V5F ecdc: %s timed out in place: software from now on\r\n",
+               cipher == ECDC_SM4 ? "SM4" : "AES-128");
+        return 1;
+    }
     memcpy(scratch, buf, len);
     int err = ecdc_ctr(cipher, k->key, counter, scratch, scratch, (uint32_t)(len / 16));
     if (!err) {
@@ -163,6 +181,7 @@ int ctr_hw_crypt(const ctr_key *k, const uint8_t counter[16], uint8_t *buf, size
 static uint32_t plain[UNITS * 4] ALIGNED;
 static uint32_t soft[UNITS * 4] ALIGNED;
 static uint32_t hard[UNITS * 4] ALIGNED;
+static uint32_t odd[UNITS * 4 + 1] ALIGNED;    /* odd + 1: 4-byte aligned, not 32 */
 
 static const uint8_t test_key[16] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -235,11 +254,18 @@ static void run(const char *what, int cipher, int in_place, uint32_t settle, int
     uint32_t t_soft = (uint32_t)(lfGetTimeMicroSec() - t0);
 
     int err = 0;
+    uint32_t t_copy = 0;
     settle_us = settle;
-    if (via_ctr) {                      /* the path sealed files take */
+    if (via_ctr == 1) {                 /* the path sealed files take: an aligned buffer */
         memcpy(hard, plain, sizeof hard);
         t0 = lfGetTimeMicroSec();
         ctr_crypt_block(&k, test_nonce, TEST_BLOCK, (uint8_t *)hard, sizeof hard);
+    } else if (via_ctr == 2) {          /* a buffer that isn't: copied through scratch */
+        memcpy(odd + 1, plain, sizeof hard);
+        t0 = lfGetTimeMicroSec();
+        ctr_crypt_block(&k, test_nonce, TEST_BLOCK, (uint8_t *)(odd + 1), sizeof hard);
+        t_copy = (uint32_t)(lfGetTimeMicroSec() - t0);
+        memcpy(hard, odd + 1, sizeof hard);
     } else {
         memset(hard, 0x55, sizeof hard);
         const void *src = plain;
@@ -250,7 +276,7 @@ static void run(const char *what, int cipher, int in_place, uint32_t settle, int
         t0 = lfGetTimeMicroSec();
         err = ecdc_ctr(cipher, test_key, c0, src, hard, UNITS);
     }
-    uint32_t t_hard = (uint32_t)(lfGetTimeMicroSec() - t0);
+    uint32_t t_hard = via_ctr == 2 ? t_copy : (uint32_t)(lfGetTimeMicroSec() - t0);
     settle_us = SETTLE_US;
     report(what, err, t_hard, t_soft);
     ctr_wipe(&k);
@@ -266,12 +292,17 @@ int lfAPI_ecdcTest(void) {
     run("SM4, out of place", ECDC_SM4, 0, SETTLE_US, 0);
     run("AES through ctr_crypt_block (first use: checks the engine)", ECDC_AES, 0, SETTLE_US, 1);
     run("AES through ctr_crypt_block again", ECDC_AES, 0, SETTLE_US, 1);
+    run("AES through ctr_crypt_block, a buffer not 32-byte aligned", ECDC_AES, 0, SETTLE_US, 2);
     run("SM4 through ctr_crypt_block (first use)", ECDC_SM4, 0, SETTLE_US, 1);
     run("SM4 through ctr_crypt_block again", ECDC_SM4, 0, SETTLE_US, 1);
+    run("SM4 through ctr_crypt_block, a buffer not 32-byte aligned", ECDC_SM4, 0, SETTLE_US, 2);
     say("ctr_crypt_block uses the engine for AES: ");
     say(checked[CTR_AES128] > 0 ? "yes" : "no");
     say(", SM4: ");
     say(checked[CTR_SM4] > 0 ? "yes" : "no");
+    lfCR();
+    say("The block buffers are 32-byte aligned (no copy): ");
+    say(((uintptr_t)(vm_memory[RAM_PAGE] + F_BLOCKBUFS) & 31) == 0 ? "yes" : "no");
     lfCR();
     return 0;
 }

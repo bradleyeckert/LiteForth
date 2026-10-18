@@ -68,6 +68,9 @@ several files in one go (a batch).
   of block 100 on, the first 32 bytes zeros and the rest of the last block
   zeros. The next file of a batch starts in the block after. A font goes
   onto the board this way.
+- **`-1 ymodem`: a whole block file**, block 0 included, plain or sealed,
+  replacing the one on the card, so the card needn't come out of the
+  board (below).
 
 From kwai, `~x core.f` types `0 ymodem` and sends the file, and
 `~x cjk24.fnt 100` types `100 ymodem` and sends the font. With another
@@ -97,6 +100,38 @@ binary file that wouldn't fit before the end of the storage isn't written
 
 On the CH32H417, the V5F turns off the Ctrl+X x3 escape while `ymodem`
 runs, since a binary file may hold three 0x18 bytes in a row.
+
+### Replacing the whole block file: `-1 ymodem`
+
+From kwai, `~x lfblocks.fb4 -1` types `-1 ymodem` and sends the file. It
+goes into the space the block file already has (on a card, the size of
+`lfblocks.fb4`, which the board can't change), so it must be whole 4 KB
+blocks and fit; blocks after it are left as they were. One file per batch.
+
+1. Block 0 arrives first and is checked before anything is written. It must
+   start with `LITEFORTH`; a sealed file must be one this board would mount
+   ([encrypted-blocks.md](encrypted-blocks.md): signature, product,
+   revision, a recipient), so a file the board can't open never replaces
+   one it can.
+2. Block 0 on the card becomes a plain block 0 that says the install
+   hasn't finished, and the other blocks are written as they arrive. The
+   real block 0 goes in last. A transfer cut short leaves a plain block
+   file whose block 0 says so: send the file again.
+3. When the batch ends, the whole file is read back and compared with what
+   came (BLAKE2s), the block file is mounted again, which sets `capacity`,
+   and every content block of a sealed file is read to check its hash.
+
+```
+ymodem: lfblocks.fb4: installed, 122 blocks, read back and checked; capacity now 121
+ymodem: sealed file, revision 2: all 120 content blocks pass their hashes
+```
+
+Then `1 load` as usual. The block buffers are emptied first, so unsaved
+changes are lost. Refusals write nothing and give -124 (a bad block 0 or
+size) or -92 (too big); a sealed file whose blocks fail their hashes is
+already written, since its hash tables come last, and gives -33. On the
+desktop, `lf` takes it into the block file named by `-k` (a card image
+too), if that file starts with `LITEFORTH`.
 
 In UTF-8 text, you will never see a 0xFF. The interpreter replaces 0xFF with `' '`.
 

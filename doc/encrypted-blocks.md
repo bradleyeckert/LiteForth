@@ -333,8 +333,10 @@ vectors and the CTR mode against the `cryptography` package.
 ### 6.2 A release
 
 `seal` with the current release key, the board list and the next
-revision number. The file goes onto cards, or to a board by YMODEM
-(`~x`).
+revision number. The file goes onto cards, or to a board by YMODEM:
+`-1 ymodem` (kwai: `~x lfblocks.fb4 -1`) checks its block 0 as a mount
+would before writing anything, writes it into the card's `lfblocks.fb4`,
+reads it back and mounts it ([blocks.md](blocks.md)).
 
 ### 6.3 Replacing a release key
 
@@ -397,5 +399,11 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 - **Rollback rests on the stored minimums.** An old copy of one block
   fails its hash, but a whole older file is stopped only by the lowest
   revision in flash, which code on the board could lower.
+- **Anyone at the terminal can replace the file.** `-1 ymodem` takes a
+  plain block file as readily as a sealed one, and an install cut short
+  leaves a plain file. That gives away nothing sealed, but a product that
+  must only run sealed files needs `-1 ymodem` to refuse plain ones (a
+  build option), and two copies on the card, switching only after the new
+  one checks out, so a lost connection can't leave it without one.
 - **Side channels** on the engine and in the software X25519 aren't
   considered (security-plan.md section 1 rules them out for now).

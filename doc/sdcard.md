@@ -33,7 +33,10 @@ top folder, not a subfolder. The name may be in any case.
 - **Its size sets the capacity.** The board gets the file's length / 4096
   blocks. The board writes blocks inside the file but never makes it
   longer, so give it room on the PC: `putblocks.py` and `putbin.py` extend
-  it as they write, and blank blocks can be added the same way.
+  it as they write, and blank blocks can be added the same way. A whole
+  new file sent with `-1 ymodem` (below) must fit in it too, so a card
+  that will get sealed files that way needs room for their hash table
+  blocks and later releases.
 - **Block 0 must start with `LITEFORTH`.** Every block file the scripts and
   `lf` make does. Without it the board can read block 0 but writes nothing.
 - **It must be in one piece.** LiteForth maps block n straight to the
@@ -42,6 +45,10 @@ top folder, not a subfolder. The name may be in any case.
   fragmented, delete it and copy it again, or reformat the card first.
 
 Eject the card before taking it out, so the PC finishes writing.
+
+After that the card can stay in the board: `-1 ymodem` (kwai:
+`~x lfblocks.fb4 -1`) replaces the whole file over the terminal, plain or
+sealed ([blocks.md](blocks.md)).
 
 ## 3. On the board
 

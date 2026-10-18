@@ -57,6 +57,38 @@ Error: ior=-123 YMODEM transfer failed or cancelled
 ymodem: send the file(s) now (YMODEM)
 ymodem: the transfer failed
 Error: ior=-123 YMODEM transfer failed or cancelled
+-- install a whole block file (block 5 changed)
+sender: corrupt packet NAKed
+ymodem: send the file(s) now (YMODEM)
+ymodem: new.fb4: installed, 64 blocks, read back and checked; capacity now 64
+the file is the image
+64 five, installed 
+-- refused: bigger than the space
+ymodem: send the file(s) now (YMODEM)
+ymodem: bad.fb4: it's bigger than the block file's space; nothing written
+Error: ior=-92 Target block index exceeds allocated file capacity
+-- refused: not whole blocks
+ymodem: send the file(s) now (YMODEM)
+ymodem: bad.fb4: a block file is a whole number of 4 KB blocks; nothing written
+Error: ior=-124 Bad file in a YMODEM transfer
+-- refused: no signature
+ymodem: send the file(s) now (YMODEM)
+ymodem: bad.fb4: block 0 doesn't start with LITEFORTH; nothing written
+Error: ior=-124 Bad file in a YMODEM transfer
+the file is still the image
+-- the sender cancels after block 1
+ymodem: send the file(s) now (YMODEM)
+ymodem: new.fb4: the transfer stopped (block 1); block 0 now says the install didn't finish: send the file again
+ymodem: the transfer failed
+Error: ior=-123 YMODEM transfer failed or cancelled
+64 
+block 0: LITEFORTH ( an install by -1 ymodem didn't finish: send the block file again )
+-- two files: the second isn't written
+ymodem: send the file(s) now (YMODEM)
+ymodem: new.fb4: installed, 64 blocks, read back and checked; capacity now 64
+ymodem: 1 more file(s) not written: one block file at a time
+Error: ior=-124 Bad file in a YMODEM transfer
+the file is the image
 -- the blocks
 ( BLOCK 3 )
 ( Test block three )
@@ -65,6 +97,8 @@ Error: ior=-123 YMODEM transfer failed or cancelled
 .( four, after three ) cr  ( a comment )
 ( the line below is exactly 128 bytes )
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+( BLOCK 5 )
+.( five, installed ) cr
 ( BLOCK 10 )
 ( row  0 )
 ( row  1 )

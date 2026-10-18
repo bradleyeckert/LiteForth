@@ -57,6 +57,7 @@ int card_find_blocks(exfat_read_fn read, uint32_t card_sectors, card_map *m,
             } else {
                 m->kind = CARD_EXFAT_FILE;
                 m->base = m->file.first_sector;
+                m->space = (uint32_t)n;
                 err = check_signature(read, m, (uint32_t)n);
                 if (err) {
                     return err;

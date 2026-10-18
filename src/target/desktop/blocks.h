@@ -137,4 +137,54 @@ int blk_sector_read(uint32_t lba, uint32_t *dest, int count);
  */
 int blk_write_fence(uint32_t lba, int count);
 
+/*
+ * Installing a whole block file (`-1 ymodem`, ymodem.h): the image is
+ * written into the space the block file already has, block 0 included,
+ * whatever the file holds now (plain, sealed, or unsigned on a card).
+ */
+
+/**
+ * The blocks an installed image may fill: on a card, lfblocks.fb4's
+ * ValidDataLength / 4096, whatever is in it; for a block file, its
+ * blocks if block 0 starts with BLK_SIGNATURE (a sealed file does too),
+ * else 0, so that a file that isn't LiteForth's is never written.
+ */
+uint32_t blk_space(void);
+
+/**
+ * Reads length blocks (1 to BLK_MAX_LENGTH) of the space from block blk
+ * into dest as they are on the device (no decryption), and waits.
+ * Returns 0, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS past blk_space, or
+ * another negative error code.
+ */
+int blk_raw_read(uint32_t blk, uint32_t *dest, int length);
+
+/**
+ * Writes length blocks (1 to BLK_MAX_LENGTH) from src into the space from
+ * block blk as they are, whatever the signature or a sealed file says,
+ * and waits. Only for installing an image; blk_remount afterwards.
+ * Returns 0, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS past blk_space, or
+ * another negative error code.
+ */
+int blk_raw_write(uint32_t blk, const uint32_t *src, int length);
+
+/**
+ * Checks block 0 of an image of `blocks` blocks before it's installed: a
+ * plain one (BLK_SIGNATURE, not SEALED_MAGIC) passes; a sealed one must
+ * be one this board would mount (sealed_mount: certificate, signature,
+ * product, revision, release key serial, a recipient), so a file the
+ * board can't use never replaces one it can. Unmounts a mounted sealed
+ * file: call blk_remount afterwards. msg receives the reason it fails.
+ * Returns 0, or ERR_BLK_PARSE_FAIL.
+ */
+int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
+
+/**
+ * Finds and mounts the block file again, as blk_init does, after an
+ * image has been installed.
+ * capacity: if not NULL, receives the number of blocks.
+ * Returns 0 or a negative error code, as blk_init.
+ */
+int blk_remount(uint32_t *capacity);
+
 #endif /* BLOCKS_H */

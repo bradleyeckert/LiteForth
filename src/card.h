@@ -11,7 +11,8 @@
  * is contiguous. Block n is bytes n * 4096 on of the file, and the
  * capacity is its ValidDataLength / 4096. Block 0 must start with
  * BLK_SIGNATURE for the blocks to be writable; without it only block 0
- * can be read.
+ * can be read. Either way `space` is the file's size in blocks, which
+ * `-1 ymodem` can fill with a whole new block file (blk_raw_write).
  */
 
 #define CARD_BLOCKS_FILE    "lfblocks.fb4"
@@ -22,6 +23,7 @@ typedef struct {
     int kind;                   /* CARD_NONE or CARD_EXFAT_FILE */
     uint32_t base;              /* card sector of block 0 */
     uint32_t blocks;            /* blocks that can be read */
+    uint32_t space;             /* blocks the file holds, whatever is in them */
     int writable;               /* block 0 has the signature */
     int mounted;                /* an exFAT volume was found: vol is valid */
     exfat_vol vol;

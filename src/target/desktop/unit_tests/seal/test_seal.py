@@ -135,6 +135,70 @@ def main():
             expect('root-header --sealed-only defines SEALED_ONLY',
                    '#define SEALED_ONLY 1' in f.read())
 
+        # firmware update packages (doc/firmware-updates.md section 5)
+        image = bytes((i * 7 + 3) & 255 for i in range(9000))      # not a whole block
+        write('fw.bin', image)
+        base_pk = ['--release', 'rel1.json', '--boards', 'boards.csv']
+        out = expect_ok('package v5f', 'package', 'fw.bin', 'fw.lfu', '--component', 'v5f',
+                        *base_pk, '--revision', 3, '--hw-rev', 2, '--min-version', 2)
+        expect('package says what it made', '9000 bytes in 3 block(s), version 3' in out, out)
+        pk = read('fw.lfu')
+        expect('package: 3 content blocks and a table', len(pk) == 5 * BLOCK, len(pk))
+        expect('package: block 0 starts with LITEFORTHF', pk[:10] == b'LITEFORTHF')
+        expect('package: the description at 180',
+               struct.unpack_from('<BBHII', pk, 180) == (1, 0, 2, 9000, 2),
+               struct.unpack_from('<BBHII', pk, 180))
+        expect('package: the image hash at 4000', pk[4000:4032] == hashlib.blake2s(
+            image, digest_size=32, person=b'LFimage').digest())
+        out = expect_ok('check a package', 'check', 'fw.lfu', '--root', 'root.pub')
+        expect('check describes the package',
+               'a firmware package: v5f image, 9000 bytes, version 3, hardware revision 2, '
+               'new minimum 2' in out, out)
+        expect_ok('open a package', 'open', 'fw.lfu', 'fw.out', '--root', 'root.pub',
+                  '--board-key', 'a.json')
+        expect('package round trip: the image exactly', read('fw.out') == image)
+        expect_refused('a package for another board', 'not a recipient', 'open', 'fw.lfu',
+                       'x.out', '--root', 'root.pub', '--board-key', 'c.json')
+        big = bytes(range(256)) * 276                                  # 68 KB + 1 KB
+        write('big.bin', big)
+        write('s1.bin', big[:68 * 1024])
+        expect_ok('package stage1, SM4', 'package', 's1.bin', 's1.lfu', '--component', 'stage1',
+                  *base_pk, '--revision', 1, '--cipher', 'sm4')
+        expect_ok('open stage1', 'open', 's1.lfu', 's1.out', '--root', 'root.pub',
+                  '--board-key', 'a.json')
+        expect('stage1 round trip', read('s1.out') == big[:68 * 1024])
+        expect_refused('stage1 image too big', 'larger than the stage1 slot', 'package',
+                       'big.bin', 'x.lfu', '--component', 'stage1', *base_pk, '--revision', 1)
+        write('empty.bin', b'')
+        expect_refused('empty image', 'is empty', 'package', 'empty.bin', 'x.lfu',
+                       '--component', 'v5f', *base_pk, '--revision', 1)
+        expect_refused('a block file as an image', 'is a block file', 'package', 'plain.fb4',
+                       'x.lfu', '--component', 'v5f', *base_pk, '--revision', 1)
+        expect_refused('seal refuses a package', 'not a plain block file', 'seal', 'fw.lfu',
+                       'x.fb4', *base_pk, '--revision', 1)
+        for name, at, value, why in (
+                ('unknown component', 180, 9, 'unknown component'),
+                ('image flags', 181, 1, 'unknown image flags'),
+                ('length too long', 185, 0x40, "doesn't fill"),
+                ('data before the image hash', 3990, 1, 'reserved bytes')):
+            d = bytearray(pk)
+            d[at] = value
+            write('bad.lfu', resign(bytes(d), 'rel1.json'))
+            expect_refused('package refused: ' + name, why, 'check', 'bad.lfu',
+                           '--root', 'root.pub')
+        d = bytearray(pk)
+        d[4000] ^= 1
+        write('bad.lfu', resign(bytes(d), 'rel1.json'))
+        expect_ok('a wrong image hash passes check (it needs the key)', 'check', 'bad.lfu',
+                  '--root', 'root.pub')
+        expect_refused('open: a wrong image hash', "doesn't match its hash in block 0", 'open',
+                       'bad.lfu', 'x.out', '--root', 'root.pub', '--board-key', 'a.json')
+        d = bytearray(pk)
+        d[4000] ^= 1
+        write('bad.lfu', bytes(d))
+        expect_refused('a changed image hash breaks the signature', "signature doesn't match",
+                       'check', 'bad.lfu', '--root', 'root.pub')
+
         # round trips
         for cipher in ('aes', 'sm4'):
             sealed = f'sealed-{cipher}.fb4'

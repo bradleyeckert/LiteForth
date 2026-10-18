@@ -90,6 +90,11 @@ def install_tests(c, sums, damaged):
     with open('aes.fb4', 'rb') as f:
         sealed = f.read()
     n = len(sealed) // BLOCK
+    before = sha('space.fb4')
+    got = install('fw.lfu', 'fw.lfu', *board)
+    expect('install refused: a package', 'a firmware update package, not a block file; '
+           'nothing written' in got, got)
+    expect('install refused: package left the file alone', sha('space.fb4') == before)
 
     got = install('aes.fb4', 'aes.fb4', *board)
     expect('install sealed: checked', f'installed, {n} blocks, read back and checked; '
@@ -224,6 +229,24 @@ def main():
             d[at] = value if value is not None else d[at] ^ 1
             with open(name, 'wb') as f:
                 f.write(d)
+
+        # a firmware update package is never a block file
+        with open('fw.bin', 'wb') as f:
+            f.write(bytes(range(256)) * 40)
+        tool('package', 'fw.bin', 'fw.lfu', '--component', 'v5f', '--release', 'rel1.key',
+             '--boards', 'boards.csv', '--revision', 3)
+        for args in (('-k', 'fw.lfu', '-K', 'a.lfb'), ('-k', 'fw.lfu')):
+            before = sha('fw.lfu')
+            _, got = lf(cap, *args)
+            expect('package refused as a block file ' + ' '.join(args),
+                   'a firmware update package, not a block file' in got
+                   and body(got).strip().startswith('0'), got)
+            expect('package left alone', sha('fw.lfu') == before)
+        subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'fwcard.img',
+                        '--file', 'lfblocks.fb4=fw.lfu'], check=True, capture_output=True)
+        _, got = lf(cap, '-k', 'fwcard.img', '-K', 'a.lfb')
+        expect('package refused on a card', 'a firmware update package, not a block file' in got
+               and body(got).strip().startswith('0'), got)
 
         damaged('hdr.fb4', 20)                          # the revision, unsigned
         _, got = lf(cap, '-k', 'hdr.fb4', '-K', 'a.lfb')

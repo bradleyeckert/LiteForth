@@ -175,7 +175,8 @@ int blk_raw_write(uint32_t blk, const uint32_t *src, int length);
  * sealed-only; a sealed one must
  * be one this board would mount (sealed_mount: certificate, signature,
  * product, revision, release key serial, a recipient), so a file the
- * board can't use never replaces one it can. Unmounts a mounted sealed
+ * board can't use never replaces one it can. A firmware update package
+ * (PACKAGE_MAGIC) is refused. Unmounts a mounted sealed
  * file: call blk_remount afterwards. msg receives the reason it fails.
  * Returns 0, or ERR_BLK_PARSE_FAIL.
  */

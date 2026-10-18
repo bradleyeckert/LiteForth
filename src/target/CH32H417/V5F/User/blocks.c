@@ -532,12 +532,21 @@ static int sealed_only(void) {
 }
 
 /* If the block file is sealed, mounts it with what the board holds and
-   offers its content read-only; if it can't, offers nothing */
+   offers its content read-only; if it can't, or it's a firmware update
+   package, offers nothing */
 static void mount_sealed(void) {
     static uint32_t b0[BLK_SIZE_BYTES / 4];
     char msg[120];
-    if (raw_block(0, (uint8_t *)b0) != 0
-        || memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
+    if (raw_block(0, (uint8_t *)b0) != 0) {
+        return;
+    }
+    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
+        writable = 0;
+        limit = 0;
+        printf("V5F blocks: a firmware update package, not a block file\r\n");
+        return;
+    }
+    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
         return;                         /* a plain block file */
     }
     writable = 0;
@@ -683,6 +692,10 @@ int blk_raw_write(uint32_t blk, const uint32_t *src, int length) {
 }
 
 int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
+    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
+        snprintf(msg, len, "a firmware update package, not a block file");
+        return ERR_BLK_PARSE_FAIL;
+    }
     if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
         if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
             snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);

@@ -174,6 +174,7 @@ Each refusal ends with `nothing written` and leaves the board's file alone.
 | `the release key's certificate doesn't match the root key` (-124) | Signed under another root | Use this product's release key |
 | `an older revision than this board takes` (-124) | Below the board's lowest revision | Seal with a higher revision |
 | `the release key has been replaced` (-124) | Signed with a retired release key | Use the current one |
+| `a firmware update package, not a block file` (-124) | A `.lfu` made by `sealblocks.py package` | Packages are for firmware updates ([firmware-updates.md](firmware-updates.md)), not blocks |
 | `the transfer stopped` (-123) | The connection broke or the sender cancelled | Send it again |
 
 Two more outcomes need a second look:

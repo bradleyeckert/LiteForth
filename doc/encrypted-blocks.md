@@ -280,6 +280,7 @@ One script, `scripts/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 | `release-key ROOT.key SERIAL OUT --product P` | Makes a release key pair and its certificate; the root's private key signs it, so this runs on the offline machine and only the release key file leaves it |
 | `board-key OUT [--uid HEX] [--insecure]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1). `--insecure` gives the key a board built with `INSECURE` derives from its UID ([updates.md](updates.md) section 6) |
 | `seal PLAIN SEALED --release R --boards boards.csv --revision N [--cipher aes\|sm4]` | Builds a sealed file from a plain one |
+| `package IMAGE PACKAGE --component v5f\|stage1 --release R --boards CSV --revision N [--hw-rev N] [--min-version N] [--cipher aes\|sm4]` | Makes a firmware update package: a sealed file marked `F`, with the image as its content ([firmware-updates.md](firmware-updates.md) section 5) |
 | `check SEALED --root ROOT.pub` | Checks everything a board would that needs no board key: certificate, signature, header fields, table hashes, block hashes |
 | `open SEALED PLAIN --root ROOT.pub --board-key B [--min-revision N] [--min-serial N] [--product P]` | Checks and decrypts as a board would, refusing what it would refuse, and writes a plain file (with a new block 0) |
 

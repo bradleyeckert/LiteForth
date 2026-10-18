@@ -10,7 +10,16 @@
 * of how you allocated them. If you mess up the order, pool_free says so.
 */
 
+/* 32-byte aligned: the RAM page is the first allocation, and its block
+   buffers (F_BLOCKBUFS, forth.h) are aligned for the CH32H417's ECDC
+   engine, which then decrypts them in place (V5F/User/ecdc.c) */
+#if defined(__GNUC__) || defined(__clang__)
+static uint32_t pool[POOL_CAPACITY] __attribute__((aligned(32)));
+#elif defined(_MSC_VER)
+static __declspec(align(32)) uint32_t pool[POOL_CAPACITY];
+#else
 static uint32_t pool[POOL_CAPACITY];
+#endif
 static size_t stack_top = 0;
 
 void* pool_alloc(int size) {

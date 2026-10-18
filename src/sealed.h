@@ -70,8 +70,8 @@ uint32_t sealed_revision(void);
  * decrypts it in place. Block 0 is left as it is. Reads the hash table
  * block that covers n (with the `read` given to sealed_mount) and checks
  * it against block 0, unless it's the one it read last.
- * Returns 0, ERR_BLOCK_READ_ERROR if a hash doesn't match (buf is then
- * zeroed), ERR_BLK_BOUNDS if n isn't a content block, or read's error.
+ * Returns 0, ERR_BLOCK_READ_ERROR if a hash doesn't match or a crypto
+ * engine failed partway (buf is then zeroed), ERR_BLK_BOUNDS if n isn't a content block, or read's error.
  */
 int sealed_open_block(uint32_t n, uint8_t *buf);
 

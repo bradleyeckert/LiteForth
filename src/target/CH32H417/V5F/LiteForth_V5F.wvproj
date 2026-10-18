@@ -381,7 +381,7 @@
 		"reset": true,
 		"sdiPrintf": false,
 		"disablepowerout": true,
-		"clearcodeflash": true,
+		"clearcodeflash": false,
 		"disablecodeprotect": false,
 		"exepath": "",
 		"exearguments": ""

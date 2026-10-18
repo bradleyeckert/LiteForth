@@ -103,6 +103,7 @@ Visual Studio builds without the makefile.
 - [Glossary](doc/glossary.md): Forth words and VM constants
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
 - [Security plan](doc/security-plan.md): root of trust, signed images, device keys, updates, provisioning (draft)
+- [Software Bill of Materials](doc/sbom.md): the third-party code and data in LiteForth and their licenses (`sbom.spdx.json`, SPDX 2.3)
 - [Sealed block files](doc/encrypted-blocks.md): an encrypted, signed `lfblocks.fb4` for updates, and its keys (plan)
 - [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
 - [Recording to microSD](doc/storage.md): streaming audio to exFAT at 1 MB/s, buffer sizing, card choice (draft)

@@ -1,0 +1,2753 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "LiteForth",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/13a2bd521e7917a3553c9cf18cc73005",
+  "creationInfo": {
+    "created": "2026-10-18T01:01:35Z",
+    "creators": [
+      "Tool: scripts/mksbom.py",
+      "Person: Bradley N Eckert"
+    ],
+    "comment": "Made by scripts/mksbom.py from its component list; doc/sbom.md describes it."
+  },
+  "hasExtractedLicensingInfos": [
+    {
+      "licenseId": "LicenseRef-WCH-EVT",
+      "name": "WCH EVT notice",
+      "extractedText": "Copyright (c) Nanjing Qinheng Microelectronics Co., Ltd. Attention: This software (modified or not) and binary are used for microcontroller manufactured by Nanjing Qinheng Microelectronics.",
+      "comment": "The notice at the top of every WCH file; WCH publishes no other license for the EVT."
+    }
+  ],
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-LiteForth",
+      "name": "LiteForth",
+      "versionInfo": "0.03",
+      "supplier": "Person: Bradley N Eckert",
+      "originator": "Person: Bradley N Eckert",
+      "downloadLocation": "git+https://github.com/bradleyeckert/LiteForth",
+      "homepage": "https://github.com/bradleyeckert/LiteForth",
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "MIT",
+      "copyrightText": "Copyright (c) 2026 Bradley N Eckert",
+      "filesAnalyzed": false,
+      "primaryPackagePurpose": "FIRMWARE",
+      "comment": "A Forth system for 32-bit MCUs (CH32H417, STM32H743) with a desktop build, lf. Its own files are MIT; the packages it contains keep their own licenses, and the files listed here belong to them."
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Monocypher",
+      "name": "Monocypher",
+      "versionInfo": "4.0.2",
+      "supplier": "Person: Loup Vaillant",
+      "downloadLocation": "https://github.com/LoupVaillant/Monocypher/archive/refs/tags/4.0.2.tar.gz",
+      "licenseConcluded": "CC0-1.0 OR BSD-2-Clause",
+      "licenseDeclared": "CC0-1.0 OR BSD-2-Clause",
+      "copyrightText": "Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni",
+      "summary": "X25519 and Ed25519 (with SHA-512) for sealed block files",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/LoupVaillant/Monocypher@4.0.2"
+        }
+      ],
+      "hasFiles": [
+        "SPDXRef-File-src-monocypher-LICENCE.md",
+        "SPDXRef-File-src-monocypher-ed25519.c",
+        "SPDXRef-File-src-monocypher-ed25519.h",
+        "SPDXRef-File-src-monocypher.c",
+        "SPDXRef-File-src-monocypher.h"
+      ],
+      "filesAnalyzed": true,
+      "packageVerificationCode": {
+        "packageVerificationCodeValue": "0484c1e4b4c3c7aa404d4d8a47850658688108ec"
+      },
+      "licenseInfoFromFiles": [
+        "NOASSERTION"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-blake2s",
+      "name": "blake2s",
+      "versionInfo": "d887870",
+      "supplier": "Person: Bradley N Eckert",
+      "downloadLocation": "git+https://github.com/bradleyeckert/blake2s@d887870",
+      "licenseConcluded": "CC0-1.0 OR OpenSSL OR Apache-2.0",
+      "licenseDeclared": "CC0-1.0 OR OpenSSL OR Apache-2.0",
+      "copyrightText": "Copyright 2012 Samuel Neves; changes by Bradley N Eckert",
+      "summary": "BLAKE2s (RFC 7693), adapted from the BLAKE2 reference code",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/bradleyeckert/blake2s@d887870"
+        }
+      ],
+      "hasFiles": [
+        "SPDXRef-File-src-blake2s.c",
+        "SPDXRef-File-src-blake2s.h"
+      ],
+      "filesAnalyzed": true,
+      "packageVerificationCode": {
+        "packageVerificationCodeValue": "4cd8a569174002d8432d027380338136c8543f4d"
+      },
+      "licenseInfoFromFiles": [
+        "NOASSERTION"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-WCH-CH32H417-EVT",
+      "name": "CH32H417 EVT (WCH SDK and examples)",
+      "versionInfo": "6d1e469",
+      "supplier": "Organization: Nanjing Qinheng Microelectronics Co., Ltd. (WCH)",
+      "downloadLocation": "git+https://github.com/openwch/ch32h417@6d1e469",
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseDeclared": "LicenseRef-WCH-EVT",
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "summary": "EVT/EXAM/SRC (core, debug, linker scripts, peripheral library, start-up) and files from the SimulateCDC and SDIO examples, for the CH32H417 target",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/openwch/ch32h417@6d1e469"
+        }
+      ],
+      "hasFiles": [
+        "SPDXRef-File-src-target-CH32H417-Common-PRINTF.h",
+        "SPDXRef-File-src-target-CH32H417-Common-UART.c",
+        "SPDXRef-File-src-target-CH32H417-Common-UART.h",
+        "SPDXRef-File-src-target-CH32H417-Common-ch32h417-usbfs-device.c",
+        "SPDXRef-File-src-target-CH32H417-Common-ch32h417-usbfs-device.h",
+        "SPDXRef-File-src-target-CH32H417-Common-hardware.c",
+        "SPDXRef-File-src-target-CH32H417-Common-hardware.h",
+        "SPDXRef-File-src-target-CH32H417-Common-usb-desc.c",
+        "SPDXRef-File-src-target-CH32H417-Common-usb-desc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Core-core-riscv.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Core-core-riscv.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Debug-debug.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Debug-debug.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Ld-V3F-Link-v3f.ld",
+        "SPDXRef-File-src-target-CH32H417-SRC-Ld-V5F-Link-v5f.ld",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-adc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-can.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-crc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dac.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dbgmcu.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dfsdm.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dma.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dvp.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-ecdc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-eth.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-exti.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-flash.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-fmc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-gpha.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-gpio.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-hsadc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-hsem.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-i2c.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-i3c.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-ipc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-iwdg.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-lptim.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-ltdc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-opa.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-pioc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-pwr.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-qspi.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-rcc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-rng.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-rtc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-sai.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-sdio.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-sdmmc.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-serdes.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-spi.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-swpmi.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-tim.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-usart.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-usb.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-usbpd.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-wwdg.h",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-adc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-can.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-crc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dac.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dbgmcu.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dfsdm.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dma.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dvp.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-ecdc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-eth.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-exti.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-flash.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-fmc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-gpha.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-gpio.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-hsadc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-hsem.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-i2c.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-i3c.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-ipc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-iwdg.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-lptim.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-ltdc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-opa.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-pwr.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-qspi.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-rcc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-rng.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-rtc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-sai.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-sdio.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-sdmmc.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-serdes.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-spi.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-swpmi.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-tim.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-usart.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-wwdg.c",
+        "SPDXRef-File-src-target-CH32H417-SRC-Startup-startup-ch32h417-v3f.S",
+        "SPDXRef-File-src-target-CH32H417-SRC-Startup-startup-ch32h417-v5f.S",
+        "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-conf.h",
+        "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-it.c",
+        "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-it.h",
+        "SPDXRef-File-src-target-CH32H417-V3F-User-main.c",
+        "SPDXRef-File-src-target-CH32H417-V3F-User-system-ch32h417.c",
+        "SPDXRef-File-src-target-CH32H417-V3F-User-system-ch32h417.h",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-conf.h",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-it.c",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-it.h",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-main.c",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-sdio.c",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-sdio.h",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-system-ch32h417.c",
+        "SPDXRef-File-src-target-CH32H417-V5F-User-system-ch32h417.h"
+      ],
+      "filesAnalyzed": true,
+      "packageVerificationCode": {
+        "packageVerificationCodeValue": "a0a7e57df0910cc090b5524c68bf9a1e0f0cdfb5"
+      },
+      "licenseInfoFromFiles": [
+        "NOASSERTION"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Unity",
+      "name": "Unity",
+      "versionInfo": "2.7.2",
+      "supplier": "Organization: ThrowTheSwitch.org",
+      "downloadLocation": "https://github.com/ThrowTheSwitch/Unity",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "Copyright (c) 2007-26 Mike Karlesky, Mark VanderVoord, & Greg Williams",
+      "summary": "C unit test framework, used only by the desktop unit tests",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/ThrowTheSwitch/Unity@v2.7.2"
+        }
+      ],
+      "hasFiles": [
+        "SPDXRef-File-src-target-desktop-unit-tests-unity-LICENSE.txt",
+        "SPDXRef-File-src-target-desktop-unit-tests-unity-unity.c",
+        "SPDXRef-File-src-target-desktop-unit-tests-unity-unity.h",
+        "SPDXRef-File-src-target-desktop-unit-tests-unity-unity-internals.h"
+      ],
+      "filesAnalyzed": true,
+      "packageVerificationCode": {
+        "packageVerificationCodeValue": "07157995538bc461f886d03b14bb54dba2ead3a9"
+      },
+      "licenseInfoFromFiles": [
+        "NOASSERTION"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-Noto-Sans-CJK",
+      "name": "Noto Sans CJK SC (glyphs)",
+      "versionInfo": "NOASSERTION",
+      "supplier": "Organization: Google LLC and Adobe Inc.",
+      "downloadLocation": "https://github.com/notofonts/noto-cjk",
+      "licenseConcluded": "OFL-1.1",
+      "licenseDeclared": "OFL-1.1",
+      "copyrightText": "Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name Source",
+      "summary": "Glyphs rendered by scripts/mkfont.py into the fonts at blocks 100 and 120 of bin/lfblocks.fb4 (forth/glyphs.txt, forth/digits.txt)",
+      "primaryPackagePurpose": "OTHER",
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-Package-python-cryptography",
+      "name": "cryptography (Python)",
+      "versionInfo": "NOASSERTION",
+      "supplier": "Organization: Python Cryptographic Authority",
+      "downloadLocation": "https://pypi.org/project/cryptography/",
+      "licenseConcluded": "Apache-2.0 OR BSD-3-Clause",
+      "licenseDeclared": "Apache-2.0 OR BSD-3-Clause",
+      "copyrightText": "NOASSERTION",
+      "summary": "Used by scripts/sealblocks.py and its tests; not part of this repository",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:pypi/cryptography"
+        }
+      ],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-Package-python-pillow",
+      "name": "Pillow",
+      "versionInfo": "NOASSERTION",
+      "supplier": "Organization: Python Pillow",
+      "downloadLocation": "https://pypi.org/project/pillow/",
+      "licenseConcluded": "MIT-CMU",
+      "licenseDeclared": "MIT-CMU",
+      "copyrightText": "NOASSERTION",
+      "summary": "Used by scripts/mkfont.py; not part of this repository",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:pypi/pillow"
+        }
+      ],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-Package-python-fonttools",
+      "name": "fontTools",
+      "versionInfo": "NOASSERTION",
+      "supplier": "Organization: fonttools",
+      "downloadLocation": "https://pypi.org/project/fonttools/",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "summary": "Used by scripts/mkfont.py; not part of this repository",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:pypi/fonttools"
+        }
+      ],
+      "filesAnalyzed": false
+    }
+  ],
+  "files": [
+    {
+      "SPDXID": "SPDXRef-File-src-monocypher-LICENCE.md",
+      "fileName": "./src/monocypher-LICENCE.md",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "3da95367094ab87533b5be27538dc762a29913db"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a5781770269d2516e52ba4863f790c10a16da4089a1e81823aee19ff1e9026b0"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR BSD-2-Clause",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-monocypher-ed25519.c",
+      "fileName": "./src/monocypher-ed25519.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "91feed0c7055160d7f307aeb5ab88c814e5d8701"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "7c9b16056cbd27521919e8a6f56a228808b9e718afc42e3d33f28c08e5abdee2"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR BSD-2-Clause",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-monocypher-ed25519.h",
+      "fileName": "./src/monocypher-ed25519.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "aa30cae31883f793f7f211f11aaf1c2a73be51b4"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "bd546edcd468d64e28caa3dbf4b1d6bfad7435c0ce994723fd81aae26405121b"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR BSD-2-Clause",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-monocypher.c",
+      "fileName": "./src/monocypher.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d743fc5d5c494f75eccd9c4887ed86c0f50879e5"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "36dc233d58396d80fa6b5d304f7a1dd723cdc6c92bc5a3e7bbcf00ec3f8e28cb"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR BSD-2-Clause",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni",
+      "comment": "Modified: One cast in Argon2 for MSVC C4244, marked \"LiteForth:\"; Monocypher master makes the same change."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-monocypher.h",
+      "fileName": "./src/monocypher.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b6538744414f33045082d1bee1f9af79476f7d01"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f78bb31255cfb7beba66afd2137f5194c8a025cf40488b6cc1e295234d43f374"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR BSD-2-Clause",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2017-2023 Loup Vaillant, Michael Savage, Fabio Scotoni"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-blake2s.c",
+      "fileName": "./src/blake2s.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "147ff73b9fd41188a541bdbf164c728ced339748"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "0f6d98a91ff61157ef5d0acd8588fc5c05e70ee0736b996db084287839475214"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR OpenSSL OR Apache-2.0",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright 2012 Samuel Neves; changes by Bradley N Eckert"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-blake2s.h",
+      "fileName": "./src/blake2s.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "36ccfbd49c2ff4b2207fe4400b4371c9e3d49322"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "0dcb6df1a51297b9750f5320d83cfdf9f31d8338587943f96555340d4ef1890a"
+        }
+      ],
+      "licenseConcluded": "CC0-1.0 OR OpenSSL OR Apache-2.0",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright 2012 Samuel Neves; changes by Bradley N Eckert"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-PRINTF.h",
+      "fileName": "./src/target/CH32H417/Common/PRINTF.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "9d3de3cedcc970add613e5b2927285c7d70e49e6"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ca07a16f30fad22ef29bae6c76c86d2efac32884f88c3dd9a562105bb337e755"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-UART.c",
+      "fileName": "./src/target/CH32H417/Common/UART.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "72a095a1c658dc09ed032b24eb3301386f8c521b"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "8a331c25fe988842607833585c1c827c9854bdf7af6e572ed50d9a4fc7c9e29b"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-UART.h",
+      "fileName": "./src/target/CH32H417/Common/UART.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "c96cfab0977040591a54924ef8351e224b5a190f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "8d376287673046e1a23f3bfa3ef841df7f78d2ad81c522bd632f554215c0248b"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-ch32h417-usbfs-device.c",
+      "fileName": "./src/target/CH32H417/Common/ch32h417_usbfs_device.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b456d944cb2dfa8d5f75fea4390395da68e945df"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "aaa6d583774389befe10b77c31088944fad89b4f12882221cdc8536840e9d655"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-ch32h417-usbfs-device.h",
+      "fileName": "./src/target/CH32H417/Common/ch32h417_usbfs_device.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d867f9f0a054c390c489feb51ab0549b9d3739f4"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "b6d03bf2daeba6d970615aadfd3bc5f0daf25bfd4a40bc90c40a8487b0bf8687"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-hardware.c",
+      "fileName": "./src/target/CH32H417/Common/hardware.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4b10dbaa927e849809b0662daed2740b00622002"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "12cb76ea78a7298801df6a5ec711469efc17f8327ec87a5daeae6c5ae28a83e4"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-hardware.h",
+      "fileName": "./src/target/CH32H417/Common/hardware.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "48aa289dbf036effd5558f59aca0048ee57038ee"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "3c13ffad1f79a63c7eb96677bce7ce5f43b330ce5f0723ae4a45a257b4e55f0f"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-usb-desc.c",
+      "fileName": "./src/target/CH32H417/Common/usb_desc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4c2cd3cf3d67d63099ad3e4ade223d020bd0fe6a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "20936004741954c0835fb0143f29984433a6f2f0de66c6744a6f2cbe693efc57"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-usb-desc.h",
+      "fileName": "./src/target/CH32H417/Common/usb_desc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b50ccb73c86d926cf6e0fc8f689c56bfb7e5112a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "b9c188ac7f20e5b3058e1832b0822e3aa939b9581fd65bea17b3570590567488"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Core-core-riscv.c",
+      "fileName": "./src/target/CH32H417/SRC/Core/core_riscv.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7459419f00a3be2074aed6ba8dea146c469119fb"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "d398c9475b79b5b1e12266d74cad8d7d8c6bf571fe40ad92cb17a7e2bd725d81"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Core-core-riscv.h",
+      "fileName": "./src/target/CH32H417/SRC/Core/core_riscv.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "47c03ab115da8453b3d5ea68528ff1fd99dc3557"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "36f38f1b8a6994c3c27a4dab871f13b59485895bdb363f8e272accb65580dfe2"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Debug-debug.c",
+      "fileName": "./src/target/CH32H417/SRC/Debug/debug.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b17ca2c175c17b3060d9a4e2283558ea65c5d432"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "75db0c94131c6bb7c8ee1d36b2ada466afa3833af410bc8132bb8362adfb9015"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Debug-debug.h",
+      "fileName": "./src/target/CH32H417/SRC/Debug/debug.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6bfd0155c9ab6ec95d53b56a26df6acdb8b7513d"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "4eece3b12f56faf3004294c7b9bb89978915539f2bbd97a654408be96a51070c"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Ld-V3F-Link-v3f.ld",
+      "fileName": "./src/target/CH32H417/SRC/Ld/V3F/Link_v3f.ld",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4d29a657f2f2b977a848578a95e6ab876e7c5e2e"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "eb7b84116cae6cec11ad9962476da4ee71737a3a164c4d7af83f7596a29d4336"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Ld-V5F-Link-v5f.ld",
+      "fileName": "./src/target/CH32H417/SRC/Ld/V5F/Link_v5f.ld",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "1e854cb4ea92db71e2f143a86877b970fcc800c7"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "e24179b5406e293e7e0e302b6b8c6bfc3503aa5a7180b090afa6ec5ac44ff51a"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "03de9b979ede078e08b37342bacf04938f943352"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f5ac81867eb24b30d8b705e98b7c3163a413756380971e6efd55f213651c9aa1"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-adc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_adc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "bbbb94496795f28b9fdb26cbb26449bf51124807"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "4f37cb463523a21cb6740de9138d52a7fb1326004c3566c7a87254d1b46f1082"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-can.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_can.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4283edba8200f93f79d9ae9d3d56ecb44dc7eafc"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "16aa9e91fceb724addb36a20962a1927c9c42da29c0a92fa48d4b8ccc64c13b9"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-crc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_crc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d21d02335f3259dc5c51b95a6d1285bc624ad4d2"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f2e443ff215a882b0f1e02f08d666b4b23d47129cd6918044598c29bda36ead2"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dac.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_dac.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "9a831eee6b02bf2b112e18c41acaed40633a8b77"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "858a83697f1c023fd63df1c797f82ab62585d4ef09a53116fb2e3db52b99f692"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dbgmcu.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_dbgmcu.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5d2634aed2d0fd6900a94446050e140c2eafe9e4"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ae02ec5cb9c40de5cf6e474508505adc1263f6bacda83b61628a770a88e37e1e"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dfsdm.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_dfsdm.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "8a97a58f956785ee98b52aa0f481967a85744960"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "d7b5bfd279fa5815cf15645245eb2240aba4d29d072616f8f7271c782543bc31"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dma.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_dma.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "e23594388922910dd66949b3a80785a56dbedf04"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "20b3cc43ae18d27c2f287d7320bbc039d51d9889400facbee0faa8860cef52bd"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-dvp.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_dvp.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7355f17253ccf53292497a72d54c840729b7c487"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "8413d34878f51ba7d30031a22164868df53245f255d9d6cfd93311c2237e561e"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-ecdc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_ecdc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d09858f92a218a28e0be48bb575c8d061db847fa"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "1541ce628dd0c913ec6fc01a46824bdb96b53cea14ff8619c7bf4674c23724fe"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-eth.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_eth.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "9beac3cc99aa7a268b0d14f820bafc1e028ad4c0"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "606c06c4feef56667a842b6878adaa12ecde34547421012478152ab166023a5e"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-exti.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_exti.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d9ae862839f6191a524763d50b51a981a40fa0ca"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "e8d40084f7e22955b0d4e8b22c2a0da493b9bad52cd0a01f4c85a912c63cf100"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-flash.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_flash.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6607ecaba94527e3c52697d4926be3d1259c904f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "5f6575cb02685af543c5cf89ff624a942b3d4de6862bc5ed34d4c6895cd74b7d"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-fmc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_fmc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b73f29cb49a1b0ba48aa34bb21bf52f748c54c4a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "e68fc1391e8abeb26f36a2a5697483a12825f384bee30706df7986eafbfaf3e5"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-gpha.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_gpha.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "8b0379032561c95bb0eb4a90c7f6b7d5d7fb2de8"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "2454292dc70d5197f09b9992c1b4504248953e34557e40f53e2653bae343b62e"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-gpio.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_gpio.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "ec964900a6fe21d1da132c09504218b5362b424a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a8e460ad8e815621d971e0c30cc0a88ba5b6ae9e576679a90026e41e59da297b"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-hsadc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_hsadc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "400d62113ccba2bee1e7991d4bbd91a012f6b491"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "39c43a8ec16f705501cfbe023ed79eb99e24acea56fa34360ed2e87f349fa5ca"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-hsem.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_hsem.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "cf2c08ae551208af31e9ffb3baa3cbcaf72a62b6"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6ccc891209efec91424b9d74d3cff31b197f28101aff80c24dedfd5b602ccef2"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-i2c.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_i2c.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "363600a546bff8eef7cef8ad560da100faf919ad"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "99737ee080bc9b5aba531eaba61ec6978520fc182d99952b54ccb6054c969c65"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-i3c.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_i3c.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "ba13fa83ebb1ba6345908eabfb4fd81989016896"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6da8c407d37ebae77e66256edca726886004d80d0e4047de336957bf88cb72bc"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-ipc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_ipc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "aa930e6f8f99b4d548937707319282b38bec2b71"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "97f3b0de33090a2cbd541bfc04d251c5e78e11b2ed97e29b2eb9f63b29415aff"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-iwdg.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_iwdg.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5b530f64d587922a2d79cd8b2e0c02d07a242d58"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "d98251725ee6fe1cab5d60ff27420e37c81d2bac06d00d10d11de748b0f376ba"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-lptim.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_lptim.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "a0efee742c878c9965d3c48470537c104c2cdb5e"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "39602afd99dd5e8e2cf084da58e53427a901db1af88ec69a7f4caa5a32a2b15f"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-ltdc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_ltdc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "0ef055e089f9c51372445b236471760a8fb0811c"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "0419aff1acbae2fe3551336591927cab8c8283e2ccd7bd56910e8964667b382c"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-opa.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_opa.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "f084075cf0ff0d9b67d54de65452343ea6c25d6f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "0608a3eaf146d1be8e2692d057919ce5bbea37e53428aea9b90d03105c6f255d"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-pioc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_pioc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "2d27d46ede42a158278cb2d911de69ca4a5b0f1f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "bdb9e9e44d540060c0653fc2388142cf9d9ed3980f5464b0402f4434cacf66ea"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-pwr.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_pwr.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "2d5506e6af67767f8e2bb2657781af44a6eb03aa"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6e43b1236bb6921fc049631d09d1f2cb0eec446ff0e7fd911eee5816a254fffb"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-qspi.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_qspi.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "1d68a35c3f00839ab58e722d66e43c15ae248390"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "fde5a947316d0e4a9f490f3abcda2648599476d187c698003b1f6fdb92e4bfc3"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-rcc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_rcc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "f968a51ecd939eedc302f19421f911dd7a3e72e2"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6711143377744e70f3b30fc3ef37b55685756e2b295cbcbb837cf5ca8909d8e0"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-rng.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_rng.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "dedfad19e10dae5c79e4abf0591436a9a3173c4f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f7119cdc3c689ef2214bd6aae1dc2c847b31ecb6d193c3020e28cfb15a9b0c1a"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-rtc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_rtc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "bc26be18f8afc1beb7d7a1dca55170dd0eb8b3c4"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "71d1ef322583321a3a4687bf605ecedf657b8e147e75e7dbab18e978542f2c62"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-sai.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_sai.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "a67106b16ecf2b7db2a339df1c39ba4c1904295c"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "28800be15e9febaf95a5f28ebff3e9bb6ce697776096081fe9882e20e40d24b9"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-sdio.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_sdio.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6185a0e16839014099d6ee4b2fa3ae87a964d2ae"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "4f32aae9e846e3e69092b68ac5e52de915359429b2728e26127b76a4f9e34996"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-sdmmc.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_sdmmc.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "58956d9305afaf417dde1e027f0f51fce157b365"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "721f4a20d233163c3c4e4166954506ba46c2606eeaf804605d6f5b2f7208d993"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-serdes.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_serdes.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "137ad6cb0429a41c4e58bcc9efaac27e710155de"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "2bb99fc12a288d708b2b35dc82f981f9775abba1bb3eea88bb1f9b65afc81025"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-spi.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_spi.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6079a2d6f42cc755a52a38325e8b255792d2a531"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "1efcca54da7c4b0b67079d2685118a9a0409fa29b2a29f75e1e8eac21965f99e"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-swpmi.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_swpmi.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "387de356bfa7121e5e130b493a2c60051abcd3a9"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "2970e8ae12cb3054cd8cddf32071add6dddb5454246646d6825fddb1880d6261"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-tim.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_tim.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "62fa0ec04c6dab58247aa374d9d0fc19ef752194"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "0955b05091b9c8f8176837ef6560374dd4483db8794c5cda668d722aadd53152"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-usart.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_usart.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "2fb004e1badd54ebd5e793a813e42f64db7f4615"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "09e1040c72bd52b9c84ccd5655561e06178ca85656f63bb5f93ff870c29278dd"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-usb.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_usb.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6296c7739c9dd6e0f5471df9ed97ba3d82beb52a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "926bc69b5bc7eb43e76a654be8ebee393a199facb59a84ad504d327a9d693179"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-usbpd.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_usbpd.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "3ad02b7a229a9d3e92c93b26c5effa1ab2e43a55"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a8e6ff9eab91c4bf1507f51f6ebc600a9e1271fc2d19777ddb6fa7d0a8da4f12"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417-wwdg.h",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/inc/ch32h417_wwdg.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "19c46fae4db4e01767cbfd3589aed9d203a3b2ef"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "819b04f4cfa998b10d455eccfe0149a8676194f0cc168b2c60b1c18cd53066d5"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-adc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_adc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5317d86e10356ecb68bc4981accebc73ebe12537"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "5d2b9859cac23f5b2f43dcf748864caadebd04277c9a54d712cc9183eebc514f"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-can.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_can.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "c9ce2a268cc5d97063fe7a95b160d3fbfb912768"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "4718b35d05adb85326f1eaec8d440d317834cbbaee8050d9d2b272cf324c4a9b"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-crc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_crc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "89b155d827ccdfbe508018430bfe90ea767b8ebc"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "eaaa4d20b0d49e56b208a1704ee0390dbedde9d1c5af83147ae796056cffd2fb"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dac.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_dac.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "acbfb26a220663f0b09e0abea97558a55defbde9"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ec2f39a66671616de599aa372c7921d595c6e85b77f251449706ca6a9a85a86f"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dbgmcu.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_dbgmcu.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7e19e099ed46754fb43890e5451c061be0502839"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "df04b278d7d891f0100c6e56ca524a5a345422cbc164a352d02118d00ccd8e9b"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dfsdm.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_dfsdm.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "1efd86c4028655968736cd6e65dd927c667c7958"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "cb65644f4dbdeb0c447d14898149c95f9db791cb8e02a8dc8125a5d91facc2c6"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dma.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_dma.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "ba183b9c537948d99eb0b716f28bf0061ca7fc25"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "226cf151ff8fc1e19826a769b0327a510140969a5950db1d3d012041595b2c7c"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-dvp.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_dvp.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4a346a1d89f1303bafb472bce08d0682bfcd4752"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "cd36f46a326533a25babeb33f842e97dcee6c3135a8a77c3e5079488d5446f6c"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-ecdc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_ecdc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5974f578a164d614a0be915eb43a5b8cd0df1710"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "99f8ee12a3ae39aaf746dda46884da2fd79428bf885ea2ef890345f0cef67ec3"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-eth.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_eth.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d6001c0ba91ab67faeefd73b873e7938b6d21996"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "49a724de38f04698a78b107429a2e19158152328dde60e1bc8397e2a9b6d1283"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-exti.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_exti.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "be664d3d4eb8399c7639915f5ac9e241274a17dc"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f249401781df947feb8442a99a01274b3786bab85c075b7f2fcbaa81ea7da020"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-flash.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_flash.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d4e00deeb10533229a29611876707950fd0d1814"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "43ad3f27d499d4bd725e520fce1e2b0da09dd965e871db6805d8a75a50c43992"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-fmc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_fmc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "c3977bce886be4eb851987b15baa980c1b6c9f58"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a56d8809bc4685774f5ccb9b757e49ff062d55293f334e52f58b1d9a3aefb498"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-gpha.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_gpha.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "84374d2ce4e6dd12aed961bf798c0c4cdd18a53d"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "3dac8075e095a6e99110c87bae396a5173099daef7de086579069371b0e25da4"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-gpio.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_gpio.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "156bec6567436bf7a50ed3afe28cc31c26f1c24c"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "b41fc0c25fadc845429870083c1c2a2f4911bad68c09bd7dff5c1e0bf8207e57"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-hsadc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_hsadc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "0410029b37119ad76fe213b09bd4c00540027141"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a98f07e6c1dc5b471a14198f698e1888873b53455d58e0856e6d2f74ad7e3668"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-hsem.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_hsem.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "dc62bcbc3bbd5c7dc274c5349330ddc8557eef9a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "4006792b51d88b53ac290a25cd257980fdd069009ddbbb54c112eb4d3d522427"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-i2c.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_i2c.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5a29572db2946cbeb97a3f4718ba2296348bbb7a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "fe44c1f7e6f9ef0b6663afc6692cc6c7d8a26db19a6ac860d367c10177c0cb32"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-i3c.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_i3c.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "f9166b77d20da69619975dfd9400cc771d9e2f3a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "54a0ece4699fc89fd73bb01c7d4d9f08a40bbe9661846c6dcf72070f31c3df56"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-ipc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_ipc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "94c1bbfe4a400f929ea28ac9d19ce0ab4ca36974"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "46d5940b04524bd8fc0445022a1bad8787a7639772da8eca86ba0d319e4dc8a1"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-iwdg.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_iwdg.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7dafe16a35b0381ff36ac9bbafd6668f3eb4daf5"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "27c59618d607388c763c26ec945eae19fc7dd110d2d1b5a8038fce5787748de5"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-lptim.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_lptim.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7328563e4df820a5e62560baef8951d948c6c11f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "009fb18ceced1823896906750e96330fdbb8db191905e802565e02eb384400ee"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-ltdc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_ltdc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "466e15aacc27005c487c71507fbf48f255c8322e"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "42c370e9dc605b54567aea81167a5e5c56706b4255e5d4573ea76799720d4231"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-opa.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_opa.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "c2fa1ae3dca75f52eac9cb42992495ca409ec2ed"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "b235182926b85d1efca2eaeeda217825bf18b2023962cd422a685253cb84b2e4"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-pwr.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_pwr.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "8f87e6ccf6dde2125af8c82d65849a6aeed43230"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "e2e1ea3e0ff572ae914858c29f1e025bcb8f7823cb301c360271b453d87b41f1"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-qspi.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_qspi.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "ca830a8249bb1dd2c9ec0c06131def6bfd2f168b"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "19d794e97aca1e4bd57e423720af41f7c337aec1836dbe42c019ebd00c6c69e5"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-rcc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_rcc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "ec7a245f378759759f7c252c50f9f5dfcee6e795"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "961bc4fe826ea3f0cc9887bc49fcaf8ef19f08aceb7409089792fed5758c4ed7"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-rng.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_rng.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d1f5ee40acede2cfaceefad955ea68df494558b7"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a9f5bfd8fd6df33c3689adc5e4f7f1ec50a85f2e93028019cbbd6ca19e4c35ad"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-rtc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_rtc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "785c943ef1090edea08116b12af6e2d49bf88d16"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "9b25a01beaa8e5eeabd5101864d56463a52c90bc751c0c8a02b80d599432daea"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-sai.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_sai.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "2fad9640a0e1c53e1a1cd45712cca944cefca329"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "85d2bc00b0ccdf4fd2257f2829db95f618355aaa7771be409d8708943c929709"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-sdio.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_sdio.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "23f54d18ed7a258c6225139b9b66d0a52d719fc9"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "b52bf1e78b5c037cabe92c75c130a73f1758e98a54412e0b57d725429c221ae7"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-sdmmc.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_sdmmc.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "43359f389968f733f93945c69b7eabded4d8fb83"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6afd4f1d63005c50c300eafd56f1b4fb89d6577556eb6a1789d38a533a592558"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-serdes.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_serdes.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "2024f34afcf91076818383357dadc40c0a3252f5"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "54ea8f31aa79e37a0a09569f959ee699ef736922c4c1f11f12709736c4b20e47"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-spi.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_spi.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d6dde1ca46565df252498263bd10d7a543bbd9df"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "0a8db54a6dc8350f23fbd4ca8dedf014f2f57521768b41c5f3702bfe26d76f32"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-swpmi.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_swpmi.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "0b696b136c110e2abec0d167c0ef0d72e09f40db"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "dde5985944c8ff9ced84f3b49075a2089daebd242257bbeae928ca1123dcf68d"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-tim.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_tim.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "2bfdafca96369b004241a12f42b7ee3a7c5d650f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "7af651d32f4bff0399dd810c4aa9dbd2533f2ad2845248016ac2af59ae53dad8"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-usart.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_usart.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "a2e98a7286034d3f0ba8b177f0ff0eb750dc9469"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "f9c7d64a8f0af46d918468624645f2b8a0c999f828cd6b42737c07395627c765"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-src-ch32h417-wwdg.c",
+      "fileName": "./src/target/CH32H417/SRC/Peripheral/src/ch32h417_wwdg.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "f8c02752f11727350bdccd291ab4af1646f7b775"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "5a1fbf54fbaab8baa1d1dd1d2abb63fa317379ba4a93b9bf1c212c86517361a6"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Startup-startup-ch32h417-v3f.S",
+      "fileName": "./src/target/CH32H417/SRC/Startup/startup_ch32h417_v3f.S",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "a36a6c2c93cdab25dd8640c8e5d2f1cd16be81c4"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "a6482b14360d1eae7ba7346ed5ab553f578d741078c3f7b4f97c5b06f14f14c6"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Startup-startup-ch32h417-v5f.S",
+      "fileName": "./src/target/CH32H417/SRC/Startup/startup_ch32h417_v5f.S",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "5ba6152407e528d87c80039d8c4350fef36ca91a"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "7b2d724b62a2c4d0211ed24835b3bc4278111a79ee5db931d34816d2765d35af"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-conf.h",
+      "fileName": "./src/target/CH32H417/V3F/User/ch32h417_conf.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "53328c7fc502e202d1051ede92023e38082e6133"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "196a648dc6573a25c513af185bf1af67cf356dcff18a5ea6da8919f2e559088a"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-it.c",
+      "fileName": "./src/target/CH32H417/V3F/User/ch32h417_it.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "21c57f6d6bb2868f804f026649ad36d356a0ca80"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ccc300a53243908a958b118611f7e798dbee3d93abf835f8d38ad38bef2c2bb6"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-it.h",
+      "fileName": "./src/target/CH32H417/V3F/User/ch32h417_it.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7115ff0c4da4ea5b5c61fb650fad59c3fc60f22b"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6d42a4ab1b792cd4e5329a4b14b9f4c30b12fc3dfaf99c8fa006c843238e39fe"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-main.c",
+      "fileName": "./src/target/CH32H417/V3F/User/main.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "0068a64ab9abb50da4d494ecaed7248677475945"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "2e7edcffe74c53c5fe568a843a6879785fafe06818fefd507697ab3e12211ce6"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-system-ch32h417.c",
+      "fileName": "./src/target/CH32H417/V3F/User/system_ch32h417.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b2e1f72b81c6dd0827654ff3cbf73eeb758f6418"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "95da3c1582400922a609aba19ca8effedf189501efff7f3467f73c4b50f9b48c"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-system-ch32h417.h",
+      "fileName": "./src/target/CH32H417/V3F/User/system_ch32h417.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "8084b9b39ec0f7df3bf02801286348d6098e6202"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "04336926207067f546ddb56dd4a1808d18d4970fe58e65ba573f1e672139c261"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-conf.h",
+      "fileName": "./src/target/CH32H417/V5F/User/ch32h417_conf.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "53328c7fc502e202d1051ede92023e38082e6133"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "196a648dc6573a25c513af185bf1af67cf356dcff18a5ea6da8919f2e559088a"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-it.c",
+      "fileName": "./src/target/CH32H417/V5F/User/ch32h417_it.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "1a780796e7933772a72789873ffc8ba003391ac5"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "08d37e00f9d9338730c5527ca64c775ba983103b5518e9763fc5c40a8ffbd59b"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-it.h",
+      "fileName": "./src/target/CH32H417/V5F/User/ch32h417_it.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "7115ff0c4da4ea5b5c61fb650fad59c3fc60f22b"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "6d42a4ab1b792cd4e5329a4b14b9f4c30b12fc3dfaf99c8fa006c843238e39fe"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-main.c",
+      "fileName": "./src/target/CH32H417/V5F/User/main.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "d12af2730a1fec5ee963fcf3cbcb2504e23ea884"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "58fe79631ee2ace5ff169cff1afa41551b60d4c8320e597dd05a24c74272881c"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-sdio.c",
+      "fileName": "./src/target/CH32H417/V5F/User/sdio.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "e7b3f39c7ee4ea79fc11f6afff90e31805b99aef"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ccfed95dd068d77f1329a631f0d0f294a6a71995bcbc9c2ea8c2c897b4dcf150"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-sdio.h",
+      "fileName": "./src/target/CH32H417/V5F/User/sdio.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "b016751cf69e0399d8342b692a715f8e973f2660"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "8aa72795a4dc4a88255024c9891c86eacbd759b3ee28340e8beab6b1e81f7ecd"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-system-ch32h417.c",
+      "fileName": "./src/target/CH32H417/V5F/User/system_ch32h417.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4b6cfad8cf9719cdf0d2c2a103a762c30bcbc25f"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "bf117d7db62594f9a3e62b0f4116bd3c7c36a7240f764ffc1479e5dda5d0b219"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-system-ch32h417.h",
+      "fileName": "./src/target/CH32H417/V5F/User/system_ch32h417.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "1e6a675f3607d6e80051bb884a11bd07d3e65a39"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ccf9a651c7e0e28103a2acfd6b25cbf6ab656ddbda4879f4cb3cd8a09eb3f14a"
+        }
+      ],
+      "licenseConcluded": "LicenseRef-WCH-EVT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-desktop-unit-tests-unity-LICENSE.txt",
+      "fileName": "./src/target/desktop/unit_tests/unity/LICENSE.txt",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "6feb253aa04ec99560a9e21e201fdde206f2b342"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "ec6cf55f05ba2aa538b9677b2481b9ac14a87c63594fce8a0677d4f71c583980"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2007-26 Mike Karlesky, Mark VanderVoord, & Greg Williams"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-desktop-unit-tests-unity-unity.c",
+      "fileName": "./src/target/desktop/unit_tests/unity/unity.c",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "0c01ed0f36c4bd566cc912bb5f2f797abdd04123"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "c9b35a0467e3b2d4ea2ddb86925c322a67a2922aa1a48f732d1dc1237a5b998b"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2007-26 Mike Karlesky, Mark VanderVoord, & Greg Williams"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-desktop-unit-tests-unity-unity.h",
+      "fileName": "./src/target/desktop/unit_tests/unity/unity.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "f13df137207942d2902d274eeaa10f818f2223ec"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "5d8e2e8a0ae4b6e8a2dd55376a7b7064b3577e57ed6d58d3970aa18d5e954796"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2007-26 Mike Karlesky, Mark VanderVoord, & Greg Williams"
+    },
+    {
+      "SPDXID": "SPDXRef-File-src-target-desktop-unit-tests-unity-unity-internals.h",
+      "fileName": "./src/target/desktop/unit_tests/unity/unity_internals.h",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "253a863beec619a09373a2d98bf956831ad254c2"
+        },
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "7c47a4ca1d74a8f190c4481682c9bb318da8f5d74c8fcff72d13ac5438846cd8"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseInfoInFiles": [
+        "NOASSERTION"
+      ],
+      "copyrightText": "Copyright (c) 2007-26 Mike Karlesky, Mark VanderVoord, & Greg Williams"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-Package-LiteForth"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Monocypher"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-blake2s"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-WCH-CH32H417-EVT"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Unity"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-Unity",
+      "relationshipType": "TEST_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-LiteForth"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-Noto-Sans-CJK"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-python-cryptography"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-python-cryptography",
+      "relationshipType": "DEV_TOOL_OF",
+      "relatedSpdxElement": "SPDXRef-Package-LiteForth"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-python-pillow"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-python-pillow",
+      "relationshipType": "DEV_TOOL_OF",
+      "relatedSpdxElement": "SPDXRef-Package-LiteForth"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-python-fonttools"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-python-fonttools",
+      "relationshipType": "DEV_TOOL_OF",
+      "relatedSpdxElement": "SPDXRef-Package-LiteForth"
+    }
+  ]
+}

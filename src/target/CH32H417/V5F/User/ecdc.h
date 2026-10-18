@@ -28,12 +28,20 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
              const void *src, void *dst, uint32_t units, int div);
 
 /**
+ * ecdc_ctr with the byte order chosen: big nonzero sets DAT_MOD (what
+ * ecdc_ctr uses), zero leaves it clear. For `ecdc-test`.
+ */
+int ecdc_ctr_order(int cipher, const uint8_t key[16], const uint8_t counter[16],
+                   const void *src, void *dst, uint32_t units, int div, int big);
+
+/**
  * Forth word `ecdc-test`  ( -- )
- * Runs a 4 KB block through the engine (AES and SM4, two clock dividers,
- * out of place and in place) and through the software CTR of ctr.c, with
+ * Runs a 4 KB block through the engine (AES in both byte orders and in
+ * place, SM4) and through the software CTR of ctr.c, with
  * the sealed files' counter (ctr.h), and prints how many 16-byte units
- * match and how long each took. If they don't match, it says whether the
- * engine kept one counter for every unit or stepped it another way.
+ * match and how long each took. If none match, it says whether the
+ * engine kept one counter for every unit or stepped it another way, and
+ * prints units 0 and 1 (input, output, software keystream) in hex.
  * Returns 0.
  */
 int lfAPI_ecdcTest(void);

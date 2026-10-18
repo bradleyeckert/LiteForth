@@ -495,9 +495,24 @@ int serial_putc(char c) {
 #else
     if (comm_fd < 0) return ERR_TERM_TX_FAILED;
     unsigned char ch = (unsigned char)c;
-    ssize_t result = write(comm_fd, &ch, 1);
-    if (result == 1) {
-        return 0;
+    for (int waits = 0; waits < 30; ) {     // the fd is non-blocking: wait while it's full
+        ssize_t result = write(comm_fd, &ch, 1);
+        if (result == 1) {
+            return 0;
+        }
+        if (result < 0 && errno == EINTR) {
+            continue;
+        }
+        if (result >= 0 || (errno != EAGAIN && errno != EWOULDBLOCK)) {
+            break;
+        }
+        fd_set write_fds;
+        struct timeval timeout = {1, 0};
+        FD_ZERO(&write_fds);
+        FD_SET(comm_fd, &write_fds);
+        if (select(comm_fd + 1, NULL, &write_fds, NULL, &timeout) == 0) {
+            waits++;                        // nothing taken for a second
+        }
     }
     return ERR_TERM_TX_FAILED;
 #endif

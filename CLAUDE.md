@@ -241,7 +241,12 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   `ERR_VM_TIMEOUT` (`VM_STEP_LIMIT` steps without a `break`): the app is
   stopped and `loadTIB(int* length)` returns it for QUIT to report; otherwise
   `loadTIB` returns 0 or `ERR_TIB_OVERFLOW`. `core.f` puts the app's entry jump at code
-  cell 0 and the handler's at cell 2 with `,jump`.
+  cell 0 and the handler's at cell 2 with `,jump`; its handler empties the
+  stacks (`0 ]task`), sends output to the console (`con`), makes the task
+  ring just the operator (`multitask`), reports the error and parks the app
+  (`unit_tests/appstep/test_yeet.py`). The app is stepped (`loadTIB`,
+  `lf_putc` while the port is busy) only when `vmRunning()` is 0: never from
+  inside a word the terminal runs or the app's own API calls.
   `serial_ready` never blocks: in stdio mode a reader thread (`serial_io.c`,
   pthreads or Win32) reads fd 0 into a ring buffer, so the app runs while a
   line is being typed. It reads the fd, not the `stdin` stream, because a

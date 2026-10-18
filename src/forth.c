@@ -535,7 +535,8 @@ static uint32_t linecount = 0;
  * length (counting the NUL) in *length.
  *
  * While no input is waiting and the app is running (SYS_OPTION_RUNNING, set
- * by `cold`), the app's VM code runs from its PC until its next `break`.
+ * by `cold`), the app's VM code runs from its PC until its next `break`,
+ * unless VM code is running already (vmRunning: a word reading a line).
  * If it fails instead (an error or `yeet`), the VM sends it to its yeet
  * handler, and it keeps running from there: the app handles its own errors,
  * as on a Forth chip. The exception is running VM_STEP_LIMIT steps without a
@@ -568,7 +569,7 @@ static int loadTIB(int* length) {
 #ifdef yield2c
             yield2c(); // Yield to other tasks while waiting...
 #endif
-            if (g_lf_sys_options & SYS_OPTION_RUNNING) {
+            if ((g_lf_sys_options & SYS_OPTION_RUNNING) && !vmRunning()) {
                 int err = vmRun(0, VM_STEP_LIMIT, 0);
                 if (err == ERR_VM_TIMEOUT) {    // stuck: stop the app
                     g_lf_sys_options &= ~SYS_OPTION_RUNNING;

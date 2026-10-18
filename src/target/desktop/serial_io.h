@@ -66,7 +66,9 @@ int serial_getc(void);
 
 /**
  * Writes a single byte to stdout, or to the serial port if one is open.
- * Output to stdout is flushed immediately.
+ * Output to stdout is flushed immediately. A full port (the far end isn't
+ * reading) is waited for, giving up after 30 seconds in which it took
+ * nothing.
  * 
  * @param c The character byte code to transmit.
  * @return  0 on success, or ERR_TERM_TX_FAILED on error.

@@ -2,8 +2,8 @@
 
 Plan, 2026-10-17. Steps 1 to 4 of section 8 are done: BLAKE2s in `src/`,
 `scripts/sealblocks.py`, the desktop `lf` reading sealed files (`lf -K`),
-and the CH32H417 reading them with software AES and SM4 (tested on a
-nanoCH32H417, 2026-10-17). The ECDC engine and the anti-rollback minimums come next.
+and the CH32H417 reading them, with CTR on its ECDC engine since
+2026-10-18 (tested on a nanoCH32H417). The anti-rollback minimums come next.
 
 A sealed block file is an `lfblocks.fb4` whose content blocks are encrypted
 and signed, so the same file can go on every unit's card as a firmware
@@ -77,9 +77,10 @@ nonce (8 bytes, from block 0) || n * 256 (8 bytes, big-endian)
 and it counts up by one for each 16 bytes, which is how AES-CTR is
 normally defined (a 128-bit big-endian counter) and what Python's
 `cryptography` does. The count never reaches the nonce: that would take
-2^56 blocks. **Verify** how the ECDC engine increments its counter (all
-128 bits, or only the low 32; either works while n * 256 + 255 fits in 32
-bits, so up to 16 million blocks), and its byte order.
+2^56 blocks. The ECDC engine steps its counter by one per 16 bytes in its
+RAM-to-RAM mode, matching this for whole blocks (measured with
+`ecdc-test`; its byte order and other quirks are in
+[ch32h417-notes.md](ch32h417-notes.md)).
 
 The CEK is new for every release, and so is the nonce. A key and counter
 pair is therefore never used on two different plaintexts.
@@ -241,7 +242,7 @@ worth having.
 | Mounting and reading | `src/sealed.c`: `sealed_mount` checks block 0 and unwraps the CEK; `sealed_open_block` checks and decrypts each block as it's read. The targets' `blocks.c` call them |
 | BLAKE2s | `src/blake2s.c`, from [bradleyeckert/blake2s](https://github.com/bradleyeckert/blake2s), with `b2s_init` for salt and personalization |
 | X25519, Ed25519 check (with SHA-512) | `src/monocypher.c`, `src/monocypher-ed25519.c`: [Monocypher](https://monocypher.org) 4.0.2 (CC0 or BSD-2, `src/monocypher-LICENCE.md`), with one cast added for MSVC |
-| AES-128 / SM4 CTR | `src/ctr.c` in software; the ECDC engine on the CH32H417 (step 4) |
+| AES-128 / SM4 CTR | `src/ctr.c` in software; on the CH32H417 the ECDC engine (`V5F/User/ecdc.c`, through `ctr_hw_crypt`), checked once against software |
 | Protected storage for the board key and minimums | The security sector of [security-plan.md](security-plan.md) 5.1; a board file on the desktop (`lf -K`) |
 
 Built for RV32IMAC at `-Os` and linked with unused code dropped, all of
@@ -259,13 +260,14 @@ Counted in an RV32IMC emulator (clang `-Os`, instructions retired):
 | Reading a block: SM4-CTR of 4 KB, software | 0.50 million | 1.2 ms |
 | The first block under a hash table block: the table's BLAKE2s too | +0.49 million | +1.2 ms |
 
-The ECDC engine would take the CTR pass off the CPU, leaving the hash.
-
 On the nanoCH32H417 (V5F at 400 MHz, MounRiver's GCC at `-Os`): mounting
-took 18 ms, and reading 40 blocks that weren't in a buffer took 148 ms,
-3.7 ms a block including the card transfer. `1 load` built the whole
-dictionary from the sealed file, the blocks read back the same as the
-plain file's, and a write gave -96.
+took 18 ms. Reading 40 blocks that weren't in a buffer took 148 ms with
+software AES, 3.7 ms a block including the card transfer, and 55 ms with
+the ECDC engine, 1.4 ms a block: what's left is the BLAKE2s hash and the
+card. On the engine a 4 KB block takes 30 us of AES (35 of SM4); with the
+copies into and out of its aligned buffer, 112 us (software: 2.4 ms AES,
+0.8 ms SM4). `1 load` built the whole dictionary from the sealed file,
+the blocks read back the same as the plain file's, and a write gave -96.
 
 ## 5. On the PC
 
@@ -381,8 +383,8 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 4. CH32H417: X25519 and Ed25519, the board key in flash, `enroll`, and
    checking and decrypting each block after its DMA read. **Done**, with
    software AES and SM4 (`V5F/User/board.c`, `blocks.c`), to try on the
-   board. Tested on a nanoCH32H417. Still to do: CTR on the ECDC engine,
-   once a known-answer test shows how it counts.
+   board. Tested on a nanoCH32H417. CTR on the ECDC engine **done**
+   (`V5F/User/ecdc.c`, `ecdc-test`), 2026-10-18.
 5. Anti-rollback minimums, and key replacement.
 
 ## 9. Known holes, for later

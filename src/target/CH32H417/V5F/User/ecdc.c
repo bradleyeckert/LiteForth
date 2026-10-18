@@ -140,8 +140,10 @@ static int check_engine(int cipher) {
     int ok = ecdc_ctr(cipher == CTR_SM4 ? ECDC_SM4 : ECDC_AES, key, c, b, b, 16) == 0
              && memcmp(a, b, sizeof a) == 0;
     ctr_wipe(&k);
-    printf("V5F ecdc: %s %s\r\n", cipher == CTR_SM4 ? "SM4" : "AES-128",
-           ok ? "on the engine" : "failed its check: software from now on");
+    if (!ok) {                          /* only then: at 9600 baud a line costs 30 ms */
+        printf("V5F ecdc: %s failed its check: software from now on\r\n",
+               cipher == CTR_SM4 ? "SM4" : "AES-128");
+    }
     return ok;
 }
 

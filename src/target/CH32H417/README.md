@@ -142,16 +142,17 @@ print there; the lines appear in about this order:
 
 | Line | Means |
 |---|---|
-| `V3F SystemCoreClk:...` | V3F booted |
-| `V3F waiting for V5F` | V3F woke the V5F and went to sleep |
-| `V5F SystemCoreClk:...` | V5F booted; if this never comes, look at the V5F image (flashing) |
-| `V5F released HSEM0, running LiteForth` | V5F signalled the V3F |
-| `V3F wake up` | V3F woke from STOP |
-| `USB CDC bridge to V5F running on USBFS controller` | USB device started |
+| `V3F: starting the V5F` | V3F booted, woke the V5F and went to sleep |
+| `V3F: the V5F is running` | the V5F booted and released HSEM0, waking the V3F; if this never comes, look at the V5F image (flashing) |
+| `V3F: built ..., GCC ...` | the V3F's build time; USB device started |
+| `V5F crumbs: reset by ...` | why the chip reset, and how many crumbs the previous run left: listed after a watchdog, lockup or software reset, or always with `CRUMBS_TRAIL 1` (`V5F/User/crumbs.c`) |
+| `V5F: RTC failed ...` | only if the RTC didn't start |
 | `V5F blocks: ...` | what the V5F found on the SD card (see *Blocks*) |
 | `V5F: LiteForth starting, ...` | booting from flash, or flash is blank |
-| `USB address N` | the host reset the device and assigned an address |
-| `USB configured` | enumeration finished; the COM port should appear |
+| `V3F: USB configured` | enumeration finished; the COM port should appear |
+
+Each line costs about 1 ms per character at 9600 baud, and `printf` waits
+for the UART, so the boot prints only what tells you something.
 
 ### Debug output
 

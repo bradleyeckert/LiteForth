@@ -594,8 +594,6 @@ static uint32_t find(void) {
         limit = 0;
         printf("V5F blocks: a plain block file, but this build takes only sealed files (SEALED_ONLY)\r\n");
     }
-    printf("V5F blocks: map at %08lX, %u bytes\r\n", (unsigned long)(uintptr_t)&map,
-           (unsigned)sizeof map);
     return limit;
 }
 

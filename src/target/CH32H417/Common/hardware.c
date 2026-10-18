@@ -33,9 +33,8 @@
  */
 void Hardware(void)
 {
-    printf("Build Time: %s %s\r\n", __DATE__, __TIME__);
-    printf("GCC Version: %d.%d.%d\r\n",__GNUC__, __GNUC_MINOR__,__GNUC_PATCHLEVEL__);
-    printf("USB CDC bridge to V5F running on USBFS controller\r\n");
+    printf("V3F: built %s %s, GCC %d.%d.%d\r\n", __DATE__, __TIME__,
+           __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 	RCC_Configuration( );
 
     /* Tim2 init */
@@ -57,12 +56,11 @@ void Hardware(void)
         if( USBFS_DevAddr != addr )
         {
             addr = USBFS_DevAddr;
-            printf("USB address %d\r\n", addr);
         }
         if( USBFS_DevEnumStatus != configured )
         {
             configured = USBFS_DevEnumStatus;
-            printf("USB configured\r\n");
+            if( configured ) printf("V3F: USB configured\r\n");
         }
     }
 }

@@ -198,18 +198,18 @@ int main(void)
     SystemAndCoreClockUpdate();
     Delay_Init();
     USART_Printf_Init(9600);
-    printf("V5F SystemCoreClk:%d\r\n", SystemCoreClock);
     
 #if (Run_Core == Run_Core_V3FandV5F)
     HSEM_FastTake(HSEM_ID0);
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
-    printf("V5F released HSEM0, running LiteForth\r\n");
     lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
     crumbs_report();                    /* what happened before the last reset */
     crumb(TAG('B','O','O','T'), RCC->RSTSCKR, 0);
     int rtc = lfRtcInit();              /* the RTC (and an alarm wake-up mark) */
-    printf("V5F: RTC %s, %u s (BDCTLR %lX, RTC_CTLRL %X)\r\n", rtc ? "failed" : "running",
-           (unsigned)lfRtcGet(), (unsigned long)RCC->BDCTLR, (unsigned)RTC->CTLRL);
+    if (rtc) {
+        printf("V5F: RTC failed (BDCTLR %lX, RTC_CTLRL %X)\r\n",
+               (unsigned long)RCC->BDCTLR, (unsigned)RTC->CTLRL);
+    }
     lfRestartListen();                  /* Ctrl+X x3 on the terminal restarts us */
     LiteForth();
 

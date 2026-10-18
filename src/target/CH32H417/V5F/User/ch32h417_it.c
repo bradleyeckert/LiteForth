@@ -11,7 +11,6 @@
 *******************************************************************************/
 #include "ch32h417_it.h"
 #include "crumbs.h"                     /* LiteForth: notes that survive the reset */
-#include "pmptest.h"                    /* LiteForth: pmp-test's machine-mode part */
 
 void NMI_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
 void HardFault_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
@@ -70,12 +69,6 @@ void HardFault_Handler(void)
   __asm volatile ("csrr %0, mtval" : "=r"(mtval));
   __asm volatile ("mv %0, ra" : "=r"(ra));
   __asm volatile ("mv %0, sp" : "=r"(sp));
-  if (mcause == 8) {                    /* LiteForth: an ecall from user mode, by pmp-test */
-    pmp_test_m();
-    mepc += 4;                          /* past the ecall */
-    __asm volatile ("csrw mepc, %0" :: "r"(mepc));
-    return;
-  }
   crumb_log_t *c = CRUMBS;              /* a crumb by hand: no calls in here */
   if (c->magic == CRUMB_MAGIC) {
     crumb_t *e = &c->e[c->next % CRUMB_COUNT];

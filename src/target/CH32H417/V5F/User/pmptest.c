@@ -1,8 +1,9 @@
 /*
  * pmp-test (pmptest.h): the V5F's PMP and what it can reach.
  *
- * pmp_test_m runs in machine mode, inside HardFault_Handler (an ecall from
- * lfAPI_pmpTest), with interrupts off. It points mtvec at pmp_trap so an
+ * pmp_test_m runs in machine mode, inside Ecall_U_Mode_Handler (an ecall
+ * from lfAPI_pmpTest: vector 8, which WCH's start-up code otherwise points
+ * at a weak handler that loops forever), with interrupts off. It points mtvec at pmp_trap so an
  * access fault is counted instead of resetting the chip, and puts mtvec,
  * mepc and mstatus back at the end (a trap inside it overwrites them).
  *
@@ -339,13 +340,21 @@ void pmp_test_m(void) {
     say_cr();
 }
 
+/* An ecall from user mode, vector 8 of the V5F's table. A plain RISC-V
+   interrupt handler: it saves what it uses and ends with mret. */
+void Ecall_U_Mode_Handler(void) __attribute__((interrupt));
+void Ecall_U_Mode_Handler(void) {
+    uint32_t mepc = CSR_READ(mepc);
+    pmp_test_m();
+    CSR_WRITE(mepc, mepc + 4);                          /* past the ecall */
+}
+
 int lfAPI_pmpTest(void) {
     out_len = 0;
     out[0] = 0;
     mark("pmp: ecall\r\n");
-    /* Every caller-saved register clobbered: HardFault_Handler is a "fast"
-       handler that leaves saving them to the hardware stack (HPE), and if
-       HPE doesn't stack exceptions, pmp_test_m's calls change them */
+    /* Every caller-saved register clobbered, in case the handler's
+       saving of them and the hardware stack (HPE) don't cover them all */
     __asm volatile ("ecall" ::: "memory", "ra", "t0", "t1", "t2", "t3", "t4", "t5", "t6",
                     "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7");
     mark("pmp: back from the ecall\r\n");

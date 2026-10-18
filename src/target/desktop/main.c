@@ -13,6 +13,7 @@
 #include "errcodes.h"
 #include "main.h"
 #include "lftime.h"
+#include "board.h"
 
 extern uint32_t g_block_capacity;
 
@@ -43,7 +44,7 @@ int lfInitPointers(void) {
 
 static void usage(const char* prog) {
     fprintf(stderr, "Usage: %s [-t port_name] [-b baudrate] [-o options]"
-        " [-f flash_file] [-k blocks_file]\n", prog);
+        " [-f flash_file] [-k blocks_file] [-K board_file]\n", prog);
 }
 
 int main(int argc, char* argv[]) {
@@ -51,6 +52,8 @@ int main(int argc, char* argv[]) {
     int baudrate = 115200;
     char* flash_name = NULL;            // NULL: FLASHFILENAME
     char* blocks_name = NULL;           // NULL: BLOCKFILENAME
+    char* board_name = NULL;            // -K: a board file for sealed blocks
+    static sealed_board board;
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] != '-' || argv[i][1] == '\0' || argv[i][2] != '\0') {
@@ -59,7 +62,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         char opt = argv[i][1];
-        if (!strchr("tbofk", opt)) {
+        if (!strchr("tbofkK", opt)) {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             usage(argv[0]);
             return 1;
@@ -76,6 +79,7 @@ int main(int argc, char* argv[]) {
         case 'o': g_lf_sys_options = atoi(value);       break;
         case 'f': flash_name = value;                   break;
         case 'k': blocks_name = value;                  break;
+        case 'K': board_name = value;                   break;
         default:                                        break;
         }
     }
@@ -89,6 +93,14 @@ int main(int argc, char* argv[]) {
     // directory), which are created if they don't exist.
     int ior = flash_init(flash_name, &flash);
     if (ior) return ior;
+    if (board_name != NULL) {
+        char msg[200];
+        if (board_load(board_name, &board, msg, sizeof msg) != 0) {
+            fprintf(stderr, "Error: %s\n", msg);
+            return 1;
+        }
+        blk_set_board(&board);
+    }
     ior = blk_init(blocks_name, &g_block_capacity);
     if (ior) return ior;
     ior = serial_open(port_name, baudrate);

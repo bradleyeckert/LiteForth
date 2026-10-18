@@ -6,6 +6,9 @@
                                                    make a release key, certified by the root
     sealblocks.py board-key OUT [--uid HEX]        make a board key pair (for testing; a real
                                                    board makes its own) and print its boards.csv line
+    sealblocks.py lf-board OUT --board-key B --root ROOT.pub --product P
+                  [--min-revision N] [--min-serial N]
+                                                   write a board file for the desktop lf (-K)
     sealblocks.py seal PLAIN SEALED --release R --boards CSV --revision N [--cipher aes|sm4]
     sealblocks.py check SEALED --root ROOT.pub     check everything that needs no board key
     sealblocks.py open SEALED PLAIN --root ROOT.pub --board-key B
@@ -295,6 +298,22 @@ def cmd_board_key(a):
     print(f'{uid.hex()},{pub},{os.path.basename(a.out)}')
 
 
+def cmd_lf_board(a):
+    board = read_json(a.board_key, 'board')
+    uid = hexbytes(board, 'uid', 8, a.board_key)
+    priv = hexbytes(board, 'private', 32, a.board_key)
+    root = read_json(a.root, 'root')
+    pub = hexbytes(root, 'public', 32, a.root)
+    if os.path.exists(a.out) and not a.force:
+        raise SealError(f'{a.out} exists (use --force to replace it)')
+    with open(a.out, 'w') as f:
+        f.write('# lf -K board file: what a board keeps for sealed block files\n'
+                f'uid {uid.hex()}\nprivate {priv.hex()}\nroot {pub.hex()}\n'
+                f'product {a.product:#x}\nmin-revision {a.min_revision}\n'
+                f'min-serial {a.min_serial}\n')
+    print(f'{a.out}: board {uid.hex()} for lf -K')
+
+
 def cmd_seal(a):
     rel = read_json(a.release, 'release')
     rel_priv = Ed25519PrivateKey.from_private_bytes(hexbytes(rel, 'private', 32, a.release))
@@ -397,6 +416,14 @@ def main(argv=None):
     s.add_argument('out')
     s.add_argument('--uid', help='16 hex digits (default: random)')
     s.add_argument('--force', action='store_true')
+    s = sub.add_parser('lf-board', help='write a board file for the desktop lf (-K)')
+    s.add_argument('out')
+    s.add_argument('--board-key', required=True)
+    s.add_argument('--root', required=True, help='the root .pub file')
+    s.add_argument('--product', type=num, required=True)
+    s.add_argument('--min-revision', type=num, default=0)
+    s.add_argument('--min-serial', type=num, default=0)
+    s.add_argument('--force', action='store_true')
     s = sub.add_parser('seal', help='make a sealed file from a plain one')
     s.add_argument('plain')
     s.add_argument('sealed')
@@ -424,6 +451,7 @@ def main(argv=None):
         p.error('product must fit in 32 bits')
     try:
         {'root-key': cmd_root_key, 'release-key': cmd_release_key, 'board-key': cmd_board_key,
+         'lf-board': cmd_lf_board,
          'seal': cmd_seal, 'check': cmd_check, 'open': cmd_open}[a.cmd](a)
     except SealError as e:
         print(f'sealblocks: {e}', file=sys.stderr)

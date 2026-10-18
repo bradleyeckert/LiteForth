@@ -82,7 +82,12 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   the blocks onto that file as the board does (`src/card.c`), and the
   sector functions (`blk_sector_*`) reach the whole image, with writes
   fenced to the exFAT volume. `scripts/mkexfat.py` builds such images;
-  `unit_tests/exfat` uses them. Use `-o 3` when a test must keep going after errors.
+  `unit_tests/exfat` uses them. `-K board_file` gives lf a board's keys
+  for sealed block files (`doc/encrypted-blocks.md`; the file comes from
+  `sealblocks.py lf-board`, format in `board.h`): a block file or card
+  whose block 0 starts with `LITEFORTHS` is mounted read-only through
+  `src/sealed.c`, or offers capacity 0 without `-K` or if refused; stderr
+  says which. Use `-o 3` when a test must keep going after errors.
 - Compiling colon definitions needs `0 open-flash` first (as `forth/core.f`
   does); flash is write-protected otherwise and `:` fails with ior -20.
 - `open-flash` maps the flash page to a RAM buffer from the memory pool.
@@ -127,6 +132,9 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `src/exfat.c/.h` | A minimal exFAT reader (doc/exfat.md): `exfat_mount` finds the volume (MBR type 07, or at sector 0) and the allocation bitmap, `exfat_find` finds a name in a directory (NameHash, SetChecksum, ASCII case-insensitive) and checks contiguity. Reads only, through a sector-read callback |
 | `src/card.c/.h` | `card_find_blocks`: the block space on a card is `lfblocks.fb4` in the exFAT root, if contiguous (capacity = ValidDataLength / 4096, writable with the signature). Shared by both targets' `blocks.c`; `unit_tests/exfat` tests both files on `mkexfat.py` images, plus `lf` itself (`run_lf.sh`) |
 | `src/blake2s.c/.h` | BLAKE2s (RFC 7693), a copy of [bradleyeckert/blake2s](https://github.com/bradleyeckert/blake2s) (keep them the same): `b2s_init` (key, salt, personalization, matching Python's `hashlib.blake2s`), `b2s_putc`/`b2s_puts`, `b2s_final`. For sealed block files (`doc/encrypted-blocks.md`); `unit_tests/blake2s` checks it against hashlib vectors |
+| `src/sealed.c/.h` | Sealed block files (`doc/encrypted-blocks.md`): `sealed_mount` checks block 0 (fields, certificate, signature, minimums) against a `sealed_board` and unwraps the content key; `sealed_open_block` checks a block against its hash table entry and decrypts it. The desktop `blocks.c` calls them (`lf -K`, `board.c`); `unit_tests/sealed` drives `lf` with files from `sealblocks.py`. `unit_tests/blkrun` and `exfat` link it with its dependencies |
+| `src/ctr.c/.h` | AES-128 and SM4 in software and the sealed files' CTR mode (counter `nonce \|\| n*256 + i`); `unit_tests/ctr` |
+| `src/monocypher*.c/.h` | [Monocypher](https://monocypher.org) 4.0.2, unmodified (CC0 or BSD-2, `src/monocypher-LICENCE.md`): X25519 and, from its optional `monocypher-ed25519.c`, Ed25519 with SHA-512 |
 | `src/xmodem.c/.h` | `xmodem`: receives a source file by XMODEM (checksum) over the terminal and writes it into blocks like `putblocks.py` (`lfBlockBuffer` in lfblocks.c, `unit_tests/xmodem` drives it with a Python sender) |
 | `src/target/desktop/` | Host `main.c`, `options.h` (all tunables), file-backed flash and blocks, serial I/O, and `lcd.c`: a simulated graphic LCD (`lcd-init` with a 16-color palette, `lcd-tx`, `lcd-decode` for font pixel codes) with an ST7789 model behind a bus interface, shown in a Win32 or X11 window (the makefile links `-lgdi32`, or `-lX11` with `-DLCD_X11` when pkg-config finds x11; otherwise `lcd_init` gives -21). `unit_tests/lcd` tests the model headless (`LCD_HEADLESS`); `make demo` there opens the window. Controller 1 is an IPS panel (colors inverted until INVON), like the board's module. The V5F's `lcd.c` drives the nanoCH32H417's LCD connector (ST7789 on SPI2: PB13/PB15, CS PB12, D/C PD9, RES PD8) |
 | `src/target/STM32H743/` | MCU target code (not built by the makefile) |
@@ -140,7 +148,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `scripts/mkexfat.py` | Builds small exFAT card images for tests: MBR (or `--no-mbr`), boot regions with checksum, FAT, bitmap, up-case table, root directory, and `--file NAME[=SRC][,frag,fat,valid=N,pad=N,deleted,badsum,dir,nosig,size=N]` |
 | `scripts/putbin.py` | Writes a binary file (a font from `mkfont.py`) into blocks as one stream from byte 32 of the given block (bytes 0-31 zeros, kept for an HMAC; the last block zero-filled), prints the next free block, and warns about font glyphs that cross a block. Same signature and block 0 rules as `putblocks.py` (`unit_tests/putbin`) |
 | `scripts/getblocks.py` | The reverse: dumps a block file as text (stdout or `-o`), writing a `( BLOCK n )` marker before each non-blank block, and a binary block (`putbin.py`) as one `( BLOCK IGNORE ) block n: binary, crc32 ...` line that `putblocks.py` skips. `putblocks.py` writes the dump back byte for byte. Also the git diff driver for `*.fb4` (`.gitattributes`): run `git config diff.fb4.textconv "python3 scripts/getblocks.py -0"` once per clone so `git diff` shows blocks as text; GitHub can't use it and collapses `.fb4` diffs |
-| `scripts/sealblocks.py` | Sealed block files (`doc/encrypted-blocks.md`): `root-key`, `release-key`, `board-key` (test boards), `seal`, `check`, `open`. Needs `cryptography`; `unit_tests/seal` (skipped without it) tests round trips, the layout and every refusal |
+| `scripts/sealblocks.py` | Sealed block files (`doc/encrypted-blocks.md`): `root-key`, `release-key`, `board-key` (test boards), `lf-board` (a board file for `lf -K`), `seal`, `check`, `open`. Needs `cryptography`; `unit_tests/seal` (skipped without it) tests round trips, the layout and every refusal |
 
 ## Conventions
 

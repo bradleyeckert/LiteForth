@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "options.h"
+#include "sealed.h"
 
 #define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
 #define BLK_MAX_LENGTH           8   /* most blocks one blk_*_imm call moves */
@@ -26,7 +27,11 @@
  * volume holding lfblocks.fb4), the blocks are in that file, as the
  * CH32H417 finds them on its microSD card; else only block 0 is offered,
  * read-only. On Windows, the card's own file works as a plain block file:
- * `lf -k F:\lfblocks.fb4`.
+ * `lf -k F:\lfblocks.fb4`. Either kind may hold a sealed file (block 0
+ * starts with SEALED_MAGIC): then, with the board set by blk_set_board,
+ * it's mounted read-only (sealed.c), its content blocks checked and
+ * decrypted as they're read; without a board, or if the board refuses it,
+ * the capacity is 0. A line on stderr says which.
  * filename: the block file, or NULL or "" for BLOCKFILENAME.
  * capacity: if not NULL, receives the number of blocks (1 or 0 for a file
  * without the signature).
@@ -34,6 +39,14 @@
  * created or read.
  */
 int blk_init(char *filename, uint32_t *capacity);
+
+/**
+ * Sets what the simulated board holds for sealed block files (lf -K):
+ * its key, the root public key, product and minimums. Call before
+ * blk_init; board must stay valid. NULL: no board, so sealed files can't
+ * be read.
+ */
+void blk_set_board(const sealed_board *board);
 
 /**
  * Reads a single 4KB block payload into the destination buffer, and waits

@@ -1,7 +1,8 @@
 # Sealed block files: encrypted, signed lfblocks.fb4
 
-Plan, 2026-10-17. Steps 1 and 2 of section 8 are done: BLAKE2s in `src/`
-and `scripts/sealblocks.py`. The boards can't read sealed files yet.
+Plan, 2026-10-17. Steps 1 to 3 of section 8 are done: BLAKE2s in `src/`,
+`scripts/sealblocks.py`, and the desktop `lf` reading sealed files
+(`lf -K`). The CH32H417 can't read them yet.
 
 A sealed block file is an `lfblocks.fb4` whose content blocks are encrypted
 and signed, so the same file can go on every unit's card as a firmware
@@ -212,16 +213,19 @@ worth having.
 
 ### What the board needs in code
 
-| Part | Size (to measure) | Source |
-|---|---|---|
-| BLAKE2s | 1.5 KB | [bradleyeckert/blake2s](https://github.com/bradleyeckert/blake2s), with `b2s_init` for salt and personalization |
-| X25519 | Several KB | Monocypher (CC0/BSD-2), or TweetNaCl (smaller, slower) |
-| Ed25519 check, with SHA-512 | Several KB | Same library |
-| AES-128 / SM4 CTR | Small | The ECDC engine; a software AES for the desktop build |
-| Protected storage for the board key and minimums | | The security sector of [security-plan.md](security-plan.md) 5.1 |
+| Part | Source |
+|---|---|
+| Mounting and reading | `src/sealed.c`: `sealed_mount` checks block 0 and unwraps the CEK; `sealed_open_block` checks and decrypts each block as it's read. The targets' `blocks.c` call them |
+| BLAKE2s | `src/blake2s.c`, from [bradleyeckert/blake2s](https://github.com/bradleyeckert/blake2s), with `b2s_init` for salt and personalization |
+| X25519, Ed25519 check (with SHA-512) | `src/monocypher.c`, `src/monocypher-ed25519.c`: [Monocypher](https://monocypher.org) 4.0.2 (CC0 or BSD-2, `src/monocypher-LICENCE.md`) |
+| AES-128 / SM4 CTR | `src/ctr.c` in software; the ECDC engine on the CH32H417 (step 4) |
+| Protected storage for the board key and minimums | The security sector of [security-plan.md](security-plan.md) 5.1; a board file on the desktop (`lf -K`) |
 
-X25519 and the two signature checks run once per startup: tens of
-milliseconds at most, to measure.
+Built for RV32IMAC at `-Os` and linked with unused code dropped, all of
+it takes about 22 KB of code, with software AES and SM4. Its RAM is
+static: 8 KB in `sealed.c` (block 0 and the last hash table block) plus a
+4 KB buffer in `blocks.c` at mount. X25519 and the two signature checks
+run once per mount: to measure on the board.
 
 ## 5. On the PC
 
@@ -242,11 +246,38 @@ lines are comments. Key files are JSON, and `.key` files hold private
 keys. `unit_tests/seal` tests the script: round trips with AES and SM4,
 the layout against the formulas above, and each refusal.
 
-The desktop `lf` gets a board key file (an option like `-K`, beside
-`-k`), so the whole path can be tested with `make test`: seal a copy of
-the test blocks for a made-up board, mount it, `1 load`, and check that
-a flipped bit, a wrong board, an old revision and a bad signature are
-each refused.
+### The desktop lf
+
+`lf -K board.lfb` gives the desktop what a board keeps: its UID and X25519
+private key, the root public key, its product ID and the two minimums, in
+a text file that `sealblocks.py lf-board` writes (format in
+`src/target/desktop/board.h`):
+
+```
+python3 scripts/sealblocks.py lf-board a.lfb --board-key a.key --root root.pub --product 0x4C46
+./bin/lf -k sealed.fb4 -K a.lfb
+```
+
+A file whose block 0 starts with `LITEFORTHS` is then mounted as a board
+would mount it, read-only, and stderr says how it went:
+
+```
+blocks: sealed file, revision 5, release key 1, AES-128, 121 blocks
+blocks: sealed file refused: this board isn't one of its recipients
+```
+
+A refused file, or one opened without `-K`, has capacity 0. A block that
+fails its hash reads as zeros with error -33, and any write gives -96.
+The same works for a sealed `lfblocks.fb4` inside a card image.
+
+`unit_tests/sealed` seals a copy of `bin/lfblocks.fb4` for a made-up
+board, with AES and SM4, as a file and in a card image, and checks that
+`lf -K` loads `core.f` from it and reads every block as from the plain
+file. It also checks each refusal: no board file, a board that isn't a
+recipient, newer minimums, another product or root, a changed header,
+version or length, a damaged block or hash table, and writes.
+`unit_tests/ctr` checks AES-128 and SM4 against their standard test
+vectors and the CTR mode against the `cryptography` package.
 
 ## 6. Running it
 
@@ -302,7 +333,8 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 2. `sealblocks.py`, with its own round-trip tests (`unit_tests/seal`).
    **Done.**
 3. Desktop `lf`: mount and read sealed files (software AES), with the
-   failure tests in section 5.
+   failure tests in section 5. **Done** (`src/sealed.c`, `src/ctr.c`,
+   `lf -K`, `unit_tests/ctr`, `unit_tests/sealed`).
 4. CH32H417: ECDC CTR decryption after the DMA read, X25519 and Ed25519,
    the board key in protected flash, `enroll`.
 5. Anti-rollback minimums, and key replacement.

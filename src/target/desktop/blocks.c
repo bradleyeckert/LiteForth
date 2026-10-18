@@ -4,6 +4,7 @@
 #include "blocks.h"
 #include "card.h"
 #include "errcodes.h"
+#include "sealed.h"
 
 /*
  * The block device is one of:
@@ -32,6 +33,17 @@ static uint32_t actual_blocks = 0;
 
 /* Block 0 starts with BLK_SIGNATURE, so the blocks can be written */
 static int writable = 0;
+
+/* A sealed file is mounted: its content blocks are checked and decrypted
+   as they're read (sealed.c), and nothing can be written */
+static int sealed = 0;
+
+/* What this simulated board holds for sealed files (blk_set_board), or NULL */
+static const sealed_board *board = NULL;
+
+void blk_set_board(const sealed_board *b) {
+    board = b;
+}
 
 /* Creates a blank block file: SIMNUMBLOCKS blocks of spaces, with the
    signature at the start of block 0. Returns 0 or an error code. */
@@ -90,6 +102,34 @@ static int write_now(uint32_t lba, uint32_t *src, int count) {
     return (put == want) ? 0 : ERR_BLK_WRITE_FAIL;
 }
 
+/* sealed.c's raw block reader, for the hash table blocks */
+static int raw_block(uint32_t blk, uint8_t *buf) {
+    return read_now(base + blk * SECTORS_PER_BLOCK, (uint32_t *)buf, SECTORS_PER_BLOCK);
+}
+
+/* If the blocks found so far (file_blocks of them, from sector base) are a
+   sealed file, mounts it and offers its content, read-only; if it can't
+   be mounted, offers nothing. Leaves other files alone. */
+static void check_sealed(uint32_t file_blocks) {
+    static uint8_t b0[BLK_SIZE_BYTES];
+    if (file_blocks == 0 || raw_block(0, b0) != 0
+        || memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
+        return;
+    }
+    char msg[120];
+    writable = 0;
+    actual_blocks = 0;
+    if (board == NULL) {
+        fprintf(stderr, "blocks: a sealed file, but lf has no board file (-K)\n");
+    } else if (sealed_mount(b0, file_blocks, board, raw_block, msg, sizeof msg) == 0) {
+        sealed = 1;
+        actual_blocks = sealed_blocks();
+        fprintf(stderr, "blocks: %s\n", msg);
+    } else {
+        fprintf(stderr, "blocks: %s\n", msg);
+    }
+}
+
 /* card.c's sector reader, for a card image */
 static int card_read(uint32_t sector, uint8_t *buf) {
     if (sector >= dev_sectors) {
@@ -105,6 +145,8 @@ int blk_init(char* filename, uint32_t* capacity) {
     strncpy(active_blk_filename, target_file, sizeof(active_blk_filename) - 1);
     actual_blocks = 0;
     writable = 0;
+    sealed = 0;
+    sealed_unmount();
     mode = MODE_FILE;
     base = 0;
     dev_sectors = 0;
@@ -144,12 +186,24 @@ int blk_init(char* filename, uint32_t* capacity) {
             actual_blocks = map.blocks;
             writable = map.writable;
             fprintf(stderr, "blocks: %s\n", msg);
+            if (writable) {
+                check_sealed(actual_blocks);
+            }
         } else {
             // Block 0 can be read, if it's all there
             memset(&map, 0, sizeof map);
             actual_blocks = (file_len >= (long)BLK_SIZE_BYTES) ? 1 : 0;
         }
     } else {
+        actual_blocks = (uint32_t)(file_len / BLK_SIZE_BYTES);
+        writable = 1;
+        check_sealed(actual_blocks);
+        if (!writable) {                // sealed: never padded or written
+            if (capacity != NULL) {
+                *capacity = actual_blocks;
+            }
+            return 0;
+        }
         // Pad the file with spaces to a whole number of blocks
         long remainder = file_len % BLK_SIZE_BYTES;
         if (remainder != 0) {
@@ -249,6 +303,12 @@ int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
         return err;
     }
     status = read_now(base + blk * SECTORS_PER_BLOCK, dest, length * SECTORS_PER_BLOCK);
+    for (int i = 0; sealed && status == 0 && i < length; i++) {
+        status = sealed_open_block(blk + i, (uint8_t *)dest + i * BLK_SIZE_BYTES);
+        if (status) {                   // leave no ciphertext behind either
+            memset((uint8_t *)dest + i * BLK_SIZE_BYTES, 0, (size_t)(length - i) * BLK_SIZE_BYTES);
+        }
+    }
     return 0;
 }
 

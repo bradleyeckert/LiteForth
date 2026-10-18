@@ -198,6 +198,10 @@ points:
   the last word of its first units wrong by a fixed difference (4 units at
   divider 1, 7 at divider 2), as if the last round key wasn't ready; SM4
   didn't. A pause after the flag fixes it (20 us tested; `ecdc.c` waits 5).
+- **Align its buffers** (to be confirmed): 32-byte aligned buffers worked
+  every time; the first check on plain `uint32_t` arrays (4-byte aligned)
+  failed, and the board hung a little later, as if the engine had written
+  outside them. `ecdc.c` now copies each block into an aligned buffer.
 - **Key expansion isn't reliable without a reset.** After a reset through
   `RCC_HB2PRSTR` it ran every time (`INT_FG` bit 16, EKDONE, set). Without
   one, successive expansions alternated between running and silently not

@@ -112,18 +112,25 @@ Each slot starts with the 4 KB header of the package that installed it
 
 Written only by stage 0 and stage 1. Two copies, so a power cut during an
 erase or a write never loses the record: each copy has a sequence number
-and a BLAKE2s MAC under the device token; the newer valid copy wins, and a
-write always goes to the other one.
+and a BLAKE2s hash (person `LFrecord`); the newer valid copy wins, and a
+write always goes to the other one (even sequence numbers in copy A, odd
+in B). The hash only catches a torn write. It can't be a MAC under the
+token, because the token is in the record: whoever can read the record
+can forge its MAC. What keeps the record safe is that nothing but the
+boot stages can write the sector (section 8).
+
+`src/update.c` keeps it (`upd_record` in `update.h`); the fields so far:
 
 | Field | Contents |
 |---|---|
 | Magic, format, sequence | |
 | Device token | 32 bytes (section 4) |
-| Stage 1 | Current slot; each slot's version and state (empty, on trial, confirmed) |
+| Stage 1 | Current slot; each slot's version and state (empty, on trial, confirmed). Not yet in `update.c` |
 | V5F image | Version, length, MAC |
-| Minimums | Lowest version allowed for stage 1 and for the V5F image; lowest release key serial |
-| Update state | Nothing, package waiting, installing (and how far), on trial (and boots so far), rolled back (and why) |
-| Results | The last update's outcome, for `attest` and the terminal |
+| Minimums | Lowest version allowed for the V5F image (and later stage 1); lowest release key serial |
+| Update state | Idle, backing up, installing (blocks done), on trial (boots so far), rolling back (blocks done); the package under way (version, length, hash, new minimum) |
+| Backup | What `lfbackup.bin` holds: version, length, MAC |
+| Results | The last update's outcome (installed, refused, no room for a backup, rolled back, broken), for `attest` and the terminal |
 
 ## 4. The device token
 
@@ -137,14 +144,19 @@ board's X25519 key.
 Each use gets its own key, so one never reveals another:
 
 ```
-K_rec    = BLAKE2s(key=token, person="LFrecord")   security sector MACs
 K_img    = BLAKE2s(key=token, person="LFimage")    V5F image MAC (and stage 1's, if wanted)
 K_encard = BLAKE2s(key=token, person="LFcardenc", digest_size=16)   AES on card files
 K_maccard= BLAKE2s(key=token, person="LFcardmac")  MACs on card files
 ```
 
-The token protects what the board itself writes: the record, the MAC of
-the installed image, and backups on the card. It isn't needed for update
+The image MAC is `BLAKE2s(key=K_img, person="LFimgmac")` over the
+version (4 bytes), the length (4 bytes) and the image. The backup's MAC
+is `BLAKE2s(key=K_maccard, person="LFbackup")` over every block of
+`lfbackup.bin` as written: block 0 (`LFBACKUP`, version, length, a random
+8-byte CTR nonce) and the image encrypted with AES-128-CTR under K_encard.
+
+The token protects what the board itself writes: the MAC of the
+installed image, and backups on the card. It isn't needed for update
 packages, which the release key signs.
 
 ## 5. The update package
@@ -211,6 +223,28 @@ system:
 A new stage 1 goes into the other slot instead: phase C isn't needed, and
 the trial is stage 0 starting the new slot, with the old slot as the
 fallback.
+
+`src/update.c` does phases B to F for the V5F image (`upd_boot`, and
+`upd_confirm` for the confirmation), through callbacks for the flash and
+the two card files, so it runs on the desktop. `unit_tests/update` tests
+it with simulated flash and packages from `sealblocks.py package`:
+installing, confirming, the minimum, rolling back, restoring a changed
+image from the backup, every refusal, a block changed between the check
+and programming, a package swapped mid-install, and a power cut (a torn
+write or half-erased sector) at every single step of an install and of a
+rollback. After any cut the board ends up running exactly the old image
+or the new one.
+
+Three rules came out of writing it:
+
+- A rollback never restores a backup older than the board's minimum: it
+  records "broken" and goes to recovery instead.
+- An image on trial with no backup (the first install on a board with
+  nothing installed) just stays when its trial runs out, since there's
+  nothing to go back to.
+- A board with a blank record (fresh from a debugger) has no installed
+  image, so stage 1 goes to recovery. `adopt_blank`, for development
+  only, takes whatever is in the V5F slot as installed instead.
 
 Power cuts: every phase records its progress in the security sector before
 it starts. Phase D resumes from the block it reached, since `lfstage.bin`
@@ -323,7 +357,9 @@ RDP 0:
    flash and the card through callbacks (as `sealed.c` reads blocks), with
    unit tests: every refusal, a power cut at every step of every phase,
    both copies of the security sector, rollback, recovery. `sealblocks.py
-   package` and its tests. `unit_tests/vmasm`'s RV32 emulator runs the
+   package` and its tests. Done for the V5F image (`src/update.c`,
+   `unit_tests/update`); still to do: stage 0, a new stage 1 into its
+   other slot, and recovery over USB. `unit_tests/vmasm`'s RV32 emulator runs the
    V3F code as built, for size and speed.
 2. **This board, RDP 0, no WRPR.** Phases A-F for real, then recovery.
    Anything that goes wrong is fixed with the WCH-Link.

@@ -128,7 +128,7 @@
 ( -- )                          \ Make the headers that follow temporary, until `-heads` drops them.
 ( -- )                          \ Make the headers that follow permanent; temporary words stay usable.
 ( -- )                          \ Drop the temporary headers, ending the scope of their words.
-( -- )                          \ Receive a source file by XMODEM (checksum) and write it into blocks, as putblocks.py does.
+( n -- )                        \ Receive files by YMODEM: source by its ( BLOCK ) tags if n=0, else binary from block n.
 ( w h ctrl palette -- )         \ Open a w x h pixel LCD panel (ctrl 0: ST7789); palette: the cell address of 16 RGB565 colors.
 ( BLOCK 6 )
 ( LiteForth internal glossary lines 193 to 223 ________________ 10/13/26 BNE )

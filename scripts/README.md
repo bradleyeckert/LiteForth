@@ -48,8 +48,9 @@ cd forth
 py ../scripts/putblocks.py core.f ../bin/lfblocks.fb4
 ```
 
-On the board, the `xmodem` word does the same with a file sent over the
-terminal.
+On the board, `0 ymodem` does the same with a file sent over the
+terminal (kwai: `~x core.f`), and `100 ymodem` does what `putbin.py`
+does.
 
 ## getblocks.py
 

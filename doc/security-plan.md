@@ -21,7 +21,7 @@ In scope:
   application in flash pages 0-3.
 - Content loaded at run time: NOR flash blocks (source, fonts, data).
 - The update path: an update file on a microSD card; USB CDC (kwai,
-  XMODEM) for service.
+  YMODEM) for service.
 - The factory: provisioning computers, signing, the device database.
 
 Out of scope for now (say so in the threat model): invasive attacks (decap,
@@ -351,7 +351,7 @@ copy in staging, which stage 0 then refuses. It can't get code run.
 #### The same path over USB
 
 Service updates over the USB terminal use the same phases: kwai's `~x`
-sends the package by XMODEM, LiteForth writes it into NOR staging instead
+sends the package by YMODEM, LiteForth writes it into NOR staging instead
 of into blocks, and phases B and C are unchanged. kwai needs no secrets.
 It could check the signature before sending, just to catch a wrong file
 early.

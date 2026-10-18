@@ -99,7 +99,7 @@ int lfAssignBlock(uint32_t blk, int32_t* f_addr);
 
 /**
  * Assigns a RAM buffer to block blk without reading the block, as BUFFER
- * does, and makes it the buffer that `update` marks. Used by `xmodem` to
+ * does, and makes it the buffer that `update` marks. Used by `ymodem` to
  * fill blocks that it overwrites completely.
  *
  * @param blk Block number.

@@ -423,8 +423,10 @@ How it works:
 
 1. The V3F's bridge (`Common/cdc_bridge.c`) counts consecutive `0x18`
    bytes as it copies input into the rx ring. The bytes still go to the
-   V5F, so a single Ctrl+X is an ordinary character. (Three CANs in a
-   row is also XMODEM's cancel sequence.)
+   V5F, so a single Ctrl+X is an ordinary character. While `ymodem`
+   receives a file, the V5F sets `binary` in the shared memory
+   (`serial_binary`) and the V3F doesn't count them: the file may hold any
+   bytes.
 2. On the third, the V3F sets `safe_boot` in the shared memory to
    `CDC_SAFE_BOOT_MAGIC` and takes and releases HSEM1.
 3. The V5F's `HSEM_Handler` (`V5F/User/main.c`) jumps to its reset entry,

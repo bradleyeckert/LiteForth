@@ -73,6 +73,16 @@ int serial_getc(void);
  */
 int serial_putc(char c);
 
+/**
+ * Says whether the bytes from the terminal are data (on nonzero), as
+ * during a YMODEM transfer, rather than keystrokes. On the desktop it does
+ * nothing. On the CH32H417 it turns the V3F's Ctrl+X x3 escape off while
+ * on, so three 0x18 bytes in a file don't restart the V5F.
+ *
+ * @param on 1 at the start of a transfer, 0 at its end.
+ */
+void serial_binary(int on);
+
 #ifdef __cplusplus
 }
 #endif

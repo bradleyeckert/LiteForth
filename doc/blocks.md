@@ -49,39 +49,54 @@ cjk24.fnt: 107974 bytes at byte 32 of block 100: blocks 100-126, next free block
 Like `putblocks.py`, it needs a signed block file and never
 writes block 0. `getblocks.py` shows each binary block as one
 `( BLOCK IGNORE ) block n: binary, crc32 ...` line, which `putblocks.py`
-skips, so a dump written back leaves the binary blocks alone. `xmodem`
-only takes text, so to get binary data onto the board, write it into the
-block file on the PC and copy that to the card ([sdcard.md](sdcard.md)),
-or write it straight into the card's own `lfblocks.fb4`.
+skips, so a dump written back leaves the binary blocks alone. On the
+board, `100 ymodem` does the same with a file sent over the terminal (see
+below).
 
-### Sending source over the terminal: `xmodem`
+### Sending files over the terminal: `ymodem`
 
-`xmodem` receives a source file over the terminal connection and writes it
-into blocks, the way `putblocks.py` does on the PC: the same
-`( BLOCK n )`, `( BLOCK++ )` and `( BLOCK IGNORE )` markers, each line a
-128-column row, text before the first marker ignored. It works with any
-terminal program that can send a file with XMODEM (the original protocol,
-8-bit checksum; 1K packets are accepted too).
+`ymodem ( n -- )` receives files over the terminal connection by YMODEM
+and writes them into blocks. YMODEM sends each file's name and length
+first, so the board keeps exactly the file's bytes, and it can send
+several files in one go (a batch).
 
-With RealTerm on the board's USB serial port:
+- **`0 ymodem`: Forth source**, written the way `putblocks.py` does: the
+  same `( BLOCK n )`, `( BLOCK++ )` and `( BLOCK IGNORE )` markers, each
+  line a 128-column row, text before the first marker ignored. This is
+  the quick way to load a few blocks during development.
+- **`100 ymodem`: binary**, written the way `putbin.py` does: from byte 32
+  of block 100 on, the first 32 bytes zeros and the rest of the last block
+  zeros. The next file of a batch starts in the block after. A font goes
+  onto the board this way.
 
-1. Type `xmodem` and Enter. LiteForth says
-   `xmodem: send the file now (XMODEM, checksum)` and waits up to a minute.
-2. On RealTerm's *Send* tab, choose the file (`forth/core.f`, say), set the
-   protocol to XMODEM with checksum, and send it.
-3. When the transfer ends, LiteForth lists the blocks it wrote, for example
-   `xmodem: 16 blocks written: 7 8 9 ...`. Then `1 load` or `7 load` as
-   usual.
+From kwai, `~x core.f` types `0 ymodem` and sends the file, and
+`~x cjk24.fnt 100` types `100 ymodem` and sends the font. With another
+terminal program, type the word, then send the file(s) with YMODEM (in
+Tera Term: *File > Transfer > YMODEM > Send*). LiteForth asks for the
+first file for up to a minute, and reports each file when the transfer
+ends, for example
 
-Each block is filled in a block buffer and written (`update save-buffers`)
-when the next marker or the end of the file arrives. `putblocks.py` checks
-the whole file before writing anything; `xmodem` writes as it goes. At the
-first problem, such as a line longer than 128 bytes, more than 32 lines in
-a block, block 0, or a block past the end of the storage, it stops writing
-but receives the rest of the transfer, then reports the line, for example
+```
+ymodem: core.f: 16 blocks written: 7 8 9 ...
+ymodem: cjk24.fnt: 107974 bytes from byte 32 of block 100 to block 126, next free block 127
+```
+
+Then `1 load` or `7 load` as usual.
+
+For source, each block is filled in a block buffer and written
+(`update save-buffers`) when the next marker or the end of the file
+arrives. `putblocks.py` checks the whole file before writing anything;
+`ymodem` writes as it goes. At the first problem, such as a line longer
+than 128 bytes, more than 32 lines in a block, block 0, or a block past
+the end of the storage, it stops writing that file but receives the rest,
+then reports the line, for example
 `line 4, block 21: line is longer than 128 bytes; nothing written from there on`,
 and the word fails with -124. Blocks before that point stay written. A
-transfer that fails or that the sender cancels gives -123.
+binary file that wouldn't fit before the end of the storage isn't written
+(-92). A transfer that fails or that the sender cancels gives -123.
+
+On the CH32H417, the V5F turns off the Ctrl+X x3 escape while `ymodem`
+runs, since a binary file may hold three 0x18 bytes in a row.
 
 In UTF-8 text, you will never see a 0xFF. The interpreter replaces 0xFF with `' '`.
 

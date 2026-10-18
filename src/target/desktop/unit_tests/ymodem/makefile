@@ -1,4 +1,4 @@
-# xmodem test: a Python XMODEM sender drives the lf executable
+# ymodem test: a Python YMODEM sender drives the lf executable
 
 LF = ../../../../../bin/lf
 

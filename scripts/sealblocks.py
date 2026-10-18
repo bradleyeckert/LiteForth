@@ -4,8 +4,11 @@
     sealblocks.py root-key ROOT                    make root key pair ROOT.key, ROOT.pub
     sealblocks.py release-key ROOT.key SERIAL OUT --product P
                                                    make a release key, certified by the root
-    sealblocks.py board-key OUT [--uid HEX]        make a board key pair (for testing; a real
-                                                   board makes its own) and print its boards.csv line
+    sealblocks.py board-key OUT [--uid HEX] [--insecure]
+                                                   make a board key pair (for testing; a real
+                                                   board makes its own) and print its boards.csv line;
+                                                   --insecure: the key an INSECURE build derives
+                                                   from that UID
     sealblocks.py lf-board OUT --board-key B --root ROOT.pub --product P
                   [--min-revision N] [--min-serial N] [--sealed-only]
                                                    write a board file for the desktop lf (-K)
@@ -291,11 +294,22 @@ def cmd_release_key(a):
     print(f'{a.out}: release key serial {a.serial} for product {a.product:#x}')
 
 
+def insecure_key(uid):
+    """The private key of a board built with INSECURE (V5F/User/board.c):
+    BLAKE2s of its UID, personalization LFinsec1."""
+    return hashlib.blake2s(uid, digest_size=32, person=b'LFinsec1').digest()
+
+
 def cmd_board_key(a):
     uid = bytes.fromhex(a.uid) if a.uid else os.urandom(8)
     if len(uid) != 8:
         raise SealError('--uid takes 16 hex digits')
-    k = X25519PrivateKey.generate()
+    if a.insecure:                      # as a CH32H417 built with INSECURE derives it
+        if not a.uid:
+            raise SealError('--insecure needs the board\'s --uid')
+        k = X25519PrivateKey.from_private_bytes(insecure_key(uid))
+    else:
+        k = X25519PrivateKey.generate()
     pub = raw_public(k).hex()
     write_json(a.out, {'type': 'board', 'uid': uid.hex(), 'private': raw_private(k).hex(),
                        'public': pub}, a.force)
@@ -444,6 +458,8 @@ def main(argv=None):
     s = sub.add_parser('board-key', help='make a board key pair, for testing')
     s.add_argument('out')
     s.add_argument('--uid', help='16 hex digits (default: random)')
+    s.add_argument('--insecure', action='store_true',
+                   help="the key a CH32H417 built with INSECURE derives from --uid")
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('lf-board', help='write a board file for the desktop lf (-K)')
     s.add_argument('out')

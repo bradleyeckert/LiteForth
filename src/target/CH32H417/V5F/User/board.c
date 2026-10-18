@@ -16,6 +16,13 @@
  * RNG: 64 words, each checked (data ready, no seed or clock error, not a
  * repeat of the one before), hashed together with BLAKE2s.
  *
+ * INSECURE (sealed_root.h, for development only): the key is BLAKE2s of
+ * the UID instead (personalization "LFinsec1"), used whether or not there
+ * is a record (which then only holds the minimums), so every `enroll` on a
+ * board gives the same key, even after the record is erased, and
+ * `sealblocks.py insecure-board UID` knows it without the board. Anyone
+ * who knows a board's UID can read its files.
+ *
  * Security holes left for later (encrypted-blocks.md section 9): any code
  * on the V5F can read this sector, and nothing stops it being rewritten.
  */
@@ -29,7 +36,7 @@
 #include "../../../../errcodes.h"
 #include "../../../../tools.h"
 #if __has_include("sealed_root.h")
-#include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT, SEALED_ONLY */
+#include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT, SEALED_ONLY, INSECURE */
 #endif
 
 extern const uint32_t __lf_flash_start[];   /* Link_v5f.ld */
@@ -85,6 +92,20 @@ static void uid(uint8_t out[8]) {
     memcpy(out, (const void *)UID_ADDR, 8);
 }
 
+#ifdef INSECURE
+/* INSECURE: the private key from the UID, the same every time */
+static int random_key(uint8_t key[32]) {
+    static const uint8_t person[8] = "LFinsec1";
+    blake2s_state S;
+    uint8_t id[8];
+    memcpy(id, (const void *)UID_ADDR, 8);
+    b2s_init(&S, 32, NULL, 0, NULL, person);
+    b2s_puts(&S, id, 8);
+    b2s_final(&S, key);
+    crypto_wipe(&S, sizeof S);
+    return 0;
+}
+#else
 /* A private key from the RNG; returns 0 or -1 if the RNG misbehaves */
 static int random_key(uint8_t key[32]) {
     static const uint8_t person[8] = "LFkeygen";
@@ -111,6 +132,7 @@ static int random_key(uint8_t key[32]) {
     crypto_wipe(&S, sizeof S);
     return 0;
 }
+#endif
 
 static void put_hex(const uint8_t *p, int n) {
     static const char digits[] = "0123456789abcdef";
@@ -133,10 +155,17 @@ int board_get(sealed_board *b, char *msg, int len) {
 #else
     static const uint8_t root[32] = SEALED_ROOT_KEY;
     record_t r;
+#ifdef INSECURE
+    if (!record_read(&r)) {             /* no record: no minimums, but the key */
+        memset(&r, 0, sizeof r);
+    }
+    random_key(r.private_key);          /* from the UID, whatever the record holds */
+#else
     if (!record_read(&r)) {
         snprintf(msg, len, "this board has no key: run enroll");
         return ERR_UNSUPPORTED_OPERATION;
     }
+#endif
     uid(b->uid);
     memcpy(b->private_key, r.private_key, 32);
     memcpy(b->root, root, 32);
@@ -169,6 +198,10 @@ int lfAPI_enroll(void) {
         }
         lf_puts("enroll: new key made. ");
     }
+#ifdef INSECURE
+    lf_puts("(INSECURE build: the key comes from the UID, not the RNG) ");
+    random_key(r.private_key);          /* as board_get uses it, whatever the record holds */
+#endif
     crypto_x25519_public_key(pub, r.private_key);
     crypto_wipe(&r, sizeof r);
     uid(id);

@@ -26,4 +26,12 @@
    takes only sealed files. Leave it out while developing. */
 /* #define SEALED_ONLY 1 */
 
+/* Optional, for development only: the board's key comes from its UID
+   instead of the RNG, so `enroll` gives the same key every time (even
+   after a download erases it), and `sealblocks.py board-key
+   OUT --uid UID --insecure`
+   gives a board's boards.csv line without the board. Anyone who knows a
+   board's UID can then read the files sealed for it. Never in a product. */
+/* #define INSECURE 1 */
+
 #endif /* SEALED_ROOT_H */

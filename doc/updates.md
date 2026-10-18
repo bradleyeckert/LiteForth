@@ -82,6 +82,9 @@ leaves the board. The line is its unique ID and public key. Add it to
 69a90e647f9cf6a9,0129f3d8f018b205a74f0bd9bc7cec8debc4e815a7bfda37768baf7cd5803166,nano1
 ```
 
+A board built with `INSECURE` (section 6) prints the same line every time,
+since its key comes from its UID.
+
 Treat `boards.csv` like code, with reviewed commits: whoever can add a line
 decides which boards can read your releases. Running `enroll` again only
 prints the line (without `new key made`). If it says `new key made` on a
@@ -206,6 +209,7 @@ ignores it. Clean the project after changing it (section 2).
 | `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the board reads no sealed files (`no root key built in`) but still takes plain ones. |
 | `SEALED_PRODUCT` | The 32-bit product ID that release keys and sealed files must name. |
 | `SEALED_ONLY` | Optional. `1`: the board takes only sealed files. A plain `lfblocks.fb4` offers no blocks (`capacity` 0; the debug UART says why), and `-1 ymodem` refuses plain files. A sealed file can still be installed over it. Leave it out for development boards. |
+| `INSECURE` | Optional, development only. `1`: the board's private key is BLAKE2s of its unique ID (personalization `LFinsec1`) instead of coming from the RNG, so `enroll` prints the same line every time, the board needs no flash record to open sealed files, and a download that erases the flash loses nothing. `sealblocks.py board-key OUT --uid UID --insecure` gives the same key, and so the boards.csv line, without the board. Anyone who knows the UID can read what is sealed for it: never in a product. |
 
 ### The MounRiver projects
 
@@ -239,5 +243,7 @@ or a card image, which `-1 ymodem` installs into the same way.
 - An install cut short leaves the board without its application until the
   file is sent again; there's only one copy on the card. On a `SEALED_ONLY`
   board the unfinished file offers no blocks, but `-1 ymodem` still works.
+- An `INSECURE` build's key follows from its UID, which any code on the
+  board, or anyone who has seen `enroll`'s output, can read.
 - Code running on the board can read its key and the content key
   ([encrypted-blocks.md](encrypted-blocks.md) section 9).

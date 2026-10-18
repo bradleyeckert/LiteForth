@@ -20,14 +20,16 @@
  * b->sealed_only is SEALED_ONLY from sealed_root.h (0 if it isn't
  * defined), set even when it fails.
  * Returns 0, or ERR_UNSUPPORTED_OPERATION if there is no root key built
- * in or the board hasn't been enrolled.
+ * in or the board hasn't been enrolled (an INSECURE build needs no
+ * record: its key comes from the UID).
  */
 int board_get(sealed_board *b, char *msg, int len);
 
 /**
  * Forth word `enroll`  ( -- )
- * Makes the board's X25519 key pair from the RNG and stores the private
- * key in the flash record, unless it has one already; then prints the
+ * Makes the board's X25519 key pair from the RNG (from the UID in an
+ * INSECURE build) and stores the private key in the flash record, unless
+ * it has one already; then prints the
  * board's line for boards.csv: UID and public key, in hex. Run once per
  * board at provisioning. The key never leaves the board.
  * Returns 0, ERR_FLASH_WRITE_SECTOR if the record can't be written, or

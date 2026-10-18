@@ -12,7 +12,8 @@ TARGET = test_exfat
 CC     ?= gcc
 CFLAGS  = -Wall -Wextra -std=c99 -g -I$(DESKTOP_DIR) -I$(SRC_DIR) -I$(UNITY_DIR)
 
-SRC = $(SRC_DIR)/exfat.c $(SRC_DIR)/card.c $(DESKTOP_DIR)/blocks.c test_exfat.c $(UNITY_DIR)/unity.c
+SEALED = $(SRC_DIR)/sealed.c $(SRC_DIR)/ctr.c $(SRC_DIR)/blake2s.c $(SRC_DIR)/monocypher.c $(SRC_DIR)/monocypher-ed25519.c
+SRC = $(SRC_DIR)/exfat.c $(SRC_DIR)/card.c $(DESKTOP_DIR)/blocks.c $(SEALED) test_exfat.c $(UNITY_DIR)/unity.c
 
 IMAGES = a.img b.img c.img d.img f.img
 LF     = $(SRC_DIR)/../bin/lf

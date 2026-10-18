@@ -201,9 +201,10 @@ of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 flash holds the board's record for sealed block files (`V5F/User/board.c`,
 [doc/encrypted-blocks.md](../../../doc/encrypted-blocks.md)): its X25519
 private key, made by `enroll`, and the lowest revision and release key
-serial it takes. It lies inside the 480K of single-flash mode. A MounRiver
-download with *Erase All* wipes it, so the board needs `enroll` again
-(a new key, so a new line in `boards.csv` and files sealed again).
+serial it takes. It lies inside the 480K of single-flash mode. A download
+keeps it (below), but *Erase All* wipes it, so the board then needs
+`enroll` again (a new key, so a new line in `boards.csv` and files sealed
+again).
 
 **Sealed block files.** If `lfblocks.fb4` on the card is sealed, `blk_init`
 mounts it with the board's record and the root key in
@@ -229,11 +230,13 @@ effects (a data register pops its FIFO), and a bit-field store reads,
 modifies and writes the whole register, so use whole-cell `!` on
 write-1-to-clear flags.
 
-**Downloading erases it.** The download settings erase the whole chip
-(`"erase": true`, `"clearcodeflash": true` in the `.wvproj`; "Erase All" in
-MounRiver's download dialog), so every download also wipes the LiteForth
-flash. To keep what LiteForth has compiled across downloads, turn that off
-so only the sectors in the image are erased.
+**Downloading keeps it.** The V5F project downloads `Merge.Bin` (both
+cores' code, which ends below `0x08030000`) with Clear CodeFlash off
+(`"clearcodeflash": false` in `LiteForth_V5F.wvproj`), so only the sectors
+the image covers are erased: LiteForth's flash pages and the key record
+survive a download, and neither `1 load` nor `enroll` is needed after it.
+*Erase All* in MounRiver's download dialog (or Clear CodeFlash turned back
+on) wipes both.
 
 ### Blocks: `V5F/User/blocks.c`
 

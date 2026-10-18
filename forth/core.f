@@ -525,6 +525,7 @@ variable looptime                                                               
 ; hex 80000000 ,jump decimal
 
 :noname ( yeet handler: y@ = error code, x@ = PC after the fault )
+    0 ]task  con  multitask     ( empty stacks, console output, one task )
     cr ." App error " y@ .  ." at " x@ hex . decimal cr
     begin  break  again         ( park the app until the next `cold` )
 ; hex 80000002 ,jump decimal

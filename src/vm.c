@@ -455,13 +455,23 @@ byee:
  * must not disturb the app. (vmExec sends a stepped app's errors to its
  * yeet handler.)
  */
+static int running;                     // vmRun calls under way (vmRunning)
+
+int vmRunning(void) {
+    return running;
+}
+
 int32_t vmRun(int once, uint32_t inst, int32_t address) {
+    int32_t ior;
+    running++;
     if (once || inst) {
-        return vmExec(once, inst, (uint32_t)address);
+        ior = vmExec(once, inst, (uint32_t)address);
+    } else {
+        uint32_t pc = lf_vm.PC;
+        ior = vmExec(0, 0, (uint32_t)address);
+        lf_vm.PC = pc;
     }
-    uint32_t pc = lf_vm.PC;
-    int32_t ior = vmExec(0, 0, (uint32_t)address);
-    lf_vm.PC = pc;
+    running--;
     return ior;
 }
 

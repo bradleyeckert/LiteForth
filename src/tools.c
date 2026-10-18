@@ -56,12 +56,14 @@ uint64_t divide64by32(uint64_t dividend, uint32_t divisor,
 * String output functions
 =========================================================================*/
 
-// Char output with VM stepping if the serial port is busy.
+// Char output with VM stepping if the serial port is busy: the app runs
+// while the terminal waits, but only when no VM code is running (vmRunning).
+// Output from a word the terminal or the app runs just waits.
 // Returns 0 on success, or an explicit negative error code on failure.
 // VM_STEP_LIMIT should never be reached. It it is, the hung app is stopped.
 int lf_putc(char c) {
     if (serial_busy() != 0) {
-        if (g_lf_sys_options & SYS_OPTION_RUNNING) {
+        if ((g_lf_sys_options & SYS_OPTION_RUNNING) && !vmRunning()) {
             int ior = vmRun(0, VM_STEP_LIMIT, 0);
             if (ior == ERR_VM_TIMEOUT) {
                 g_lf_sys_options &= ~SYS_OPTION_RUNNING;

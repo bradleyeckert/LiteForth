@@ -94,6 +94,17 @@ extern vm_state_t lf_vm;
 int32_t vmRun(int once, uint32_t inst, int32_t address);
 
 /**
+ * @brief Tells whether VM code is running: nonzero inside vmRun, so in any
+ * API call the VM makes. Code that steps the app (vmRun(0, steps, 0))
+ * from C must check it first: inside a word call, PC is the terminal's
+ * (the app's is saved in vmRun until the call returns), and inside the
+ * app's own API calls the app is already running, so a step would run
+ * the wrong code.
+ * @return The number of vmRun calls under way, 0 if none.
+ */
+int vmRunning(void);
+
+/**
  * @brief Reads from the memory space
  *
  * A slice address returns just that bit field, zero-extended.

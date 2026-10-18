@@ -50,8 +50,12 @@ int lfSpace(void);
 
 /**
  * Outputs a single character to the terminal (serial port or stdio).
+ * While the port is busy and the app is running, it steps the app, unless
+ * VM code is running (vmRunning): then it only waits.
  * @param c Character to send.
- * @return 0 on success, or ERR_TERM_TX_FAILED on failure.
+ * @return 0 on success, ERR_VM_TIMEOUT if the app it stepped ran
+ *         VM_STEP_LIMIT steps without a `break` (it is stopped), or
+ *         ERR_TERM_TX_FAILED on failure.
  */
 int lf_putc(char c);
 

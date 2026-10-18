@@ -115,3 +115,9 @@ int lfAPI_enroll(void) {
     lfCR();
     return 0;
 }
+
+int lfAPI_ecdcTest(void) {
+    lf_puts("ecdc-test: no ECDC engine on the desktop");
+    lfCR();
+    return ERR_UNSUPPORTED_OPERATION;
+}

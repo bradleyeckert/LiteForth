@@ -123,6 +123,7 @@ Name lookup ignores case.
 | `save-buffers` | `( -- )` | Writes modified block buffers to storage. |
 | `save-wids` | `( -- )` | Compiles the wordlist record to text space for booting, cell aligned: the address just past the record, the number of wordlists in use, then that many raw `s_wid` structures (head link and 12-byte name), padded to a cell. Heads are tagged links, not C addresses, so the record is valid wherever flash is mapped. Store the record's address in cell 1, and use it last before `close-flash`. Booting with `-o 8` restores the wordlists from it. |
 | `see` | `( <name> -- )` | † Disassembles a word. |
+| `ecdc-test` | `( -- )` | † CH32H417: runs a 4 KB block through the AES/SM4 engine (`V5F/User/ecdc.c`) and through the software CTR, with the sealed files' counter, and prints how many 16-byte units match and the times. -21 on the desktop. See [ch32h417-notes.md](ch32h417-notes.md). |
 | `shft[` | `( n -- )` | Sets the shift count used by `]shl`, `]shr` and `]asr` (0 to 31). |
 | `slice+` | `( a1 -- a2 )` | Advances an address to the next cell or bit-field slice. |
 | `standby` | `( -- )` | Powers down until the alarm, then restarts everything from the top, as a reset does, and `alarm?` is true once. Set the alarm first, at least 2 s ahead (`rtc@ 60 + alarm! standby`), or it gives -24. On the CH32H417 both cores sleep in Stop mode (USB detaches) and the alarm resets the chip; on the desktop `lf` waits for the alarm and then restarts its interpreter with the options it was started with. |

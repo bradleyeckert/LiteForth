@@ -82,4 +82,5 @@
  81 API_DOTS             lfAPI_dotEss
  82 API_DOT              lfAPI_dot
  83 API_SEE              lfAPI_see
-count 84
+ 84 API_ECDC_TEST        lfAPI_ecdcTest
+count 85

@@ -7,10 +7,12 @@ nothing else does.
 
     lockdown.py check [--wlink EXE]
     lockdown.py run --v3f V3F --v5f V5F [--cli PORT] [--debug PORT]
+    lockdown.py lock [--cli PORT] [--debug PORT]
                     [--v3f-address A] [--v5f-address A] [--wlink EXE] [--report FILE]
 
 check only reads: the probe, the chip, its UID and the option bytes, and
-whether the board is locked down.
+whether the board is locked down. lock is run without the flashing: for a
+board that already runs a level 2 build and sits in recovery.
 
 run:
  1. Refuses a board that's read- or write-protected already: wlink's flash
@@ -94,16 +96,21 @@ def locked(obr, wpr):
 
 
 class Probe(Wlink):
-    """wlink, with the read-only commands (status, dump, reset) tried again
-    when the probe fails to attach: right after a flash it sometimes says
-    "underlying protocol error" and works a second later. A flash runs
-    once; a wrong read-back isn't a probe failure, so it's never retried."""
+    """wlink, tried again when the probe fails to attach: it sometimes says
+    "underlying protocol error" and works a second later. The read-only
+    commands (status, dump, reset) get four tries; a flash is tried again
+    only if it failed before it wrote anything (no "Flashing" in its
+    output), which is safe because the chip was found unprotected first.
+    A wrong read-back isn't a probe failure, so it's never retried. A short
+    pause before each call gives the probe time after the last one."""
 
     def run(self, args, timeout=30):
-        tries = 1 if args[0] == 'flash' else 4
+        tries = 4
         for i in range(tries):
+            time.sleep(0.5)
             code, text = super().run(args, timeout)
-            if code == 0 or i == tries - 1:
+            wrote = args[0] == 'flash' and 'Flashing' in text
+            if code == 0 or wrote or i == tries - 1:
                 return code, text
             say(f'(wlink {args[0]} failed, try {i + 1}: '
                 f'{text.strip().splitlines()[-2:][0] if text.strip() else "no output"}; trying again)')
@@ -195,30 +202,36 @@ def cmd_run(a):
                    'flash it. Nothing done.')
     say(f'UID: {uid or "not found"}')
     say()
-    say('## Flashing')
-    v3f_bin = image(a.v3f, a.v3f_address, V3F_MAX, 'V3F')
-    v5f_bin = image(a.v5f, a.v5f_address, V5F_MAX, 'V5F')
+    if a.cmd == 'run':
+        say('## Flashing')
+        v3f_bin = image(a.v3f, a.v3f_address, V3F_MAX, 'V3F')
+        v5f_bin = image(a.v5f, a.v5f_address, V5F_MAX, 'V5F')
     debug = a.debug or find_link_uart()
     if not debug:
         raise Fail('no debug port: give --debug (`hiltest.py --list` shows the ports)')
     say(f'Debug port: {debug}')
     dbg = DebugPort(debug)
     debug_seen.update(port=dbg, start=dbg.mark())
-    flash(wl, a.v3f, a.v3f_address, v3f_bin)
-    flash(wl, a.v5f, a.v5f_address, v5f_bin)
-    if v3f_bin:
-        verify(wl, a.v3f, a.v3f_address)
-    if v5f_bin:
-        verify(wl, a.v5f, a.v5f_address)
     start = dbg.mark()
-    code, text = wl.run(['reset'])
-    block('wlink reset', text)
-    say()
-    say('## The level 2 build on an open board')
-    line = dbg.wait(r'recovery mode|LiteForth starting', start, 30)
-    if not line or 'recovery' not in line:
-        debug_log(dbg, start, 'Debug port')
-        raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t start')
+    if a.cmd == 'run':
+        flash(wl, a.v3f, a.v3f_address, v3f_bin)
+        flash(wl, a.v5f, a.v5f_address, v5f_bin)
+        if v3f_bin:
+            verify(wl, a.v3f, a.v3f_address)
+        if v5f_bin:
+            verify(wl, a.v5f, a.v5f_address)
+        start = dbg.mark()
+        code, text = wl.run(['reset'])
+        block('wlink reset', text)
+        say()
+        say('## The level 2 build on an open board')
+        line = dbg.wait(r'recovery mode|LiteForth starting', start, 30)
+        if not line or 'recovery' not in line:
+            debug_log(dbg, start, 'Debug port')
+            raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t '
+                       'start')
+    else:
+        say('## The level 2 build on an open board (already flashed: not flashing)')
     usb = UsbPort(a.usb)
     if not usb.open(20):
         name = a.usb or find_board_port()
@@ -236,7 +249,7 @@ def cmd_run(a):
     if not usb.wait('recovery ok> ', 5):
         usb.write('\r')
         usb.wait('recovery ok> ', 5)
-    usb.write('\r')
+    usb.write('help\r')                 # any other line: stage 1 prints its help
     usb.wait('recovery ok> ', 5)
     console = bytes(usb.text).decode('latin-1')
     debug_log(dbg, start, 'Debug port')
@@ -295,7 +308,7 @@ def cmd_run(a):
 def main():
     p = argparse.ArgumentParser(description='Flash a CH32H417 board and lock it down.')
     sub = p.add_subparsers(dest='cmd', required=True)
-    for name in ('check', 'run'):
+    for name in ('check', 'run', 'lock'):
         s = sub.add_parser(name)
         s.add_argument('--wlink', help='the wlink program (default: on the PATH)')
         if name == 'run':
@@ -303,6 +316,7 @@ def main():
             s.add_argument('--v5f', required=True, help='the V5F image (.bin, .hex or .elf)')
             s.add_argument('--v3f-address', type=lambda v: int(v, 0), default=V3F_ADDRESS)
             s.add_argument('--v5f-address', type=lambda v: int(v, 0), default=V5F_ADDRESS)
+        if name != 'check':
             s.add_argument('--cli', '--usb', dest='usb',
                            help='the cli port, the board\'s USB terminal (default: found by '
                                 'its USB IDs)')

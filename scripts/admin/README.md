@@ -92,6 +92,7 @@ it against the simulated board.
 ```
 py lockdown.py check
 py lockdown.py run --v3f LiteForth_V3F.bin --v5f LiteForth_V5F.bin
+py lockdown.py lock
 ```
 
 Flashes a board with a `SECURITY_LEVEL` 2 build and locks it down: read
@@ -99,7 +100,14 @@ protection on, the V3F's sectors write-protected, the boot ROM's USB and
 USART downloads off. The debug port stays, so a chip erase through the
 WCH-LinkE (`wlink unprotect`, done by hand) always takes a board back; this
 script never runs it, or any erase. `check` only reads: the probe, the
-UID, the option bytes, and whether the board is locked down.
+UID, the option bytes, and whether the board is locked down. `lock` is
+`run` without the flashing (steps 3 to 5), for a board that already runs a
+level 2 build and sits in recovery.
+
+The WCH-LinkE sometimes fails to attach (`underlying protocol error:
+0x55`) and works a second later, so the script pauses before each wlink
+call and tries `status`, `dump` and `reset` up to four times, and a flash
+again if it failed before writing anything; each retry is in the report.
 
 `run`:
 1. Refuses a board that's read- or write-protected already, since wlink's

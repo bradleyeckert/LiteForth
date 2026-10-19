@@ -69,6 +69,10 @@ elif cmd == "dump":
         open(args[args.index("-o") + 1], "wb").write(data)
     else:
         print(data.hex())
+elif cmd == "flash" and os.path.exists(os.path.join(board, "flakyflash")):
+    os.remove(os.path.join(board, "flakyflash"))  # no attach, before writing anything
+    print("Error: WCH-Link underlying protocol error: 0x55")
+    sys.exit(1)
 elif cmd == "flash" and "-e" not in args and "--erase" not in args:
     if ob()[0] & 2 or ob()[1] != 0xFFFFFFFF:
         print("fake wlink: flash on a protected chip: this would have unprotected it")
@@ -125,10 +129,11 @@ class Rig:
     def lockdown(self, wlink, *args, answer='LOCK\n'):
         env = dict(os.environ, FAKE_BOARD=self.board.dir)
         report = os.path.join(self.board.dir, 'report.md')
-        r = subprocess.run([sys.executable, LOCKDOWN, *args, '--wlink', wlink,
-                            '--usb', os.ttyname(self.usb_s), '--debug', os.ttyname(self.dbg_s),
-                            '--report', report] if args[0] == 'run' else
-                           [sys.executable, LOCKDOWN, *args, '--wlink', wlink],
+        cmd = [sys.executable, LOCKDOWN, *args, '--wlink', wlink]
+        if args[0] != 'check':
+            cmd += ['--usb', os.ttyname(self.usb_s), '--debug', os.ttyname(self.dbg_s),
+                    '--report', report]
+        r = subprocess.run(cmd,
                            input=answer, capture_output=True, text=True, env=env, timeout=300)
         text = r.stdout + r.stderr
         if os.path.exists(report):
@@ -179,8 +184,11 @@ def main():
     check(code == 1 and 'NOT locked down' in text, 'lockdown.py check: an open board', text)
     rig.log()
     open(os.path.join(rig.board.dir, 'flaky'), 'w').close()    # the first dump fails
+    open(os.path.join(rig.board.dir, 'flakyflash'), 'w').close()  # and the first flash
     code, text = rig.lockdown(wlink, *run)
     check(code == 0 and 'Locked down.' in text and rig.ob(), 'lockdown.py run: locked', text)
+    check('(wlink flash failed, try 1:' in text,
+          'lockdown.py run: a flash that didn\'t attach tried again', text)
     check('(wlink dump failed, try 1:' in text and 'trying again' in text, 'lockdown.py run: a failed attach tried again', text)
     check('lockdown: option bytes now RDPR 00FF' in text and 'LiteForth starting' in text,
             'lockdown.py run: the report has both ports\' output', text)
@@ -198,6 +206,14 @@ def main():
     check(code == 1 and 'read-protected already' in text
             and not any(l.startswith('flash') for l in log),
             'lockdown.py run: a locked board refused before any flash', (text, log))
+    rig.close()
+
+    rig = Rig('lockdown-script-lock')   # lock: a level 2 board in recovery, no flashing
+    code, text = rig.lockdown(wlink, 'lock')
+    log = rig.log()
+    check(code == 0 and 'Locked down.' in text and rig.ob()
+          and not any(l.startswith('flash') for l in log),
+          'lockdown.py lock: locked, nothing flashed', (text, log))
     rig.close()
     if t.failures:
         print(f'lockdown.py on the simulated board: {t.failures} checks FAILED')

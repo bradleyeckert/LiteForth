@@ -764,3 +764,396 @@ already set it.
 - GPIOA read and written: the write set PA0-PA7 to analog inputs for a moment, then wrote back the reset value `44444444H`.
 - RCC read, and its write refused with -20. The register read the same before and after.
 - The flash controller and SDMMC refused with -9, for a read and a write.
+
+### B8. Lock-down of the spare board with lockdown.py (19 October 2026)
+
+The first lock-down. The spare board, UID `e52116647f9c7a22`, went from
+fresh from WCH to read protection on, the V3F's sectors write-protected and
+both boot ROM downloads off, with `scripts/admin/lockdown.py` and stage 1's
+`lockdown`. Only a chip erase through the WCH-LinkE undoes it.
+
+**Ports:** the cli port, COM6, is the V3F's USB terminal; the debug port,
+COM3, is this board's WCH-LinkE UART.
+
+**Firmware:** branch `lockdown` (PR #185), both cores at `SECURITY_LEVEL` 2:
+- V3F `LiteForth_V3F.bin`, built Oct 19 2026 12:35:24, GCC 12.2.0: 62,904
+  bytes, sha256 `8bdc3206008af9d955956064dea6be024cbf72ee21f53d6670fa8adfbfc72fd1`.
+- V5F `LiteForth_V5F.bin`: 90,032 bytes, sha256
+  `fdf7aedcad0c4d0a56bf09a191a6d4762836ea3d80dba1499573d9371a5979bb`.
+- Both were flashed with wlink at 0x08000000 and 0x08010000, and read back,
+  in the 13:06 run below.
+
+**Starting state:** OBR `000003FC`, WPR `FFFFFFFF`: read protection off,
+nothing write-protected, both downloads on. No SD card.
+
+**Runs** (the lockdown.py reports, `lockdown-report-20261019-*.md`):
+
+| Time | Command | What happened |
+|---|---|---|
+| 12:26 | `run` on the main board (UID `69a90e64...`) | Flashed level 1 images; stage 1 didn't stay in recovery, so the script stopped: not a level 2 build. Nothing locked. |
+| 12:41 | `run --usb COM3` | Stopped before flashing: the debug port default (COM14) didn't exist. |
+| 12:46 | `run --debug COM3` | Flashed and read back both level 2 images; stage 1 said recovery; no cli port after the reset. |
+| 13:06 | `run --debug COM3 --usb COM6` | Flashed both images; the read-back's attach failed (`protocol error 0x55`). |
+| 13:19 | the same | The flash's attach failed: nothing flashed. |
+| 13:32 | `lock` | COM6 "not functioning": the script's wlink reads had left the V3F halted. |
+| 13:43 | `lock` | After wlink's first two calls, every attach failed (`resume`, `reset`). |
+| 13:49 | `lock`, wlink not used before the lock | Locked: see below. |
+
+**13:49, the lock.** The recovery console, before:
+
+```
+LiteForth stage 1: recovery mode. The V5F stays off:
+security level 2: this board isn't locked down, so the V5F won't start
+read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+lockdown: lock this board down (it says what it will do first).
+reset: start again.
+recovery ok>
+```
+
+`LOCK` was typed, and the script sent `lockdown yes`. The debug port:
+
+```
+V3F: lockdown: programming the option bytes
+V3F: lockdown: option bytes now RDPR 00FF USER C03F WRPR0 FF00: NOT AS WRITTEN
+```
+
+The data bytes were right: RDPR `FF`, so read protection on; USER `3F`, so
+both downloads off; WRPR0 `00`, so sectors 0-7 protected. The chip had
+written each complement byte itself, so the whole-halfword comparison
+failed. Stage 1 therefore skipped its reset and the script stopped. This is
+fixed in PR #185 (the data bytes only), and the finding is in
+[ch32h417-notes.md](ch32h417-notes.md).
+
+**After a hard reset**, as reported: the V5F booted normally. A level 2
+stage 1 starts the V5F only when its lock-down check (OBR and WPR) passes,
+so the option bytes loaded. The debug port's text of that boot wasn't kept.
+
+**Result:** pass, the board is locked down.
+- **wlink flashes this dual-core part:** the V5F image it wrote at 0x10000
+  runs.
+- **The option bytes loaded at a hard reset.** It's not yet known whether a
+  software reset alone would load them.
+- **wlink halts the V3F to read it, and leaves it halted:** its USB stops
+  answering, and a soft reset halts it again. On a board in recovery, the
+  WCH-LinkE then often fails to attach (`0x55`) until a power cycle. So
+  lockdown.py's `lock` uses no wlink before the lock, and lfmcp's `wlink`
+  tool resumes the core after its reads.
+
+**Still to do on this board:**
+- `wlink status` under read protection;
+- `enroll`, a flash write by the V5F under read protection;
+- an update installed by stage 1, which runs from RAM_CODE: the reference
+  manual says code running from RAM can't program flash under read
+  protection;
+- a rollback, and recovery over USB.
+
+### B9. A flash write by the V5F under read protection: `enroll` (19 October 2026)
+
+**Board and firmware:** the spare board, locked down in B8, with the same
+images.
+
+**Why:** the reference manual says code running from RAM can't program
+flash while read protection is on. `enroll` makes the board's X25519 key
+from the RNG (level 2) and writes it to the board record at 0x08070000,
+so it shows whether the V5F's flash writes still work.
+
+**Run,** on the cli port:
+
+```
+enroll
+enroll: new key made. boards.csv line:
+e52116647f9c7a22,b2e2e4cc1b9b1627469204202135c3aac360573994bb984930ab34d32939055e
+ok>reboot
+
+[kwai: COM6 lost; waiting for it to come back]
+
+[kwai: COM6 is back]
+enroll
+boards.csv line:
+e52116647f9c7a22,b2e2e4cc1b9b1627469204202135c3aac360573994bb984930ab34d32939055e
+ok>
+```
+
+**Result:** pass. The first `enroll` wrote a new key to flash. After the
+reboot, the second found the record and printed the same line without
+making a new key. So the V5F programs flash under read protection, and the
+record survives a reset. Stage 1's own writes (the security record, an
+update into the V5F slot) are still untested under read protection.
+
+### B10. An update installed by stage 1 under read protection (19 October 2026)
+
+**Board and firmware:** the spare board, locked down in B8 and enrolled in
+B9 (its key's line: `e52116647f9c7a22,b2e2e4cc...055e`), with the same
+images. The card came from the main board: its `lfblocks.fb4` is revision
+6, sealed for the main board, and it holds `lfstage.bin` and
+`lfbackup.bin`.
+
+**Package:** `v5f-spare-1.lfu`, sha256
+`b5052b030378c99a973757e55246371d631964de6b01a56259cb12547eb7c92c`. It is
+the V5F image the board already runs (sha256 `fdf7aedc...79bb`) as version
+1, sealed with the test release key 1 for this board's key only:
+`sealblocks.py package LiteForth_V5F.bin v5f-spare-1.lfu --component v5f
+--release release1.key --boards boards-spare.csv --revision 1`.
+`sealblocks.py check` passed it against the test root.
+
+**Why:** stage 1 runs from RAM_CODE, and the reference manual says code
+running from RAM can't program flash while read protection is on. An
+install writes the security record (0x72000, 0x74000) and the V5F slot
+(0x10000) from stage 1.
+
+**Run,** on the cli port:
+
+```
+ok>~x ..\mailbox\v5f-spare-1.lfu -2
+ymodem: send the file(s) now (YMODEM)
+
+[kwai: sending ..\mailbox\v5f-spare-1.lfu: 98304 bytes]
+[kwai: 96/96]
+[kwai: sent ..\mailbox\v5f-spare-1.lfu]
+ymodem: v5f-spare-1.lfu: staged in lfstage.bin, 24 blocks, read back and checked
+ymodem: package: V5F image, 90032 bytes, version 1: signature, every block and the image hash check out; waiting for stage 1 to install it
+ok>reboot
+
+[kwai: COM6 lost; waiting for it to come back]
+
+[kwai: COM6 is back]
+```
+
+The debug port, from the boot before the staging:
+
+```
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V3F update: version 1 installed, on trial
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 3; the previous run left 1795 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V5F: LiteForth starting, flash is blank
+V3F update: version 1 confirmed
+V3F: USB configured
+```
+
+**Result:** pass.
+- **Stage 1 installed the package under read protection:** it wrote the
+  new security record and the V5F slot from RAM_CODE. The image started on
+  trial and LiteForth confirmed it. So the reference manual's limit on code
+  running from RAM doesn't apply to stage 1 here.
+- **A file sealed for another board was refused** on every boot: the card's
+  revision 6, sealed for the main board.
+- **The package was checked against this board's RNG key** (B9): both by
+  LiteForth's `-2 ymodem` and by stage 1.
+
+### B11. Install, rollback, recovery and lock-down on the locked board, run by hiltest.py (19 October 2026)
+
+B6's scenarios again, on the spare board locked down in B8, with nobody at
+the board. hiltest.py uses no wlink; every reset was `reboot`, `reset` in
+recovery, or the V3F's own.
+
+**Board and firmware:** the spare board, as in B8 to B10, version 1
+installed and confirmed (B10). The card is still the main board's, so its
+`lfblocks.fb4` (sealed for the main board) is refused at every boot.
+
+**Packages,** both for this board's key only, sealed with the test release key 1:
+- GOOD, `v5f-spare-3.lfu`: B10's V5F image (sha256 `fdf7aedc...79bb`) as
+  version 3.
+- HANG, `v5f-spare-2-hang.lfu`: B4's `j .` image (sha256
+  `5778694d...3031`) as version 2.
+
+**Command:** `py ..\scripts\admin\hiltest.py run --good ..\mailbox\v5f-spare-3.lfu --hang ..\mailbox\v5f-spare-2-hang.lfu --debug COM3 --cli COM6`
+
+The report, as hiltest.py wrote it (`hil-report-20261019-1411.md`):
+
+Run 2026-10-19 14:11:31; debug port COM3, cli port COM6, reset by `reboot`.
+
+- GOOD: `v5f-spare-3.lfu`, sha256 b80dbc2116475734a41b63280d082ca047fdc5d301e5a6acffde89f62d9e1b60
+- HANG: `v5f-spare-2-hang.lfu`, sha256 557c46da3be0b032681b05868cab17a87032cc9cfafa48a2cbf9b94b313b835f
+
+#### install
+
+GOOD.lfu staged by LiteForth's `-2 ymodem`, installed at the next
+reset, started on trial and confirmed.
+
+- PASS: staged: "waiting for stage 1 to install it"
+Debug port:
+
+```
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+```
+Cli port:
+
+```
+ok>ymodem: send the file(s) now (YMODEM)
+C.C<YMODEM>C.ymodem: v5f-spare-3.lfu: staged in lfstage.bin, 24 blocks, read back and checked
+ymodem: package: V5F image, 90032 bytes, version 3: signature, every block and the image hash check out; waiting for stage 1 to install it
+ok>
+```
+- **FAIL**: installed (V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients)
+- PASS: confirmed by LiteForth
+Debug port:
+
+```
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V3F update: version 3 installed, on trial
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 4; the previous run left 1796 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V5F: LiteForth starting, flash is blank
+V3F update: version 3 confirmed
+```
+
+#### rollback
+
+HANG.lfu installed. It never starts, so the V3F resets the chip each
+time it waits for it in vain: three trial boots, then the image before
+it is rolled back and starts LiteForth, with no resets from here.
+
+- PASS: the hanging image staged
+Debug port:
+
+```
+V3F: USB configured
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+```
+Cli port:
+
+```
+ok>ymodem: send the file(s) now (YMODEM)
+C.C<YMODEM>C.ymodem: v5f-spare-2-hang.lfu: staged in lfstage.bin, 3 blocks, read back and checked
+ymodem: package: V5F image, 4096 bytes, version 2: signature, every block and the image hash check out; waiting for stage 1 to install it
+ok>
+```
+- **FAIL**: installed (V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients)
+- PASS: by itself: didn't start within (V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip)
+- PASS: by itself: boot 1 of 3 (V3F update: version 2 on trial, boot 1 of 3)
+- PASS: by itself: boot 2 of 3 (V3F update: version 2 on trial, boot 2 of 3)
+- PASS: by itself: boot 3 of 3 (V3F update: version 2 on trial, boot 3 of 3)
+- PASS: by itself: rolled back to version (V3F update: rolled back to version 3)
+- PASS: by itself: LiteForth starting (V5F: LiteForth starting, flash is blank)
+Debug port:
+
+```
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V3F update: version 2 installed, on trial
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: version 2 on trial, boot 1 of 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: version 2 on trial, boot 2 of 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: version 2 on trial, boot 3 of 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: rolled back to version 3
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 5; the previous run left 278 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V5F: LiteForth starting, flash is blank
+```
+
+#### recovery
+
+Ctrl+X x3, then Ctrl+X x3 again while the V5F restarts: the chip
+resets into recovery. GOOD.lfu sent to stage 1 itself is installed
+(the image marked as not working first, so no backup), on trial, and
+confirmed.
+
+- PASS: cli port open
+- PASS: Ctrl+X x3 twice: "resetting into recovery"
+- PASS: recovery mode (V3F: recovery mode: the V5F stays off; waiting for a package over USB)
+- PASS: cli port open in recovery
+- PASS: the recovery prompt
+- PASS: GOOD.lfu sent to stage 1
+- PASS: the image marked as not working
+- PASS: installed
+- PASS: restarted, on trial
+- PASS: confirmed
+Debug port:
+
+```
+V3F: USB configured
+Ctrl+X x3: restarting the V5F in safe mode
+V5F crumbs: reset by the V3F, boot 6; the previous run left 58 crumbs
+V5F restarted
+Ctrl+X x3 again: the V5F is stuck; resetting into recovery
+V3F: recovery mode: the V5F stays off; waiting for a package over USB
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V3F: USB configured
+V3F LiteForth stage 1: recovery mode. The V5F stays off:
+V3F Ctrl+X x3 twice: the V5F got stuck before LiteForth started
+V3F In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.
+V3F reset: start again.
+V3F ymodem: v5f-spare-3.lfu: 98304 bytes received
+V3F update: the V5F image marked as not working
+V3F update: version 3 installed, on trial
+V3F recovery: installed; restarting to try it
+V3F update: version 3 on trial, boot 1 of 3
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 7; the previous run left 31 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V5F: LiteForth starting, flash is blank
+V3F update: version 3 confirmed
+```
+Cli port:
+
+```
+ok>LiteForth stage 1: recovery mode. The V5F stays off:
+Ctrl+X x3 twice: the V5F got stuck before LiteForth started
+In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.
+reset: start again.
+recovery ok> -2 ymodem
+C.C<YMODEM>C.
+```
+
+#### lockdown
+
+The lock-down check at boot: what this board reports.
+
+- The board is locked down: `V5F: LiteForth starting, flash is blank`
+- PASS: the boot reported
+Debug port:
+
+```
+V3F: USB configured
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 8; the previous run left 61 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V5F: LiteForth starting, flash is blank
+```
+
+Build: `V3F: built Oct 19 2026 12:35:24, GCC 12.2.0`
+
+**2 failed.**
+
+**Result:** pass, all four scenarios. The report's two FAILs are hiltest's
+mistake, not the board's.
+- **Why "installed" failed:** the check took the first line that said
+  "refused". That was the V5F refusing the card's `lfblocks.fb4`, which has
+  nothing to do with the update. The next line says `version 3 installed,
+  on trial` (and `version 2` for the rollback), and both were then
+  confirmed or rolled back as planned. hiltest.py now reads only stage 1's
+  `V3F update:` lines for this (PR #185).
+- **Under read protection, stage 1 wrote flash every time:**
+  - two installs;
+  - three trial boot counts;
+  - a rollback from `lfbackup.bin`;
+  - marking an image as not working;
+  - an install from recovery without a backup.
+- **The lock-down scenario** found no lock-down warning, and LiteForth
+  started: the board is locked down.

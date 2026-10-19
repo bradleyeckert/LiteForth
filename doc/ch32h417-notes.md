@@ -74,6 +74,26 @@ the SDK's BDCTLR helpers.
 **Suggestion:** check `RCC_LSEConfig` on the CH32H417, or say in the RM
 that `RCC_BDCTLR` must be written as a word.
 
+### The option bytes' complement bytes are written by the chip
+
+**Documents:** each option byte is a halfword at 0x1FFFF800 + 2n: the data
+byte, and its complement in the high byte. WCH's library writes whole
+halfwords, with the complement (`FLASH_ProgramOptionByteData`: `~Data << 8
+| Data`) or without it (`FLASH_EnableWriteProtection` writes `0x00XX`).
+
+**Seen:** after one erase and a programming pass of all eight halfwords,
+each one read back with the complement of its data byte in the high byte,
+whatever was written there: `003F` read `C03F`, `0000` read `FF00`, and
+`00FF` (already complemented) read `00FF`. Seen on the spare board's
+lock-down (19 October 2026).
+
+**LiteForth:** stage 1's `lockdown` compares only the data bytes when it
+reads them back. (It first compared whole halfwords, called a good write
+"NOT AS WRITTEN" and didn't reset.)
+
+**Suggestion:** say in the option bytes chapter that the hardware writes
+the complement bytes, so software needn't.
+
 ## The reference manual
 
 ### Standby mode is listed as absent but referred to elsewhere

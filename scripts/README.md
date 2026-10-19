@@ -195,9 +195,11 @@ rustup target add i686-pc-windows-msvc
 cargo install wlink --target i686-pc-windows-msvc --force
 ```
 
-It offers only commands that can't lock or wipe a board: `status` (it
-halts the core while it looks, and lets it run again), `list`, `regs`,
-`dump`, `reset` and `flash`. Erase, protect, unprotect, register and
+It offers only commands that can't lock or wipe a board: `status`, `list`,
+`regs`, `dump`, `reset` and `flash`. wlink halts the core to read it and,
+on the CH32H417, leaves it halted (its USB terminal stops answering, and a
+soft reset halts it again), so the tool runs `wlink resume` after each of
+them, and before a `reset`. Erase, protect, unprotect, register and
 memory writes and the option bytes aren't offered. wlink's `flash`
 unprotects the chip before it writes, which wipes a read-protected chip
 and clears a write-protected one's WRPR. So before each flash the tool

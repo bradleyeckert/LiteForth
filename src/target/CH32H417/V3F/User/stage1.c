@@ -552,8 +552,8 @@ static void lock_down(int really) {
     ob[0] = 0x00FF;                         /* read protection on, as FLASH_ReadOutProtection */
     printf("V3F: lockdown: programming the option bytes\r\n");
     ob_program(ob);
-    for (int i = 0; i < 8 && really; i++) {
-        really = (src[i] == ob[i]);
+    for (int i = 0; i < 8 && really; i++) {     /* the data bytes: the chip writes */
+        really = ((src[i] ^ ob[i]) & 0xFFu) == 0;  /* each complement byte itself */
     }
     snprintf(msg, sizeof msg, "lockdown: option bytes now RDPR %04X USER %04X WRPR0 %04X: %s",
              (unsigned)src[0], (unsigned)src[1], (unsigned)src[4], really ? "ok" : "NOT AS WRITTEN");

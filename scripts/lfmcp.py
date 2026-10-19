@@ -276,15 +276,25 @@ class Wlink:
         finally:
             os.remove(path)
 
+    def resume(self):
+        """wlink halts the core to read it and leaves its halt request set,
+        so the board stays halted (its USB stops answering, and a soft reset
+        halts it again) until `resume` clears it."""
+        return "\n[wlink resume]\n" + self.run(["resume"])[1]
+
     def call(self, args):
         cmd = args.get("command")
-        if cmd in ("status", "list", "regs", "reset"):
+        if cmd == "list":
             return self.run([cmd])[1]
+        if cmd in ("status", "regs"):
+            return self.run([cmd])[1] + self.resume()
+        if cmd == "reset":
+            return self.resume() + "\n[wlink reset]\n" + self.run(["reset"])[1]
         if cmd == "dump":
             address, length = number(args["address"]), number(args.get("length", 64))
             if not 0 < length <= DUMP_MAX:
                 raise ValueError(f"dump: length 1 to {DUMP_MAX}")
-            return self.run(["dump", hex(address), str(length)])[1]
+            return self.run(["dump", hex(address), str(length)])[1] + self.resume()
         if cmd == "flash":
             path = args["path"]
             if not path.lower().endswith(FIRMWARE) or not os.path.isfile(path):
@@ -300,7 +310,7 @@ class Wlink:
             if "address" in args:
                 cmd_args += ["--address", hex(number(args["address"]))]
             return (f"option bytes: OBR {obr:08X}, WPR {wpr:08X}: not protected\n"
-                    + self.run(cmd_args + [path], timeout=300)[1])
+                    + self.run(cmd_args + [path], timeout=300)[1] + self.resume())
         raise ValueError(f"wlink: {cmd!r} isn't allowed here; "
                          "only status, list, regs, dump, reset and flash")
 
@@ -325,8 +335,8 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {}}},
     {"name": "wlink",
      "description": "The WCH-LinkE debug probe, through wlink. Commands: status (probe, chip, "
-                    "UID, read protection, debug registers; it halts the core while it looks and "
-                    "lets it run again), list (probes), regs (a core's registers and PMP), dump "
+                    "UID, read protection, debug registers; it halts the core while it looks, "
+                    "then `wlink resume` lets it run again), list (probes), regs (a core's registers and PMP), dump "
                     "(read memory: address, length up to 4096 bytes), reset (the chip resets "
                     "and runs), flash (program a .bin/.hex/.elf at path, optional address for a "
                     ".bin, then reset and run: it writes flash, so say so first; refused unless "

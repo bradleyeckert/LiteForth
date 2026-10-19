@@ -55,17 +55,19 @@ py hiltest.py run --good v5f-1.lfu --hang v5f-2-hang.lfu
 
 Tests stage 1 on a real CH32H417 board from the PC
 ([doc/firmware-updates.md](../../doc/firmware-updates.md) section 9). It
-needs only the board's USB terminal, found by its USB IDs (1A86:FE0C) or
-named with `--usb`, and its debug UART (`--debug`, default COM14, 9600
-baud, through any USB serial adapter). It resets the chip by typing
+needs only two serial ports: the **cli port**, the board's USB terminal
+(the V3F's USB CDC port, found by its USB IDs, 1A86:FE0C, or named with
+`--cli`), and the **debug port**, the debug UART at 9600 baud (the
+WCH-LinkE's UART, found by its USB IDs, or named with `--debug`; COM14
+otherwise). It resets the chip by typing
 `reboot` to LiteForth, or `reset` to stage 1's recovery console. A V5F
 that doesn't start makes the V3F reset the chip by itself. So there's no
 debug probe and no reset button. `--reset-cmd "COMMAND"` (or the
 `HIL_RESET` environment variable) runs a command to reset instead.
 
 - `--list` shows every serial port with its USB IDs, maker and product.
-- `check` resets the board once and shows that the debug UART, the USB
-  terminal and LiteForth all answer.
+- `check` resets the board once and shows that the debug port, the cli
+  port and LiteForth all answer.
 - `run` plays these scenarios, or only one with `--only`:
   - `install`: GOOD.lfu staged with `-2 ymodem`, installed at the next
     reset, on trial, confirmed.
@@ -90,6 +92,7 @@ it against the simulated board.
 ```
 py lockdown.py check
 py lockdown.py run --v3f LiteForth_V3F.bin --v5f LiteForth_V5F.bin
+py lockdown.py lock
 ```
 
 Flashes a board with a `SECURITY_LEVEL` 2 build and locks it down: read
@@ -97,7 +100,19 @@ protection on, the V3F's sectors write-protected, the boot ROM's USB and
 USART downloads off. The debug port stays, so a chip erase through the
 WCH-LinkE (`wlink unprotect`, done by hand) always takes a board back; this
 script never runs it, or any erase. `check` only reads: the probe, the
-UID, the option bytes, and whether the board is locked down.
+UID, the option bytes, and whether the board is locked down. `lock` is
+`run` without the flashing (steps 3 to 5), for a board that already runs a
+level 2 build and sits in recovery, fresh from a power-up: it uses no wlink
+until the board is locked (wlink leaves the V3F halted, and then often
+can't attach again), and takes the option bytes from stage 1's recovery
+console.
+
+wlink halts the core to read it and leaves it halted, so after its reads
+the script runs `wlink resume` and then a reset, for a clean start (the
+cli port answers again). The WCH-LinkE sometimes fails to attach (`underlying protocol error:
+0x55`) and works a second later, so the script pauses before each wlink
+call and tries `status`, `dump` and `reset` up to four times, and a flash
+again if it failed before writing anything; each retry is in the report.
 
 `run`:
 1. Refuses a board that's read- or write-protected already, since wlink's
@@ -121,7 +136,8 @@ both ports' output, the images' sha256 and the UID, for
 the card's `lfblocks.fb4` and packages for it.
 
 It needs wlink (see `scripts/README.md`, which `lfmcp.py`'s `wlink` tool
-uses too) and `pyserial`. `--debug` defaults to COM14 and `--usb` finds
-the board's port by its USB IDs. Try it on a spare board first.
+uses too) and `pyserial`. It finds the debug port (the WCH-Link's UART)
+and the cli port (the board's USB terminal) by their USB IDs, or name them
+with `--debug` and `--cli` (`hiltest.py --list` shows which is which). Try it on a spare board first.
 `unit_tests/stage1sim/test_lockdown.py` runs it against the simulated
 board with a fake wlink.

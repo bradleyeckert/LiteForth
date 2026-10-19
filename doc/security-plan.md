@@ -402,10 +402,10 @@ to reach anything that can:
 - **VM memory map:** the security sector and RoT must not be mapped into
   any VM page.
 - **VM IO page:** `VM_IO_PAGE` maps the peripheral registers into
-  Forth. A development build (`DEVELOPER_MODE` 1 in
-  `src/target/CH32H417/Common/security.h`) maps all of
+  Forth. At `SECURITY_LEVEL` 0
+  (`src/target/CH32H417/Common/security.h`) it maps all of
   0x40000000-0x400383FF (`IO_CELLS` in
-  `src/target/CH32H417/V5F/User/options.h`); a product build reaches only
+  `src/target/CH32H417/V5F/User/options.h`); at levels 1 and 2 Forth reaches only
   the allowlist in `V5F/User/io_allow.h` (done: the guarded page,
   `vm_io_page` in `src/vm.h`). The full map includes the FLASH
   controller (0x40022000), DMA1 (0x40020000), ECDC (0x40016C00) and RNG

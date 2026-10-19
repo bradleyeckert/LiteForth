@@ -100,7 +100,7 @@ def main():
         with open('boards.csv', 'w') as f:
             f.write('# test boards\n' + lines[0] + '\n\n' + lines[1] + '\n')
 
-        # board-key --insecure: the key an INSECURE CH32H417 build derives
+        # board-key --insecure: the key a CH32H417 below SECURITY_LEVEL 2 derives
         # from its UID, BLAKE2s (person LFinsec1) of the UID's 8 bytes
         uid = '69a90e647f9cf6a9'
         l1 = expect_ok('insecure board key', 'board-key', 'i1.json', '--uid', uid,
@@ -128,12 +128,8 @@ def main():
         expect('root-header holds the product', 'SEALED_PRODUCT 0x00004c46u' in header, header)
         expect_refused('root-header not overwritten', 'exists', 'root-header', 'root.pub',
                        '--product', 1, '-o', 'root.h')
-        expect('root-header: plain files allowed by default', 'SEALED_ONLY' not in header, header)
-        expect_ok('root-header --sealed-only', 'root-header', 'root.pub', '--product', 0x4C46,
-                  '--sealed-only', '-o', 'only.h')
-        with open('only.h') as f:
-            expect('root-header --sealed-only defines SEALED_ONLY',
-                   '#define SEALED_ONLY 1' in f.read())
+        expect('root-header: no security flags (SECURITY_LEVEL has them)',
+               not any(f in header for f in ('SEALED_ONLY', 'INSECURE', 'STRICT_RDP')), header)
 
         # firmware update packages (doc/firmware-updates.md section 5)
         image = bytes((i * 7 + 3) & 255 for i in range(9000))      # not a whole block

@@ -187,7 +187,7 @@ def install_tests(c, sums, damaged):
     got = install('aes.fb4', 'aes.fb4', '-k', 'space.fb4')
     expect('install sealed without -K', 'lf has no board file (-K); nothing written' in got, got)
 
-    # a sealed-only board (SEALED_ONLY): no plain files, mounted or installed
+    # a sealed-only board (as SECURITY_LEVEL 2): no plain files, mounted or installed
     tool('lf-board', 'only.lfb', '--board-key', 'a.key', '--root', 'root.pub',
          '--product', PRODUCT, '--sealed-only')
     only = ('-k', 'space.fb4', '-K', 'only.lfb')

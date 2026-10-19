@@ -32,8 +32,7 @@
  * written: the capacity is the file's ValidDataLength / 4096. If not, the
  * capacity is 1: block 0 can be read, to see what's there, and nothing
  * can be written. A sealed file is mounted read-only (sealed.c); with
- * SEALED_ONLY in sealed_root.h or DEVELOPER_MODE 0 (security.h), a plain
- * one offers no blocks. With no card, no exFAT volume or no lfblocks.fb4, the
+ * SECURITY_LEVEL 2 (Common/security.h), a plain one offers no blocks. With no card, no exFAT volume or no lfblocks.fb4, the
  * capacity is 0. What was found goes to the debug UART (USART1).
  * filename: ignored.
  * capacity: if not NULL, receives the number of blocks.
@@ -165,7 +164,7 @@ int blk_raw_write(uint32_t blk, const uint32_t *src, int length);
 /**
  * Checks block 0 of an image of `blocks` blocks before it's installed: a
  * plain one (BLK_SIGNATURE, not SEALED_MAGIC) passes unless sealed_root.h
- * defines SEALED_ONLY or DEVELOPER_MODE is 0; a sealed one must
+ * at SECURITY_LEVEL 2; a sealed one must
  * be one this board would mount (board_get, sealed_mount: certificate, signature,
  * product, revision, release key serial, a recipient), so a file the
  * board can't use never replaces one it can. A firmware update package

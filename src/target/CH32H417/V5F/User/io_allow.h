@@ -2,10 +2,10 @@
 #define IO_ALLOW_H
 
 /*
- * The peripherals Forth may reach in a production build (DEVELOPER_MODE 0
- * in Common/security.h): main.c makes VM page VM_IO_PAGE the guarded page
- * (vm_io_page in vm.h) with this list. Edit it per product. In a
- * development build Forth reaches every register from IO_BASE, as before.
+ * The peripherals Forth may reach at SECURITY_LEVEL 1 and 2
+ * (Common/security.h): main.c makes VM page VM_IO_PAGE the guarded page
+ * (vm_io_page in vm.h) with this list. Edit it per product. At level 0
+ * Forth reaches every register from IO_BASE, as before.
  *
  * Each entry is a range of byte addresses [from, to) and what's allowed:
  * IO_RW, or IO_RO (reads only; a write gives -20). Anything not listed

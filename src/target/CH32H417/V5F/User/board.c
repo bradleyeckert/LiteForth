@@ -16,12 +16,12 @@
  * RNG: 64 words, each checked (data ready, no seed or clock error, not a
  * repeat of the one before), hashed together with BLAKE2s.
  *
- * INSECURE (sealed_root.h, for development only): the key is BLAKE2s of
- * the UID instead (personalization "LFinsec1"), used whether or not there
- * is a record (which then only holds the minimums), so every `enroll` on a
- * board gives the same key, even after the record is erased, and
- * `sealblocks.py insecure-board UID` knows it without the board. Anyone
- * who knows a board's UID can read its files.
+ * Below SECURITY_LEVEL 2 (Common/security.h, development only), the key
+ * is BLAKE2s of the UID instead (personalization "LFinsec1"), used whether
+ * or not there is a record (which then only holds the minimums), so every
+ * `enroll` on a board gives the same key, even after the record is erased,
+ * and `sealblocks.py board-key OUT --uid UID --insecure` knows it without
+ * the board. Anyone who knows a board's UID can read its files.
  *
  * Security holes left for later (encrypted-blocks.md section 9): any code
  * on the V5F can read this sector, and nothing stops it being rewritten.
@@ -35,13 +35,10 @@
 #include "../../../../monocypher.h"
 #include "../../../../errcodes.h"
 #include "../../../../tools.h"
+#include "security.h"               /* SECURITY_LEVEL (Common/) */
 #if __has_include("sealed_root.h")
-#include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT, SEALED_ONLY, INSECURE */
-#include "security.h"               /* DEVELOPER_MODE (Common/) */
-
-#if defined(INSECURE) && !DEVELOPER_MODE
-#error "INSECURE (sealed_root.h) is for development: DEVELOPER_MODE is 0 (Common/security.h)"
-#endif
+#include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT */
+#include "security.h"               /* again: no old flags in sealed_root.h */
 #endif
 
 extern const uint32_t __lf_flash_start[];   /* Link_v5f.ld */
@@ -97,8 +94,8 @@ static void uid(uint8_t out[8]) {
     memcpy(out, (const void *)UID_ADDR, 8);
 }
 
-#ifdef INSECURE
-/* INSECURE: the private key from the UID, the same every time */
+#if SEC_UID_KEY
+/* Levels 0 and 1: the private key from the UID, the same every time */
 static int random_key(uint8_t key[32]) {
     static const uint8_t person[8] = "LFinsec1";
     blake2s_state S;
@@ -151,19 +148,14 @@ static void put_hex(const uint8_t *p, int n) {
 
 int board_get(sealed_board *b, char *msg, int len) {
     memset(b, 0, sizeof *b);
-#ifdef SEALED_ONLY
-    b->sealed_only = SEALED_ONLY;       /* set even if the rest fails */
-#endif
-#if !DEVELOPER_MODE
-    b->sealed_only = 1;                 /* a product takes only sealed files */
-#endif
+    b->sealed_only = SEC_SEALED_ONLY;   /* level 2; set even if the rest fails */
 #ifndef SEALED_ROOT_KEY
     snprintf(msg, len, "no root key built in (V5F/User/sealed_root.h)");
     return ERR_UNSUPPORTED_OPERATION;
 #else
     static const uint8_t root[32] = SEALED_ROOT_KEY;
     record_t r;
-#ifdef INSECURE
+#if SEC_UID_KEY
     if (!record_read(&r)) {             /* no record: no minimums, but the key */
         memset(&r, 0, sizeof r);
     }
@@ -206,8 +198,8 @@ int lfAPI_enroll(void) {
         }
         lf_puts("enroll: new key made. ");
     }
-#ifdef INSECURE
-    lf_puts("(INSECURE build: the key comes from the UID, not the RNG) ");
+#if SEC_UID_KEY
+    lf_puts("(security level below 2: the key comes from the UID, not the RNG) ");
     random_key(r.private_key);          /* as board_get uses it, whatever the record holds */
 #endif
     crypto_x25519_public_key(pub, r.private_key);

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Runs scripts/admin/hiltest.py, the hardware-in-the-loop tests, against
 the simulated board instead of a real one, so the lab's script is itself
-tested: the board's two serial ports are ptys, and wlink is fakewlink.py,
-which has this rig restart the simulation (a reset). Needs pyserial."""
+tested: the board's two serial ports are ptys, and this rig restarts the
+simulation whenever the chip resets itself (`reboot`, the recovery
+console's `reset`, or a V5F that doesn't start). Needs pyserial."""
 import os
 import pty
 import subprocess
@@ -30,17 +31,9 @@ def main():
         state['p'] = subprocess.Popen([os.path.join(t.WORK, 'sim')], cwd=board.dir, env=env,
                                       stdin=usb_m, stdout=usb_m, stderr=dbg_m)
 
-    def rig():                          # resets: asked for (wlink) or by the chip itself
-        req, done = os.path.join(board.dir, 'reset.req'), os.path.join(board.dir, 'reset.done')
+    def rig():                          # the chip reset itself: start it again
         while not state['stop']:
-            p = state['p']
-            if os.path.exists(req):
-                os.remove(req)
-                p.kill()
-                p.wait()
-                start()
-                open(done, 'w').close()
-            elif p.poll() is not None:  # NVIC_SystemReset, or a crash
+            if state['p'].poll() is not None:
                 start()
             time.sleep(0.02)
 
@@ -49,8 +42,7 @@ def main():
     os.makedirs(os.path.join(HERE, 'reports'), exist_ok=True)
     report = os.path.join(HERE, 'reports', 'hil-sim.md')
     hil = os.path.join(t.ROOT, 'scripts', 'admin', 'hiltest.py')
-    common = ['--debug', os.ttyname(dbg_s), '--usb', os.ttyname(usb_s), '--wlink', sys.executable,
-              '--reset-args', f'{os.path.join(HERE, "fakewlink.py")} {board.dir}']
+    common = ['--debug', os.ttyname(dbg_s), '--usb', os.ttyname(usb_s)]
     r = subprocess.run([sys.executable, hil, 'check', *common], timeout=120)
     ok = r.returncode == 0
     r = subprocess.run([sys.executable, hil, 'run', *common, '--good', t.PACKAGES['v1'],

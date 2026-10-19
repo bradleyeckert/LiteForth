@@ -86,6 +86,7 @@ extern "C" {
 #define CDC_UPDATE_MAGIC    0x5A9E0F11u     /* update: a checked package waits in lfstage.bin */
 #define CDC_CONFIRM_MAGIC   0xC0F1A3EDu     /* update: the V5F started LiteForth (ends a trial) */
 #define CDC_RECOVER_MAGIC   0x2EC0BE27u     /* recover: the next boot goes into stage 1's recovery */
+#define CDC_NOSTART_MAGIC   0x4E530000u     /* nostart: this | the boots in a row the V5F didn't start */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -111,6 +112,9 @@ typedef struct {
                                                before the last safe start got LiteForth going: the
                                                chip resets into stage 1's recovery, which clears it.
                                                Survives the reset, as safe_boot does */
+    volatile uint32_t nostart;              /* V3F: CDC_NOSTART_MAGIC | n, n boots in a row whose
+                                               V5F never started (stage1_wait_v5f); anything else
+                                               counts as 0. Survives the reset */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
 } cdc_shared_t;

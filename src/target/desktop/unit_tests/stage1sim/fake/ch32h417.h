@@ -65,5 +65,6 @@ void PWR_EnterSTOPMode(uint32_t regulator, uint8_t entry);
 typedef enum { HSEM_ID0 = 0, HSEM_ID1, HSEM_ID2 } HSEM_ID_TypeDef;
 uint32_t HSEM_FastTake(HSEM_ID_TypeDef id);
 void HSEM_ReleaseOneSem(HSEM_ID_TypeDef id, uint32_t process);
+FlagStatus HSEM_GetFlagStatus(HSEM_ID_TypeDef id);
 
 #endif

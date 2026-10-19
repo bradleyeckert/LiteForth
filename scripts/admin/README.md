@@ -48,27 +48,28 @@ against the formulas in the plan, and each refusal.
 
 ```
 py hiltest.py --list
-py hiltest.py check --debug COM15 --wlink D:\Apps\wlink-win-x64\wlink.exe
-py hiltest.py run --debug COM15 --wlink D:\Apps\wlink-win-x64\wlink.exe --good v5f-1.lfu --hang v5f-2-hang.lfu
+py hiltest.py check
+py hiltest.py run --good v5f-1.lfu --hang v5f-2-hang.lfu
 ```
 
 Tests stage 1 on a real CH32H417 board from the PC
 ([doc/firmware-updates.md](../../doc/firmware-updates.md) section 9). It
-reads the debug UART through the WCH-LinkE (9600 baud), drives the board's
-USB terminal as kwai does (the port is found by its USB IDs, 1A86:FE0C, or
-named with `--usb`), and resets the chip with
-[wlink](https://github.com/ch32-rs/wlink) (`--wlink`, or the `WLINK`
-environment variable; `--reset-args`, default `reset`).
+needs only the board's USB terminal, found by its USB IDs (1A86:FE0C) or
+named with `--usb`, and its debug UART (`--debug`, default COM14, 9600
+baud, through any USB serial adapter). It resets the chip by typing
+`reboot` to LiteForth, or `reset` to stage 1's recovery console. A V5F
+that doesn't start makes the V3F reset the chip by itself. So there's no
+debug probe and no reset button. `--reset-cmd "COMMAND"` (or the
+`HIL_RESET` environment variable) runs a command to reset instead.
 
-- `--list` shows every serial port with its USB IDs, maker and product,
-  so you can tell the WCH-LinkE's UART from the board's own port.
+- `--list` shows every serial port with its USB IDs, maker and product.
 - `check` resets the board once and shows that the debug UART, the USB
   terminal and LiteForth all answer.
 - `run` plays these scenarios, or only one with `--only`:
   - `install`: GOOD.lfu staged with `-2 ymodem`, installed at the next
     reset, on trial, confirmed.
-  - `rollback`: HANG.lfu, an image that never starts, through three trial
-    boots, then rolled back.
+  - `rollback`: HANG.lfu, an image that never starts. The board goes
+    through three trial boots and is rolled back, all by itself.
   - `recovery`: Ctrl+X x3 twice while the V5F restarts, which gives
     recovery. Then GOOD.lfu goes to stage 1 itself, is installed without
     a backup, and is confirmed.

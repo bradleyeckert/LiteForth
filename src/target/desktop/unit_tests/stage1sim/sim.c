@@ -34,7 +34,8 @@
  * lines with ok>, and `-2 ymodem` by taking a package into lfstage.bin and
  * setting the flag, without the real V5F's checks), "SIMV5F:STUCK" starts but
  * gets stuck before LiteForth (counts the start, nothing more), anything
- * else never starts at all, so the V3F sleeps in Stop mode for good.
+ * else never starts at all, so stage1_wait_v5f resets the chip. A line
+ * `reboot` resets the chip, as lfReboot does.
  */
 #define _GNU_SOURCE
 #include <errno.h>
@@ -209,6 +210,12 @@ uint32_t HSEM_FastTake(HSEM_ID_TypeDef id) {
     return 0;
 }
 
+static int v5f_started;                 /* the V5F model released HSEM0 */
+
+FlagStatus HSEM_GetFlagStatus(HSEM_ID_TypeDef id) {
+    return id == HSEM_ID0 && v5f_started ? SET : RESET;
+}
+
 void HSEM_ReleaseOneSem(HSEM_ID_TypeDef id, uint32_t process) {
     (void)process;
     if (id == (HSEM_ID_TypeDef)CDC_RESTART_HSEM) {
@@ -379,7 +386,9 @@ static void v5f_service(void) {
         r->tail++;
         if (c == '\r' || c == '\n') {
             v5f_line[v5f_len] = 0;
-            if (!strcmp(v5f_line, "-2 ymodem")) {
+            if (!strcmp(v5f_line, "reboot")) {
+                NVIC_SystemReset();     /* lfReboot: the whole chip */
+            } else if (!strcmp(v5f_line, "-2 ymodem")) {
                 v5f_busy = 1;
                 v5f_ymodem();
                 v5f_busy = 0;
@@ -592,9 +601,8 @@ int main(int argc, char **argv) {
     if (stage1_boot() == STAGE1_START) {
         printf("V3F: starting the V5F\r\n");
         v5f_kind = v5f_model();
-        if (v5f_kind == V5F_DEAD) {     /* never releases HSEM0: Stop mode for good */
-            PWR_EnterSTOPMode(PWR_Regulator_ON, 0);
-        }
+        v5f_started = (v5f_kind != V5F_DEAD);   /* its main() releases HSEM0 first */
+        stage1_wait_v5f();              /* or resets the chip */
         printf("V3F: the V5F is running\r\n");
         v5f_running = 1;
         v5f_boot();

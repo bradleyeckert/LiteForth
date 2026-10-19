@@ -346,6 +346,24 @@ comes as soon as a package has arrived, so if that package is then
 refused, the board stays in recovery until a good one comes. `reset`
 before any package just tries the V5F again.
 
+**A V5F that doesn't start at all.** The V3F used to sleep in Stop mode
+until the V5F woke it, which an image that never starts never does. The
+board then stayed dead until someone pressed reset. `stage1_wait_v5f`
+now waits up to `STAGE1_V5F_START_MS` (3 s) for the V5F to release HSEM0,
+which its `main` does first, and otherwise resets the chip, counting the
+boot in `nostart` in the shared block. So an image on trial uses up its
+trial boots by itself and is rolled back, with nobody pressing reset. An
+installed image that stops starting gets recovery after
+`STAGE1_START_TRIES` (3) such boots in a row. In recovery, a package then
+replaces it as after Ctrl+X x3 twice, and `reset` tries it again. Boots
+with an update under way don't count, since the trial counts those. A
+debugger holding the V5F at its start would count too, so set
+`STAGE1_V5F_START_MS` to 0 for that.
+
+`reboot` resets the chip from LiteForth, as the reset pin does. With it,
+nothing outside the board is needed to drive any of this: no reset
+button, no debug probe.
+
 Watch out when developing: on a board that has a record, a V5F build
 downloaded by the debugger fails its MAC. If `lfbackup.bin` holds a good
 backup, stage 1 restores that over the new build; otherwise it goes to
@@ -500,11 +518,12 @@ RDP 0:
 
    `scripts/admin/hiltest.py` runs the board's scenarios with nobody at
    the board: install, rollback, recovery on request, and the lock-down
-   check. It drives the USB terminal as kwai does, reads the debug UART
-   through the WCH-LinkE, and resets the chip with wlink. It writes a
-   report for board-tests.md. `stage1sim/test_hil.py` runs the same
-   script against the simulated board in CI, with ptys for its ports and
-   a stand-in for wlink, so the lab's script is tested too.
+   check. It drives the USB terminal as kwai does and reads the debug
+   UART. It resets the chip by typing `reboot` (or `reset` in recovery),
+   and the rollback needs no resets at all. It writes a report for
+   board-tests.md. `stage1sim/test_hil.py` runs the same script against
+   the simulated board in CI, with ptys for its ports, so the lab's script
+   is tested too.
 2. **This board, RDP 0, no WRPR.** Phases A-F for real, then recovery.
    Anything that goes wrong is fixed with the WCH-Link. Every run is
    logged in [board-tests.md](board-tests.md), with the firmware, the

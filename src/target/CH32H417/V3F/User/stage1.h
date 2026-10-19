@@ -29,6 +29,9 @@
  *   resets the chip into recovery (`recover` in cdc_shared.h). A package
  *   sent then replaces the stuck image (upd_mark_broken first, so it
  *   needs no backup); `reset` just tries the V5F again.
+ * - A V5F that doesn't start at all (stage1_wait_v5f) makes the V3F reset
+ *   the chip after STAGE1_V5F_START_MS, so a trial runs out by itself, and
+ *   after STAGE1_START_TRIES such boots in a row stage 1 goes to recovery.
  * - The lock-down check, at every boot: read protection on, the V3F's
  *   sectors write-protected and the rest writable (stage1_layout.h), and
  *   the boot ROM's USB and USART downloads off. Anything else is one
@@ -50,6 +53,13 @@
 /* #define STRICT_RDP */             /* refuse to start the V5F on a board that isn't
                                            locked down: production builds */
 
+#ifndef STAGE1_V5F_START_MS
+#define STAGE1_V5F_START_MS 3000        /* stage1_wait_v5f: then the chip resets; 0 = wait for good */
+#endif
+#ifndef STAGE1_START_TRIES
+#define STAGE1_START_TRIES  3           /* boots in a row the V5F may fail to start: then recovery */
+#endif
+
 #define STAGE1_START        0           /* stage1_boot: wake the V5F */
 #define STAGE1_RECOVERY     1           /* don't: recovery, in stage1_poll */
 
@@ -63,6 +73,19 @@
  * recovery terminal.
  */
 int stage1_boot(void);
+
+/**
+ * After the V3F woke the V5F: waits up to STAGE1_V5F_START_MS for the V5F
+ * to release HSEM0, as its main() does first. If it doesn't, the image
+ * doesn't start at all: counts the boot in `nostart` (cdc_shared.h) and
+ * resets the chip, so an image on trial uses up its trial boots by itself
+ * and is rolled back, and an installed one that stops starting gets
+ * recovery after STAGE1_START_TRIES boots, with nobody pressing reset.
+ * Returns once the V5F has started (and clears the count). A debugger
+ * holding the V5F at its start counts too: set STAGE1_V5F_START_MS to 0
+ * for that.
+ */
+void stage1_wait_v5f(void);
 
 /**
  * From the V3F's main loop. Normally: when the V5F says it started

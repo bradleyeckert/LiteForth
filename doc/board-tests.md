@@ -675,7 +675,27 @@ What Forth can reach in the peripheral page (`VM_IO_PAGE`, VM addresses
 - Branch `io-allowlist` at 5452018 (PR #183), built by the board's owner in MounRiver.
 - Baseline: the firmware from before the allowlist (B6's), which is level 0's map.
 - Test: both cores built with `SECURITY_LEVEL` 1.
-- The image hashes and the debug UART's startup lines weren't recorded for this run.
+- V3F built Oct 19 2026 09:35:17, GCC 12.2.0. The image hashes weren't recorded.
+
+**Debug UART at the start of the level 1 run:**
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 2; the previous run left 54 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 09:35:17, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 17 ms)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+At level 1 an open board gets the warning but still starts the V5F (at
+level 2 it would stay in recovery). The board key still comes from the
+UID: the sealed card made for B3-B6 mounted. LiteForth's flash was blank
+after the download, so only the built-in words were there; none of the
+test needs more.
 
 **Registers used:**
 - GPIOA (`40010800H`, `284200H`): allowed, read and write.

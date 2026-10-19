@@ -764,3 +764,85 @@ already set it.
 - GPIOA read and written: the write set PA0-PA7 to analog inputs for a moment, then wrote back the reset value `44444444H`.
 - RCC read, and its write refused with -20. The register read the same before and after.
 - The flash controller and SDMMC refused with -9, for a read and a write.
+
+### B8. Lock-down of the spare board with lockdown.py (19 October 2026)
+
+The first lock-down. The spare board, UID `e52116647f9c7a22`, went from
+fresh from WCH to read protection on, the V3F's sectors write-protected and
+both boot ROM downloads off, with `scripts/admin/lockdown.py` and stage 1's
+`lockdown`. Only a chip erase through the WCH-LinkE undoes it.
+
+**Ports:** the cli port, COM6, is the V3F's USB terminal; the debug port,
+COM3, is this board's WCH-LinkE UART.
+
+**Firmware:** branch `lockdown` (PR #185), both cores at `SECURITY_LEVEL` 2:
+- V3F `LiteForth_V3F.bin`, built Oct 19 2026 12:35:24, GCC 12.2.0: 62,904
+  bytes, sha256 `8bdc3206008af9d955956064dea6be024cbf72ee21f53d6670fa8adfbfc72fd1`.
+- V5F `LiteForth_V5F.bin`: 90,032 bytes, sha256
+  `fdf7aedcad0c4d0a56bf09a191a6d4762836ea3d80dba1499573d9371a5979bb`.
+- Both were flashed with wlink at 0x08000000 and 0x08010000, and read back,
+  in the 13:06 run below.
+
+**Starting state:** OBR `000003FC`, WPR `FFFFFFFF`: read protection off,
+nothing write-protected, both downloads on. No SD card.
+
+**Runs** (the lockdown.py reports, `lockdown-report-20261019-*.md`):
+
+| Time | Command | What happened |
+|---|---|---|
+| 12:26 | `run` on the main board (UID `69a90e64...`) | Flashed level 1 images; stage 1 didn't stay in recovery, so the script stopped: not a level 2 build. Nothing locked. |
+| 12:41 | `run --usb COM3` | Stopped before flashing: the debug port default (COM14) didn't exist. |
+| 12:46 | `run --debug COM3` | Flashed and read back both level 2 images; stage 1 said recovery; no cli port after the reset. |
+| 13:06 | `run --debug COM3 --usb COM6` | Flashed both images; the read-back's attach failed (`protocol error 0x55`). |
+| 13:19 | the same | The flash's attach failed: nothing flashed. |
+| 13:32 | `lock` | COM6 "not functioning": the script's wlink reads had left the V3F halted. |
+| 13:43 | `lock` | After wlink's first two calls, every attach failed (`resume`, `reset`). |
+| 13:49 | `lock`, wlink not used before the lock | Locked: see below. |
+
+**13:49, the lock.** The recovery console, before:
+
+```
+LiteForth stage 1: recovery mode. The V5F stays off:
+security level 2: this board isn't locked down, so the V5F won't start
+read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+lockdown: lock this board down (it says what it will do first).
+reset: start again.
+recovery ok>
+```
+
+`LOCK` was typed, and the script sent `lockdown yes`. The debug port:
+
+```
+V3F: lockdown: programming the option bytes
+V3F: lockdown: option bytes now RDPR 00FF USER C03F WRPR0 FF00: NOT AS WRITTEN
+```
+
+The data bytes were right: RDPR `FF`, so read protection on; USER `3F`, so
+both downloads off; WRPR0 `00`, so sectors 0-7 protected. The chip had
+written each complement byte itself, so the whole-halfword comparison
+failed. Stage 1 therefore skipped its reset and the script stopped. This is
+fixed in PR #185 (the data bytes only), and the finding is in
+[ch32h417-notes.md](ch32h417-notes.md).
+
+**After a hard reset**, as reported: the V5F booted normally. A level 2
+stage 1 starts the V5F only when its lock-down check (OBR and WPR) passes,
+so the option bytes loaded. The debug port's text of that boot wasn't kept.
+
+**Result:** pass, the board is locked down.
+- **wlink flashes this dual-core part:** the V5F image it wrote at 0x10000
+  runs.
+- **The option bytes loaded at a hard reset.** It's not yet known whether a
+  software reset alone would load them.
+- **wlink halts the V3F to read it, and leaves it halted:** its USB stops
+  answering, and a soft reset halts it again. On a board in recovery, the
+  WCH-LinkE then often fails to attach (`0x55`) until a power cycle. So
+  lockdown.py's `lock` uses no wlink before the lock, and lfmcp's `wlink`
+  tool resumes the core after its reads.
+
+**Still to do on this board:**
+- `wlink status` under read protection;
+- `enroll`, a flash write by the V5F under read protection;
+- an update installed by stage 1, which runs from RAM_CODE: the reference
+  manual says code running from RAM can't program flash under read
+  protection;
+- a rollback, and recovery over USB.

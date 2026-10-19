@@ -48,17 +48,21 @@ against the formulas in the plan, and each refusal.
 
 ```
 py hiltest.py --list
-py hiltest.py check --debug COM15 --wlink D:\Apps\wlink-win-x64\wlink.exe
-py hiltest.py run --debug COM15 --wlink D:\Apps\wlink-win-x64\wlink.exe --good v5f-1.lfu --hang v5f-2-hang.lfu
+py hiltest.py check --reset-cmd "RESET COMMAND"
+py hiltest.py run --reset-cmd "RESET COMMAND" --good v5f-1.lfu --hang v5f-2-hang.lfu
 ```
 
 Tests stage 1 on a real CH32H417 board from the PC
 ([doc/firmware-updates.md](../../doc/firmware-updates.md) section 9). It
 reads the debug UART through the WCH-LinkE (9600 baud), drives the board's
 USB terminal as kwai does (the port is found by its USB IDs, 1A86:FE0C, or
-named with `--usb`), and resets the chip with
-[wlink](https://github.com/ch32-rs/wlink) (`--wlink`, or the `WLINK`
-environment variable; `--reset-args`, default `reset`).
+named with `--usb`), and resets the chip through the WCH-LinkE with any
+command you give it (`--reset-cmd`, or the `HIL_RESET` environment
+variable). MounRiver's OpenOCD works with WCH's own driver. Or it can use
+[wlink](https://github.com/ch32-rs/wlink) (`--wlink`, `--reset-args`,
+default `reset`), but wlink needs the WinUSB driver on the WCH-LinkE's
+debug interface, which MounRiver then can't use. The debug UART is
+`--debug` (default COM14).
 
 - `--list` shows every serial port with its USB IDs, maker and product,
   so you can tell the WCH-LinkE's UART from the board's own port.

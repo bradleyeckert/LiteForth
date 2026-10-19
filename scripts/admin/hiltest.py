@@ -4,16 +4,19 @@ same scenarios as unit_tests/stage1sim plays on the simulated board,
 driven from the PC with nobody at the board.
 
     hiltest.py --list
-    hiltest.py check [--debug PORT] [--usb PORT] [--wlink PATH]
+    hiltest.py check [--debug PORT] [--usb PORT] [--reset-cmd "COMMAND" | --wlink PATH]
     hiltest.py run --good GOOD.lfu --hang HANG.lfu [--only NAME] [--report FILE] [...]
 
 It needs:
 - the board's USB terminal (LiteForth's CDC port, USB 1A86:FE0C; --usb,
   found by its IDs if not given);
 - the debug UART, through the WCH-LinkE (--debug, default COM14, 9600 baud);
-- wlink (https://github.com/ch32-rs/wlink) to reset the chip through the
-  WCH-LinkE (--wlink, default the WLINK environment variable or `wlink`;
-  --reset-args, default `reset`);
+- a way to reset the chip through the WCH-LinkE: --reset-cmd "COMMAND"
+  (or the HIL_RESET environment variable), such as MounRiver's OpenOCD,
+  which works with WCH's own driver; or else wlink
+  (https://github.com/ch32-rs/wlink, --wlink, default the WLINK
+  environment variable or `wlink`, with --reset-args, default `reset`),
+  which needs the WinUSB driver on the WCH-LinkE's debug interface;
 - the card in the board with lfstage.bin and lfbackup.bin (at least 33
   blocks), as for any update;
 - pyserial (`py -m pip install pyserial`).
@@ -42,6 +45,7 @@ scenario passed.
 """
 import argparse
 import hashlib
+import shlex
 import inspect
 import os
 import queue
@@ -292,7 +296,7 @@ class Rig:
     def reset(self):
         """The reset button, through the WCH-LinkE."""
         self.usb.close()
-        cmd = [self.a.wlink] + self.a.reset_args.split()
+        cmd = reset_command(self.a)
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if r.returncode != 0:
             print(f'{" ".join(cmd)} failed:\n{r.stdout}{r.stderr}')
@@ -331,6 +335,13 @@ class Rig:
         text = bytes(self.usb.text[u0:]).decode('latin-1')
         self.usb.close()
         return ok and 'waiting for stage 1' in text, text
+
+
+def reset_command(a):
+    """The command line that resets the board: --reset-cmd, or wlink."""
+    if a.reset_cmd:
+        return [w.strip('"') for w in shlex.split(a.reset_cmd, posix=(os.name != 'nt'))]
+    return [a.wlink] + a.reset_args.split()
 
 
 def check(cond, what):
@@ -450,6 +461,8 @@ def main():
     p.add_argument('--usb', help="the board's USB terminal (default: found by its USB IDs)")
     p.add_argument('--wlink', default=os.environ.get('WLINK', 'wlink'))
     p.add_argument('--reset-args', default='reset', help='wlink arguments for a reset')
+    p.add_argument('--reset-cmd', default=os.environ.get('HIL_RESET'),
+                   help='a whole command line that resets the board, instead of wlink')
     p.add_argument('--good', help='a package of a V5F image that runs LiteForth')
     p.add_argument('--hang', help='a package of a V5F image that never starts')
     p.add_argument('--only', help='run only this scenario')
@@ -462,7 +475,7 @@ def main():
         p.error('say --list, check or run')
     rig = Rig(a)
     if a.what == 'check':
-        print(f'resetting with: {a.wlink} {a.reset_args}')
+        print(f'resetting with: {" ".join(reset_command(a))}')
         line, start = rig.reset_and_wait(r'V3F', 10)
         print(f'debug UART ({a.debug}): {"ok: " + line if line else "nothing after the reset"}')
         rig.debug.wait(r'USB configured', start, 20)
@@ -483,7 +496,7 @@ def main():
                 p.error(f'{n} needs --good and --hang packages')
         note('# Stage 1 on the board (hiltest.py)\n')
         note(f'Run {time.strftime("%Y-%m-%d %H:%M:%S")}; debug UART {a.debug}, USB '
-             f'{a.usb or find_board_port()}, reset by `{a.wlink} {a.reset_args}`.\n')
+             f'{a.usb or find_board_port()}, reset by `{" ".join(reset_command(a))}`.\n')
         for name, path in (('GOOD', a.good), ('HANG', a.hang)):
             if path:
                 note(f'- {name}: `{os.path.basename(path)}`, sha256 {sha(path)}')

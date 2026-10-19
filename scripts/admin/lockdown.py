@@ -129,6 +129,18 @@ def status(wl):
     return text, uid and uid.group(1).replace('-', ''), prot and prot.group(1) == 'true'
 
 
+def release(wl, restart):
+    """wlink halts the core to read it, and leaves its halt request set:
+    then the V3F stays halted (its USB stops answering), and even a soft
+    reset halts it again. `resume` clears the request; with restart, a
+    reset then gives a clean start."""
+    code, text = wl.run(['resume'])
+    block('wlink resume', text)
+    if restart:
+        code, text = wl.run(['reset'])
+        block('wlink reset', text)
+
+
 def cmd_check(a):
     wl = Probe(a.wlink)
     text, uid, prot = status(wl)
@@ -138,6 +150,8 @@ def cmd_check(a):
     except OSError as e:
         say(f'option bytes: not read ({e})')
         return 1
+    finally:
+        release(wl, False)
     say(ob_text(obr, wpr))
     say('locked down' if locked(obr, wpr) else 'NOT locked down')
     return 0 if locked(obr, wpr) else 1
@@ -220,18 +234,16 @@ def cmd_run(a):
             verify(wl, a.v3f, a.v3f_address)
         if v5f_bin:
             verify(wl, a.v5f, a.v5f_address)
-        start = dbg.mark()
-        code, text = wl.run(['reset'])
-        block('wlink reset', text)
-        say()
-        say('## The level 2 build on an open board')
-        line = dbg.wait(r'recovery mode|LiteForth starting', start, 30)
-        if not line or 'recovery' not in line:
-            debug_log(dbg, start, 'Debug port')
-            raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t '
-                       'start')
-    else:
-        say('## The level 2 build on an open board (already flashed: not flashing)')
+    start = dbg.mark()
+    release(wl, True)                   # a clean start, not halted
+    say()
+    say('## The level 2 build on an open board'
+        + ('' if a.cmd == 'run' else ' (already flashed: not flashing)'))
+    line = dbg.wait(r'recovery mode|LiteForth starting', start, 30)
+    if not line or 'recovery' not in line:
+        debug_log(dbg, start, 'Debug port')
+        raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t start '
+                   '(turn the power off and on, then run `lock`)')
     usb = UsbPort(a.usb)
     if not usb.open(20):
         name = a.usb or find_board_port()
@@ -297,6 +309,7 @@ def cmd_run(a):
         say(ob_text(obr, wpr))
     except OSError as e:
         say(f'option bytes: not read through the debug port ({e})')
+    release(wl, False)                  # let it run on
     if not prot:
         raise Fail('wlink says the flash isn\'t protected')
     say()

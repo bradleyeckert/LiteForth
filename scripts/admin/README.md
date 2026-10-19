@@ -104,7 +104,9 @@ UID, the option bytes, and whether the board is locked down. `lock` is
 `run` without the flashing (steps 3 to 5), for a board that already runs a
 level 2 build and sits in recovery.
 
-The WCH-LinkE sometimes fails to attach (`underlying protocol error:
+wlink halts the core to read it and leaves it halted, so after its reads
+the script runs `wlink resume` and then a reset, for a clean start (the
+cli port answers again). The WCH-LinkE sometimes fails to attach (`underlying protocol error:
 0x55`) and works a second later, so the script pauses before each wlink
 call and tries `status`, `dump` and `reset` up to four times, and a flash
 again if it failed before writing anything; each retry is in the report.

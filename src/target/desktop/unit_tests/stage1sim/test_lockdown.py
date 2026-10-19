@@ -4,8 +4,8 @@ build: sim_strict), with a fake wlink, so the script that locks boards
 down is itself tested. The board's serial ports are ptys, and this rig
 restarts the simulation whenever the chip resets. The fake wlink (written
 here) logs every call, refuses anything lockdown.py mustn't run, writes
-`flash` images into the board's flash.bin, resets by stopping the
-simulation, and answers `status` and the option bytes from ob.bin, as the
+`flash` images into the board's flash.bin, models the probe's halting (status, dump and flash stop the simulation; a
+reset leaves it stopped until `resume`), and answers `status` and the option bytes from ob.bin, as the
 chip loads them. Needs pyserial."""
 import os
 import pty
@@ -38,16 +38,27 @@ def ob():
     obr = (2 if (h[0] & 0xFF) != 0xA5 else 0) | (h[1] & 0xFF) << 2
     return obr, sum((h[4 + i] & 0xFF) << (8 * i) for i in range(4))
 
-def reset():
+HALTED = os.path.join(board, "halted")
+
+def sim(sig):
     try:
-        os.kill(int(open(os.path.join(board, "sim.pid")).read()), signal.SIGKILL)
+        os.kill(int(open(os.path.join(board, "sim.pid")).read()), sig)
     except (OSError, ValueError):
         pass
+
+def halt():                     # as the real probe: attaching halts the core,
+    open(HALTED, "w").close()   # and the halt request stays set
+    sim(signal.SIGSTOP)
+
+def reset():                    # a reset with the request set: halted again
+    sim(signal.SIGKILL)         # (the rig doesn't restart a halted board)
 
 def num(v):
     return int(v, 0)
 
 cmd = args[0] if args else ""
+if cmd in ("status", "dump", "flash"):
+    halt()
 if cmd == "status":
     print("Connected to WCH-Link v2.20(v40) (WCH-LinkE-CH32V305) (fake)")
     print("Chip ESIG: FlashSize(960KB) UID(01-02-03-04-05-06-07-08)")
@@ -87,6 +98,10 @@ elif cmd == "flash" and "-e" not in args and "--erase" not in args:
         reset()
 elif cmd == "reset":
     reset()
+elif cmd == "resume":
+    if os.path.exists(HALTED):
+        os.remove(HALTED)
+    sim(signal.SIGCONT)
 else:
     print("fake wlink: " + " ".join(args) + " isn't something lockdown.py should run")
     sys.exit(9)
@@ -122,7 +137,8 @@ class Rig:
 
     def watch(self):
         while not self.stop:
-            if self.p.poll() is not None:
+            halted = os.path.exists(os.path.join(self.board.dir, 'halted'))
+            if self.p.poll() is not None and not halted:
                 self.start()
             time.sleep(0.02)
 

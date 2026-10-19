@@ -56,6 +56,10 @@ make clean      # leaves the tracked bin/*.bin images alone
 - `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
 - For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
   first and `cmp` them afterwards; gcc output is reproducible here.
+- Security tests on the board (updates, rollback, PMP, protection) are
+  logged in `doc/board-tests.md`, as evidence for a cybersecurity document:
+  firmware build and hashes, packages' sha256, steps, expected, and the
+  board's output word for word. Add an entry for every such run.
 - CI (`.github/workflows/c-cpp.yml`) runs `make` and `make test`, but only on
   pushes and PRs to `main`, so work on other branches is untested until a PR.
 

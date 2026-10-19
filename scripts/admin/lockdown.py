@@ -49,7 +49,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
-from hiltest import DebugPort, UsbPort, WCH_VID, list_ports  # noqa: E402
+from hiltest import DebugPort, UsbPort, WCH_VID, list_ports, find_board_port, serial  # noqa: E402
 from lfmcp import Wlink, OBR_RDPRT, WPR_NONE  # noqa: E402
 
 V3F_ADDRESS = 0x08000000
@@ -60,6 +60,7 @@ LOCKED_WPR = 0xFFFFFF00                 # STAGE1_WRP_WRITABLE: the V3F's 64 KB p
 DOWNLOADS = 0xC0 << 2                   # OBR's USARTDL and USBFSDL bits
 
 report = []
+debug_seen = {}                         # the debug port and where this run began, for a stop
 
 
 def say(text=''):
@@ -190,6 +191,7 @@ def cmd_run(a):
         raise Fail('no debug UART: give --debug (`hiltest.py --list` shows the ports)')
     say(f'Debug UART: {debug}')
     dbg = DebugPort(debug)
+    debug_seen.update(port=dbg, start=dbg.mark())
     flash(wl, a.v3f, a.v3f_address, v3f_bin)
     flash(wl, a.v5f, a.v5f_address, v5f_bin)
     if v3f_bin:
@@ -207,7 +209,18 @@ def cmd_run(a):
         raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t start')
     usb = UsbPort(a.usb)
     if not usb.open(20):
-        raise Fail('no USB terminal')
+        name = a.usb or find_board_port()
+        if not name:
+            raise Fail('no LiteForth USB port (USB 1A86:FE0C): is the board\'s own USB '
+                       'connected to this PC? (`hiltest.py --list` shows the ports)')
+        if os.name == 'nt' and name not in [p.device for p in list_ports.comports()]:
+            raise Fail(f'there\'s no {name} (`hiltest.py --list` shows the ports)')
+        try:
+            serial.Serial(name, 115200).close()
+        except serial.SerialException as e:
+            raise Fail(f'{name} is there but won\'t open ({e}): is kwai or another '
+                       'terminal using it? Close it and run this again.')
+        raise Fail(f'{name} wouldn\'t open within 20 s')
     if not usb.wait('recovery ok> ', 5):
         usb.write('\r')
         usb.wait('recovery ok> ', 5)
@@ -289,6 +302,9 @@ def main():
     try:
         code = cmd_run(a)
     except (Fail, OSError) as e:
+        if debug_seen and not report[-1].startswith('\n```'):
+            say()
+            debug_log(debug_seen['port'], debug_seen['start'], 'Debug UART, this run')
         say()
         say(f'**Stopped:** {e}')
         code = 1

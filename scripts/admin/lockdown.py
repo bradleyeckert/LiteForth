@@ -6,7 +6,7 @@ WCH-LinkE (`wlink unprotect`, done by hand) always takes a board back, and
 nothing else does.
 
     lockdown.py check [--wlink EXE]
-    lockdown.py run --v3f V3F --v5f V5F [--usb PORT] [--debug PORT]
+    lockdown.py run --v3f V3F --v5f V5F [--cli PORT] [--debug PORT]
                     [--v3f-address A] [--v5f-address A] [--wlink EXE] [--report FILE]
 
 check only reads: the probe, the chip, its UID and the option bytes, and
@@ -18,8 +18,8 @@ run:
  2. Flashes V3F (default at 0x08000000) and V5F (default at 0x08010000)
     with wlink, without erasing anything else, reads the start of each back
     to check it, and resets the chip. A .hex or .elf carries its addresses.
- 3. On the debug UART, the level 2 build's stage 1 says the board isn't
-    locked down and stays in recovery; on the USB terminal, its recovery
+ 3. On the debug port, the level 2 build's stage 1 says the board isn't
+    locked down and stays in recovery; on the cli port, its recovery
     console must offer `lockdown`, or this isn't a level 2 build.
  4. Asks you to type LOCK, then sends `lockdown yes`: stage 1 programs the
     option bytes, reads them back and resets the chip.
@@ -35,8 +35,9 @@ After it: run `enroll` (a level 2 board's key comes from the RNG), put the
 new line in boards.csv, and seal the card's lfblocks.fb4 and packages for it.
 
 It needs wlink (scripts/README.md, lfmcp.py) and pyserial, as hiltest.py
-does; --debug finds the WCH-Link's UART (if one is plugged in) and --usb
-LiteForth's port (USB 1A86:FE0C), after the flash, by their USB IDs. Try it on a spare board first.
+does. Its ports: the cli port, the board's own USB terminal (--cli, or
+--usb), and the debug port, the WCH-Link's UART (--debug); each is found by
+its USB IDs (LiteForth's 1A86:FE0C after the flash) when not given. Try it on a spare board first.
 """
 import argparse
 import hashlib
@@ -49,7 +50,8 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
-from hiltest import DebugPort, UsbPort, WCH_VID, list_ports, find_board_port, serial  # noqa: E402
+from hiltest import (DebugPort, UsbPort, list_ports, find_board_port,  # noqa: E402
+                     find_link_uart, serial)
 from lfmcp import Wlink, OBR_RDPRT, WPR_NONE  # noqa: E402
 
 V3F_ADDRESS = 0x08000000
@@ -72,13 +74,6 @@ def block(title, text):
     say(f'{title}:')
     report.append('\n```\n' + (text.rstrip() or '(nothing)') + '\n```\n\n')
     print(text.rstrip(), flush=True)
-
-
-def find_link_uart():
-    """The WCH-Link's UART (the debug port), if exactly one is plugged in"""
-    found = [p.device for p in list_ports.comports()
-             if p.vid == WCH_VID and 'link' in (p.description or p.product or '').lower()]
-    return found[0] if len(found) == 1 else None
 
 
 def sha(path):
@@ -188,8 +183,8 @@ def cmd_run(a):
     v5f_bin = image(a.v5f, a.v5f_address, V5F_MAX, 'V5F')
     debug = a.debug or find_link_uart()
     if not debug:
-        raise Fail('no debug UART: give --debug (`hiltest.py --list` shows the ports)')
-    say(f'Debug UART: {debug}')
+        raise Fail('no debug port: give --debug (`hiltest.py --list` shows the ports)')
+    say(f'Debug port: {debug}')
     dbg = DebugPort(debug)
     debug_seen.update(port=dbg, start=dbg.mark())
     flash(wl, a.v3f, a.v3f_address, v3f_bin)
@@ -205,14 +200,14 @@ def cmd_run(a):
     say('## The level 2 build on an open board')
     line = dbg.wait(r'recovery mode|LiteForth starting', start, 30)
     if not line or 'recovery' not in line:
-        debug_log(dbg, start, 'Debug UART')
+        debug_log(dbg, start, 'Debug port')
         raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t start')
     usb = UsbPort(a.usb)
     if not usb.open(20):
         name = a.usb or find_board_port()
         if not name:
-            raise Fail('no LiteForth USB port (USB 1A86:FE0C): is the board\'s own USB '
-                       'connected to this PC? (`hiltest.py --list` shows the ports)')
+            raise Fail('no cli port (LiteForth\'s USB port, 1A86:FE0C): is the board\'s own '
+                       'USB connected to this PC? (`hiltest.py --list` shows the ports)')
         if os.name == 'nt' and name not in [p.device for p in list_ports.comports()]:
             raise Fail(f'there\'s no {name} (`hiltest.py --list` shows the ports)')
         try:
@@ -227,8 +222,8 @@ def cmd_run(a):
     usb.write('\r')
     usb.wait('recovery ok> ', 5)
     console = bytes(usb.text).decode('latin-1')
-    debug_log(dbg, start, 'Debug UART')
-    block('USB terminal (recovery console)', console)
+    debug_log(dbg, start, 'Debug port')
+    block('Cli port (recovery console)', console)
     if 'lockdown: lock this board' not in console:
         raise Fail('the recovery console doesn\'t offer lockdown: not a level 2 build')
     say()
@@ -248,18 +243,18 @@ def cmd_run(a):
     time.sleep(0.5)
     usb.close()
     if not line or not line.endswith(': ok'):
-        debug_log(dbg, start, 'Debug UART')
+        debug_log(dbg, start, 'Debug port')
         raise Fail(f'the option bytes weren\'t programmed as they should be ({line})')
     say()
     say('## The board after')
     booted = dbg.wait(r'LiteForth starting|recovery mode', start, 40)
     if booted and any('V3F security: not locked down' in l for l in dbg.since(start)):
-        debug_log(dbg, start, 'Debug UART')
+        debug_log(dbg, start, 'Debug port')
         say('The option bytes didn\'t load at that reset.')
         print('\nTurn the board\'s power off, wait a few seconds, and turn it on again.')
         start = dbg.mark()
         booted = dbg.wait(r'LiteForth starting|recovery mode', start, 180)
-    debug_log(dbg, start, 'Debug UART')
+    debug_log(dbg, start, 'Debug port')
     lines = dbg.since(start)
     if any('V3F security: not locked down' in l for l in lines):
         raise Fail('the board still says it isn\'t locked down')
@@ -291,9 +286,11 @@ def main():
             s.add_argument('--v5f', required=True, help='the V5F image (.bin, .hex or .elf)')
             s.add_argument('--v3f-address', type=lambda v: int(v, 0), default=V3F_ADDRESS)
             s.add_argument('--v5f-address', type=lambda v: int(v, 0), default=V5F_ADDRESS)
-            s.add_argument('--usb', help='the board\'s USB terminal (default: found by its IDs)')
+            s.add_argument('--cli', '--usb', dest='usb',
+                           help='the cli port, the board\'s USB terminal (default: found by '
+                                'its USB IDs)')
             s.add_argument('--debug', default=os.environ.get('HIL_DEBUG'),
-                           help='the debug UART (default: the WCH-Link\'s, found by its '
+                           help='the debug port, the WCH-Link\'s UART (default: found by its '
                                 'USB IDs)')
             s.add_argument('--report', default=time.strftime('lockdown-report-%Y%m%d-%H%M.md'))
     a = p.parse_args()
@@ -304,7 +301,7 @@ def main():
     except (Fail, OSError) as e:
         if debug_seen and not report[-1].startswith('\n```'):
             say()
-            debug_log(debug_seen['port'], debug_seen['start'], 'Debug UART, this run')
+            debug_log(debug_seen['port'], debug_seen['start'], 'Debug port, this run')
         say()
         say(f'**Stopped:** {e}')
         code = 1

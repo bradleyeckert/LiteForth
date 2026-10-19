@@ -4,13 +4,14 @@ same scenarios as unit_tests/stage1sim plays on the simulated board,
 driven from the PC with nobody at the board.
 
     hiltest.py --list
-    hiltest.py check [--debug PORT] [--usb PORT] [--reset-cmd "COMMAND"]
+    hiltest.py check [--debug PORT] [--cli PORT] [--reset-cmd "COMMAND"]
     hiltest.py run --good GOOD.lfu --hang HANG.lfu [--only NAME] [--report FILE] [...]
 
 It needs:
-- the board's USB terminal (LiteForth's CDC port, USB 1A86:FE0C; --usb,
+- the cli port: the board's USB terminal (LiteForth's CDC port, USB 1A86:FE0C; --cli,
   found by its IDs if not given);
-- the debug UART, through the WCH-LinkE (--debug, default COM14, 9600 baud);
+- the debug port: the debug UART, through the WCH-LinkE (--debug, found by
+  its USB IDs if not given, else COM14; 9600 baud);
 - nothing else to reset the chip: it types `reboot` to LiteForth (or
   `reset` to stage 1's recovery console), and the V3F resets the chip by
   itself when the V5F doesn't start. --reset-cmd "COMMAND" (or HIL_RESET)
@@ -88,15 +89,22 @@ def list_serial():
         ids = f'USB {p.vid:04X}:{p.pid:04X}' if p.vid is not None else 'not USB'
         what = ''
         if p.vid == LITEFORTH_VID and p.pid == LITEFORTH_PID:
-            what = '  <- the board\'s USB terminal (LiteForth)'
+            what = '  <- the cli port: the board\'s USB terminal (LiteForth)'
         elif p.vid == WCH_VID and 'link' in (p.description or p.product or '').lower():
-            what = '  <- a WCH-Link (its UART: the debug port)'
+            what = '  <- the debug port: a WCH-Link\'s UART'
         print(f'{p.device:10} {ids}  {p.description or ""}{what}')
         extra = ', '.join(x for x in (p.manufacturer and f'maker "{p.manufacturer}"',
                                       p.product and f'product "{p.product}"',
                                       p.serial_number and f'serial "{p.serial_number}"') if x)
         if extra:
             print(f'{"":10} {extra}')
+
+
+def find_link_uart():
+    """The debug port: the WCH-Link's UART, if exactly one is plugged in"""
+    found = [p.device for p in list_ports.comports()
+             if p.vid == WCH_VID and 'link' in (p.description or p.product or '').lower()]
+    return found[0] if len(found) == 1 else None
 
 
 def find_board_port():
@@ -107,7 +115,7 @@ def find_board_port():
 
 
 class DebugPort:
-    """The debug UART: always open; lines with the time they came."""
+    """The debug port (the WCH-Link's UART): always open; lines with the time they came."""
 
     def __init__(self, name, baud=9600):
         self.s = serial.Serial(name, baud, timeout=0.1)
@@ -305,7 +313,7 @@ class Rig:
                 return False
             return self.debug.wait(r'^V3F', start, 10) is not None
         if not self.usb.open(10):
-            print('no USB terminal to type reboot into')
+            print('no cli port to type reboot into')
             return False
         for line in ('\nreboot\n', '\nreset\n'):     # LiteForth, then the recovery console
             try:
@@ -323,14 +331,14 @@ class Rig:
     def log(self, start, usb_from=None):
         lines = self.debug.since(start)
         if lines:
-            note('Debug UART:\n\n```\n' + '\n'.join(lines) + '\n```')
+            note('Debug port:\n\n```\n' + '\n'.join(lines) + '\n```')
         if usb_from is not None:
             usb = bytes(self.usb.text[usb_from:]).decode('latin-1')
             usb = ''.join(ch if ch in '\n' or ' ' <= ch < '\x7f' else ('' if ch == '\r' else '.')
                           for ch in usb)
             usb = re.sub(r'\.{8,}', '<YMODEM>', usb)
             if usb.strip():
-                note('USB terminal:\n\n```\n' + usb.strip('\n') + '\n```')
+                note('Cli port:\n\n```\n' + usb.strip('\n') + '\n```')
 
     def reset_and_wait(self, pattern, timeout=40):
         start = self.debug.mark()
@@ -341,7 +349,7 @@ class Rig:
     def stage(self, pkg):
         """`-2 ymodem` on LiteForth: the package into lfstage.bin."""
         if not self.usb.open():
-            return False, 'no USB terminal'
+            return False, 'no cli port'
         u0 = len(self.usb.text)
         self.usb.write('\n')
         self.usb.wait('ok>', 10)
@@ -403,7 +411,7 @@ def h_recovery(rig, a):
     (the image marked as not working first, so no backup), on trial, and
     confirmed."""
     start = rig.debug.mark()
-    if not check(rig.usb.open(), 'USB terminal open'):
+    if not check(rig.usb.open(), 'cli port open'):
         return
     u0 = len(rig.usb.text)
     rig.usb.write('\n')
@@ -425,7 +433,7 @@ def h_recovery(rig, a):
     rig.usb.close()
     line = rig.debug.wait(r'recovery mode', start, 30)
     check(line is not None, f'recovery mode ({line})')
-    if not line or not check(rig.usb.open(), 'USB terminal open in recovery'):
+    if not line or not check(rig.usb.open(), 'cli port open in recovery'):
         rig.log(start, u0)
         return
     check(rig.usb.wait('recovery ok> ', 10), 'the recovery prompt')
@@ -463,8 +471,10 @@ def main():
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--list', action='store_true', help='list the serial ports and exit')
     p.add_argument('what', nargs='?', choices=('check', 'run'))
-    p.add_argument('--debug', default='COM14', help='the debug UART (default COM14)')
-    p.add_argument('--usb', help="the board's USB terminal (default: found by its USB IDs)")
+    p.add_argument('--debug', help='the debug port, the WCH-Link\'s UART (default: found by '
+                                    'its USB IDs, else COM14)')
+    p.add_argument('--cli', '--usb', dest='usb',
+                   help="the cli port, the board's USB terminal (default: found by its USB IDs)")
     p.add_argument('--reset-cmd', default=os.environ.get('HIL_RESET'),
                    help='a command line that resets the board (default: type reboot)')
     p.add_argument('--good', help='a package of a V5F image that runs LiteForth')
@@ -472,6 +482,7 @@ def main():
     p.add_argument('--only', help='run only this scenario')
     p.add_argument('--report', default=time.strftime('hil-report-%Y%m%d-%H%M.md'))
     a = p.parse_args()
+    a.debug = a.debug or find_link_uart() or 'COM14'
     if a.list:
         list_serial()
         return 0
@@ -481,12 +492,12 @@ def main():
     if a.what == 'check':
         print(f'resetting with: {a.reset_cmd or "reboot, typed to LiteForth"}')
         line, start = rig.reset_and_wait(r'V3F', 10)
-        print(f'debug UART ({a.debug}): {"ok: " + line if line else "nothing after the reset"}')
+        print(f'debug port ({a.debug}): {"ok: " + line if line else "nothing after the reset"}')
         rig.debug.wait(r'USB configured', start, 20)
         for l in rig.debug.since(start):
             print('   ', l)
         ok = rig.usb.open()
-        print(f'USB terminal ({a.usb or find_board_port()}): {"open" if ok else "not found"}')
+        print(f'cli port ({a.usb or find_board_port()}): {"open" if ok else "not found"}')
         if ok:
             rig.usb.write('\n')
             print('LiteForth:', 'answers' if rig.usb.wait('ok>', 10) else 'no ok>')
@@ -499,7 +510,7 @@ def main():
             if not all(need[n]):
                 p.error(f'{n} needs --good and --hang packages')
         note('# Stage 1 on the board (hiltest.py)\n')
-        note(f'Run {time.strftime("%Y-%m-%d %H:%M:%S")}; debug UART {a.debug}, USB '
+        note(f'Run {time.strftime("%Y-%m-%d %H:%M:%S")}; debug port {a.debug}, cli port '
              f'{a.usb or find_board_port()}, reset by {f"`{a.reset_cmd}`" if a.reset_cmd else "`reboot`"}.\n')
         for name, path in (('GOOD', a.good), ('HANG', a.hang)):
             if path:

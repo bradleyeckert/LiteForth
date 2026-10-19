@@ -149,7 +149,7 @@ print there; the lines appear in about this order:
 | `V3F: the V5F didn't start within ...` | the V5F didn't release HSEM0 within `STAGE1_V5F_START_MS`: the V3F resets the chip (a trial boot, or after 3 in a row, recovery) |
 | `V3F: the V5F is running` | the V5F booted and released HSEM0, waking the V3F; if this never comes, look at the V5F image (flashing) |
 | `V3F: built ..., GCC ...` | the V3F's build time; USB device started |
-| `V5F crumbs: reset by ...` | why the chip reset, and how many crumbs the previous run left: listed after a watchdog, lockup or software reset, or always with `CRUMBS_TRAIL 1` (`V5F/User/crumbs.c`) |
+| `V5F crumbs: reset by ...` | why the chip reset, and how many crumbs the previous run left: listed after a watchdog or lockup reset (not a software one, such as `reboot`), or always with `CRUMBS_TRAIL 1` (`V5F/User/crumbs.c`) |
 | `V5F: RTC failed ...` | only if the RTC didn't start |
 | `V5F blocks: ...` | what the V5F found on the SD card (see *Blocks*) |
 | `V5F: LiteForth starting, ...` | booting from flash, or flash is blank |

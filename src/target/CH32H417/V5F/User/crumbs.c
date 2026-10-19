@@ -11,14 +11,16 @@
 #define REPORT_LAST     40u             /* crumbs shown from the previous run */
 
 /* 1: list the previous run's crumbs after every reset. 0 (the default): only
-   after a reset by a watchdog, a lockup or software, the ones that mean
-   something went wrong; after a pin or power-on reset, one line says how
-   many there were. The debug UART runs at 9600 baud and printf waits, so
-   the 40 crumbs hold up the start by about 1.5 s. */
+   after a reset by a watchdog or a lockup, the ones that mean something went
+   wrong; after a pin, power-on or software reset (`reboot`, stage 1 after an
+   install or when the V5F doesn't start), one line says how many there were.
+   A chip reset the V3F makes because the V5F didn't come back from Ctrl+X x3
+   still shows, as the V3F's note. The debug UART runs at 9600 baud and printf
+   waits, so the 40 crumbs hold up the start by about 1.5 s. */
 #ifndef CRUMBS_TRAIL
 #define CRUMBS_TRAIL    0
 #endif
-#define RESET_TROUBLE   ((1u << 31) | (1u << 30) | (1u << 29) | (1u << 28))
+#define RESET_TROUBLE   ((1u << 31) | (1u << 30) | (1u << 29))     /* LOCKUP, WWDG, IWDG */
 
 void crumb(uint32_t tag, uint32_t a, uint32_t b) {
     crumb_log_t *c = CRUMBS;

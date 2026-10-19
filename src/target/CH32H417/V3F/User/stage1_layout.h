@@ -17,4 +17,12 @@
 
 #define STAGE1_FLASH_BASE   0x08000000u     /* the code flash, for reading and FLASH_ROM_* */
 
+/* Write protection as a locked-down board has it (stage1.c's check; WPR has
+   one bit per 8 KB sector, sectors 31-119 sharing bit 31, and a 0 means
+   protected): the V3F's own image, below the V5F's slot, protected, and
+   everything that updates and LiteForth write (the V5F slot, LiteForth's
+   flash, the records, the board record) writable. */
+#define STAGE1_WRP_PROTECT  ((1u << (UPD_V5F_ADDR / UPD_SECTOR)) - 1u)
+#define STAGE1_WRP_WRITABLE (~STAGE1_WRP_PROTECT)
+
 #endif /* STAGE1_LAYOUT_H */

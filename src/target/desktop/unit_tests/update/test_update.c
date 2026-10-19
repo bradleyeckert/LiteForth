@@ -460,6 +460,27 @@ static void test_recovery(void) {
     memset(flash + UPD_RECORD_A, 0xFF, UPD_SECTOR);
     memset(flash + UPD_RECORD_B, 0xFF, UPD_SECTOR);
     CHECK(upd_adopt(&io, msg, sizeof msg) != 0, "no adopt without a record: %s", msg);
+
+    /* stuck: marked as not working, then a package without lfbackup.bin */
+    adopt();
+    put_package("new0.lfu");
+    boot(1);
+    upd_confirm(&io);                   /* new0 installed; the card: the old slot */
+    CHECK(upd_mark_broken(&io, msg, sizeof msg) == 0 && strstr(msg, "marked"),
+          "mark broken: %s", msg);
+    r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN, "marked: recovery (%s)", msg);
+    io.backup_blocks = 0;
+    put_package("v3.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && is_image(v3_img, v3_len) && rec.backup_length == UPD_V5F_SLOT,
+          "marked: v3 installs without a backup, the old one kept (%d, %s)", r, msg);
+    io.backup_blocks = BACKUP_BLOCKS;
+    CHECK(upd_mark_broken(&io, msg, sizeof msg) == 0 && strstr(msg, "under way"),
+          "no mark during a trial: %s", msg);
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_image(old_img, old_len),
+          "and v3's failed trial still rolls back to the old backup (%s)", msg);
 }
 
 static void test_record_copies(void) {

@@ -112,7 +112,22 @@ static int block_io(uint32_t base, uint32_t blocks, uint32_t blk, uint8_t *buf, 
 
 static upd_io io;                           /* filled in by stage1_boot */
 
+/* Recovery with no lfstage.bin (or no card): the package goes into RAM
+   instead, as many blocks as the largest V5F package needs, and is
+   installed from there. A reset part way through loses it, so recovery
+   asks for it again. */
+#define RAM_STAGE_BLOCKS    (2u + UPD_V5F_SLOT / UPD_BLOCK + 2u)
+static uint8_t ram_stage[RAM_STAGE_BLOCKS * UPD_BLOCK] __attribute__((aligned(32)));
+static int use_ram;
+
 static int s_read(uint32_t blk, uint8_t *buf) {
+    if (use_ram) {
+        if (blk >= RAM_STAGE_BLOCKS) {
+            return ERR_BLK_BOUNDS;
+        }
+        memcpy(buf, ram_stage + blk * UPD_BLOCK, UPD_BLOCK);
+        return 0;
+    }
     return block_io(stage_base, io.stage_blocks, blk, buf, 0);
 }
 
@@ -121,6 +136,13 @@ static int b_read(uint32_t blk, uint8_t *buf) {
 }
 
 static int s_write(uint32_t blk, const uint8_t *buf) {
+    if (use_ram) {
+        if (blk >= RAM_STAGE_BLOCKS) {
+            return ERR_BLK_BOUNDS;
+        }
+        memcpy(ram_stage + blk * UPD_BLOCK, buf, UPD_BLOCK);
+        return 0;
+    }
     memcpy(io_buf, buf, UPD_BLOCK);
     return block_io(stage_base, io.stage_blocks, blk, (uint8_t *)io_buf, 1);
 }
@@ -205,8 +227,11 @@ static int keys_get(sealed_board *b, const char **why) {
 /* ------------------------------------------------------------------------
  * The card: lfstage.bin and lfbackup.bin in the exFAT root
  */
+static int card_opened;
+
 static void card_open(void) {
     char msg[100];
+    card_opened = 1;
     io.stage_blocks = io.backup_blocks = 0;
     if (SD_Init() != SD_OK) {
         NVIC_DisableIRQ(SDIO_IRQn);
@@ -245,8 +270,76 @@ static void io_init(void) {
     io.adopt_blank = STAGE1_DEVELOPMENT;    /* see stage1.h */
 }
 
+/* ------------------------------------------------------------------------
+ * The lock-down check: read protection, write protection and the boot
+ * ROM's downloads, as a production board must have them
+ * (doc/firmware-updates.md section 8). Only reads the option bytes.
+ */
+static char insecure[200];              /* what's wrong, or "" */
+
+static void add(int *n, const char *what) {
+    *n += snprintf(insecure + *n, sizeof insecure - (size_t)*n, "%s%s", *n ? ", " : "", what);
+}
+
+static int security_check(void) {
+    uint32_t obr = FLASH->OBR, wpr = FLASH->WPR;
+    uint32_t user = obr >> 2;               /* the USER byte, as FLASH_GetUserOptionByte */
+    int n = 0;
+    insecure[0] = 0;
+    if (!(obr & FLASH_OBR_RDPRT)) {
+        add(&n, "read protection off");
+    }
+    if (wpr & STAGE1_WRP_PROTECT) {         /* a 1 in WPR: that sector can be written */
+        add(&n, "the V3F's sectors not all write-protected");
+    }
+    if (~wpr & STAGE1_WRP_WRITABLE) {
+        add(&n, "sectors that updates write are write-protected");
+    }
+    if (user & OB_USBFSDL_EN) {
+        add(&n, "boot ROM USB download on");
+    }
+    if (user & OB_USARTDL_EN) {
+        add(&n, "boot ROM USART download on");
+    }
+    if (n && n < (int)sizeof insecure) {
+        snprintf(insecure + n, sizeof insecure - (size_t)n, " (OBR %08lX, WPR %08lX)",
+                 (unsigned long)obr, (unsigned long)wpr);
+    }
+    return n != 0;
+}
+
+/* ------------------------------------------------------------------------
+ * Stage 1
+ */
 static int recovering;                  /* stage1_boot said STAGE1_RECOVERY */
-static char why_recovery[160];
+static int forced;                      /* by Ctrl+X x3 twice: the V5F got stuck */
+static int locked_out;                  /* STRICT_RDP and not locked down */
+static char why_recovery[220];
+
+/* The V5F stays off: recovery, in stage1_poll */
+static int enter_recovery(const char *why) {
+    snprintf(why_recovery, sizeof why_recovery, "%s", why);
+    if (!card_opened) {
+        card_open();
+    }
+    recovering = 1;
+    CDC_SHARED->binary = CDC_BINARY_MAGIC;  /* no Ctrl+X restart: there's no V5F */
+    CDC_FENCE();
+    printf("V3F: recovery mode: the V5F stays off%s\r\n",
+           locked_out ? "" : "; waiting for a package over USB");
+    return STAGE1_RECOVERY;
+}
+
+/* Whether to start the V5F after stage 1's own work */
+static int start_or_not(void) {
+    if (locked_out) {
+        return enter_recovery("STRICT_RDP: this board isn't locked down, so the V5F won't start");
+    }
+    if (forced) {
+        return enter_recovery("Ctrl+X x3 twice: the V5F got stuck before LiteForth started");
+    }
+    return STAGE1_START;
+}
 
 int stage1_boot(void) {
     static upd_record rec;
@@ -254,19 +347,31 @@ int stage1_boot(void) {
     sealed_board keys;
     const char *why = "";
     io_init();
+    if (security_check()) {
+        printf("V3F security: not locked down: %s\r\n", insecure);
+#ifdef STRICT_RDP
+        locked_out = 1;
+#endif
+    }
+    forced = (CDC_SHARED->recover == CDC_RECOVER_MAGIC);
+    if (forced) {
+        CDC_SHARED->recover = 0;
+        CDC_SHARED->safe_boot = 0;          /* the V5F isn't starting now */
+        CDC_FENCE();
+    }
     int waiting = (CDC_SHARED->update == CDC_UPDATE_MAGIC);
     int r = upd_record_load(&io, &rec);
     if (r == 1 && !waiting) {
-        return STAGE1_START;                /* never updated: boot as before */
+        return start_or_not();              /* never updated: boot as before */
     }
     if (r < 0) {
         printf("V3F update: can't read the security record (%d)\r\n", r);
-        return STAGE1_START;
+        return start_or_not();
     }
     if (keys_get(&keys, &why) != 0) {
         printf("V3F update: %s; nothing done\r\n", why);
         CDC_SHARED->update = 0;
-        return STAGE1_START;
+        return start_or_not();
     }
     int busy = (r == 0 && rec.state != UPD_IDLE);
     card_open();                            /* a record exists, or a package waits */
@@ -278,25 +383,20 @@ int stage1_boot(void) {
         printf("V3F update: stopped by error %d (%s); it carries on at the next reset\r\n",
                result, msg);
         if (rec.state != UPD_INSTALLING && rec.state != UPD_ROLLING_BACK) {
-            return STAGE1_START;            /* the image in flash wasn't touched */
+            return start_or_not();          /* the image in flash wasn't touched */
         }
-        snprintf(why_recovery, sizeof why_recovery,     /* half programmed: don't run it */
+        snprintf(msg, sizeof msg,           /* half programmed: don't run it */
                  "update: stopped by error %d part way through programming; "
                  "type reset to carry on", result);
-    } else if (waiting || busy || result != UPD_START) {
+        return enter_recovery(msg);
+    }
+    if (waiting || busy || result != UPD_START) {
         printf("V3F %s\r\n", msg);
     }
     if (result == UPD_START) {
-        return STAGE1_START;
+        return start_or_not();
     }
-    if (result == UPD_RECOVERY) {
-        snprintf(why_recovery, sizeof why_recovery, "%s", msg);
-    }
-    recovering = 1;
-    CDC_SHARED->binary = CDC_BINARY_MAGIC;  /* no Ctrl+X restart: there's no V5F */
-    CDC_FENCE();
-    printf("V3F: recovery mode: the V5F stays off; waiting for a package over USB\r\n");
-    return STAGE1_RECOVERY;
+    return enter_recovery(msg);
 }
 
 /* ------------------------------------------------------------------------
@@ -366,6 +466,11 @@ static void restart(void) {
 static void help(void) {
     say("LiteForth stage 1: recovery mode. The V5F stays off:");
     say(why_recovery);
+    if (locked_out) {
+        say(insecure);
+        say("reset: start again.");
+        return;
+    }
     say("In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.");
 #if STAGE1_DEVELOPMENT
     say("adopt: take the V5F image in flash as it is (development builds only).");
@@ -379,11 +484,12 @@ static void receive(void) {
     static uint8_t work[UPD_BLOCK] __attribute__((aligned(4)));
     static upd_record rec;
     static char msg[160];
-    if (io.stage_blocks == 0) {
-        say("recovery: there's no lfstage.bin on the card (or no card): can't take a package");
-        t_put(0x18);                        /* CAN CAN: kwai stops waiting */
-        t_put(0x18);
-        return;
+    if (io.stage_blocks == 0 || use_ram) {  /* no card file: into RAM */
+        if (!use_ram) {
+            say("recovery: no lfstage.bin on the card (or no card): the package goes into RAM");
+        }
+        use_ram = 1;
+        io.stage_blocks = RAM_STAGE_BLOCKS;
     }
     ymr_io y = { t_get, t_put, s_write, io.stage_blocks, "LITEFORTHF", block0, work, 60000 };
     uint32_t size;
@@ -397,6 +503,14 @@ static void receive(void) {
     if (keys_get(&keys, &why) != 0) {
         say(why);
         return;
+    }
+    if (forced) {                           /* the image got stuck: don't keep it */
+        if (upd_record_load(&io, &rec) == 1) {
+            upd_boot(&io, &keys, 0, &rec, msg, sizeof msg);     /* make the record first */
+        }
+        upd_mark_broken(&io, msg, sizeof msg);
+        say(msg);
+        forced = 0;
     }
     int result = upd_boot(&io, &keys, 1, &rec, msg, sizeof msg);
     crypto_wipe(&keys, sizeof keys);
@@ -413,6 +527,16 @@ static void receive(void) {
 }
 
 static void command(const char *line) {
+    if (locked_out && strcmp(line, "reset") != 0) {
+        if (strstr(line, "ymodem")) {
+            t_put(0x18);                    /* CAN CAN: kwai stops waiting */
+            t_put(0x18);
+        }
+        if (line[0]) {
+            help();
+        }
+        return;
+    }
     if (strcmp(line, "-2 ymodem") == 0) {
         receive();
     } else if (strstr(line, "ymodem")) {

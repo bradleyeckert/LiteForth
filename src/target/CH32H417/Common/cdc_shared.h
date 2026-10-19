@@ -40,7 +40,12 @@
  * from its reset entry, and serial_open counts the start in v5f_starts.
  * If that count doesn't change within CDC_RESTART_WAIT_MS, the V3F resets
  * the whole chip. safe_boot lives here, outside both cores' .bss, so a
- * restart doesn't clear it; the V5F clears it once it has seen it.
+ * restart doesn't clear it; the V5F clears it once it has seen it, after
+ * its memory setup (the card). If Ctrl+X x3 comes again while safe_boot is
+ * still set, that safe start never got that far: the V5F is stuck in its
+ * C code, so the V3F sets recover to CDC_RECOVER_MAGIC and resets the
+ * chip, and stage 1 starts in recovery (V3F/User/stage1.c) instead of
+ * starting the V5F.
  *
  * File transfers: while `ymodem` receives a file, the bytes from the host
  * are data and may hold three 0x18 in a row, so the V5F sets binary to
@@ -80,6 +85,7 @@ extern "C" {
 #define CDC_BINARY_MAGIC    0xB1A4DA7Au     /* binary: host bytes are data, no Ctrl+X escape */
 #define CDC_UPDATE_MAGIC    0x5A9E0F11u     /* update: a checked package waits in lfstage.bin */
 #define CDC_CONFIRM_MAGIC   0xC0F1A3EDu     /* update: the V5F started LiteForth (ends a trial) */
+#define CDC_RECOVER_MAGIC   0x2EC0BE27u     /* recover: the next boot goes into stage 1's recovery */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -101,6 +107,10 @@ typedef struct {
                                                ends a new image's trial. cdc_shared_init leaves it
                                                alone: it must survive the reset that starts the
                                                install */
+    volatile uint32_t recover;              /* V3F: CDC_RECOVER_MAGIC when Ctrl+X x3 came again
+                                               before the last safe start got LiteForth going: the
+                                               chip resets into stage 1's recovery, which clears it.
+                                               Survives the reset, as safe_boot does */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
 } cdc_shared_t;

@@ -142,6 +142,7 @@ print there; the lines appear in about this order:
 
 | Line | Means |
 |---|---|
+| `V3F security: not locked down: ...` | read protection off, write protection not as `stage1_layout.h` has it, or the boot ROM's downloads on; with `STRICT_RDP` (`V3F/User/stage1.h`) the V5F then stays off (`doc/firmware-updates.md`, *The lock-down check*) |
 | `V3F update: ...` | only when stage 1 did something: a package installed, refused, on trial, rolled back, or an image that fails its check (`V3F/User/stage1.c`, `doc/firmware-updates.md`) |
 | `V3F: recovery mode: ...` | no working V5F image: the V5F stays off, and stage 1 answers on the USB terminal instead (send a package with kwai's `~x FILE -2`; `doc/firmware-updates.md` section 7) |
 | `V3F: starting the V5F` | V3F booted, woke the V5F and went to sleep |

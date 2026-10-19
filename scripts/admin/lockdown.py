@@ -35,8 +35,8 @@ After it: run `enroll` (a level 2 board's key comes from the RNG), put the
 new line in boards.csv, and seal the card's lfblocks.fb4 and packages for it.
 
 It needs wlink (scripts/README.md, lfmcp.py) and pyserial, as hiltest.py
-does; --debug defaults to COM14, and --usb finds LiteForth's port (USB
-1A86:FE0C). Try it on a spare board first.
+does; --debug finds the WCH-Link's UART (if one is plugged in) and --usb
+LiteForth's port (USB 1A86:FE0C), after the flash, by their USB IDs. Try it on a spare board first.
 """
 import argparse
 import hashlib
@@ -49,7 +49,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
-from hiltest import DebugPort, UsbPort  # noqa: E402
+from hiltest import DebugPort, UsbPort, WCH_VID, list_ports  # noqa: E402
 from lfmcp import Wlink, OBR_RDPRT, WPR_NONE  # noqa: E402
 
 V3F_ADDRESS = 0x08000000
@@ -71,6 +71,13 @@ def block(title, text):
     say(f'{title}:')
     report.append('\n```\n' + (text.rstrip() or '(nothing)') + '\n```\n\n')
     print(text.rstrip(), flush=True)
+
+
+def find_link_uart():
+    """The WCH-Link's UART (the debug port), if exactly one is plugged in"""
+    found = [p.device for p in list_ports.comports()
+             if p.vid == WCH_VID and 'link' in (p.description or p.product or '').lower()]
+    return found[0] if len(found) == 1 else None
 
 
 def sha(path):
@@ -178,7 +185,11 @@ def cmd_run(a):
     say('## Flashing')
     v3f_bin = image(a.v3f, a.v3f_address, V3F_MAX, 'V3F')
     v5f_bin = image(a.v5f, a.v5f_address, V5F_MAX, 'V5F')
-    dbg = DebugPort(a.debug)
+    debug = a.debug or find_link_uart()
+    if not debug:
+        raise Fail('no debug UART: give --debug (`hiltest.py --list` shows the ports)')
+    say(f'Debug UART: {debug}')
+    dbg = DebugPort(debug)
     flash(wl, a.v3f, a.v3f_address, v3f_bin)
     flash(wl, a.v5f, a.v5f_address, v5f_bin)
     if v3f_bin:
@@ -268,8 +279,9 @@ def main():
             s.add_argument('--v3f-address', type=lambda v: int(v, 0), default=V3F_ADDRESS)
             s.add_argument('--v5f-address', type=lambda v: int(v, 0), default=V5F_ADDRESS)
             s.add_argument('--usb', help='the board\'s USB terminal (default: found by its IDs)')
-            s.add_argument('--debug', default=os.environ.get('HIL_DEBUG', 'COM14'),
-                           help='the debug UART (default COM14)')
+            s.add_argument('--debug', default=os.environ.get('HIL_DEBUG'),
+                           help='the debug UART (default: the WCH-Link\'s, found by its '
+                                'USB IDs)')
             s.add_argument('--report', default=time.strftime('lockdown-report-%Y%m%d-%H%M.md'))
     a = p.parse_args()
     if a.cmd == 'check':

@@ -121,7 +121,8 @@ both ports' output, the images' sha256 and the UID, for
 the card's `lfblocks.fb4` and packages for it.
 
 It needs wlink (see `scripts/README.md`, which `lfmcp.py`'s `wlink` tool
-uses too) and `pyserial`. `--debug` defaults to COM14 and `--usb` finds
-the board's port by its USB IDs. Try it on a spare board first.
+uses too) and `pyserial`. `--debug` finds the WCH-Link's UART and `--usb`
+the board's port by their USB IDs, or name them (`hiltest.py --list` shows
+which is which). Try it on a spare board first.
 `unit_tests/stage1sim/test_lockdown.py` runs it against the simulated
 board with a fake wlink.

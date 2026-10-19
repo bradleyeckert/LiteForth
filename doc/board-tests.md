@@ -879,3 +879,69 @@ reboot, the second found the record and printed the same line without
 making a new key. So the V5F programs flash under read protection, and the
 record survives a reset. Stage 1's own writes (the security record, an
 update into the V5F slot) are still untested under read protection.
+
+### B10. An update installed by stage 1 under read protection (19 October 2026)
+
+**Board and firmware:** the spare board, locked down in B8 and enrolled in
+B9 (its key's line: `e52116647f9c7a22,b2e2e4cc...055e`), with the same
+images. The card came from the main board: its `lfblocks.fb4` is revision
+6, sealed for the main board, and it holds `lfstage.bin` and
+`lfbackup.bin`.
+
+**Package:** `v5f-spare-1.lfu`, sha256
+`b5052b030378c99a973757e55246371d631964de6b01a56259cb12547eb7c92c`. It is
+the V5F image the board already runs (sha256 `fdf7aedc...79bb`) as version
+1, sealed with the test release key 1 for this board's key only:
+`sealblocks.py package LiteForth_V5F.bin v5f-spare-1.lfu --component v5f
+--release release1.key --boards boards-spare.csv --revision 1`.
+`sealblocks.py check` passed it against the test root.
+
+**Why:** stage 1 runs from RAM_CODE, and the reference manual says code
+running from RAM can't program flash while read protection is on. An
+install writes the security record (0x72000, 0x74000) and the V5F slot
+(0x10000) from stage 1.
+
+**Run,** on the cli port:
+
+```
+ok>~x ..\mailbox\v5f-spare-1.lfu -2
+ymodem: send the file(s) now (YMODEM)
+
+[kwai: sending ..\mailbox\v5f-spare-1.lfu: 98304 bytes]
+[kwai: 96/96]
+[kwai: sent ..\mailbox\v5f-spare-1.lfu]
+ymodem: v5f-spare-1.lfu: staged in lfstage.bin, 24 blocks, read back and checked
+ymodem: package: V5F image, 90032 bytes, version 1: signature, every block and the image hash check out; waiting for stage 1 to install it
+ok>reboot
+
+[kwai: COM6 lost; waiting for it to come back]
+
+[kwai: COM6 is back]
+```
+
+The debug port, from the boot before the staging:
+
+```
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V3F update: version 1 installed, on trial
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 3; the previous run left 1795 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 12:35:24, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file refused: sealed file refused: this board isn't one of its recipients
+V5F: LiteForth starting, flash is blank
+V3F update: version 1 confirmed
+V3F: USB configured
+```
+
+**Result:** pass.
+- **Stage 1 installed the package under read protection:** it wrote the
+  new security record and the V5F slot from RAM_CODE. The image started on
+  trial and LiteForth confirmed it. So the reference manual's limit on code
+  running from RAM doesn't apply to stage 1 here.
+- **A file sealed for another board was refused** on every boot: the card's
+  revision 6, sealed for the main board.
+- **The package was checked against this board's RNG key** (B9): both by
+  LiteForth's `-2 ymodem` and by stage 1.

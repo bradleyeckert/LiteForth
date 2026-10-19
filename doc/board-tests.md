@@ -107,9 +107,11 @@ V3F: USB configured
 - `1 load` and the clock demo ran normally afterwards.
 - "flash is blank" refers to LiteForth's flash pages at 0x08030000. Stage 1 can't write there, since its writes are fenced below 0x30000. The pages had been erased when the new builds were downloaded.
 
-### B4. Rollback of an image that never confirms (planned)
+### B4. Rollback of an image that never confirms (18 October 2026)
 
 **Package:** `v5f-2-hang.lfu`, version 2. It holds a 4,096-byte V5F image of `j .` (`6f000000` repeated; image sha256 `5778694d4183a7f8fabc40f79d036b4bbb12d9fe728f5a8d845665f0ade93031`; package sha256 `41bb01729d99e23e1697a0a5ff53a168a8114b7c483e5e977328af9f75061bb2`). It passes every check, but the V5F only spins, so it never confirms.
+
+**Firmware:** as in B3.
 
 **Starting state:** version 1 installed and confirmed (B3).
 
@@ -119,3 +121,33 @@ V3F: USB configured
 1. Version 2 is installed on trial. The V5F hangs, so the V3F stays at "starting the V5F" and USB doesn't come up.
 2. Resets 2 to 4 report "on trial, boot 1 of 3" through "boot 3 of 3".
 3. Reset 5 rolls back to version 1 from `lfbackup.bin`. LiteForth starts but does not confirm, because nothing is on trial.
+
+**Debug UART** (the first two lines are the end of the previous boot; the package was then staged with `~x ..\mailbox\v5f-2-hang.lfu -2` and the reset button pressed five times):
+
+```
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V3F update: version 2 installed, on trial
+V3F: starting the V5F
+V3F update: version 2 on trial, boot 1 of 3
+V3F: starting the V5F
+V3F update: version 2 on trial, boot 2 of 3
+V3F: starting the V5F
+V3F update: version 2 on trial, boot 3 of 3
+V3F: starting the V5F
+V3F update: rolled back to version 1
+V3F: starting the V5F
+V3F: the V5F is running
+V5F crumbs: reset by pin, boot 3; the previous run left 745 crumbs
+V3F: built Oct 18 2026 17:52:57, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V5F: LiteForth starting, booting from flash
+V3F: USB configured
+```
+
+**Result:** pass, exactly as expected.
+- Version 2 got four boots without a confirm (the install, then trial boots 1 to 3).
+- At the fifth reset, stage 1 restored version 1 from the encrypted backup on the card. The restored image passed its MAC check, LiteForth started from flash, and USB came up.
+- No "confirmed" line followed, because nothing was on trial.
+- During the four boots of version 2, the V3F never printed "the V5F is running", and USB never came up. A V5F that doesn't start leaves the board with no terminal, and only stage 1's rollback brings it back: what section 7's recovery mode is for.

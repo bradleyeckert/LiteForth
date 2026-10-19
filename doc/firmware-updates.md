@@ -479,9 +479,32 @@ RDP 0:
    both copies of the security sector, rollback, recovery. `sealblocks.py
    package` and its tests. Done for the V5F image (`src/update.c`,
    `unit_tests/update`), and recovery's YMODEM receiver (`src/ymrecv.c`,
-   `unit_tests/ymrecv`); still to do: stage 0, a new stage 1 into its
-   other slot, and a recovery install without a card. `unit_tests/vmasm`'s RV32 emulator runs the
-   V3F code as built, for size and speed.
+   `unit_tests/ymrecv`); still to do: stage 0 and a new stage 1 into its
+   other slot. `unit_tests/vmasm`'s RV32 emulator runs the V3F code as
+   built, for size and speed.
+
+   **The simulated board** (`unit_tests/stage1sim`) runs the V3F's real
+   `stage1.c` and `cdc_bridge.c`, built unchanged on the desktop. Their
+   flash, card, shared SRAM, option bytes, USB and resets come from
+   `sim.c`, with the board's memory mapped at the chip's own addresses,
+   and the V5F is a model. `test_stage1.py` plays every scenario on it,
+   with a fresh board for each, and checks the output: B3 to B8, the
+   refusals, Ctrl+X x3, the recovery console, `STRICT_RDP`, and a power
+   cut at every flash and card write of an install. It writes the
+   board's output word for word to `reports/stage1sim.md`. It runs in
+   CI with `make test`, in about 40 seconds.
+2. **This board, RDP 0, no WRPR.** Phases A-F for real, then recovery.
+   Anything that goes wrong is fixed with the WCH-Link. Every run is
+   logged in [board-tests.md](board-tests.md), with the firmware, the
+   packages' hashes and the board's output.
+
+   `scripts/admin/hiltest.py` runs the board's scenarios with nobody at
+   the board: install, rollback, recovery on request, and the lock-down
+   check. It drives the USB terminal as kwai does, reads the debug UART
+   through the WCH-LinkE, and resets the chip with wlink. It writes a
+   report for board-tests.md. `stage1sim/test_hil.py` runs the same
+   script against the simulated board in CI, with ptys for its ports and
+   a stand-in for wlink, so the lab's script is tested too.
 2. **This board, RDP 0, no WRPR.** Phases A-F for real, then recovery.
    Anything that goes wrong is fixed with the WCH-Link. Every run is
    logged in [board-tests.md](board-tests.md), with the firmware, the

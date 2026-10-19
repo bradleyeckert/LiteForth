@@ -6,8 +6,11 @@ tested, the firmware and keys involved, how it was run, what was expected,
 and what the board printed, word for word. The design these tests check is
 in [firmware-updates.md](firmware-updates.md), and the PMP findings are in
 its section 8. The desktop tests (`unit_tests/update`, `sealed`, `seal`)
-cover every refusal and a power cut at every step. This log covers what
-only the board can show.
+cover every refusal and a power cut at every step, and
+`unit_tests/stage1sim` plays these board scenarios on a simulated board in
+CI. This log covers what only the real board can show. From B6 on, the
+runs are meant to be made with `scripts/admin/hiltest.py`, whose report
+goes in here as it is.
 
 ## The setup
 

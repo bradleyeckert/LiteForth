@@ -117,8 +117,11 @@ typedef struct {
 
 #define CDC_SHARED  ((cdc_shared_t *)CDC_SHARED_ADDR)
 
-/* Orders memory accesses between the cores. */
+/* Orders memory accesses between the cores. (unit_tests/stage1sim, on the
+   desktop, defines its own.) */
+#ifndef CDC_FENCE
 #define CDC_FENCE() __asm__ volatile ("fence rw, rw" ::: "memory")
+#endif
 
 /* Waits a little between polls of the shared SRAM. The V3F executes from
    the same SRAM and the USB controller DMAs into it, so a core spinning on

@@ -846,3 +846,36 @@ so the option bytes loaded. The debug port's text of that boot wasn't kept.
   manual says code running from RAM can't program flash under read
   protection;
 - a rollback, and recovery over USB.
+
+### B9. A flash write by the V5F under read protection: `enroll` (19 October 2026)
+
+**Board and firmware:** the spare board, locked down in B8, with the same
+images.
+
+**Why:** the reference manual says code running from RAM can't program
+flash while read protection is on. `enroll` makes the board's X25519 key
+from the RNG (level 2) and writes it to the board record at 0x08070000,
+so it shows whether the V5F's flash writes still work.
+
+**Run,** on the cli port:
+
+```
+enroll
+enroll: new key made. boards.csv line:
+e52116647f9c7a22,b2e2e4cc1b9b1627469204202135c3aac360573994bb984930ab34d32939055e
+ok>reboot
+
+[kwai: COM6 lost; waiting for it to come back]
+
+[kwai: COM6 is back]
+enroll
+boards.csv line:
+e52116647f9c7a22,b2e2e4cc1b9b1627469204202135c3aac360573994bb984930ab34d32939055e
+ok>
+```
+
+**Result:** pass. The first `enroll` wrote a new key to flash. After the
+reboot, the second found the record and printed the same line without
+making a new key. So the V5F programs flash under read protection, and the
+record survives a reset. Stage 1's own writes (the security record, an
+update into the V5F slot) are still untested under read protection.

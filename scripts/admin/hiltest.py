@@ -436,7 +436,11 @@ def h_recovery(rig, a):
     if not line or not check(rig.usb.open(), 'cli port open in recovery'):
         rig.log(start, u0)
         return
-    check(rig.usb.wait('recovery ok> ', 10), 'the recovery prompt')
+    seen = rig.usb.wait('recovery ok> ', 5)
+    if not seen:                        # it came before the port was open: ask again
+        rig.usb.write('\r')
+        seen = rig.usb.wait('recovery ok> ', 5)
+    check(seen, 'the recovery prompt')
     check(rig.usb.ymodem(a.good), 'GOOD.lfu sent to stage 1')
     check(rig.debug.wait(r'marked as not working', start, 30) is not None, 'the image marked as not working')
     check(rig.debug.wait(r'installed, on trial', start, 60) is not None, 'installed')

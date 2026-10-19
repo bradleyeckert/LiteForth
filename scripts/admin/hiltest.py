@@ -379,7 +379,7 @@ def h_install(rig, a):
     ok, text = rig.stage(a.good)
     check(ok, 'staged: "waiting for stage 1 to install it"')
     rig.log(start, u0)
-    line, start = rig.reset_and_wait(r'installed, on trial|refused|recovery mode', 60)
+    line, start = rig.reset_and_wait(r'V3F update: .*(installed, on trial|refused)|recovery mode', 60)
     check(line and 'installed, on trial' in line, f'installed ({line})')
     check(rig.debug.wait(r'confirmed', start, 30) is not None, 'confirmed by LiteForth')
     rig.log(start)
@@ -394,7 +394,7 @@ def h_rollback(rig, a):
     ok, text = rig.stage(a.hang)
     check(ok, 'the hanging image staged')
     rig.log(start, u0)
-    line, start = rig.reset_and_wait(r'installed, on trial|refused', 60)
+    line, start = rig.reset_and_wait(r'V3F update: .*(installed, on trial|refused)', 60)
     check(line and 'installed, on trial' in line, f'installed ({line})')
     for what in (r"didn't start within", 'boot 1 of 3', 'boot 2 of 3', 'boot 3 of 3',
                  'rolled back to version', 'LiteForth starting'):

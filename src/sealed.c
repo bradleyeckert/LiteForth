@@ -223,6 +223,52 @@ int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_b
     return mount(b0, file_blocks, board, read, msg, len, pkg);
 }
 
+int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
+                         sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
+                         char *msg, int len) {
+    sealed_board b = *board;
+    b.min_revision = 0;                 /* stage 1 checks its own minimum */
+    int err = read(0, buf);
+    if (!err) {
+        err = mount(buf, file_blocks, &b, read, msg, len, pkg);
+    }
+    crypto_wipe(&b, sizeof b);
+    if (err) {
+        sealed_unmount();
+        return err;
+    }
+    blake2s_state S;
+    uint8_t p[8] = { 'L', 'F', 'i', 'm', 'a', 'g', 'e', 0 }, h[32];
+    b2s_init(&S, 32, NULL, 0, NULL, p);
+    for (uint32_t n = 1; n < content_end && !err; n++) {
+        err = read(n, buf);
+        if (!err) {
+            err = sealed_open_block(n, buf);
+        }
+        if (err) {
+            snprintf(msg, len, "block %lu of the package fails its hash", (unsigned long)n);
+            break;
+        }
+        uint32_t at = (n - 1) * SEALED_BLOCK_BYTES;
+        uint32_t take = pkg->length - at < SEALED_BLOCK_BYTES ? pkg->length - at
+                                                              : SEALED_BLOCK_BYTES;
+        b2s_puts(&S, buf, (int)take);
+    }
+    b2s_final(&S, h);
+    sealed_unmount();
+    if (!err && memcmp(h, pkg->image_hash, 32) != 0) {
+        snprintf(msg, len, "the image doesn't match its hash");
+        err = ERR_BLOCK_READ_ERROR;
+    }
+    if (!err) {
+        snprintf(msg, len, "%s image, %lu bytes, version %lu: signature, every block "
+                 "and the image hash check out",
+                 pkg->component == SEALED_V5F ? "V5F" : "stage 1",
+                 (unsigned long)pkg->length, (unsigned long)pkg->version);
+    }
+    return err;
+}
+
 int sealed_open_block(uint32_t n, uint8_t *buf) {
     if (n == 0) {
         return 0;

@@ -2,6 +2,7 @@
 #define YMODEM_H
 
 #define YMODEM_INSTALL  0xFFFFFFFFu     /* -1 ymodem: a whole block file */
+#define YMODEM_STAGE    0xFFFFFFFEu     /* -2 ymodem: a firmware update package */
 
 /**
  * @brief Forth word `ymodem`  ( n -- )
@@ -51,9 +52,21 @@
  * hash. The block buffers are emptied before and after, discarding
  * unsaved changes. One file per batch.
  *
+ * n = -2: one firmware update package (from `sealblocks.py package`,
+ * doc/firmware-updates.md) into lfstage.bin, a file made beforehand
+ * (blk_stage_space: on a card, in the exFAT root beside lfblocks.fb4).
+ * It must be whole 4 KB blocks, fit, and start with PACKAGE_MAGIC; block
+ * 0 is zeros while the rest go in and is written last, so a transfer cut
+ * short never leaves something that looks like a package. Then it's read
+ * back and compared (BLAKE2s), and checked as stage 1 will check it
+ * (blk_stage_check: signature, certificate, product, recipient, every
+ * block's hash and the image hash; not the board's minimum version). If
+ * it passes, blk_stage_ready tells stage 1 a package is waiting. The
+ * block file is mounted again afterwards. One package per batch.
+ *
  * After `ymodem`, start the send in the terminal program (kwai: `~x FILE`
- * types `0 ymodem`, and `~x FILE N` types `N ymodem`; in RealTerm: Send
- * tab, YMODEM). `ymodem` asks with `C` every 3 seconds and gives up after
+ * types `0 ymodem`, `~x FILE N` types `N ymodem`, and `~x FILE -1` and
+ * `~x FILE -2` the same with -1 and -2; in RealTerm: Send tab, YMODEM). `ymodem` asks with `C` every 3 seconds and gives up after
  * YMODEM_START_SECONDS (default 60). It reports each file as it ends: the
  * blocks it wrote and any problem.
  *

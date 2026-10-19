@@ -457,3 +457,96 @@ int blk_remount(uint32_t *capacity) {
     memcpy(name, active_blk_filename, sizeof name);
     return blk_init(name, capacity);
 }
+
+/*=========================================================================
+* Staging a firmware update package (-2 ymodem): lfstage.bin
+=========================================================================*/
+
+/* Where lfstage.bin is: *lba its first sector in the card image, or
+   STAGEFILENAME (*file set); returns its blocks, or 0 */
+static uint32_t stage_find(uint32_t *lba, int *file) {
+    uint32_t blocks = 0;
+    *lba = 0;
+    *file = 0;
+    if (mode == MODE_CARD) {
+        if (card_find_file(card_read, dev_sectors, &map, CARD_STAGE_FILE, lba, &blocks) != 0) {
+            return 0;
+        }
+        return blocks;
+    }
+    FILE *f = fopen(STAGEFILENAME, "rb");
+    if (!f) {
+        return 0;
+    }
+    fseek(f, 0, SEEK_END);
+    long n = ftell(f);
+    fclose(f);
+    *file = 1;
+    return n > 0 ? (uint32_t)(n / BLK_SIZE_BYTES) : 0;
+}
+
+uint32_t blk_stage_space(void) {
+    uint32_t lba;
+    int file;
+    return stage_find(&lba, &file);
+}
+
+/* A transfer of block blk of lfstage.bin */
+static int stage_io(uint32_t blk, uint32_t *buf, int write) {
+    uint32_t lba;
+    int file;
+    if (blk >= stage_find(&lba, &file)) {
+        return ERR_BLK_BOUNDS;
+    }
+    if (!file) {
+        lba += blk * SECTORS_PER_BLOCK;
+        int err = write ? blk_write_fence(lba, SECTORS_PER_BLOCK) : 0;
+        if (err) {
+            return err;
+        }
+        return write ? write_now(lba, buf, SECTORS_PER_BLOCK)
+                     : read_now(lba, buf, SECTORS_PER_BLOCK);
+    }
+    FILE *f = fopen(STAGEFILENAME, write ? "r+b" : "rb");
+    if (!f) {
+        return ERR_BLK_OPEN_FAIL;
+    }
+    int err = fseek(f, (long)blk * BLK_SIZE_BYTES, SEEK_SET) ? ERR_BLK_SEEK_FAIL : 0;
+    if (!err) {
+        size_t n = write ? fwrite(buf, 1, BLK_SIZE_BYTES, f) : fread(buf, 1, BLK_SIZE_BYTES, f);
+        if (n != BLK_SIZE_BYTES) {
+            err = write ? ERR_BLK_WRITE_FAIL : ERR_BLK_READ_FAIL;
+        }
+    }
+    fclose(f);
+    return err;
+}
+
+int blk_stage_read(uint32_t blk, uint32_t *dest) {
+    return stage_io(blk, dest, 0);
+}
+
+int blk_stage_write(uint32_t blk, const uint32_t *src) {
+    return stage_io(blk, (uint32_t *)src, 1);
+}
+
+static int stage_block(uint32_t blk, uint8_t *buf) {
+    return stage_io(blk, (uint32_t *)buf, 0);
+}
+
+int blk_stage_check(sealed_package *pkg, char *msg, int len) {
+    static uint32_t buf[BLK_SIZE_BYTES / 4];
+    if (board == NULL) {
+        snprintf(msg, len, "not checked: lf has no board file (-K)");
+        return ERR_BLK_PARSE_FAIL;
+    }
+    if (sealed) {                       /* sealed_check_package unmounts it */
+        sealed = 0;
+        actual_blocks = 0;
+    }
+    return sealed_check_package(blk_stage_space(), board, stage_block, (uint8_t *)buf,
+                                pkg, msg, len);
+}
+
+void blk_stage_ready(void) {
+}

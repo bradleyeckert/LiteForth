@@ -78,6 +78,20 @@ int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_b
                          sealed_read_fn read, char *msg, int len, sealed_package *pkg);
 
 /**
+ * Checks a whole package as stage 1 will before installing it, except the
+ * board's minimum version: sealed_mount_package (with board->min_revision
+ * ignored), then every content block read with `read` into buf (4096
+ * bytes, 4-byte aligned) and checked against its hash, and the decrypted
+ * image against the hash in block 0. Unmounts it afterwards (and so
+ * whatever was mounted before). msg receives what it found or why it
+ * failed; pkg its description.
+ * Returns 0, ERR_BLK_PARSE_FAIL, ERR_BLOCK_READ_ERROR, or read's error.
+ */
+int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
+                         sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
+                         char *msg, int len);
+
+/**
  * Forgets the mounted file and erases its key.
  */
 void sealed_unmount(void);

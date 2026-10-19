@@ -31,6 +31,7 @@
 #include "../../../../sealed.h"     /* src/sealed.h */
 #include "board.h"
 #include "v5f_crumbs.h"                /* reset debugging trail */
+#include "cdc_shared.h"                /* update: a package waits for stage 1 */
 
 extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
 #include "../../../../errcodes.h"   /* src/errcodes.h */
@@ -64,6 +65,8 @@ static uint8_t *post_buf;               /* check and decrypt them when it's done
 static int post_len;
 
 static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
+static uint32_t stage_base;             /* lfstage.bin: its first sector, */
+static uint32_t stage_blocks;           /* and its blocks, or 0 */
 
 /* Debugging a stray write seen on the board ("1 block" gave -92 with a
    capacity of 121, then the chip reset): map must not change after
@@ -577,6 +580,7 @@ static void forget(void) {
     limit = 0;
     sealed = 0;
     post_len = 0;
+    stage_base = stage_blocks = 0;
     sealed_unmount();
 }
 
@@ -595,6 +599,10 @@ static uint32_t find(void) {
     limit = map.blocks;
     map_copy = map;
     printf("V5F blocks: %s\r\n", msg);
+    if (card_find_file(card_read, card_sectors, &map, CARD_STAGE_FILE,
+                       &stage_base, &stage_blocks) != 0) {
+        stage_base = stage_blocks = 0;
+    }
     if (writable) {
         mount_sealed();
     }
@@ -721,3 +729,71 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
     sealed_unmount();
     return err ? ERR_BLK_PARSE_FAIL : 0;
 }
+
+/*=========================================================================
+* Staging a firmware update package (`-2 ymodem`): lfstage.bin
+=========================================================================*/
+
+uint32_t blk_stage_space(void) {
+    return map_bad ? 0 : stage_blocks;
+}
+
+/* A transfer of block blk of lfstage.bin, waited for */
+static int stage_io(uint32_t blk, uint32_t *buf, int write) {
+    if (!map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
+    if (blk >= stage_blocks) {
+        return ERR_BLK_BOUNDS;
+    }
+    uint32_t lba = stage_base + blk * SECTORS_PER_BLOCK;
+    int err = write ? blk_write_fence(lba, SECTORS_PER_BLOCK) : 0;
+    finish();
+    post_len = 0;                       /* nothing to decrypt */
+    if (!err) {
+        err = start(lba, buf, SECTORS_PER_BLOCK, write);
+    }
+    if (err) {
+        return err;
+    }
+    int st;
+    while ((st = poll()) > 0) {
+    }
+    return st;
+}
+
+int blk_stage_read(uint32_t blk, uint32_t *dest) {
+    return stage_io(blk, dest, 0);
+}
+
+int blk_stage_write(uint32_t blk, const uint32_t *src) {
+    return stage_io(blk, (uint32_t *)src, 1);
+}
+
+static int stage_block(uint32_t blk, uint8_t *buf) {
+    return stage_io(blk, (uint32_t *)buf, 0);
+}
+
+int blk_stage_check(sealed_package *pkg, char *msg, int len) {
+    static uint32_t buf[BLK_SIZE_BYTES / 4] __attribute__((aligned(32)));
+    sealed_board board;
+    int err = board_get(&board, msg, len);
+    if (err) {
+        memset(&board, 0, sizeof board);
+        return err;
+    }
+    if (sealed) {                       /* sealed_check_package unmounts it */
+        sealed = 0;
+        limit = 0;
+    }
+    err = sealed_check_package(stage_blocks, &board, stage_block, (uint8_t *)buf,
+                               pkg, msg, len);
+    memset(&board, 0, sizeof board);
+    return err;
+}
+
+void blk_stage_ready(void) {
+    CDC_SHARED->update = CDC_UPDATE_MAGIC;
+    CDC_FENCE();
+}
+

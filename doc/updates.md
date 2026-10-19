@@ -29,6 +29,7 @@ the card. While working:
 | A font or other binary | `~x cjk24.fnt 100` (`100 ymodem`): from byte 32 of block 100 |
 | One block, by hand | the block editor ([editor.md](editor.md)) |
 | The whole file | `~x lfblocks.fb4 -1` (`-1 ymodem`, section 4) |
+| The C firmware | `~x update.lfu -2` (`-2 ymodem`): stages a package from `sealblocks.py package` in the card's `lfstage.bin` for stage 1 to install ([firmware-updates.md](firmware-updates.md)). Stage 1 isn't built yet, so for now this only stages and checks it |
 
 Then `1 load` rebuilds the dictionary. [blocks.md](blocks.md) has the
 details of each.

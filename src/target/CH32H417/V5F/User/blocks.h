@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "options.h"
+#include "../../../../sealed.h"     /* sealed_package */
 
 #define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
 #define BLK_MAX_LENGTH           8   /* most blocks one blk_*_imm call moves */
@@ -180,5 +181,41 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
  * Returns 0 or a negative error code, as blk_init.
  */
 int blk_remount(uint32_t *capacity);
+
+/*
+ * Staging a firmware update package (`-2 ymodem`, doc/firmware-updates.md
+ * section 6): CARD_STAGE_FILE (lfstage.bin) in the card's exFAT root, made
+ * beforehand in a PC and written in place, found by card_find_file when
+ * the card is mounted.
+ */
+
+/**
+ * Returns lfstage.bin's size in 4 KB blocks, or 0 if there isn't one.
+ */
+uint32_t blk_stage_space(void);
+
+/**
+ * Reads or writes block blk of lfstage.bin (4096 bytes; the buffer
+ * 4-byte aligned, for the DMA), waiting for the transfer.
+ * Returns 0, ERR_BLK_BOUNDS if blk is past its end (or there's none), or
+ * a transfer error.
+ */
+int blk_stage_read(uint32_t blk, uint32_t *dest);
+int blk_stage_write(uint32_t blk, const uint32_t *src);
+
+/**
+ * Checks the package in lfstage.bin as stage 1 will (sealed_check_package,
+ * with board_get's keys). Unmounts a mounted sealed block file: call
+ * blk_remount afterwards. msg receives the result.
+ * Returns 0 or the error from the check.
+ */
+int blk_stage_check(sealed_package *pkg, char *msg, int len);
+
+/**
+ * Tells stage 1 a checked package is waiting in lfstage.bin: sets
+ * `update` in the shared block (cdc_shared.h) to CDC_UPDATE_MAGIC. Stage
+ * 1 isn't built yet, so for now nothing acts on it.
+ */
+void blk_stage_ready(void);
 
 #endif /* BLOCKS_H */

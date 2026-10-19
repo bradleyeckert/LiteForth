@@ -79,3 +79,27 @@ int card_find_blocks(exfat_read_fn read, uint32_t card_sectors, card_map *m,
     snprintf(msg, msg_len, "%s", why);
     return 0;
 }
+
+int card_find_file(exfat_read_fn read, uint32_t card_sectors, const card_map *m,
+                   const char *name, uint32_t *base, uint32_t *blocks) {
+    exfat_file f;
+    *base = *blocks = 0;
+    if (!m->mounted) {
+        return ERR_FILE_NOT_FOUND;
+    }
+    int err = exfat_find(read, &m->vol, m->vol.root, name, &f);
+    if (err) {
+        return err;
+    }
+    uint64_t n = f.valid / BLK_SIZE_BYTES;
+    if (n > 0xFFFFFFFFu / SECTORS_PER_BLOCK) {
+        n = 0xFFFFFFFFu / SECTORS_PER_BLOCK;
+    }
+    if ((f.flags & EXFAT_DIRECTORY) || !(f.flags & EXFAT_CONTIGUOUS) || n == 0
+        || !fits(card_sectors, f.first_sector, (uint32_t)n)) {
+        return ERR_BLK_PARSE_FAIL;
+    }
+    *base = f.first_sector;
+    *blocks = (uint32_t)n;
+    return 0;
+}

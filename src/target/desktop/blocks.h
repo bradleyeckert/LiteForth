@@ -190,4 +190,39 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
  */
 int blk_remount(uint32_t *capacity);
 
+/*
+ * Staging a firmware update package (`-2 ymodem`, doc/firmware-updates.md
+ * section 6): lfstage.bin, a file made beforehand that the package is
+ * written into in place. On a card (image) it's CARD_STAGE_FILE in the
+ * exFAT root beside lfblocks.fb4, found by card_find_file; with a plain
+ * block file it's STAGEFILENAME in the current directory, if it exists.
+ */
+
+/**
+ * Returns lfstage.bin's size in 4 KB blocks, or 0 if there isn't one.
+ */
+uint32_t blk_stage_space(void);
+
+/**
+ * Reads or writes block blk of lfstage.bin (4096 bytes).
+ * Returns 0, ERR_BLK_BOUNDS if blk is past its end (or there's none), or
+ * a read or write error.
+ */
+int blk_stage_read(uint32_t blk, uint32_t *dest);
+int blk_stage_write(uint32_t blk, const uint32_t *src);
+
+/**
+ * Checks the package in lfstage.bin as stage 1 will (sealed_check_package,
+ * with the board's keys: on the desktop, `-K`). Unmounts a mounted sealed
+ * block file: call blk_remount afterwards. msg receives the result.
+ * Returns 0 or the error from the check (ERR_BLK_PARSE_FAIL without -K).
+ */
+int blk_stage_check(sealed_package *pkg, char *msg, int len);
+
+/**
+ * Tells stage 1 a checked package is waiting in lfstage.bin. On the
+ * desktop there's no stage 1: does nothing.
+ */
+void blk_stage_ready(void);
+
 #endif /* BLOCKS_H */

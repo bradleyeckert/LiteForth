@@ -371,6 +371,11 @@ static int standby(void) {
     return lfStandby();
 }
 
+/* REBOOT  ( -- )  Reset the chip, as the reset pin does */
+static int reboot(void) {
+    return lfReboot();
+}
+
 /* The C address of n * BLOCK_SIZE_CELLS cells at VM cell address a, or
    NULL unless they are all in one mapped page (not the I/O page), and, if
    written is set, past the page's write-protected cells. Address metadata

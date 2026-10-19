@@ -268,3 +268,12 @@ int lfStandby(void) {
     NVIC_SystemReset();
     return 0;
 }
+
+int lfReboot(void) {
+    cdc_shared_t *sh = CDC_SHARED;
+    uint64_t t0 = lfGetTimeMicroSec();
+    while (cdc_ring_count(&sh->tx) && lfGetTimeMicroSec() - t0 < 100000u) {
+    }
+    NVIC_SystemReset();
+    return 0;
+}

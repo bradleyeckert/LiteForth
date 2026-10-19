@@ -330,15 +330,54 @@ static int enter_recovery(const char *why) {
     return STAGE1_RECOVERY;
 }
 
-/* Whether to start the V5F after stage 1's own work */
-static int start_or_not(void) {
+/* Boots in a row whose V5F never started (stage1_wait_v5f) */
+static uint32_t nostart_count(void) {
+    uint32_t n = CDC_SHARED->nostart;
+    return (n & 0xFFFF0000u) == CDC_NOSTART_MAGIC ? n & 0xFFFFu : 0;
+}
+
+static void nostart_set(uint32_t n) {
+    CDC_SHARED->nostart = n ? CDC_NOSTART_MAGIC | n : 0;
+    CDC_FENCE();
+}
+
+/* Whether to start the V5F after stage 1's own work. An update that's
+   under way (or just started) has its own trial count, so the boots its
+   image doesn't start don't count here. */
+static int start_or_not(int updating) {
     if (locked_out) {
         return enter_recovery("STRICT_RDP: this board isn't locked down, so the V5F won't start");
     }
     if (forced) {
         return enter_recovery("Ctrl+X x3 twice: the V5F got stuck before LiteForth started");
     }
+    if (updating) {
+        nostart_set(0);
+    } else if (nostart_count() >= STAGE1_START_TRIES) {
+        static char why[100];
+        snprintf(why, sizeof why, "the V5F didn't start, %u boots in a row",
+                 (unsigned)nostart_count());
+        nostart_set(0);
+        forced = 1;                         /* a package then replaces the image */
+        return enter_recovery(why);
+    }
     return STAGE1_START;
+}
+
+void stage1_wait_v5f(void) {
+    for (uint32_t ms = 0; STAGE1_V5F_START_MS == 0 || ms < STAGE1_V5F_START_MS; ms++) {
+        if (HSEM_GetFlagStatus(HSEM_ID0) == SET) {
+            nostart_set(0);
+            return;
+        }
+        Delay_Ms(1);
+    }
+    nostart_set(nostart_count() + 1);
+    printf("V3F: the V5F didn't start within %u ms (%u in a row): resetting the chip\r\n",
+           (unsigned)STAGE1_V5F_START_MS, (unsigned)nostart_count());
+    while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
+    }
+    NVIC_SystemReset();
 }
 
 int stage1_boot(void) {
@@ -362,16 +401,16 @@ int stage1_boot(void) {
     int waiting = (CDC_SHARED->update == CDC_UPDATE_MAGIC);
     int r = upd_record_load(&io, &rec);
     if (r == 1 && !waiting) {
-        return start_or_not();              /* never updated: boot as before */
+        return start_or_not(waiting);       /* never updated: boot as before */
     }
     if (r < 0) {
         printf("V3F update: can't read the security record (%d)\r\n", r);
-        return start_or_not();
+        return start_or_not(waiting);
     }
     if (keys_get(&keys, &why) != 0) {
         printf("V3F update: %s; nothing done\r\n", why);
         CDC_SHARED->update = 0;
-        return start_or_not();
+        return start_or_not(waiting);
     }
     int busy = (r == 0 && rec.state != UPD_IDLE);
     card_open();                            /* a record exists, or a package waits */
@@ -383,7 +422,7 @@ int stage1_boot(void) {
         printf("V3F update: stopped by error %d (%s); it carries on at the next reset\r\n",
                result, msg);
         if (rec.state != UPD_INSTALLING && rec.state != UPD_ROLLING_BACK) {
-            return start_or_not();          /* the image in flash wasn't touched */
+            return start_or_not(waiting || busy);   /* the image in flash wasn't touched */
         }
         snprintf(msg, sizeof msg,           /* half programmed: don't run it */
                  "update: stopped by error %d part way through programming; "
@@ -394,7 +433,7 @@ int stage1_boot(void) {
         printf("V3F %s\r\n", msg);
     }
     if (result == UPD_START) {
-        return start_or_not();
+        return start_or_not(waiting || busy || rec.state != UPD_IDLE);
     }
     return enter_recovery(msg);
 }

@@ -267,6 +267,7 @@ class Run:
             self.p.send_signal(signal.SIGKILL)
             self.p.wait()
         time.sleep(0.05)                # let the readers finish
+        self.board.last = self
         while True:                     # what the host hasn't read yet
             try:
                 self.usb_text.append(self.usb.get_nowait())
@@ -343,7 +344,7 @@ class Board:
 
 
 def until_started(board, **kw):
-    return board.boot_until(r'V5F: LiteForth starting|SIM: idle|recovery mode', **kw)
+    return board.boot_until(r'V5F: LiteForth starting|resetting the chip|recovery mode', **kw)
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +388,70 @@ def s_rollback():
     check(r.wait_debug(r'V5F: LiteForth starting') is not None, 'rollback: v1 runs')
     r.stop()
     check(b.has('v1'), 'rollback: v1 in flash again')
+
+
+def s_rollback_unattended():
+    """An image that never starts: the V3F resets the chip after
+    STAGE1_V5F_START_MS each time, so the trial runs out and the old image
+    comes back with nobody pressing reset."""
+    b = Board('rollback-unattended')
+    b.stage('v1')
+    until_started(b)
+    b.stage('v2hang')
+    boots, line = 0, None
+    while boots < 8:
+        r = b.boot()
+        line = r.wait_debug(r'V5F: LiteForth starting|recovery mode')
+        code = r.wait_exit(0.5)
+        r.stop()
+        boots += 1
+        if line:
+            break
+        check(code == 2, f'unattended: boot {boots} ends in a chip reset ({code})')
+    check(line and 'LiteForth' in line, f'unattended: LiteForth runs again ({line})')
+    check(boots == 5, f'unattended: the install, three trial boots, the rollback ({boots} boots)')
+    check(any('rolled back to version 1' in l for l in b.last.debug) and b.has('v1'),
+          'unattended: v1 rolled back')
+
+
+def s_nostart():
+    """An installed, confirmed image that stops starting: after
+    STAGE1_START_TRIES boots of it, recovery, where a package replaces it."""
+    b = Board('nostart')
+    b.stage('v1')
+    until_started(b)
+    for i in (1, 2, 3):
+        r = b.boot(v5f='dead')
+        check(r.wait_debug(rf"didn't start within .*\({i} in a row\)") is not None,
+              f'nostart: boot {i} times out')
+        check(r.wait_exit() == 2, f'nostart: boot {i} resets the chip')
+        r.stop()
+    r = b.boot(v5f='dead')
+    check(r.wait_debug(r"the V5F didn't start, 3 boots in a row") is not None, 'nostart: recovery')
+    check(r.wait_usb('recovery ok> ') is not None, 'nostart: prompt')
+    check(r.ymodem(PACKAGES['v3']), 'nostart: v3 sent')
+    check(r.wait_debug(r'marked as not working') is not None, 'nostart: the image marked')
+    check(r.wait_debug(r'version 3 installed') is not None, 'nostart: installed')
+    check(r.wait_exit() == 2, 'nostart: reset')
+    r.stop()
+    r = b.boot()
+    check(r.wait_debug(r'version 3 confirmed') is not None, 'nostart: confirmed')
+    r.stop()
+    check(b.has('v3'), 'nostart: v3 in flash')
+
+
+def s_reboot():
+    """`reboot` in LiteForth resets the chip, so a staged package installs."""
+    b = Board('reboot')
+    r = b.boot()
+    r.wait_debug(r'LiteForth starting')
+    b.stage('v1')                       # while it runs, as `-2 ymodem` does
+    r.send('reboot\n')
+    check(r.wait_exit() == 2, 'reboot: the chip resets')
+    r.stop()
+    r = b.boot()
+    check(r.wait_debug(r'version 1 installed') is not None, 'reboot: the package installs')
+    r.stop()
 
 
 def s_refusals():
@@ -563,7 +628,8 @@ def s_power_cuts(stride):
     print(f'power cuts: {tried} tried, {new} new, {old} old')
 
 
-SCENARIOS = [s_fresh, s_install, s_rollback, s_refusals, s_recovery_card,
+SCENARIOS = [s_fresh, s_install, s_rollback, s_rollback_unattended, s_nostart, s_reboot,
+             s_refusals, s_recovery_card,
              s_recovery_ram_and_ctrl_x, s_recovery_commands, s_lockdown]
 
 

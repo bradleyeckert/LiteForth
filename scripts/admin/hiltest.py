@@ -4,16 +4,17 @@ same scenarios as unit_tests/stage1sim plays on the simulated board,
 driven from the PC with nobody at the board.
 
     hiltest.py --list
-    hiltest.py check [--debug PORT] [--usb PORT] [--wlink PATH]
+    hiltest.py check [--debug PORT] [--usb PORT] [--reset-cmd "COMMAND"]
     hiltest.py run --good GOOD.lfu --hang HANG.lfu [--only NAME] [--report FILE] [...]
 
 It needs:
 - the board's USB terminal (LiteForth's CDC port, USB 1A86:FE0C; --usb,
   found by its IDs if not given);
 - the debug UART, through the WCH-LinkE (--debug, default COM14, 9600 baud);
-- wlink (https://github.com/ch32-rs/wlink) to reset the chip through the
-  WCH-LinkE (--wlink, default the WLINK environment variable or `wlink`;
-  --reset-args, default `reset`);
+- nothing else to reset the chip: it types `reboot` to LiteForth (or
+  `reset` to stage 1's recovery console), and the V3F resets the chip by
+  itself when the V5F doesn't start. --reset-cmd "COMMAND" (or HIL_RESET)
+  uses a command instead, a debug probe's say;
 - the card in the board with lfstage.bin and lfbackup.bin (at least 33
   blocks), as for any update;
 - pyserial (`py -m pip install pyserial`).
@@ -24,8 +25,9 @@ resets the board once and shows that all three work. `run` plays:
 
   install    GOOD.lfu staged with `-2 ymodem` over USB, installed at the
              next reset, started on trial and confirmed by LiteForth
-  rollback   HANG.lfu (an image that never starts) installed, three trial
-             boots, then rolled back to the image before it
+  rollback   HANG.lfu (an image that never starts) installed; the V3F
+             resets the chip each time it doesn't start, so after three
+             trial boots it's rolled back, with no resets from here
   recovery   Ctrl+X x3 twice while the V5F restarts: recovery; GOOD.lfu
              sent to stage 1 itself, installed without a backup, confirmed
   lockdown   the boot's lock-down line, as the board reports it
@@ -42,6 +44,7 @@ scenario passed.
 """
 import argparse
 import hashlib
+import shlex
 import inspect
 import os
 import queue
@@ -281,7 +284,7 @@ class UsbPort:
 
 
 # ---------------------------------------------------------------------------
-# The rig: the board, its two ports and wlink
+# The rig: the board and its two ports
 # ---------------------------------------------------------------------------
 class Rig:
     def __init__(self, a):
@@ -290,14 +293,29 @@ class Rig:
         self.usb = UsbPort(a.usb)
 
     def reset(self):
-        """The reset button, through the WCH-LinkE."""
-        self.usb.close()
-        cmd = [self.a.wlink] + self.a.reset_args.split()
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        if r.returncode != 0:
-            print(f'{" ".join(cmd)} failed:\n{r.stdout}{r.stderr}')
+        """A chip reset: `reboot` in LiteForth, `reset` in recovery, or
+        --reset-cmd. True once the V3F has started again."""
+        start = self.debug.mark()
+        if self.a.reset_cmd:
+            self.usb.close()
+            cmd = [w.strip('"') for w in shlex.split(self.a.reset_cmd, posix=(os.name != 'nt'))]
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            if r.returncode != 0:
+                print(f'{" ".join(cmd)} failed:\n{r.stdout}{r.stderr}')
+                return False
+            return self.debug.wait(r'^V3F', start, 10) is not None
+        if not self.usb.open(10):
+            print('no USB terminal to type reboot into')
             return False
-        return True
+        for line in ('\nreboot\n', '\nreset\n'):     # LiteForth, then the recovery console
+            try:
+                self.usb.write(line)
+            except Exception:
+                break                           # it went away: that was the reset
+            if self.debug.wait(r'^V3F', start, 5):
+                break
+        self.usb.close()
+        return self.debug.wait(r'^V3F', start, 5) is not None
 
     def section(self, name, doc):
         note(f'\n### {name}\n\n{doc}\n')
@@ -360,8 +378,9 @@ def h_install(rig, a):
 
 
 def h_rollback(rig, a):
-    """HANG.lfu installed; three trial boots without a confirm; rolled back
-    to the image before it, which starts LiteForth."""
+    """HANG.lfu installed. It never starts, so the V3F resets the chip each
+    time it waits for it in vain: three trial boots, then the image before
+    it is rolled back and starts LiteForth, with no resets from here."""
     start = rig.debug.mark()
     u0 = len(rig.usb.text)
     ok, text = rig.stage(a.hang)
@@ -369,14 +388,12 @@ def h_rollback(rig, a):
     rig.log(start, u0)
     line, start = rig.reset_and_wait(r'installed, on trial|refused', 60)
     check(line and 'installed, on trial' in line, f'installed ({line})')
-    rig.log(start)
-    for i in (1, 2, 3):
-        line, start = rig.reset_and_wait(rf'boot {i} of 3|rolled back', 30)
-        check(line and f'boot {i} of 3' in line, f'trial boot {i} ({line})')
-        rig.log(start)
-    line, start = rig.reset_and_wait(r'rolled back|recovery mode', 60)
-    check(line and 'rolled back to version' in line, f'rolled back ({line})')
-    check(rig.debug.wait(r'LiteForth starting', start, 30) is not None, 'LiteForth starts')
+    for what in (r"didn't start within", 'boot 1 of 3', 'boot 2 of 3', 'boot 3 of 3',
+                 'rolled back to version', 'LiteForth starting'):
+        line = rig.debug.wait(what, start, 30)
+        check(line is not None, f'by itself: {what.replace(chr(92), "")} ({line})')
+        if line is None:
+            break
     rig.log(start)
 
 
@@ -448,8 +465,8 @@ def main():
     p.add_argument('what', nargs='?', choices=('check', 'run'))
     p.add_argument('--debug', default='COM14', help='the debug UART (default COM14)')
     p.add_argument('--usb', help="the board's USB terminal (default: found by its USB IDs)")
-    p.add_argument('--wlink', default=os.environ.get('WLINK', 'wlink'))
-    p.add_argument('--reset-args', default='reset', help='wlink arguments for a reset')
+    p.add_argument('--reset-cmd', default=os.environ.get('HIL_RESET'),
+                   help='a command line that resets the board (default: type reboot)')
     p.add_argument('--good', help='a package of a V5F image that runs LiteForth')
     p.add_argument('--hang', help='a package of a V5F image that never starts')
     p.add_argument('--only', help='run only this scenario')
@@ -462,7 +479,7 @@ def main():
         p.error('say --list, check or run')
     rig = Rig(a)
     if a.what == 'check':
-        print(f'resetting with: {a.wlink} {a.reset_args}')
+        print(f'resetting with: {a.reset_cmd or "reboot, typed to LiteForth"}')
         line, start = rig.reset_and_wait(r'V3F', 10)
         print(f'debug UART ({a.debug}): {"ok: " + line if line else "nothing after the reset"}')
         rig.debug.wait(r'USB configured', start, 20)
@@ -483,7 +500,7 @@ def main():
                 p.error(f'{n} needs --good and --hang packages')
         note('# Stage 1 on the board (hiltest.py)\n')
         note(f'Run {time.strftime("%Y-%m-%d %H:%M:%S")}; debug UART {a.debug}, USB '
-             f'{a.usb or find_board_port()}, reset by `{a.wlink} {a.reset_args}`.\n')
+             f'{a.usb or find_board_port()}, reset by {f"`{a.reset_cmd}`" if a.reset_cmd else "`reboot`"}.\n')
         for name, path in (('GOOD', a.good), ('HANG', a.hang)):
             if path:
                 note(f'- {name}: `{os.path.basename(path)}`, sha256 {sha(path)}')

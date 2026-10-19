@@ -17,7 +17,7 @@ V3F     = $(CH)/V3F/User
 WORK    = work
 CC     ?= gcc
 CFLAGS  = -Wall -Wextra -std=gnu99 -O1 -g -Wno-unused-parameter -Wno-int-to-pointer-cast \
-          '-DCDC_FENCE()=__sync_synchronize()' \
+          '-DCDC_FENCE()=__sync_synchronize()' -DSTAGE1_V5F_START_MS=300 \
           -include $(WORK)/sim_root.h -Ifake -I$(V3F) -I$(CH)/Common -I$(SRC)
 
 UNITS   = sim.c $(WORK)/cdc_bridge.c $(V3F)/stage1.c $(V3F)/lf_update.c $(V3F)/lf_sealed.c \

@@ -122,3 +122,8 @@ int lfStandby(void) {
     lfReset();                          // doesn't return
     return 0;
 }
+
+int lfReboot(void) {
+    lfReset();                          // doesn't return
+    return 0;
+}

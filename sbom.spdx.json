@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/e5608abf76bb6084eba6dcc33d9e0579",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/303a8855f0391242d41deef1117db25f",
   "creationInfo": {
-    "created": "2026-10-18T18:24:05Z",
+    "created": "2026-10-19T00:07:34Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
@@ -232,7 +232,7 @@
       ],
       "filesAnalyzed": true,
       "packageVerificationCode": {
-        "packageVerificationCodeValue": "cdd4d5e9f4e629cbe56912a16e0dc9cba08581cb"
+        "packageVerificationCodeValue": "7ec0f8419fee7fde1818a90172a60cf0ae71d711"
       },
       "licenseInfoFromFiles": [
         "NOASSERTION"
@@ -583,11 +583,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0a03ed31c65fa6f6f6154f0fb2356add2ccb4b7a"
+          "checksumValue": "3a588ac91b1d05f372db50a2438f7e33613f978a"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "168e371e39e77a7ef32002b77cf75e7eda3de65e6e2e2613d345ad791a36a3a6"
+          "checksumValue": "c6c4cb5b41b70576fd0f7666f7203ecfd0489468b9ed5eb8df60d06b297f59e5"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",
@@ -2397,11 +2397,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e6ace1c89787dbfed7e17164c2ff4c14d8d42dfc"
+          "checksumValue": "07db8f3637e920cf5897166651e221b6c246e3b0"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "a157b9757bb5bafb7b904e1115cc705b2ea5167b7198361ef32c320801d48576"
+          "checksumValue": "f0d947a09a5203fc8c6f2668ca8c5538a8575ffea6963cdd3440dc245b50216e"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",
@@ -2514,11 +2514,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "910127d8c8664f0ac8be45ee7ce48be1624b280c"
+          "checksumValue": "02e8630a8b46d9779875ab4dcafee1c4a416f487"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "f9052ea642a63e3ef2d88f7e0fb8a0cdb2c177f7ac8e8a9b59d1be8775f9b0f6"
+          "checksumValue": "a001f3c3fa3207f370976c4c8c5fad35b71fdd3763f9b087def330eb8413e3b7"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",

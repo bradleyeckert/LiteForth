@@ -177,6 +177,12 @@ static void LiteForth(void)
         const char *msg = "\r\nSafe boot (Ctrl+X x3): the app is not running. `cold` starts it.\r\n";
         while (*msg) serial_putc(*msg++);
     }
+    // LiteForth got this far: tell stage 1 (V3F/User/stage1.c), which ends a
+    // new image's trial. Not over a package waiting for the next reset.
+    if (CDC_SHARED->update != CDC_UPDATE_MAGIC) {
+        CDC_SHARED->update = CDC_CONFIRM_MAGIC;
+        CDC_FENCE();
+    }
     while (1) {
         ior = lfQuit();                 // returns on bye
         lfSetColor(COLOR_NORMAL);

@@ -79,6 +79,7 @@ extern "C" {
 #define CDC_RTC_WAKE_MAGIC  0xA1A4A4E0u     /* rtc_wake: the RTC alarm caused this reset */
 #define CDC_BINARY_MAGIC    0xB1A4DA7Au     /* binary: host bytes are data, no Ctrl+X escape */
 #define CDC_UPDATE_MAGIC    0x5A9E0F11u     /* update: a checked package waits in lfstage.bin */
+#define CDC_CONFIRM_MAGIC   0xC0F1A3EDu     /* update: the V5F started LiteForth (ends a trial) */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -94,10 +95,12 @@ typedef struct {
     volatile uint32_t standby;              /* V5F: CDC_STANDBY_MAGIC asks the V3F to sleep */
     volatile uint32_t rtc_wake;             /* V5F: CDC_RTC_WAKE_MAGIC after an alarm wake-up */
     volatile uint32_t binary;               /* V5F: CDC_BINARY_MAGIC during a file transfer */
-    volatile uint32_t update;               /* V5F: CDC_UPDATE_MAGIC after -2 ymodem; for stage 1
-                                               (doc/firmware-updates.md), which isn't built yet.
-                                               cdc_shared_init leaves it alone: it must survive
-                                               the reset that starts the install */
+    volatile uint32_t update;               /* V5F: CDC_UPDATE_MAGIC after -2 ymodem, for stage 1
+                                               (V3F/User/stage1.c) at the next reset, which clears
+                                               it; CDC_CONFIRM_MAGIC when LiteForth starts, which
+                                               ends a new image's trial. cdc_shared_init leaves it
+                                               alone: it must survive the reset that starts the
+                                               install */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
 } cdc_shared_t;

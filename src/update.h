@@ -6,7 +6,7 @@
  * sections 3, 4 and 6), in plain C. It reaches the board's flash and the
  * card's two files only through the callbacks in upd_io, so the desktop
  * tests it (unit_tests/update) with simulated flash and power cuts, and
- * the V3F will give it the real ones.
+ * the V3F gives it the real ones (V3F/User/stage1.c).
  *
  * So far: the V5F image (packages with component SEALED_V5F). A new
  * stage 1 into its other slot comes later.

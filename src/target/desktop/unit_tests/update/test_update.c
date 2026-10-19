@@ -399,9 +399,67 @@ static void test_blank_without_adopt(void) {
     CHECK(r == UPD_START && is_image(new_img, new_len) && rec.backup_length == 0,
           "first install with nothing to back up: %d %s", r, msg);
     for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
-    CHECK(r == UPD_START && rec.state == UPD_IDLE && is_image(new_img, new_len),
-          "no confirm, no backup: kept (%s)", msg);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN && rec.v5f_length == 0
+          && strstr(msg, "never confirmed"), "no confirm, no backup: recovery (%s)", msg);
+    r = boot(0);
+    CHECK(r == UPD_RECOVERY && strstr(msg, "no working V5F image"),
+          "and it stays in recovery (%s)", msg);
     io.adopt_blank = 1;
+}
+
+/* Recovery: no working image, then a package from the USB terminal (here
+   just put in lfstage.bin) installs without a backup */
+static void test_recovery(void) {
+    adopt();                            /* the backup lost during a trial */
+    put_package("new0.lfu");
+    boot(1);
+    memset(backup, 0, sizeof backup);
+    int r = 0;
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN && strstr(msg, "can't roll back"),
+          "trial failed, backup lost: recovery (%d, %s)", r, msg);
+    r = boot(0);
+    CHECK(r == UPD_RECOVERY, "still in recovery at the next boot (%s)", msg);
+    io.backup_blocks = 0;               /* and no lfbackup.bin at all */
+    put_package("v3.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && is_image(v3_img, v3_len) && rec.state == UPD_TRIAL
+          && rec.v5f_version == 3, "recovery install without a backup: %d %s", r, msg);
+    CHECK(upd_confirm(&io) == 0 && boot(0) == UPD_START && rec.result == UPD_R_INSTALLED,
+          "recovered: confirmed (%s)", msg);
+    io.backup_blocks = BACKUP_BLOCKS;
+
+    adopt();                            /* a changed image isn't backed up */
+    put_package("new0.lfu");
+    boot(1);
+    upd_confirm(&io);                   /* the card: the old slot, version 0 */
+    static uint8_t backup0[sizeof backup];
+    memcpy(backup0, backup, sizeof backup);
+    flash[UPD_V5F_ADDR + 99] ^= 2;
+    put_package("v3.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && is_image(v3_img, v3_len) && rec.backup_version == 0
+          && rec.backup_length == UPD_V5F_SLOT && memcmp(backup, backup0, sizeof backup) == 0,
+          "changed image: v3 installed, the old backup kept (%d, %s)", r, msg);
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_image(old_img, old_len),
+          "and v3's failed trial goes back to that backup (%s)", msg);
+
+    adopt();                            /* the debugger's image, adopted */
+    flash[UPD_V5F_ADDR + 3] ^= 1;
+    r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN, "reprogrammed: recovery (%s)", msg);
+    CHECK(upd_adopt(&io, msg, sizeof msg) == 0 && strstr(msg, "adopted"), "adopt: %s", msg);
+    r = boot(0);
+    CHECK(r == UPD_START && rec.v5f_version == 0 && rec.v5f_length == UPD_V5F_SLOT,
+          "adopted: it starts (%d, %s)", r, msg);
+    put_package("new0.lfu");
+    boot(1);
+    CHECK(upd_adopt(&io, msg, sizeof msg) != 0 && strstr(msg, "under way"),
+          "no adopt during a trial: %s", msg);
+    memset(flash + UPD_RECORD_A, 0xFF, UPD_SECTOR);
+    memset(flash + UPD_RECORD_B, 0xFF, UPD_SECTOR);
+    CHECK(upd_adopt(&io, msg, sizeof msg) != 0, "no adopt without a record: %s", msg);
 }
 
 static void test_record_copies(void) {
@@ -441,6 +499,7 @@ int main(void) {
     test_changed_while_installing();
     test_package_swapped();
     test_blank_without_adopt();
+    test_recovery();
     test_record_copies();
     test_power_cuts();
 

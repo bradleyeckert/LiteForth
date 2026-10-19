@@ -75,7 +75,9 @@ enum {
     UPD_R_REFUSED,      /* the package failed a check; nothing changed */
     UPD_R_NO_BACKUP,    /* lfbackup.bin missing or too small; nothing changed */
     UPD_R_ROLLED_BACK,  /* the new image wasn't confirmed; the old one is back */
-    UPD_R_BROKEN,       /* an image that failed its check and no good backup */
+    UPD_R_BROKEN,       /* no working image (one that failed its check or its
+                           trial) and no good backup: v5f_length is 0, so
+                           upd_boot says UPD_RECOVERY until a package installs */
 };
 
 /* The security sector's record. Kept twice (UPD_RECORD_A and _B): the
@@ -123,9 +125,24 @@ enum {
  * ends up; msg one line saying what happened.
  * Returns UPD_START or UPD_RECOVERY, or a negative error code if the
  * flash couldn't be read or written (then neither: try again).
+ * UPD_RECOVERY means no working image: none installed, one that fails its
+ * MAC, or one that wasn't confirmed, each with no backup to go back to.
+ * Then a package (package_waiting) installs without a backup, since
+ * there's nothing worth keeping; a rollback after it goes to the backup on
+ * the card, if there's still a good one.
  */
 int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
              upd_record *rec, char *msg, int len);
+
+/**
+ * Development only (stage 1 offers it in recovery when built for
+ * development): takes the V5F image in flash, its whole slot, as installed,
+ * version 0, as a blank record does with upd_io.adopt_blank. For a board
+ * whose V5F was reprogrammed by the debugger, so it fails its MAC. Refused
+ * while an update is under way. Returns 0 or an error code, msg saying
+ * what happened.
+ */
+int upd_adopt(const upd_io *io, char *msg, int len);
 
 /**
  * The V5F says the new image works: ends its trial, raising the minimum

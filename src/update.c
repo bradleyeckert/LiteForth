@@ -372,6 +372,7 @@ static int roll_back(const upd_io *io, upd_record *r, char *msg, int len) {
     if (!backup_good(io, r, nonce) || r->backup_version < r->min_v5f) {
         r->state = UPD_IDLE;
         r->result = UPD_R_BROKEN;
+        r->v5f_length = 0;              /* no working image: recovery */
         snprintf(msg, len, r->backup_length && r->backup_version < r->min_v5f
                  ? "update: the backup is older than this board's minimum; can't roll back"
                  : "update: the backup is missing or damaged; can't roll back");
@@ -480,8 +481,21 @@ static int start_update(const upd_io *io, const sealed_board *keys, upd_record *
         r->result = UPD_R_REFUSED;
         return record_store(io, r);
     }
+    /* Back up the installed image only if it checks out: one that doesn't
+       (changed in flash since its MAC was made) mustn't get a backup that
+       a rollback would then trust. Without one, the backup on the card,
+       if any, stays the one to roll back to. */
+    int keep = 0;
+    if (r->v5f_length) {
+        uint8_t mac[32];
+        err = image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, r->v5f_length, mac);
+        if (err) {
+            return err;
+        }
+        keep = crypto_verify32(mac, r->v5f_mac) == 0;
+    }
     uint32_t need = 1 + blocks_of(r->v5f_length);
-    if (r->v5f_length && (io->backup_write == NULL || io->backup_blocks < need)) {
+    if (keep && (io->backup_write == NULL || io->backup_blocks < need)) {
         r->result = UPD_R_NO_BACKUP;
         snprintf(msg, len, "update refused: lfbackup.bin needs %lu blocks",
                  (unsigned long)need);
@@ -494,12 +508,14 @@ static int start_update(const upd_io *io, const sealed_board *keys, upd_record *
     r->state = UPD_BACKING_UP;
     r->progress = 0;
     r->result = UPD_R_NONE;
-    r->backup_length = 0;               /* the card's backup is about to be overwritten */
+    if (keep) {
+        r->backup_length = 0;           /* the card's backup is about to be overwritten */
+    }
     err = record_store(io, r);
     if (err) {
         return err;
     }
-    if (r->v5f_length) {
+    if (keep) {
         err = make_backup(io, r);
         if (err) {
             return err;
@@ -555,11 +571,12 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
         break;
     case UPD_TRIAL:
         if (++r->progress > UPD_TRIAL_BOOTS) {
-            if (r->backup_length == 0) {    /* nothing to go back to */
+            if (r->backup_length == 0) {    /* nothing to go back to: recovery */
                 r->state = UPD_IDLE;
-                r->result = UPD_R_INSTALLED;
-                snprintf(msg, len, "update: no confirm, but no backup: keeping version %lu",
-                         (unsigned long)r->v5f_version);
+                r->result = UPD_R_BROKEN;
+                snprintf(msg, len, "update: version %lu was never confirmed and there's "
+                         "no backup", (unsigned long)r->v5f_version);
+                r->v5f_length = 0;
                 err = record_store(io, r);
             } else {
                 r->state = UPD_ROLLING_BACK;
@@ -589,7 +606,9 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
 
     /* the image the V5F would run */
     if (r->v5f_length == 0) {
-        snprintf(msg, len, "update: no V5F image installed");
+        if (strcmp(msg, "update: nothing to do") == 0) {
+            snprintf(msg, len, "update: no working V5F image installed");
+        }
         return UPD_RECOVERY;
     }
     uint8_t mac[32];
@@ -616,9 +635,10 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
         }
     }
     r->result = UPD_R_BROKEN;
+    r->v5f_length = 0;                  /* so it stays in recovery until a package */
     snprintf(msg, len, "update: the V5F image fails its check");
-    record_store(io, r);
-    return UPD_RECOVERY;
+    err = record_store(io, r);
+    return err ? err : UPD_RECOVERY;
 }
 
 int upd_confirm(const upd_io *io) {
@@ -638,5 +658,30 @@ int upd_confirm(const upd_io *io) {
     }
     err = record_store(io, &r);
     crypto_wipe(&r, sizeof r);
+    return err;
+}
+
+int upd_adopt(const upd_io *io, char *msg, int len) {
+    upd_record r;
+    int err = upd_record_load(io, &r);
+    if (err) {
+        snprintf(msg, len, "update: no record to adopt into");
+        return err < 0 ? err : ERR_BLK_PARSE_FAIL;
+    }
+    if (r.state != UPD_IDLE) {
+        snprintf(msg, len, "update: an update is under way; not adopted");
+        crypto_wipe(&r, sizeof r);
+        return ERR_BLK_PARSE_FAIL;
+    }
+    r.v5f_version = 0;
+    r.v5f_length = UPD_V5F_SLOT;
+    err = image_mac(io, &r, UPD_V5F_ADDR, 0, UPD_V5F_SLOT, r.v5f_mac);
+    if (!err) {
+        r.result = UPD_R_NONE;
+        err = record_store(io, &r);
+    }
+    crypto_wipe(&r, sizeof r);
+    snprintf(msg, len, err ? "update: the adopt failed (%d)"
+                           : "update: the V5F image in flash adopted as version 0", err);
     return err;
 }

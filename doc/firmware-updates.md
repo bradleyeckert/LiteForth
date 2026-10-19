@@ -213,7 +213,7 @@ system:
 
 | Phase | Runs in | Trusted? | Does |
 |---|---|---|---|
-| A. Fetch | V5F | No | `-2 ymodem` (kwai: `~x FILE -2`) writes a package into `lfstage.bin`, block 0 last; reads it back; checks it as stage 1 will (`blk_stage_check`, all but the minimum version); if it passes, sets `update` in the shared SRAM block to `CDC_UPDATE_MAGIC` (`blk_stage_ready`). Or the package is copied there in a PC. Then a reset starts the install. Built; stage 1 isn't yet, so nothing acts on the flag |
+| A. Fetch | V5F | No | `-2 ymodem` (kwai: `~x FILE -2`) writes a package into `lfstage.bin`, block 0 last; reads it back; checks it as stage 1 will (`blk_stage_check`, all but the minimum version); if it passes, sets `update` in the shared SRAM block to `CDC_UPDATE_MAGIC` (`blk_stage_ready`). Or the package is copied there in a PC. Then a reset starts the install. In recovery, stage 1 takes the package itself (section 7) |
 | B. Check | Stage 1 | Yes | Block 0 as `sealed_mount` checks it, plus the component, the hardware revision, and the version against the minimum. Then every content block against its hash. Any failure: drop it, record why, boot as before |
 | C. Back up | Stage 1 | Yes | The current V5F image into `lfbackup.bin`, encrypted with K_encard and MACed with K_maccard, with its version; read back and check before going on |
 | D. Install | Stage 1 | Yes | Erase and program block by block, reading each block from the card again and checking its hash just before it's programmed, so a card changed after phase B can't slip anything in; read back; store the new MAC and version |
@@ -235,23 +235,30 @@ write or half-erased sector) at every single step of an install and of a
 rollback. After any cut the board ends up running exactly the old image
 or the new one.
 
-Three rules came out of writing it:
+These rules came out of writing it:
 
 - A rollback never restores a backup older than the board's minimum: it
   records "broken" and goes to recovery instead.
-- An image on trial with no backup (the first install on a board with
-  nothing installed) just stays when its trial runs out, since there's
-  nothing to go back to.
+- Only an installed image that passes its MAC check is backed up. An image
+  that changed in flash since its MAC was made mustn't get a backup that a
+  rollback would then trust. Without a new backup, the one already on the
+  card, if any, stays the one to roll back to.
+- No working image means recovery, and the board stays in recovery until a
+  package installs. That covers an image that fails its MAC, one whose trial
+  runs out with no backup, and a rollback that can't be done. The record
+  marks it with `v5f_length` 0 and result "broken". An image that never
+  confirmed is taken as not working, even though its MAC is good.
 - A board with a blank record (fresh from a debugger) has no installed
   image, so stage 1 goes to recovery. `adopt_blank`, for development
-  only, takes whatever is in the V5F slot as installed instead.
+  only, takes whatever is in the V5F slot as installed instead, and
+  `upd_adopt` does the same later, from recovery.
 
 Power cuts: every phase records its progress in the security sector before
 it starts. Phase D resumes from the block it reached, since `lfstage.bin`
 is kept until the trial ends. A card pulled during phase D leaves a
-half-programmed V5F image, which fails its MAC at the next boot: stage 1
-goes to recovery (section 7) and offers to finish from the card or take
-the package over USB.
+half-programmed V5F image. Stage 1 then stops with an error and doesn't
+start it, because the record says it was programming. It goes to recovery
+(section 7), where `reset` carries on once the card is back.
 
 ### On the board now (first step)
 
@@ -271,8 +278,7 @@ For development, and until the rest exists:
   its whole 128 KB slot (`adopt_blank`), so the first update has
   something to back up and roll back to. `lfbackup.bin` must hold at
   least 33 blocks (132 KB).
-- An image that fails its check is reported on the debug UART and started
-  anyway: there's no recovery mode yet.
+- No working V5F image: recovery (section 7), on the USB terminal.
 - The board's key comes from the V5F's board record, or from the UID in an
   `INSECURE` build, and the root key and product from
   `V5F/User/sealed_root.h`, as for sealed block files.
@@ -287,6 +293,43 @@ YMODEM straight to stage 1, which checks and installs it block by block as
 in phase D (block 0 first, then each block against its hash before it's
 programmed). After RDP 2 this is the only way to fix a board whose V5F
 image is broken, so it has to work before any board is locked.
+
+### Recovery on the board now
+
+`stage1_boot` returns `STAGE1_RECOVERY` when `upd_boot` finds no working
+image. It also does so when an error stops it part way through
+programming. Then `main.c` doesn't wake the V5F, and `stage1_poll`, in the
+V3F's USB loop, is the other end of the USB rings in its place: it reads
+what the host sends from the rx ring and writes into the tx ring, while
+`cdc_bridge_poll` moves the bytes to and from USB as usual. Ctrl+X x3 is
+off meanwhile (`binary`).
+
+When a terminal opens the port, stage 1 says why it's in recovery and
+prompts with `recovery ok>`, so kwai paces its lines as usual. It takes
+three commands:
+
+- `-2 ymodem`, which is what kwai's `~x FILE -2` types. The package comes
+  by YMODEM (`src/ymrecv.c`, a small receiver tested by
+  `unit_tests/ymrecv`) into the card's `lfstage.bin`, block 0 last. Then
+  `upd_boot` runs as if the package had been staged by the V5F. It
+  checks the whole package, installs it without a backup (there's nothing
+  worth keeping) and resets the chip, so the new image starts on trial as
+  usual. A refusal is reported and leaves the board in recovery.
+- `reset`, to try again, for example with the card back in.
+- `adopt`, in a development build only (`STAGE1_DEVELOPMENT`, which also
+  turns on `adopt_blank`). It takes the image in flash as it is
+  (`upd_adopt`), for a V5F that the debugger reprogrammed without erasing
+  the record.
+
+Not yet: an install straight from USB without a card, as planned above.
+For now recovery needs the card and its `lfstage.bin`.
+
+Watch out when developing: on a board that has a record, a V5F build
+downloaded by the debugger fails its MAC. If `lfbackup.bin` holds a good
+backup, stage 1 restores that over the new build; otherwise it goes to
+recovery, where `adopt` takes the new build. A download that erases the
+whole chip also erases the record, so the new build is adopted as on a
+fresh board.
 
 ## 8. Keeping the V5F out
 
@@ -382,8 +425,9 @@ RDP 0:
    unit tests: every refusal, a power cut at every step of every phase,
    both copies of the security sector, rollback, recovery. `sealblocks.py
    package` and its tests. Done for the V5F image (`src/update.c`,
-   `unit_tests/update`); still to do: stage 0, a new stage 1 into its
-   other slot, and recovery over USB. `unit_tests/vmasm`'s RV32 emulator runs the
+   `unit_tests/update`), and recovery's YMODEM receiver (`src/ymrecv.c`,
+   `unit_tests/ymrecv`); still to do: stage 0, a new stage 1 into its
+   other slot, and a recovery install without a card. `unit_tests/vmasm`'s RV32 emulator runs the
    V3F code as built, for size and speed.
 2. **This board, RDP 0, no WRPR.** Phases A-F for real, then recovery.
    Anything that goes wrong is fixed with the WCH-Link.

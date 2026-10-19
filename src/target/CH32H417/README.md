@@ -145,6 +145,7 @@ print there; the lines appear in about this order:
 | `V3F: starting the V5F` | V3F booted, woke the V5F and went to sleep |
 | `V3F: the V5F is running` | the V5F booted and released HSEM0, waking the V3F; if this never comes, look at the V5F image (flashing) |
 | `V3F: built ..., GCC ...` | the V3F's build time; USB device started |
+| `V3F update: ...` | only when stage 1 did something: a package installed, refused, on trial, rolled back, or an image that fails its check (`V3F/User/stage1.c`, `doc/firmware-updates.md`) |
 | `V5F crumbs: reset by ...` | why the chip reset, and how many crumbs the previous run left: listed after a watchdog, lockup or software reset, or always with `CRUMBS_TRAIL 1` (`V5F/User/crumbs.c`) |
 | `V5F: RTC failed ...` | only if the RTC didn't start |
 | `V5F blocks: ...` | what the V5F found on the SD card (see *Blocks*) |

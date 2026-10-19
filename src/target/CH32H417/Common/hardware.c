@@ -31,6 +31,10 @@
  *
  * @return  none
  */
+/* LiteForth: V3F/User/stage1.c. Weak, since the V5F project builds this
+   file too and has no stage 1. */
+void stage1_poll(void) __attribute__((weak));
+
 void Hardware(void)
 {
     printf("V3F: built %s %s, GCC %d.%d.%d\r\n", __DATE__, __TIME__,
@@ -51,6 +55,7 @@ void Hardware(void)
     while(1)
     {
         cdc_bridge_poll( );
+        if( stage1_poll ) stage1_poll( );   /* LiteForth: a new V5F image's confirm */
 
         /* Enumeration progress, for the debug UART */
         if( USBFS_DevAddr != addr )

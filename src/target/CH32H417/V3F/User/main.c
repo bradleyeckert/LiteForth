@@ -10,6 +10,7 @@
  * microcontroller manufactured by Nanjing Qinheng Microelectronics.
  *******************************************************************************/
 #include "debug.h"
+#include "stage1.h"                     /* LiteForth: firmware updates */
 #include "hardware.h"
 #include "cdc_bridge.h"
 /*********************************************************************
@@ -36,6 +37,7 @@ int main(void)
 
 #if (Run_Core == Run_Core_V3FandV5F)
     cdc_shared_init();                  //empty the rings before the V5F uses them
+    stage1_boot();                      //LiteForth: install a staged firmware update first
     printf("V3F: starting the V5F\r\n"); //if "V3F: the V5F is running" never follows, it didn't start
     while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET); //finish sending before STOP
 	NVIC_WakeUp_V5F(Core_V5F_StartAddr);//wake up V5

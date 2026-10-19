@@ -253,6 +253,30 @@ half-programmed V5F image, which fails its MAC at the next boot: stage 1
 goes to recovery (section 7) and offers to finish from the card or take
 the package over USB.
 
+### On the board now (first step)
+
+`V3F/User/stage1.c` runs this on the V3F at every reset, before it wakes
+the V5F, with the flash map as it is (`stage1_layout.h`): the V5F image at
+0x10000 in its 128 KB slot, the record's two copies at 0x72000 and
+0x74000. It does nothing at all on a board that has never been updated
+(no record and no package waiting), so such a board boots as before.
+Otherwise it opens the card (WCH's polling SD driver) and runs
+`upd_boot`, then wakes the V5F. When LiteForth starts, the V5F sets
+`update` in the shared block to `CDC_CONFIRM_MAGIC`, and the V3F's USB loop
+(`stage1_poll`) confirms an image on trial.
+
+For development, and until the rest exists:
+
+- A blank record takes the V5F image in flash as installed, version 0,
+  its whole 128 KB slot (`adopt_blank`), so the first update has
+  something to back up and roll back to. `lfbackup.bin` must hold at
+  least 33 blocks (132 KB).
+- An image that fails its check is reported on the debug UART and started
+  anyway: there's no recovery mode yet.
+- The board's key comes from the V5F's board record, or from the UID in an
+  `INSECURE` build, and the root key and product from
+  `V5F/User/sealed_root.h`, as for sealed block files.
+
 ## 7. Recovery
 
 Stage 1 runs the USB bridge itself, so it can take a package over USB when

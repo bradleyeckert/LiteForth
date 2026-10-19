@@ -17,18 +17,42 @@ typedef enum { DISABLE = 0, ENABLE = !DISABLE } FunctionalState;
 
 /* FLASH: the option bytes as loaded at reset, and the code flash */
 typedef struct {
+    __IO uint32_t KEYR;
+    __IO uint32_t OBKEYR;
+    __IO uint32_t STATR;                /* never busy */
+    __IO uint32_t CTLR;
     __IO uint32_t OBR;
     __IO uint32_t WPR;
 } FLASH_TypeDef;
 extern FLASH_TypeDef sim_flash_regs;
 #define FLASH               (&sim_flash_regs)
 #define FLASH_OBR_RDPRT     ((uint16_t)0x0002)
+#define FLASH_STATR_BSY     ((uint8_t)0x01)
+#define FLASH_CTLR_OPTPG    ((uint32_t)0x00000010)
+#define FLASH_CTLR_OPTER    ((uint32_t)0x00000020)
+#define FLASH_CTLR_STRT     ((uint32_t)0x00000040)
+#define FLASH_CTLR_LOCK     ((uint32_t)0x00000080)
 #define OB_USBFSDL_EN       ((uint16_t)0x0040)
 #define OB_USARTDL_EN       ((uint16_t)0x0080)
 typedef enum {
     FLASH_BUSY = 1, FLASH_ERROR_PG, FLASH_ERROR_WRP, FLASH_COMPLETE, FLASH_TIMEOUT,
     FLASH_RDP, FLASH_OP_RANGE_ERROR = 0xFD, FLASH_ALIGN_ERROR = 0xFE, FLASH_ADR_RANGE_ERROR = 0xFF,
 } FLASH_Status;
+/* The option bytes themselves (OB_BASE, in the UID page), which `lockdown`
+   programs, and which load into OBR and WPR at the next boot (sim.c keeps
+   them in ob.bin) */
+typedef struct {
+    __IO uint16_t RDPR;
+    __IO uint16_t USER;
+    __IO uint16_t Data0;
+    __IO uint16_t Data1;
+    __IO uint16_t WRPR0;
+    __IO uint16_t WRPR1;
+    __IO uint16_t WRPR2;
+    __IO uint16_t WRPR3;
+} OB_TypeDef;
+#define OB_BASE             0x1FFFF800u
+#define OB                  ((OB_TypeDef *)(uintptr_t)OB_BASE)
 FLASH_Status FLASH_ROM_ERASE(uint32_t StartAddr, uint32_t Length);
 FLASH_Status FLASH_ROM_WRITE(uint32_t StartAddr, uint32_t *pbuf, uint32_t Length);
 

@@ -22,7 +22,9 @@
  *   card.img    the microSD card (mkexfat.py); no file = no card
  *
  * plus the UID at 0x1FFFF7E8 (SIM_UID, 16 hex digits). The option bytes
- * come from SIM_OBR and SIM_WPR (hex; FLASH->OBR and FLASH->WPR).
+ * come from SIM_OBR and SIM_WPR (hex; FLASH->OBR and FLASH->WPR), or else
+ * from ob.bin, which `lockdown` writes (WCH's FLASH_* option byte
+ * functions, below), as the chip loads them at reset.
  *
  * The debug UART is stderr; USB is stdin (from the host) and stdout (to
  * it), as endpoints 2 and 3 through the real bridge. Lines starting "SIM:"
@@ -126,6 +128,40 @@ FLASH_Status FLASH_ROM_ERASE(uint32_t addr, uint32_t len) {
     return FLASH_COMPLETE;
 }
 
+/* The option bytes: plain memory here (the UID page), which `lockdown`
+   programs as the chip's flash controller would. At every reset, they go
+   to ob.bin if they changed, for the next boot to load. */
+static uint16_t ob_at_boot[8];
+
+static void ob_save(void) {
+    if (memcmp(ob_at_boot, (const void *)OB, 16) == 0) {
+        return;
+    }
+    FILE *f = fopen("ob.bin", "wb");
+    if (!f || fwrite((const void *)OB, 1, 16, f) != 16) {
+        die("ob.bin");
+    }
+    fclose(f);
+}
+
+/* At boot: OBR and WPR from the option bytes, as the chip loads them */
+static void ob_load(void) {
+    FLASH->OBR = ((OB->RDPR & 0xFFu) != 0xA5u ? FLASH_OBR_RDPRT : 0u) | (OB->USER & 0xFFu) << 2;
+    FLASH->WPR = (OB->WRPR0 & 0xFFu) | (OB->WRPR1 & 0xFFu) << 8 |
+                 (OB->WRPR2 & 0xFFu) << 16 | (uint32_t)(OB->WRPR3 & 0xFFu) << 24;
+}
+
+/* The option bytes that would load as OBR and WPR (SIM_OBR, SIM_WPR) */
+static void ob_from_regs(uint32_t obr, uint32_t wpr) {
+    uint16_t user = (obr >> 2) & 0xFF;
+    OB->RDPR = (obr & FLASH_OBR_RDPRT) ? 0x00FF : 0x5AA5;
+    OB->USER = (uint16_t)(~user << 8) | user;
+    OB->WRPR0 = wpr & 0xFF;
+    OB->WRPR1 = (wpr >> 8) & 0xFF;
+    OB->WRPR2 = (wpr >> 16) & 0xFF;
+    OB->WRPR3 = (wpr >> 24) & 0xFF;
+}
+
 FLASH_Status FLASH_ROM_WRITE(uint32_t addr, uint32_t *buf, uint32_t len) {
     uint32_t off = addr - STAGE1_FLASH_BASE;
     if (addr < STAGE1_FLASH_BASE || off + len > FLASH_SIZE || off % 256 || len % 256) {
@@ -177,6 +213,7 @@ void NVIC_EnableIRQ(IRQn_Type irq) {
 }
 
 void NVIC_SystemReset(void) {
+    ob_save();
     fflush(stdout);
     fprintf(stderr, "SIM: reset\n");
     fflush(stderr);
@@ -496,9 +533,19 @@ static void setup(void) {
         SDCardInfo.CardCapacity = st.st_size;
     }
     /* a board fresh from WCH: read protection off, nothing write-protected,
-       both boot ROM downloads on */
-    FLASH->OBR = env_hex("SIM_OBR", (uint32_t)(0xC1u << 2));
-    FLASH->WPR = env_hex("SIM_WPR", 0xFFFFFFFFu);
+       both boot ROM downloads on; or what `lockdown` left in ob.bin */
+    FILE *obf = fopen("ob.bin", "rb");
+    if (!getenv("SIM_OBR") && !getenv("SIM_WPR") && obf && fread((void *)OB, 1, 16, obf) == 16) {
+        ob_load();
+    } else {
+        FLASH->OBR = env_hex("SIM_OBR", (uint32_t)(0xC1u << 2));
+        FLASH->WPR = env_hex("SIM_WPR", 0xFFFFFFFFu);
+        ob_from_regs(FLASH->OBR, FLASH->WPR);
+    }
+    if (obf) {
+        fclose(obf);
+    }
+    memcpy(ob_at_boot, (const void *)OB, 16);
     const char *c = getenv("SIM_CUT_AT");
     cut_at = c ? atol(c) : -1;
     rng_state = env_hex("SIM_SEED", 0x2545F491u) | 1u;

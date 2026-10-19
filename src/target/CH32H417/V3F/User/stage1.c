@@ -501,11 +501,79 @@ static void restart(void) {
     NVIC_SystemReset();
 }
 
+#if SEC_STRICT_RDP
+/* `lockdown`, in level 2's recovery console: the option bytes as the
+   lock-down check wants them. The values are those WCH's
+   FLASH_EnableWriteProtection, FLASH_UserOptionByteConfig and
+   FLASH_ReadOutProtection(ENABLE) would leave, one after the other, but
+   with one erase and one pass, as those functions do each (so a power cut
+   has one short window, and the code is smaller). They load at the next
+   reset. Only a chip erase undoes it. */
+static void ob_program(const uint16_t *ob) {
+    volatile uint16_t *dst = (volatile uint16_t *)OB;
+    if (FLASH->CTLR & FLASH_CTLR_LOCK) {
+        FLASH->KEYR = 0x45670123u;          /* FLASH_KEY1, FLASH_KEY2 */
+        FLASH->KEYR = 0xCDEF89ABu;
+    }
+    FLASH->OBKEYR = 0x45670123u;
+    FLASH->OBKEYR = 0xCDEF89ABu;
+    FLASH->CTLR |= FLASH_CTLR_OPTER;
+    FLASH->CTLR |= FLASH_CTLR_STRT;
+    while (FLASH->STATR & FLASH_STATR_BSY) {
+    }
+    FLASH->CTLR &= ~FLASH_CTLR_OPTER;
+    FLASH->CTLR |= FLASH_CTLR_OPTPG;
+    for (int i = 0; i < 8; i++) {
+        dst[i] = ob[i];
+        while (FLASH->STATR & FLASH_STATR_BSY) {
+        }
+    }
+    FLASH->CTLR &= ~FLASH_CTLR_OPTPG;
+    FLASH->CTLR |= FLASH_CTLR_LOCK;
+}
+
+static void lock_down(int really) {
+    static char msg[80];
+    volatile uint16_t *src = (volatile uint16_t *)OB;
+    uint16_t ob[8];
+    if (!really) {
+        say("lockdown yes: write-protect the V3F's sectors, turn the boot ROM's downloads off");
+        say("and read protection on, and reset. Only a chip erase undoes it.");
+        return;
+    }
+    for (int i = 0; i < 8; i++) {
+        ob[i] = src[i];
+    }
+    uint32_t keep = ~(uint32_t)STAGE1_WRP_PROTECT;  /* as FLASH_EnableWriteProtection */
+    for (int i = 0; i < 4; i++) {
+        ob[4 + i] = (uint16_t)((keep >> (8 * i)) & 0xFFu);
+    }
+    ob[1] &= (uint16_t)~(OB_USBFSDL_EN | OB_USARTDL_EN);  /* downloads off, the rest kept */
+    ob[0] = 0x00FF;                         /* read protection on, as FLASH_ReadOutProtection */
+    printf("V3F: lockdown: programming the option bytes\r\n");
+    ob_program(ob);
+    for (int i = 0; i < 8 && really; i++) {
+        really = (src[i] == ob[i]);
+    }
+    snprintf(msg, sizeof msg, "lockdown: option bytes now RDPR %04X USER %04X WRPR0 %04X: %s",
+             (unsigned)src[0], (unsigned)src[1], (unsigned)src[4], really ? "ok" : "NOT AS WRITTEN");
+    printf("V3F: %s\r\n", msg);
+    say(msg);
+    if (really) {
+        say("lockdown: restarting (if the lock-down warning comes again, power it off and on)");
+        restart();
+    }
+}
+#endif
+
 static void help(void) {
     say("LiteForth stage 1: recovery mode. The V5F stays off:");
     say(why_recovery);
     if (locked_out) {
         say(insecure);
+#if SEC_STRICT_RDP
+        say("lockdown: lock this board down (it says what it will do first).");
+#endif
         say("reset: start again.");
         return;
     }
@@ -565,6 +633,16 @@ static void receive(void) {
 }
 
 static void command(const char *line) {
+#if SEC_STRICT_RDP
+    if (strcmp(line, "lockdown") == 0 || strcmp(line, "lockdown yes") == 0) {
+        if (!security_check()) {
+            say("lockdown: this board is locked down already");
+        } else {
+            lock_down(line[8] != 0);
+        }
+        return;
+    }
+#endif
     if (locked_out && strcmp(line, "reset") != 0) {
         if (strstr(line, "ymodem")) {
             t_put(0x18);                    /* CAN CAN: kwai stops waiting */

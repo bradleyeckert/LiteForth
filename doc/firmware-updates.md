@@ -390,8 +390,13 @@ with the two registers. A build at `SECURITY_LEVEL` 2
 which says why and takes only `reset`, so a production image can't run
 on a board that was never locked.
 
-The check only reads; locking a board (section 9) is still done by hand,
-on the spare board. This chip has one level of read protection: RDPR at
+The check only reads. Locking a board is stage 1's `lockdown`, in a level
+2 build's recovery console, which programs the option bytes as the check
+wants them (one erase and one pass, with the values WCH's
+`FLASH_EnableWriteProtection`, `FLASH_UserOptionByteConfig` and
+`FLASH_ReadOutProtection` would leave), reads them back and resets.
+`scripts/admin/lockdown.py` flashes a board with wlink and drives it
+(section 9, step 3). This chip has one level of read protection: RDPR at
 0xA5 is off and anything else is on ([security-plan.md](security-plan.md)
 section 3, from the reference manual). The "RDP 2" in this document means
 that, with write protection and the boot ROM downloads off: a board that
@@ -538,8 +543,16 @@ RDP 0:
    Anything that goes wrong is fixed with the WCH-Link. Every run is
    logged in [board-tests.md](board-tests.md), with the firmware, the
    packages' hashes and the board's output.
-3. **The spare board.** WRPR on stage 0, then RDP 2; then an update, a
-   rollback and a recovery over USB. Only this step can't be undone.
+3. **The spare board.** `scripts/admin/lockdown.py run`: a level 2 build
+   flashed, then locked with stage 1's `lockdown` (read protection, WRPR
+   on the V3F's sectors, boot ROM downloads off); then `enroll`, an
+   update, a rollback and a recovery over USB. Only a chip erase undoes
+   it. To check first, on the spare: that wlink flashes the V5F's image
+   at 0x10000 on this dual-core part, that the option bytes load at a
+   software reset (or need a power cycle), and that stage 1 and the V5F
+   can still write flash under read protection (stage 1 runs from
+   RAM_CODE, and the reference manual says code running from RAM can't
+   program flash then).
 
 ## 10. To verify or decide
 

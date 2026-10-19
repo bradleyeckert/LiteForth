@@ -1,4 +1,5 @@
-"""Drives scripts/lfmcp.py with MCP requests against bin/lf over ptys.
+"""Drives scripts/lfmcp.py with MCP requests against bin/lf over ptys, and
+its wlink tool against a fake wlink that logs its arguments.
 
 Usage: test.py path/to/lf path/to/lfmcp.py   (in a scratch directory)
 """
@@ -36,7 +37,37 @@ def bridge():
 
 threading.Thread(target=bridge, daemon=True).start()
 time.sleep(0.5)
-srv = subprocess.Popen([sys.executable, lfmcp, port], stdin=subprocess.PIPE,
+
+# A fake wlink: logs each call's arguments to wlink.log, prints a line, and
+# answers `dump ... -o FILE` with the option bytes in ob.txt ("OBR WPR")
+FAKE = os.path.abspath("fakewlink")
+with open(FAKE, "w") as f:
+    f.write(f"""#!{sys.executable}
+import sys
+args = sys.argv[1:]
+with open("wlink.log", "a") as log:
+    log.write(" ".join(args) + "\\n")
+if args[:1] == ["dump"] and "-o" in args:
+    obr, wpr = (int(x, 16) for x in open("ob.txt").read().split())
+    with open(args[args.index("-o") + 1], "wb") as out:
+        out.write(obr.to_bytes(4, "little") + wpr.to_bytes(4, "little"))
+print("fake wlink: " + " ".join(args))
+sys.exit(3 if args[:1] == ["status"] and len(args) > 1 else 0)
+""")
+os.chmod(FAKE, 0o755)
+
+
+def wlink_log():
+    try:
+        with open("wlink.log") as f:
+            lines = f.read().splitlines()
+        os.remove("wlink.log")
+        return lines
+    except FileNotFoundError:
+        return []
+
+
+srv = subprocess.Popen([sys.executable, lfmcp, port, "--wlink", FAKE], stdin=subprocess.PIPE,
                        stdout=subprocess.PIPE, text=True, encoding="utf-8")
 ids = 0
 failures = 0
@@ -70,7 +101,7 @@ r = rpc("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
 check("initialize", r["protocolVersion"] == "2025-06-18" and "tools" in r["capabilities"], r)
 rpc("notifications/initialized", notify=True)
 names = [t["name"] for t in rpc("tools/list")["result"]["tools"]]
-check("tools/list", names == ["forth", "forth_read", "forth_restart"], names)
+check("tools/list", names == ["forth", "forth_read", "forth_restart", "wlink"], names)
 
 text, err = tool("forth", text="1 2 + .")
 check("one line", not err and text == "> 1 2 + .\n3 ok>\n", text)
@@ -82,6 +113,41 @@ text, err = tool("forth_read", seconds=0.3)
 check("forth_read", not err and text == "[nothing]", text)
 text, err = tool("nosuchtool")
 check("unknown tool", err, text)
+
+# wlink: the allowed commands pass through; nothing that locks or wipes
+text, err = tool("wlink", command="status")
+check("wlink status", not err and text == "fake wlink: status" and wlink_log() == ["status"], text)
+text, err = tool("wlink", command="reset")
+check("wlink reset", not err and wlink_log() == ["reset"], text)
+text, err = tool("wlink", command="dump", address="0x08000000", length=16)
+check("wlink dump", not err and wlink_log() == ["dump 0x8000000 16"], text)
+text, err = tool("wlink", command="dump", address=0, length=5000)
+check("wlink dump too long", err and wlink_log() == [], text)
+for bad in ("erase", "protect", "unprotect", "write-mem", "write-reg", "halt", "set-power"):
+    text, err = tool("wlink", command=bad)
+    check(f"wlink {bad} refused", err and "isn't allowed" in text and wlink_log() == [], text)
+with open("fw.bin", "wb") as f:
+    f.write(b"\x13" * 64)
+for obr, wpr, why in (("000003FE", "FFFFFFFF", "read protection is on"),
+                      ("000003FC", "FFFFFF00", "write-protected")):
+    with open("ob.txt", "w") as f:
+        f.write(obr + " " + wpr)
+    text, err = tool("wlink", command="flash", path=os.path.abspath("fw.bin"))
+    log = wlink_log()
+    check(f"wlink flash refused: {why}", err and why in text and len(log) == 1
+          and log[0].startswith("dump 0x4002201c 8 -o "), (text, log))
+with open("ob.txt", "w") as f:
+    f.write("000003FC FFFFFFFF")
+text, err = tool("wlink", command="flash", path=os.path.abspath("fw.bin"), address="0x08010000")
+log = wlink_log()
+check("wlink flash", not err and "not protected" in text and len(log) == 2
+      and log[1] == "flash --address 0x8010000 " + os.path.abspath("fw.bin")
+      and not any("-e" in l.split() or "--erase" in l for l in log), (text, log))
+text, err = tool("wlink", command="flash", path="nosuch.bin")
+check("wlink flash: no such file", err and wlink_log() == [], text)
+text, err = tool("wlink", command="flash", path=os.path.abspath("ob.txt"))
+check("wlink flash: not firmware", err and wlink_log() == [], text)
+
 r = rpc("bogus/method")
 check("unknown method", r.get("error", {}).get("code") == -32601, r)
 

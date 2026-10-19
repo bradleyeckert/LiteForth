@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """MCP server that gives an AI assistant LiteForth's terminal on a serial port.
 
-Usage: lfmcp.py PORT [-b BAUD]                      (COM17, /dev/ttyACM0, ...)
-       lfmcp.py PORT [-b BAUD] --mailbox [DIR]
+Usage: lfmcp.py PORT [-b BAUD] [--wlink EXE]        (COM17, /dev/ttyACM0, ...)
+       lfmcp.py PORT [-b BAUD] [--wlink EXE] --mailbox [DIR]
 
 It speaks the Model Context Protocol over stdin/stdout (newline-delimited
 JSON-RPC), so an MCP client such as the Claude desktop app can start it and
@@ -13,6 +13,18 @@ call its tools:
   forth_read     return what the board printed on its own (a running app)
   forth_restart  send Ctrl+X three times: on the CH32H417, restart the V5F
                  without starting the app
+  wlink          the WCH-LinkE debug probe, through the wlink program
+                 (`cargo install wlink`; on Windows build it for
+                 i686-pc-windows-msvc, which uses WCH's own driver). Only
+                 status, list, regs, dump, reset and flash. Never erase,
+                 protect, unprotect, register or memory writes, or option
+                 bytes: nothing that can lock or wipe a board. wlink's flash
+                 unprotects the chip first (a read-protected chip is wiped, a
+                 write-protected one loses its WRPR), so this tool reads the
+                 option bytes first and refuses to flash unless read
+                 protection is off and no sector is write-protected. It never
+                 passes --erase. --wlink names the program (default: wlink on
+                 the PATH, or in ~/.cargo/bin).
 
 The port is opened for each call and closed after, so a terminal (kwai) can
 use it in between, but not at the same time: Windows lets one program open
@@ -30,7 +42,10 @@ deleting the request. Answers older than an hour are deleted. Ctrl+C stops it.
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
@@ -201,6 +216,95 @@ class Board:
         return "sent Ctrl+X three times; the V5F restarts without starting the app"
 
 
+# ---------------------------------------------------------------------------
+# The WCH-LinkE, through wlink
+# ---------------------------------------------------------------------------
+
+FLASH_OBR = 0x4002201C                  # the CH32H417's FLASH->OBR, then FLASH->WPR
+OBR_RDPRT = 0x2                         # read protection on
+WPR_NONE = 0xFFFFFFFF                   # no sector write-protected
+DUMP_MAX = 4096
+FIRMWARE = (".bin", ".hex", ".ihex", ".elf")
+
+
+def number(v):
+    return v if isinstance(v, int) else int(str(v), 0)
+
+
+class Wlink:
+    """Runs wlink for the commands that can't lock or wipe a board."""
+
+    def __init__(self, exe=None):
+        self.exe = exe
+
+    def _find(self):
+        if self.exe:
+            return self.exe
+        found = shutil.which("wlink")
+        if not found:
+            home = os.path.join(os.path.expanduser("~"), ".cargo", "bin")
+            for name in ("wlink.exe", "wlink"):
+                if os.path.exists(os.path.join(home, name)):
+                    found = os.path.join(home, name)
+                    break
+        if not found:
+            raise OSError("wlink not found: `cargo install wlink`, or give lfmcp.py --wlink EXE")
+        return found
+
+    def run(self, args, timeout=30):
+        try:
+            r = subprocess.run([self._find()] + args, capture_output=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            raise OSError(f"wlink {' '.join(args)}: no answer within {timeout} s")
+        text = ANSI.sub("", (r.stdout + r.stderr).decode("utf-8", "replace"))
+        text = text.replace("\r\n", "\n").rstrip()
+        if r.returncode:
+            text += f"\n[wlink exit code {r.returncode}]"
+        return r.returncode, text
+
+    def option_bytes(self):
+        """(OBR, WPR) as the flash controller has them, read with wlink dump."""
+        fd, path = tempfile.mkstemp(suffix=".bin")
+        os.close(fd)
+        try:
+            code, text = self.run(["dump", hex(FLASH_OBR), "8", "-o", path])
+            with open(path, "rb") as f:
+                data = f.read()
+            if code or len(data) < 8:
+                raise OSError("can't read the option bytes, so not flashing:\n" + text)
+            return int.from_bytes(data[0:4], "little"), int.from_bytes(data[4:8], "little")
+        finally:
+            os.remove(path)
+
+    def call(self, args):
+        cmd = args.get("command")
+        if cmd in ("status", "list", "regs", "reset"):
+            return self.run([cmd])[1]
+        if cmd == "dump":
+            address, length = number(args["address"]), number(args.get("length", 64))
+            if not 0 < length <= DUMP_MAX:
+                raise ValueError(f"dump: length 1 to {DUMP_MAX}")
+            return self.run(["dump", hex(address), str(length)])[1]
+        if cmd == "flash":
+            path = args["path"]
+            if not path.lower().endswith(FIRMWARE) or not os.path.isfile(path):
+                raise ValueError(f"flash: {path} isn't a firmware file ({', '.join(FIRMWARE)})")
+            obr, wpr = self.option_bytes()
+            if obr & OBR_RDPRT:
+                raise ValueError(f"flash refused: read protection is on (OBR {obr:08X}); "
+                                 "wlink would unprotect, which wipes the chip")
+            if wpr != WPR_NONE:
+                raise ValueError(f"flash refused: sectors are write-protected (WPR {wpr:08X}); "
+                                 "wlink would clear the write protection")
+            cmd_args = ["flash"]
+            if "address" in args:
+                cmd_args += ["--address", hex(number(args["address"]))]
+            return (f"option bytes: OBR {obr:08X}, WPR {wpr:08X}: not protected\n"
+                    + self.run(cmd_args + [path], timeout=300)[1])
+        raise ValueError(f"wlink: {cmd!r} isn't allowed here; "
+                         "only status, list, regs, dump, reset and flash")
+
+
 TOOLS = [
     {"name": "forth",
      "description": "Send one or more lines to LiteForth's terminal and return what it "
@@ -219,10 +323,29 @@ TOOLS = [
      "description": "Send Ctrl+X three times. On the CH32H417 this restarts LiteForth "
                     "without starting the app: the way out of a runaway app.",
      "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "wlink",
+     "description": "The WCH-LinkE debug probe, through wlink. Commands: status (probe, chip, "
+                    "UID, read protection, debug registers; it halts the core while it looks and "
+                    "lets it run again), list (probes), regs (a core's registers and PMP), dump "
+                    "(read memory: address, length up to 4096 bytes), reset (the chip resets "
+                    "and runs), flash (program a .bin/.hex/.elf at path, optional address for a "
+                    ".bin, then reset and run: it writes flash, so say so first; refused unless "
+                    "read protection is off and nothing is write-protected, and never with an "
+                    "erase). Nothing that can lock, unlock or wipe a board is offered.",
+     "inputSchema": {"type": "object", "properties": {
+         "command": {"type": "string",
+                     "enum": ["status", "list", "regs", "dump", "reset", "flash"]},
+         "address": {"type": ["integer", "string"],
+                     "description": "dump: start; flash: where a .bin goes (e.g. \"0x08010000\")"},
+         "length": {"type": ["integer", "string"], "description": "dump: bytes (default 64)"},
+         "path": {"type": "string", "description": "flash: the firmware file"}},
+         "required": ["command"]}},
 ]
 
 
 def call(board, name, args):
+    if name == "wlink":
+        return board.wlink.call(args)
     if name == "forth":
         return board.forth(args["text"], float(args.get("timeout", 5)))
     if name == "forth_read":
@@ -260,7 +383,7 @@ def serve(board):
                 text, err = call(board, params.get("name"), params.get("arguments") or {}), False
             except KeyError as e:
                 text, err = f"unknown tool or argument: {e}", True
-            except OSError as e:
+            except (OSError, ValueError) as e:
                 text, err = str(e), True
             result = {"content": [{"type": "text", "text": text}], "isError": err}
         elif method == "ping":
@@ -318,6 +441,11 @@ def main(argv):
         i = args.index("-b")
         baud = int(args[i + 1])
         del args[i:i + 2]
+    exe = None
+    if "--wlink" in args:
+        i = args.index("--wlink")
+        exe = args[i + 1]
+        del args[i:i + 2]
     box = None
     if "--mailbox" in args:
         i = args.index("--mailbox")
@@ -331,15 +459,17 @@ def main(argv):
     if len(args) != 1 or args[0].startswith("-"):
         sys.stderr.write(__doc__)
         return 2
+    board = Board(args[0], baud)
+    board.wlink = Wlink(exe)
     if box:
         try:
-            mailbox(Board(args[0], baud), box)
+            mailbox(board, box)
         except KeyboardInterrupt:
             pass
         return 0
     sys.stdout.reconfigure(encoding="utf-8", newline="\n")
     sys.stdin.reconfigure(encoding="utf-8")
-    serve(Board(args[0], baud))
+    serve(board)
     return 0
 
 

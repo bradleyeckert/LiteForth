@@ -14,7 +14,7 @@ Each script prints its full usage with `-h`.
 | `lintf.py` | Checks Forth source against `doc/coding-rules.md` |
 | `mkexfat.py` | Builds small exFAT card images (with `lfblocks.fb4` inside) for testing; `lf -k card.img` uses one as the board uses its card |
 | `admin/sealblocks.py` | Makes and checks sealed (encrypted, signed) block files and firmware update packages, and their keys: the release side, in [admin/](admin/README.md) |
-| `lfmcp.py` | Gives an AI assistant (an MCP client such as the Claude desktop app) LiteForth's terminal on a serial port |
+| `lfmcp.py` | Gives an AI assistant (an MCP client such as the Claude desktop app) LiteForth's terminal on a serial port, and the WCH-LinkE through `wlink` |
 
 The other files here aren't Python: `regression.f` is the test script that
 `make test` runs, and `settings.json` has Windows Terminal key bindings for
@@ -144,13 +144,14 @@ Each script has a test suite under `src/target/desktop/unit_tests/`
 
 An MCP server (Model Context Protocol, over stdin/stdout) that lets an AI
 assistant use LiteForth's terminal on a serial port, such as the
-CH32H417's USB CDC port. It has three tools:
+CH32H417's USB CDC port, and the WCH-LinkE debug probe. It has four tools:
 
 | Tool | What it does |
 |---|---|
 | `forth` | Sends one or more lines and returns what LiteForth printed, each line shown as `> line` and followed by its output, waiting for `ok>` (5 s by default) |
 | `forth_read` | Listens for a while without sending anything, for a running app's output |
 | `forth_restart` | Sends Ctrl+X three times: on the CH32H417, restarts LiteForth without starting the app |
+| `wlink` | Runs [wlink](https://github.com/ch32-rs/wlink) for the WCH-LinkE: `status`, `list`, `regs`, `dump` (up to 4 KB), `reset` and `flash` only |
 
 It opens the port for each call and closes it after, so kwai can use the
 port in between, but not at the same time (Windows lets one program open
@@ -182,5 +183,28 @@ It watches `mailbox/` in the repo (ignored by git) for request files
 `NAME.json`, such as `{"tool": "forth", "arguments": {"text": "1 2 + ."}}`,
 answers each in `NAME.txt` and deletes the request. Ctrl+C stops it.
 
+### The WCH-LinkE
+
+The `wlink` tool runs the [wlink](https://github.com/ch32-rs/wlink) program
+(`cargo install wlink`), found on the PATH or in `~/.cargo/bin`, or named
+with `--wlink EXE`. On Windows, build it for 32-bit x86, which uses WCH's
+own driver (the 64-bit build needs WinUSB, which the WCH tools don't use):
+
+```
+rustup target add i686-pc-windows-msvc
+cargo install wlink --target i686-pc-windows-msvc --force
+```
+
+It offers only commands that can't lock or wipe a board: `status` (it
+halts the core while it looks, and lets it run again), `list`, `regs`,
+`dump`, `reset` and `flash`. Erase, protect, unprotect, register and
+memory writes and the option bytes aren't offered. wlink's `flash`
+unprotects the chip before it writes, which wipes a read-protected chip
+and clears a write-protected one's WRPR. So before each flash the tool
+reads `FLASH->OBR` and `FLASH->WPR` (0x4002201C, with `wlink dump`) and
+refuses unless read protection is off and no sector is write-protected.
+It never passes `--erase`.
+
 `unit_tests/lfmcp` tests both modes against the desktop `lf` over a pair
-of ptys.
+of ptys, and the `wlink` tool against a fake `wlink` that logs its
+arguments.

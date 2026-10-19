@@ -342,6 +342,7 @@ static void binEnd(bin_state* b) {
 
 typedef struct {
     int on;                             // this file is being installed
+    int stage;                          // -2 ymodem: a package into lfstage.bin
     uint32_t blocks;                    // blocks in the image
     uint32_t block;                     // block being filled
     int pos;                            // bytes in it so far
@@ -357,6 +358,15 @@ typedef struct {
 static uint32_t inst_b0[BLOCK_SIZE_CELLS];      // block 0, written last
 static uint32_t inst_buf[BLOCK_SIZE_CELLS];     // the block being filled
 
+// Writes or reads block blk of where the file goes
+static int instWrite(const inst_state* t, uint32_t blk, const uint32_t* buf) {
+    return t->stage ? blk_stage_write(blk, buf) : blk_raw_write(blk, buf, 1);
+}
+
+static int instRead(const inst_state* t, uint32_t blk, uint32_t* buf) {
+    return t->stage ? blk_stage_read(blk, buf) : blk_raw_read(blk, buf, 1);
+}
+
 static uint8_t* instBuffer(inst_state* t) {
     return (uint8_t*)((t->block == 0) ? inst_b0 : inst_buf);
 }
@@ -368,11 +378,12 @@ static void instFail(inst_state* t, int ior, const char* msg) {
     }
 }
 
-// Starts a file of length bytes (or -1: unknown)
-static void instBegin(inst_state* t, int64_t length, int files) {
+// Starts a file of length bytes (or -1: unknown); stage: -2 ymodem
+static void instBegin(inst_state* t, int64_t length, int files, int stage) {
     memset(t, 0, sizeof(*t));
+    t->stage = stage;
     if (files > 1) {
-        instFail(t, ERR_YMODEM_SOURCE, "one block file at a time");
+        instFail(t, ERR_YMODEM_SOURCE, stage ? "one package at a time" : "one block file at a time");
         return;
     }
     if (length < 0) {
@@ -380,12 +391,16 @@ static void instBegin(inst_state* t, int64_t length, int files) {
         return;
     }
     if ((length == 0) || (length % BLOCK_BYTES)) {
-        instFail(t, ERR_YMODEM_SOURCE, "a block file is a whole number of 4 KB blocks");
+        instFail(t, ERR_YMODEM_SOURCE, stage ? "a package is a whole number of 4 KB blocks"
+                                             : "a block file is a whole number of 4 KB blocks");
         return;
     }
-    if (length / BLOCK_BYTES > blk_space()) {
-        instFail(t, ERR_BLK_BOUNDS, blk_space() ? "it's bigger than the block file's space"
-                                                : "there's no block file to install into");
+    uint32_t room = stage ? blk_stage_space() : blk_space();
+    if (length / BLOCK_BYTES > room) {
+        instFail(t, ERR_BLK_BOUNDS,
+                 stage ? (room ? "it's bigger than lfstage.bin" : "there's no lfstage.bin to stage into")
+                       : (room ? "it's bigger than the block file's space"
+                               : "there's no block file to install into"));
         return;
     }
     t->on = 1;
@@ -397,7 +412,16 @@ static void instBegin(inst_state* t, int64_t length, int files) {
 // A block has come
 static void instBlock(inst_state* t) {
     int ior;
-    if (t->block == 0) {
+    if (t->block == 0 && t->stage) {
+        if (memcmp(inst_b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) != 0) {
+            instFail(t, ERR_YMODEM_SOURCE,
+                     "not a firmware update package (block 0 doesn't start with " PACKAGE_MAGIC ")");
+            return;
+        }
+        memset(inst_buf, 0, BLOCK_BYTES);       // not a package until block 0 is in
+        ior = blk_stage_write(0, inst_buf);
+        if (ior == 0) t->started = 1;
+    } else if (t->block == 0) {
         const uint8_t* b0 = (const uint8_t*)inst_b0;
         t->sealed = !memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN);
         if (blk_check_image(b0, t->blocks, t->msg, sizeof(t->msg))) {
@@ -409,7 +433,7 @@ static void instBlock(inst_state* t) {
         ior = blk_raw_write(0, inst_buf, 1);
         if (ior == 0) t->started = 1;
     } else {
-        ior = blk_raw_write(t->block, inst_buf, 1);
+        ior = instWrite(t, t->block, inst_buf);
     }
     if (ior) instFail(t, ior, "can't write the block");
 }
@@ -436,7 +460,7 @@ static void instBytes(inst_state* t, const uint8_t* data, int size) {
 static int instFinish(inst_state* t) {
     uint8_t want[32], got[32];
     blake2s_state h;
-    int ior = blk_raw_write(0, inst_b0, 1);
+    int ior = instWrite(t, 0, inst_b0);
     if (ior) {
         instFail(t, ior, "can't write block 0");
         return ior;
@@ -445,7 +469,7 @@ static int instFinish(inst_state* t) {
     b2s_final(&t->hash, want);
     b2s_init(&h, 32, NULL, 0, NULL, NULL);
     for (uint32_t i = 0; i < t->blocks; i++) {
-        ior = blk_raw_read(i, inst_buf, 1);
+        ior = instRead(t, i, inst_buf);
         if (ior) {
             instFail(t, ior, "can't read it back");
             return ior;
@@ -628,6 +652,32 @@ static void reportBinary(const char* name, const bin_state* b, uint32_t length) 
     rCR();
 }
 
+static void reportStage(const char* name, const inst_state* t, int check, const char* msg) {
+    rPuts("ymodem: ");
+    rPuts(name);
+    rPuts(": ");
+    if (t->ior == 0) {
+        rPuts("staged in lfstage.bin, ");
+        putU(t->blocks);
+        rPuts(" blocks, read back and checked");
+        rCR();
+        rPuts(check ? "ymodem: package refused: " : "ymodem: package: ");
+        rPuts(msg);
+        rPuts(check ? "; stage 1 won't install it" : "; waiting for stage 1 to install it");
+        rCR();
+        return;
+    }
+    rPuts(t->err_msg);
+    if (t->started && !t->done) {
+        rPuts(" (block ");
+        putU(t->block);
+        rPuts(")");
+    }
+    rPuts(t->started ? "; lfstage.bin no longer holds a package: send it again"
+                     : "; nothing written");
+    rCR();
+}
+
 static void reportInstall(const char* name, const inst_state* t, uint32_t bad, uint32_t checked) {
     rPuts("ymodem: ");
     rPuts(name);
@@ -751,7 +801,8 @@ int lfAPI_ymodem(void) {
     static inst_state inst;
     char name[64], inst_name[64] = "";
     uint32_t first = vmPop();
-    int install = (first == YMODEM_INSTALL);
+    int stage = (first == YMODEM_STAGE);
+    int install = (first == YMODEM_INSTALL) || stage;
     int binary = (first != 0) && !install;
     int inst_complete = 0, inst_extra = 0;
     memset(&inst, 0, sizeof(inst));
@@ -779,7 +830,7 @@ int lfAPI_ymodem(void) {
         files++;
         if (install) {
             if (files == 1) {
-                instBegin(&inst, length, files);
+                instBegin(&inst, length, files, stage);
                 memcpy(inst_name, name, sizeof(inst_name));
             }
         } else if (binary) {
@@ -872,7 +923,30 @@ int lfAPI_ymodem(void) {
         give_up = lfGetTimeMicroSec() + PACKET_US;     // the next header
     }
     serial_binary(0);
-    if (install && files) {
+    if (stage && files) {
+        static sealed_package pkg;
+        static char msg[120];
+        int check = 0;
+        instEnd(&inst, inst_complete);
+        if (inst.done && inst.ior == 0) {
+            check = blk_stage_check(&pkg, msg, sizeof(msg));
+            if (check == 0) {
+                blk_stage_ready();
+            }
+            blk_remount(&g_block_capacity);     // the check unmounts a sealed block file
+            lfAPI_emptyBuffers();
+        }
+        reportStage(inst_name, &inst, check, msg);
+        if (inst.ior && (ior == 0) && (result == 0)) result = inst.ior;
+        if (check && (result == 0)) result = ERR_YMODEM_SOURCE;
+        if (inst_extra) {
+            rPuts("ymodem: ");
+            putU((uint32_t)inst_extra);
+            rPuts(" more file(s) not written: one package at a time");
+            rCR();
+            if (result == 0) result = ERR_YMODEM_SOURCE;
+        }
+    } else if (install && files) {
         instEnd(&inst, inst_complete);
         if (inst.on) {                  // the block file may have changed
             uint32_t bad = 0, checked = 0;

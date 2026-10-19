@@ -16,6 +16,8 @@
  */
 
 #define CARD_BLOCKS_FILE    "lfblocks.fb4"
+#define CARD_STAGE_FILE     "lfstage.bin"   /* a firmware update package, by -2 ymodem */
+#define CARD_BACKUP_FILE    "lfbackup.bin"  /* stage 1's backup of the V5F image */
 
 enum { CARD_NONE, CARD_EXFAT_FILE };
 
@@ -38,5 +40,17 @@ typedef struct {
  */
 int card_find_blocks(exfat_read_fn read, uint32_t card_sectors, card_map *m,
                      char *msg, int msg_len);
+
+/**
+ * Finds another file in the root directory of the volume card_find_blocks
+ * found (m->mounted): one made in a PC, contiguous, that the board writes
+ * in place, such as CARD_STAGE_FILE. *base receives its first sector and
+ * *blocks its size in 4 KB blocks (ValidDataLength / 4096).
+ * Returns 0, ERR_FILE_NOT_FOUND (no volume, or no such file),
+ * ERR_BLK_PARSE_FAIL (a directory, fragmented, shorter than a block, or
+ * past the end of the card), or the read function's error.
+ */
+int card_find_file(exfat_read_fn read, uint32_t card_sectors, const card_map *m,
+                   const char *name, uint32_t *base, uint32_t *blocks);
 
 #endif /* CARD_H */

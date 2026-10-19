@@ -28,6 +28,7 @@
 #define FLASHFILENAME     "lfflash.bin"
 // blocks.c
 #define BLOCKFILENAME     "lfblocks.fb4"
+#define STAGEFILENAME     "lfstage.bin"  // -2 ymodem's package, beside a plain block file
 #define BLOCK_SIZE_CELLS   1024 // block size in cells
 #define SYSTEM_BLOCKS         2 // number of block buffers in the system
 #define SIMNUMBLOCKS         64 // number of blocks in simulated block system

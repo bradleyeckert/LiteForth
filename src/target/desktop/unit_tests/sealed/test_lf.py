@@ -66,19 +66,82 @@ def sha(path):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def install(name, path, *args):
-    """Runs lf with args, installs the file at path with -1 ymodem, and
-    returns what lf said."""
+def install(name, path, *args, block=-1):
+    """Runs lf with args, installs the file at path with -1 ymodem (or
+    stages it with -2), and returns what lf said."""
     shutil.copy(os.path.join(ROOT, 'bin', 'lfflash.bin'), 'lfflash.bin')
     with open(path, 'rb') as f:
         data = f.read()
     p = sender.Lf(LF, '.', [str(a) for a in args])
     p.drain(0.5)
-    sender.transfer(p, [(name, data)], block=-1, size=1024)
+    sender.transfer(p, [(name, data)], block=block, size=1024)
     p.write(b'capacity .\nbye\n')
     p.drain(0.5)
     p.p.wait(timeout=10)
     return p.text.decode('utf-8', 'replace')
+
+
+def stage_tests(c, sums):
+    """-2 ymodem: a firmware update package into lfstage.bin"""
+    board = ('-k', 'space.fb4', '-K', 'a.lfb')
+    with open('fw.lfu', 'rb') as f:
+        pk = f.read()
+    n = len(pk) // BLOCK
+    with open('lfstage.bin', 'wb') as f:
+        f.write(bytes(8 * BLOCK))
+    _, loaded = lf(LOAD, *board)
+    _, cap0 = lf('capacity .\nbye\n', *board)
+    cap0 = body(cap0).split()[0]
+    got = install('fw.lfu', 'fw.lfu', *board, block=-2)
+    expect('stage: staged', f'staged in lfstage.bin, {n} blocks, read back and checked' in got,
+           got)
+    expect('stage: checked', 'package: V5F image, 10240 bytes, version 3: signature, every '
+           'block and the image hash check out; waiting for stage 1' in got, got)
+    with open('lfstage.bin', 'rb') as f:
+        st = f.read()
+    expect('stage: written exactly', st[:len(pk)] == pk and st[len(pk):] == bytes(8 * BLOCK -
+           len(pk)) and len(st) == 8 * BLOCK)
+    expect('stage: the block file mounted again', body(got).strip().endswith(cap0), got)
+    _, got2 = lf(LOAD, *board)
+    expect('stage: the block file unchanged', body(got2) == body(loaded), got2)
+
+    got = install('fw.lfu', 'fw.lfu', '-k', 'space.fb4', block=-2)
+    expect('stage without -K: staged, not checked', 'staged in lfstage.bin' in got and
+           'package refused: not checked: lf has no board file (-K)' in got, got)
+    before = sha('lfstage.bin')
+    with open('plain.fb4', 'rb') as f:
+        small = f.read(2 * BLOCK)
+    with open('notpk.fb4', 'wb') as f:
+        f.write(small)
+    got = install('notpk.fb4', 'notpk.fb4', *board, block=-2)
+    expect('stage refused: not a package', "not a firmware update package (block 0 doesn't "
+           "start with LITEFORTHF); nothing written" in got, got)
+    expect('stage refused: lfstage.bin unchanged', sha('lfstage.bin') == before)
+    tool('package', 'fw.bin', 'fwc.lfu', '--component', 'v5f', '--release', 'rel1.key',
+         '--boards', 'boards_c.csv', '--revision', 3)
+    got = install('fwc.lfu', 'fwc.lfu', *board, block=-2)
+    expect('stage: for another board', "package refused: package refused: this board isn't "
+           "one of its recipients; stage 1 won't install it" in got
+           or "isn't one of its recipients; stage 1 won't install it" in got, got)
+    with open('lfstage.bin', 'wb') as f:
+        f.write(bytes(2 * BLOCK))
+    got = install('fw.lfu', 'fw.lfu', *board, block=-2)
+    expect('stage refused: too big', "it's bigger than lfstage.bin; nothing written" in got, got)
+    os.remove('lfstage.bin')
+    got = install('fw.lfu', 'fw.lfu', *board, block=-2)
+    expect('stage refused: no lfstage.bin', "there's no lfstage.bin to stage into" in got, got)
+
+    # on a card image: lfstage.bin beside lfblocks.fb4
+    with open('stage0.bin', 'wb') as f:
+        f.write(bytes(8 * BLOCK))
+    subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'scard.img',
+                    '--file', 'lfblocks.fb4=aes.fb4', '--file', 'lfstage.bin=stage0.bin'],
+                   check=True, capture_output=True)
+    got = install('fw.lfu', 'fw.lfu', '-k', 'scard.img', '-K', 'a.lfb', block=-2)
+    expect('stage on a card', 'staged in lfstage.bin' in got and 'check out; waiting for '
+           'stage 1' in got, got)
+    with open('scard.img', 'rb') as f:
+        expect('stage on a card: the package is in the image', pk in f.read())
 
 
 def install_tests(c, sums, damaged):
@@ -286,6 +349,7 @@ def main():
 
         # -1 ymodem installs whole files into a block file's space
         install_tests(c, sums, damaged)
+        stage_tests(c, sums)
 
         # a bad board file stops lf
         with open('bad.lfb', 'w') as f:

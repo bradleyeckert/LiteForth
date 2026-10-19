@@ -208,14 +208,18 @@ Two more outcomes need a second look:
 it in the header, or with `-DSECURITY_LEVEL=n` in both projects. Each level
 adds to the one below:
 
-| | 0 | 1 | 2 |
-|---|---|---|---|
-| Forth reaches the peripherals | all | the allowlist | the allowlist |
-| Block files | plain or sealed | plain or sealed | sealed only |
-| The board's key (`enroll`) | from the UID | from the UID | from the RNG |
-| A board that isn't locked down | a warning | a warning | no V5F: recovery, `reset` only |
-| Stage 1's `adopt` | yes | yes | no |
-| Forth starts with | `root` | `root` | `root`; later a limited security wordlist |
+| | Core | 0 | 1 | 2 |
+|---|---|---|---|---|
+| Forth reaches the peripherals | V5F | all | the allowlist | the allowlist |
+| Block files | V5F | plain or sealed | plain or sealed | sealed only |
+| The board's key (`enroll`) | both | from the UID | from the UID | from the RNG |
+| A board that isn't locked down | V3F | a warning | a warning | no V5F: recovery, `reset` only |
+| Stage 1's `adopt` | V3F | yes | yes | no |
+| Forth starts with | V5F | `root` | `root` | `root`; later a limited security wordlist |
+
+Both cores work out the board's key, the V5F in `board.c` (`enroll`,
+sealed block files) and the V3F's stage 1 in `keys_get` (packages), so
+build both projects at the same level.
 
 - **0, development:** the regular Forth from a plain `lfblocks.fb4`, and
   every peripheral register.

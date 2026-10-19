@@ -6,13 +6,16 @@
  * (doc/updates.md section 6, doc/firmware-updates.md section 8,
  * doc/security-plan.md 5.6). Each level adds to the one below it.
  *
- *                                   0         1         2
- *   Forth reaches peripherals       all       allowlist allowlist
- *   Block files                     any       any       sealed only
- *   The board's key (`enroll`)      UID       UID       RNG
- *   Board not locked down           warning   warning   no V5F
- *   Stage 1's `adopt`               yes       yes       no
- *   Forth starts with               root      root      root [1]
+ *                               core    0         1         2
+ *   Forth reaches peripherals   V5F     all       allowlist allowlist
+ *   Block files                 V5F     any       any       sealed only
+ *   The board's key (`enroll`)  both    UID       UID       RNG
+ *   Board not locked down       V3F     warning   warning   no V5F
+ *   Stage 1's `adopt`           V3F     yes       yes       no
+ *   Forth starts with           V5F     root      root      root [1]
+ *
+ * Both cores work out the board's key (V5F/User/board.c, and stage 1's
+ * keys_get for packages), so build both projects at the same level.
  *
  * 0, development (the repository's setting): LiteForth boots the regular
  *   Forth from a plain lfblocks.fb4, and Forth reaches every peripheral

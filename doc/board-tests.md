@@ -151,3 +151,47 @@ V3F: USB configured
 - At the fifth reset, stage 1 restored version 1 from the encrypted backup on the card. The restored image passed its MAC check, LiteForth started from flash, and USB came up.
 - No "confirmed" line followed, because nothing was on trial.
 - During the four boots of version 2, the V3F never printed "the V5F is running", and USB never came up. A V5F that doesn't start leaves the board with no terminal, and only stage 1's rollback brings it back: what section 7's recovery mode is for.
+
+### B5a. No backup room, so no update (18 October 2026)
+
+**Firmware:**
+- PR #174 (recovery), V3F built Oct 18 2026 18:54:04, GCC 12.2.0, with the linker fix.
+- The V5F as in B3.
+- The MounRiver download erased the whole chip, so the security record was blank again, and the boot adopted the V5F slot (128 KB, version 0).
+
+**Package:** `v5f-2-hang.lfu` (B4).
+
+**Starting state:** `lfbackup.bin` renamed on the card, so stage 1 couldn't find it.
+
+**Run:** stage the package with `~x ..\mailbox\v5f-2-hang.lfu -2`, then press reset several times.
+
+**Expected:**
+- The installed image checks out, so it must be backed up before anything is programmed.
+- With no `lfbackup.bin`, the update is refused and nothing changes.
+- The V5F starts as before. The refusal clears the flag, so later resets don't try again.
+
+**Debug UART:**
+
+```
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V3F update refused: lfbackup.bin needs 33 blocks
+V3F: starting the V5F
+V3F: the V5F is running
+V5F crumbs: reset by pin, boot 2; the previous run left 301 crumbs
+V3F: built Oct 18 2026 18:54:04, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+V3F: starting the V5F
+V3F: the V5F is running
+V5F crumbs: reset by pin, boot 3; the previous run left 58 crumbs
+(the same for the next reset)
+```
+
+**Result:** pass.
+- The refusal names what's missing: 33 blocks, a header plus the 128 KB slot.
+- The working image kept running.
+- Later resets had no package waiting, so they booted quietly.
+

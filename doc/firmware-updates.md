@@ -321,8 +321,30 @@ three commands:
   (`upd_adopt`), for a V5F that the debugger reprogrammed without erasing
   the record.
 
-Not yet: an install straight from USB without a card, as planned above.
-For now recovery needs the card and its `lfstage.bin`.
+With no `lfstage.bin`, or no card at all, the package goes into RAM
+instead: 36 blocks (144 KB) of the V3F's spare RAM, enough for the
+largest V5F package, which `upd_boot` then reads as it would read
+`lfstage.bin`. That isn't the block-by-block install planned above, since
+a package's hash table comes after its content, so no block could be
+checked as it arrives. A reset part way through an install from RAM loses
+the package: the install can't resume, so the board ends up in recovery
+again (there's no backup to roll back to) and asks for it once more.
+
+**Getting into recovery when the V5F is stuck.** The trial catches a new
+image that never gets LiteForth going, but an image that was confirmed
+can still get stuck later, in its C code before LiteForth, for example
+on a card it can't handle. Then the USB terminal is up (the V3F runs it),
+but nothing answers. Ctrl+X x3 already restarts the V5F without the app.
+If Ctrl+X x3 comes again while that safe start still hasn't reached
+LiteForth (`safe_boot` is still set: the V5F clears it after its memory
+setup), the V3F sets `recover` in the shared block and resets the chip.
+Stage 1 then starts in recovery and says why. A package sent then
+replaces the stuck image: `upd_mark_broken` first marks it as not
+working, so the package installs without a backup, and a failed trial
+afterwards still rolls back to the backup on the card, if any. The mark
+comes as soon as a package has arrived, so if that package is then
+refused, the board stays in recovery until a good one comes. `reset`
+before any package just tries the V5F again.
 
 Watch out when developing: on a board that has a record, a V5F build
 downloaded by the debugger fails its MAC. If `lfbackup.bin` holds a good
@@ -330,6 +352,31 @@ backup, stage 1 restores that over the new build; otherwise it goes to
 recovery, where `adopt` takes the new build. A download that erases the
 whole chip also erases the record, so the new build is adopted as on a
 fresh board.
+
+### The lock-down check
+
+At every boot, before anything else, stage 1 reads the option bytes as
+`FLASH->OBR` and `FLASH->WPR` have them, and checks that:
+- read protection is on (`RDPRT`);
+- the V3F's own sectors, below the V5F slot, are write-protected;
+- every sector above them is writable: the V5F slot, LiteForth's flash
+  pages, the record sectors and the board record, which updates and
+  LiteForth write;
+- the boot ROM's USB and USART downloads are off (`USBFSDL`, `USARTDL`).
+
+The masks are in `stage1_layout.h`. Anything else gives one line on the
+debug UART, `V3F security: not locked down: ...`, listing what's wrong,
+with the two registers. A build with `STRICT_RDP` defined (`stage1.h`)
+also refuses to start the V5F on such a board. It goes into recovery,
+which says why and takes only `reset`, so a production image can't run
+on a board that was never locked.
+
+The check only reads; locking a board (section 9) is still done by hand,
+on the spare board. This chip has one level of read protection: RDPR at
+0xA5 is off and anything else is on ([security-plan.md](security-plan.md)
+section 3, from the reference manual). The "RDP 2" in this document means
+that, with write protection and the boot ROM downloads off: a board that
+can't be read out or reflashed except by a wipe.
 
 ## 8. Keeping the V5F out
 

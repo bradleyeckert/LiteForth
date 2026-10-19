@@ -685,3 +685,24 @@ int upd_adopt(const upd_io *io, char *msg, int len) {
                            : "update: the V5F image in flash adopted as version 0", err);
     return err;
 }
+
+int upd_mark_broken(const upd_io *io, char *msg, int len) {
+    upd_record r;
+    int err = upd_record_load(io, &r);
+    if (err) {
+        snprintf(msg, len, "update: no record to mark");
+        return err < 0 ? err : ERR_BLK_PARSE_FAIL;
+    }
+    if (r.state != UPD_IDLE) {          /* an update under way decides for itself */
+        crypto_wipe(&r, sizeof r);
+        snprintf(msg, len, "update: an update is under way; not marked");
+        return 0;
+    }
+    r.v5f_length = 0;
+    r.result = UPD_R_BROKEN;
+    err = record_store(io, &r);
+    crypto_wipe(&r, sizeof r);
+    snprintf(msg, len, err ? "update: couldn't mark the V5F image as not working (%d)"
+                           : "update: the V5F image marked as not working", err);
+    return err;
+}

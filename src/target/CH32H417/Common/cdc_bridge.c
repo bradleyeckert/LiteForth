@@ -133,13 +133,23 @@ static void debug_uart_drain(void) {
    through HSEM CDC_RESTART_HSEM, which its interrupt answers by jumping to
    its reset entry; serial_open then counts the start in v5f_starts. If the
    V5F doesn't start again within CDC_RESTART_WAIT_MS (it isn't taking
-   interrupts), resets the whole chip; safe_boot survives that. The bridge
+   interrupts), resets the whole chip; safe_boot survives that. If the last
+   safe start hasn't cleared safe_boot yet (the V5F got stuck before
+   LiteForth), resets into stage 1's recovery instead (`recover` in
+   cdc_shared.h). The bridge
    isn't polled meanwhile; the USB interrupt keeps the device alive. */
 static void v5f_safe_restart(void) {
     cdc_shared_t *sh = CDC_SHARED;
     uint32_t starts = sh->v5f_starts;
 
     ctrl_x_run = 0;                     /* the V5F drops the input around it */
+    if (sh->safe_boot == CDC_SAFE_BOOT_MAGIC) { /* the last safe start never got going */
+        printf("Ctrl+X x3 again: the V5F is stuck; resetting into recovery\r\n");
+        sh->recover = CDC_RECOVER_MAGIC;
+        CDC_FENCE();
+        debug_uart_drain();
+        NVIC_SystemReset();
+    }
     printf("Ctrl+X x3: restarting the V5F in safe mode\r\n");
     sh->safe_boot = CDC_SAFE_BOOT_MAGIC;
     CDC_FENCE();

@@ -6,7 +6,7 @@
  * from a package that `-2 ymodem` staged in the card's lfstage.bin, with
  * src/update.c, before the V5F starts; and recovery when there's no
  * working V5F image. Not yet: stage 0, the two stage 1 slots, the new
- * flash layout, a recovery install with no card. So for now:
+ * flash layout. So for now:
  *
  * - It does nothing at all on a board that has never been updated: no
  *   security record and no package waiting. Then the V3F boots as before.
@@ -20,9 +20,21 @@
  *   USB terminal itself, through the rings, with why, and takes
  *   `-2 ymodem` (kwai's ~x FILE -2): a package by YMODEM into
  *   lfstage.bin (src/ymrecv.c), which it then installs and, if that works,
- *   resets the chip to try it, on trial as usual. Also `reset`, and in a
- *   development build `adopt` (upd_adopt: the image in flash as it is,
- *   for a V5F reprogrammed by the debugger).
+ *   resets the chip to try it, on trial as usual. With no lfstage.bin (or
+ *   no card) the package goes into RAM and installs from there. Also
+ *   `reset`, and in a development build `adopt` (upd_adopt: the image in
+ *   flash as it is, for a V5F reprogrammed by the debugger).
+ * - Recovery on request: Ctrl+X x3 restarts the V5F without the app; if
+ *   it's still stuck before LiteForth when Ctrl+X x3 comes again, the V3F
+ *   resets the chip into recovery (`recover` in cdc_shared.h). A package
+ *   sent then replaces the stuck image (upd_mark_broken first, so it
+ *   needs no backup); `reset` just tries the V5F again.
+ * - The lock-down check, at every boot: read protection on, the V3F's
+ *   sectors write-protected and the rest writable (stage1_layout.h), and
+ *   the boot ROM's USB and USART downloads off. Anything else is one
+ *   "V3F security: not locked down: ..." line on the debug UART. With
+ *   STRICT_RDP defined, such a board also doesn't start the V5F: recovery
+ *   says why and takes only `reset`.
  *
  * It needs the card's lfstage.bin (for the package) and lfbackup.bin (at
  * least 33 blocks, 132 KB, for the old image), both made in a PC; the
@@ -34,6 +46,9 @@
 #ifndef STAGE1_DEVELOPMENT
 #define STAGE1_DEVELOPMENT  1           /* 0 for a production build */
 #endif
+
+/* #define STRICT_RDP */             /* refuse to start the V5F on a board that isn't
+                                           locked down: production builds */
 
 #define STAGE1_START        0           /* stage1_boot: wake the V5F */
 #define STAGE1_RECOVERY     1           /* don't: recovery, in stage1_poll */

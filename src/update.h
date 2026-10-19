@@ -145,6 +145,16 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
 int upd_adopt(const upd_io *io, char *msg, int len);
 
 /**
+ * Marks the installed V5F image as not working (v5f_length 0, result
+ * UPD_R_BROKEN), as a failed trial with no backup does, so the next
+ * package installs without backing it up and upd_boot says UPD_RECOVERY
+ * until one does. For stage 1's recovery when the V5F got stuck, just
+ * before a package from the terminal. Leaves an update under way alone.
+ * Returns 0 or an error code, msg saying what happened.
+ */
+int upd_mark_broken(const upd_io *io, char *msg, int len);
+
+/**
  * The V5F says the new image works: ends its trial, raising the minimum
  * version if the package asked to. Does nothing unless an image is on
  * trial. Returns 0 or an error code.

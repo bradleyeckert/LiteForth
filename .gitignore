@@ -16,6 +16,9 @@ src/target/desktop/unit_tests/ctr/test_ctr
 src/target/desktop/unit_tests/update/test_update
 src/target/desktop/unit_tests/update/work/
 src/target/desktop/unit_tests/ymrecv/drv
+src/target/desktop/unit_tests/stage1sim/work/
+src/target/desktop/unit_tests/stage1sim/reports/
+hil-report-*.md
 src/target/desktop/unit_tests/serial_io/test_serial_io
 src/target/desktop/unit_tests/serial_io/demo_terminal
 src/target/desktop/unit_tests/vmasm/rv32emu

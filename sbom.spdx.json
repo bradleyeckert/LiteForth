@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/5d3de299b41faa0c6cf531b178af231b",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/0e8ca9d7955fe158a25ab8f0a94dc313",
   "creationInfo": {
-    "created": "2026-10-19T03:25:11Z",
+    "created": "2026-10-19T03:50:04Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
@@ -299,6 +299,26 @@
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
           "referenceLocator": "pkg:pypi/cryptography"
+        }
+      ],
+      "filesAnalyzed": false
+    },
+    {
+      "SPDXID": "SPDXRef-Package-python-pyserial",
+      "name": "pyserial",
+      "versionInfo": "NOASSERTION",
+      "supplier": "Person: Chris Liechti",
+      "downloadLocation": "https://pypi.org/project/pyserial/",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "copyrightText": "NOASSERTION",
+      "summary": "Used by scripts/admin/hiltest.py and its test on the simulated board; not part of this repository",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:pypi/pyserial"
         }
       ],
       "filesAnalyzed": false
@@ -2726,6 +2746,16 @@
     },
     {
       "spdxElementId": "SPDXRef-Package-python-cryptography",
+      "relationshipType": "DEV_TOOL_OF",
+      "relatedSpdxElement": "SPDXRef-Package-LiteForth"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-LiteForth",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-python-pyserial"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-python-pyserial",
       "relationshipType": "DEV_TOOL_OF",
       "relatedSpdxElement": "SPDXRef-Package-LiteForth"
     },

@@ -20,5 +20,8 @@ jobs:
     - name: Python's cryptography package, for the sealblocks.py tests
       run: python3 -c "import cryptography" || (sudo apt-get update && sudo apt-get install -y python3-cryptography)
 
+    - name: Python's pyserial, for running hiltest.py on the simulated board
+      run: python3 -c "import serial" || (sudo apt-get update && sudo apt-get install -y python3-serial)
+
     - name: Run primitives test and unit tests
       run: make test

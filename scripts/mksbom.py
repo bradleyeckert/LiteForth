@@ -132,6 +132,14 @@ COMPONENTS = [
         'summary': 'Used by scripts/admin/sealblocks.py and its tests; not part of this repository',
     },
     {
+        'id': 'python-pyserial', 'name': 'pyserial', 'version': 'NOASSERTION', 'kind': 'tool',
+        'supplier': 'Person: Chris Liechti',
+        'download': 'https://pypi.org/project/pyserial/', 'purl': 'pkg:pypi/pyserial',
+        'license': 'BSD-3-Clause', 'copyright': 'NOASSERTION', 'files': [],
+        'summary': 'Used by scripts/admin/hiltest.py and its test on the simulated board; '
+                   'not part of this repository',
+    },
+    {
         'id': 'python-pillow', 'name': 'Pillow', 'version': 'NOASSERTION', 'kind': 'tool',
         'supplier': 'Organization: Python Pillow',
         'download': 'https://pypi.org/project/pillow/', 'purl': 'pkg:pypi/pillow',

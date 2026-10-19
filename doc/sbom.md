@@ -22,6 +22,7 @@ so a Windows checkout gives the same ones.
 | [Unity](https://github.com/ThrowTheSwitch/Unity) | 2.7.2 | MIT | `src/target/desktop/unit_tests/unity/` | The desktop unit tests only; not in `lf` or the firmware |
 | [Noto Sans CJK SC](https://github.com/notofonts/noto-cjk) | (as installed when the fonts were built) | OFL-1.1 | Blocks 100 and 120 of `bin/lfblocks.fb4` | The LCD fonts, rendered from it by `scripts/mkfont.py` |
 | [cryptography](https://pypi.org/project/cryptography/) | any recent | Apache-2.0 or BSD-3-Clause | Not in this repository | `scripts/admin/sealblocks.py` and its tests |
+| [pyserial](https://pypi.org/project/pyserial/) | any recent | BSD-3-Clause | Not in this repository | `scripts/admin/hiltest.py` and its test on the simulated board |
 | [Pillow](https://pypi.org/project/pillow/), [fontTools](https://pypi.org/project/fonttools/) | any recent | MIT-CMU, MIT | Not in this repository | `scripts/mkfont.py` |
 
 Not listed: the compilers (gcc, clang, MSVC, MounRiver's RISC-V GCC), and

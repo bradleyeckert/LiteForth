@@ -11,7 +11,12 @@ MEMORY
 	requirements;Please refer to the datasheet manual for specific allocation*/
 	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 64K             /* zero_wait flah ,and loaded into RAM_CODE for running */
 	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 64K         /* RAM for running code*/
-	RAM (xrw) : ORIGIN = (0x20110000+256), LENGTH = (448K-256-32K) /* RAM for .data .bss section and other*/
+	/* LiteForth: RAM starts 16K above RAM_CODE's end, not right after RAM_LOAD, so that
+	   no code or rodata can be within 2K of __global_pointer$ (.data + 0x800). Otherwise,
+	   with RAM_CODE nearly full, ld's relaxation makes some references gp-relative while
+	   the code is still unrelaxed (and longer), then the code shrinks and they no longer
+	   reach: "relocation truncated to fit: R_RISCV_GPREL_I". */
+	RAM (xrw) : ORIGIN = 0x20114000, LENGTH = (0x20178000 - 0x20114000) /* RAM for .data .bss section and other*/
 	/* LiteForth: the top 32K (0x20178000) is shared with the V5F, see Common/cdc_shared.h */
 	RAM_SHARED (rw) : ORIGIN = 0x20178000, LENGTH = 32K
 	RAM_LOAD (xrw) : ORIGIN = 0x20110000, LENGTH = 256         /* RAM for .load section*/

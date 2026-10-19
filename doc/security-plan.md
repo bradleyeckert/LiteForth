@@ -401,11 +401,15 @@ to reach anything that can:
 
 - **VM memory map:** the security sector and RoT must not be mapped into
   any VM page.
-- **VM IO page:** today `VM_IO_PAGE` maps the peripheral registers into
-  Forth, all of 0x40000000-0x400383FF (`IO_CELLS` in
-  `src/target/CH32H417/V5F/User/options.h`). That includes the FLASH controller (0x40022000),
-  DMA1 (0x40020000), ECDC (0x40016C00) and RNG (0x40023C00). In
-  production that window must be an allowlist. It must exclude:
+- **VM IO page:** `VM_IO_PAGE` maps the peripheral registers into
+  Forth. At `SECURITY_LEVEL` 0
+  (`src/target/CH32H417/Common/security.h`) it maps all of
+  0x40000000-0x400383FF (`IO_CELLS` in
+  `src/target/CH32H417/V5F/User/options.h`); at levels 1 and 2 Forth reaches only
+  the allowlist in `V5F/User/io_allow.h` (done: the guarded page,
+  `vm_io_page` in `src/vm.h`). The full map includes the FLASH
+  controller (0x40022000), DMA1 (0x40020000), ECDC (0x40016C00) and RNG
+  (0x40023C00). The allowlist excludes:
   - the FLASH controller (0x40022000): Forth could unlock it, erase pages,
     write the security sector, or set RDPR = 0xA5 and wipe the chip;
   - DMA: a DMA copy could move the security sector into RAM that Forth can
@@ -413,8 +417,11 @@ to reach anything that can:
   - ECDC, while it holds keys;
   - the SPI or QSPI controller wired to the NOR flash, and SDIO: Forth
     reads blocks through LiteForth, which checks them (5.3);
-  - RNG, PWR/RCC and the option bytes.
-  **Decide** the allowlist per product (GPIO, timers, LCD SPI, ...).
+  - RNG, PWR/RCC and the option bytes;
+  - the other bus masters (LTDC, GPHA, HSADC, SDMMC, USBPD, DVP, SERDES,
+    ETH, USB), which have DMA of their own.
+  RCC, the RTC, the watchdogs and the debug UART are read-only. Review
+  the list per product (`io_allow.h`: GPIO, timers, serial ports, ...).
 - **PMP:** if LiteForth's C runs in M mode, PMP can't fence it off from
   itself. It's still useful to lock the security sector against the V3F
   core and anything running in U mode. **Verify** what V3F can reach (shared

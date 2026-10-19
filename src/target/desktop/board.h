@@ -16,7 +16,7 @@
  *   min-revision 0              optional, default 0
  *   min-serial 0                optional, default 0
  *   sealed-only 1               optional, default 0: as a CH32H417 built
- *                               with SEALED_ONLY, refuse plain block files
+ *                               at SECURITY_LEVEL 2, refuse plain block files
  */
 
 /**

@@ -366,7 +366,34 @@ exit_save:
 
 /* ---- memory ------------------------------------------------------------
  * Called with `jal a5`. Like vmFetch and vmStore in vm.c; on an error they
- * set rMERR (and mem_fetch returns 0). Scratch: a1, a6, t6. */
+ * set rMERR (and mem_fetch returns 0). Scratch: a1, a6, t6.
+ *
+ * Past a page's read limit, on the guarded page (vm_io_page), the
+ * vm_io_ranges allowlist decides (vmGuarded in vm.c): GUARD walks it,
+ * keeping the address a3 at GUARD_SPILL(sp) meanwhile, and leaves the
+ * flags of the first range holding cell t6 in a6, or goes to `none`. */
+#define GUARD_SPILL 24                  // free in the frame: calls into C use 0-23
+
+.macro GUARD none
+        lui     a6, %hi(vm_io_page)
+        lw      a6, %lo(vm_io_page)(a6)
+        slli    a6, a6, 2
+        bne     a6, a1, \none           // not the guarded page
+        sw      a3, GUARD_SPILL(sp)
+        lui     a6, %hi(vm_io_ranges)
+        lw      a6, %lo(vm_io_ranges)(a6)
+91:     lw      a3, 4(a6)               // end: 0 ends the list
+        beqz    a3, 93f
+        bgeu    t6, a3, 92f
+        lw      a3, 0(a6)               // first
+        bgeu    t6, a3, 94f
+92:     addi    a6, a6, 12              // sizeof(vm_io_range)
+        j       91b
+93:     lw      a3, GUARD_SPILL(sp)
+        j       \none
+94:     lw      a6, 8(a6)               // its flags
+        lw      a3, GUARD_SPILL(sp)
+.endm
 
 /* a3 = the cell or slice at address a3. Returns the slice size in a1. */
 mem_fetch:
@@ -378,7 +405,7 @@ mem_fetch:
         add     a6, a6, a1
         lw      a6, %lo(vm_memory_rd_limit)(a6)
         bgeu    t6, a6, 2f
-        lui     a6, %hi(vm_memory)
+mf_ok:  lui     a6, %hi(vm_memory)
         add     a6, a6, a1
         lw      a6, %lo(vm_memory)(a6)
         slli    t6, t6, 2
@@ -395,7 +422,10 @@ mem_fetch:
         addi    a3, a3, -1
         and     a3, a3, a6
         jr      a5
-2:      li      a3, 0
+2:      GUARD   3f                      // past the read limit
+        andi    a6, a6, VM_IO_READ
+        bnez    a6, mf_ok
+3:      li      a3, 0
         li      rMERR, ERR_INVALID_ADDRESS
         jr      a5
 
@@ -413,7 +443,7 @@ mem_store:
         add     a6, a6, a1
         lw      a6, %lo(vm_memory_wp_limit)(a6)
         bltu    t6, a6, 3f
-        lui     a6, %hi(vm_memory)
+ms_ok:  lui     a6, %hi(vm_memory)
         add     a6, a6, a1
         lw      a6, %lo(vm_memory)(a6)
         slli    t6, t6, 2
@@ -435,9 +465,12 @@ mem_store:
         or      a7, a7, a1
         sw      a7, 0(t6)
         jr      a5
-2:      li      rMERR, ERR_INVALID_ADDRESS
-        jr      a5
+2:      GUARD   4f                      // past the read limit
+        andi    a6, a6, VM_IO_WRITE
+        bnez    a6, ms_ok
 3:      li      rMERR, ERR_WRITE_PROTECTED
+        jr      a5
+4:      li      rMERR, ERR_INVALID_ADDRESS
         jr      a5
 
 /* a7 = vmFieldPlus(a7). fp_slice expects a1 = the slice size, not 0.

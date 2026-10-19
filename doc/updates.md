@@ -51,10 +51,10 @@ private key there. The tool is `scripts/admin/sealblocks.py` (it needs
    key you sign releases with day to day, so the root can stay offline.
    Serial numbers count up when a release key is replaced.
 4. **The firmware's `sealed_root.h`.** `sealblocks.py root-header root.pub
-   --product 0x4C46 --sealed-only -o src/target/CH32H417/V5F/User/sealed_root.h` writes the
+   --product 0x4C46 -o src/target/CH32H417/V5F/User/sealed_root.h` writes the
    header the V5F build reads (section 6). Git ignores it, since it belongs
-   to your application, not to LiteForth. Leave out `--sealed-only` while
-   you still want the board to take plain files.
+   to your application, not to LiteForth. Whether the board also takes
+   plain files is `SECURITY_LEVEL`'s business, not this header's.
 5. **Build the V5F firmware clean.** After adding or changing
    `sealed_root.h`, use *Project > Clean* before building: MounRiver doesn't
    notice a header that didn't exist at the last build, and an incremental
@@ -83,8 +83,10 @@ leaves the board. The line is its unique ID and public key. Add it to
 69a90e647f9cf6a9,0129f3d8f018b205a74f0bd9bc7cec8debc4e815a7bfda37768baf7cd5803166,nano1
 ```
 
-A board built with `INSECURE` (section 6) prints the same line every time,
-since its key comes from its UID.
+A board built below `SECURITY_LEVEL` 2 (section 6) prints the same line
+every time, since its key comes from its UID. That key is for development
+only: it's no secret, and a level 2 build never uses it, so a board moved
+to level 2 runs `enroll` again and gets a new line.
 
 Treat `boards.csv` like code, with reviewed commits: whoever can add a line
 decides which boards can read your releases. Running `enroll` again only
@@ -131,7 +133,7 @@ board checks it the same way when it starts.
 ### What `-1 ymodem` checks
 
 1. **Before writing anything**, block 0, which arrives first. A plain file
-   must start with `LITEFORTH` (and is refused on a `SEALED_ONLY` build).
+   must start with `LITEFORTH` (and is refused at `SECURITY_LEVEL` 2).
    A sealed file must be one this board would open: the release key's
    certificate matches the built-in root key, block 0's signature matches
    the release key, the product ID matches, the revision and release key
@@ -166,7 +168,7 @@ Each refusal ends with `nothing written` and leaves the board's file alone.
 | `it's bigger than the block file's space` (-92) | The file is longer than the card's `lfblocks.fb4` | Copy a bigger `lfblocks.fb4` to the card once |
 | `a block file is a whole number of 4 KB blocks` (-124) | Not a block file, or truncated | Send the right file |
 | `block 0 doesn't start with LITEFORTH` (-124) | Not a block file | Send the right file |
-| `a plain block file, but this build takes only sealed files` (-124) | Plain file to a `SEALED_ONLY` board | Seal it first |
+| `a plain block file, but this build takes only sealed files` (-124) | Plain file to a level 2 board | Seal it first |
 | `this board isn't one of its recipients` (-124) | The board's line wasn't in `boards.csv` when it was sealed | Add the board, seal again |
 | `the content key doesn't unwrap (CEK check)` (-124) | Sealed for this board's old key (it was enrolled again since) | Replace its line in `boards.csv`, seal again |
 | `this board has no key: run enroll` (-124) | The board isn't enrolled, or its key was erased | `enroll`, then as above |
@@ -200,6 +202,52 @@ Two more outcomes need a second look:
 
 ## 6. Build options
 
+### Both cores: `Common/security.h`
+
+`SECURITY_LEVEL` (default 0) sets the security of both cores' builds. Set
+it in the header, or with `-DSECURITY_LEVEL=n` in both projects. Each level
+adds to the one below:
+
+| | Core | 0 | 1 | 2 |
+|---|---|---|---|---|
+| Forth reaches the peripherals | V5F | all | the allowlist | the allowlist |
+| Block files | V5F | plain or sealed | plain or sealed | sealed only |
+| The board's key (`enroll`) | both | from the UID | from the UID | from the RNG |
+| A board that isn't locked down | V3F | a warning | a warning | no V5F: recovery, `reset` only |
+| Stage 1's `adopt` | V3F | yes | yes | no |
+| Forth starts with | V5F | `root` | `root` | `root`; later a limited security wordlist |
+
+Both cores work out the board's key, the V5F in `board.c` (`enroll`,
+sealed block files) and the V3F's stage 1 in `keys_get` (packages), so
+build both projects at the same level.
+
+- **0, development:** the regular Forth from a plain `lfblocks.fb4`, and
+  every peripheral register.
+- **1, development with the product's I/O:** Forth reaches only the
+  peripherals in `V5F/User/io_allow.h`: GPIO, timers, serial ports and
+  the like, but not the flash controller, DMA, SDIO, the ECDC, the RNG,
+  RCC/PWR writes or USB. Anything else reads as an invalid address (-9),
+  and a write to a read-only one is write-protected (-20).
+- **2, a product:** only sealed files (a plain `lfblocks.fb4` offers no
+  blocks, the debug UART says why, and `-1 ymodem` refuses plain files;
+  a sealed file can still be installed over one), the key from the RNG,
+  kept in the board's flash record, and the V5F starts only on a locked
+  board.
+
+The UID key at levels 0 and 1 is BLAKE2s of the board's unique ID
+(personalization `LFinsec1`), so `enroll` prints the same line every time,
+the board needs no flash record to open sealed files, and a download that
+erases the flash loses nothing. `sealblocks.py board-key OUT --uid UID
+--insecure` gives the same key, and so the boards.csv line, without the
+board. It's no secret: anyone who knows the UID can read what's sealed for
+it. A level 2 build never uses it, so moving a board to level 2 means
+`enroll` (a new key), a new line in `boards.csv`, and sealing its files
+again.
+
+The old flags `SEALED_ONLY`, `INSECURE`, `STRICT_RDP`,
+`STAGE1_DEVELOPMENT` and `DEVELOPER_MODE` are gone; defining one (in
+`sealed_root.h` too) stops the build.
+
 ### The V5F firmware: `V5F/User/sealed_root.h`
 
 Your application's file, beside `board.c`, written by
@@ -210,8 +258,6 @@ ignores it. Clean the project after changing it (section 2).
 |---|---|
 | `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the board reads no sealed files (`no root key built in`) but still takes plain ones. |
 | `SEALED_PRODUCT` | The 32-bit product ID that release keys and sealed files must name. |
-| `SEALED_ONLY` | Optional. `1`: the board takes only sealed files. A plain `lfblocks.fb4` offers no blocks (`capacity` 0; the debug UART says why), and `-1 ymodem` refuses plain files. A sealed file can still be installed over it. Leave it out for development boards. |
-| `INSECURE` | Optional, development only. `1`: the board's private key is BLAKE2s of its unique ID (personalization `LFinsec1`) instead of coming from the RNG, so `enroll` prints the same line every time, the board needs no flash record to open sealed files, and a download that erases the flash loses nothing. `sealblocks.py board-key OUT --uid UID --insecure` gives the same key, and so the boards.csv line, without the board. Anyone who knows the UID can read what is sealed for it: never in a product. |
 
 ### The MounRiver projects
 
@@ -233,19 +279,20 @@ Set them in `options.h` or on the compiler's command line.
 `lf -K board.lfb` plays a board: the file holds what a board keeps
 (`sealblocks.py lf-board`, format in `src/target/desktop/board.h`). Its
 `sealed-only 1` setting (`lf-board --sealed-only`) acts like a
-`SEALED_ONLY` build, so you can try a product's behavior before building
+`SECURITY_LEVEL` 2 build, so you can try a product's behavior before building
 it. Without `-K`, `lf` takes only plain files. `-k` names the block file
 or a card image, which `-1 ymodem` installs into the same way.
 
 ## 7. Known limits
 
-- Anyone at the terminal of a board without `SEALED_ONLY` can install a
-  plain file. That gives away nothing sealed, but it can replace the
+- Anyone at the terminal of a board below `SECURITY_LEVEL` 2 (a
+  development build) can install a plain file. That gives away nothing sealed, but it can replace the
   application.
 - An install cut short leaves the board without its application until the
-  file is sent again; there's only one copy on the card. On a `SEALED_ONLY`
+  file is sent again; there's only one copy on the card. On a level 2
   board the unfinished file offers no blocks, but `-1 ymodem` still works.
-- An `INSECURE` build's key follows from its UID, which any code on the
-  board, or anyone who has seen `enroll`'s output, can read.
+- Below level 2 the board's key follows from its UID, which any code on
+  the board, or anyone who has seen `enroll`'s output, can read. It's for
+  development only.
 - Code running on the board can read its key and the content key
   ([encrypted-blocks.md](encrypted-blocks.md) section 9).

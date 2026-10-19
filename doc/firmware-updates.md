@@ -138,8 +138,8 @@ boot stages can write the sector (section 8).
 security sector blank, from the RNG after the health checks `board.c`
 already does. It never leaves the chip. An erase by a debugger makes a new
 one, which is right: everything the old one protected is then worthless.
-An `INSECURE` build derives it from the UID instead, as it does the
-board's X25519 key.
+A build below `SECURITY_LEVEL` 2 derives it from the UID instead, as it
+does the board's X25519 key.
 
 Each use gets its own key, so one never reveals another:
 
@@ -279,8 +279,8 @@ For development, and until the rest exists:
   something to back up and roll back to. `lfbackup.bin` must hold at
   least 33 blocks (132 KB).
 - No working V5F image: recovery (section 7), on the USB terminal.
-- The board's key comes from the V5F's board record, or from the UID in an
-  `INSECURE` build, and the root key and product from
+- The board's key comes from the V5F's board record, or from the UID below
+  `SECURITY_LEVEL` 2, and the root key and product from
   `V5F/User/sealed_root.h`, as for sealed block files.
 
 ## 7. Recovery
@@ -316,7 +316,8 @@ three commands:
   worth keeping) and resets the chip, so the new image starts on trial as
   usual. A refusal is reported and leaves the board in recovery.
 - `reset`, to try again, for example with the card back in.
-- `adopt`, in a development build only (`STAGE1_DEVELOPMENT`, which also
+- `adopt`, at `SECURITY_LEVEL` 0 and 1 only (`Common/security.h`; it
+  also
   turns on `adopt_blank`). It takes the image in flash as it is
   (`upd_adopt`), for a V5F that the debugger reprogrammed without erasing
   the record.
@@ -384,8 +385,8 @@ At every boot, before anything else, stage 1 reads the option bytes as
 
 The masks are in `stage1_layout.h`. Anything else gives one line on the
 debug UART, `V3F security: not locked down: ...`, listing what's wrong,
-with the two registers. A build with `STRICT_RDP` defined (`stage1.h`)
-also refuses to start the V5F on such a board. It goes into recovery,
+with the two registers. A build at `SECURITY_LEVEL` 2
+(`Common/security.h`) also refuses to start the V5F on such a board. It goes into recovery,
 which says why and takes only `reset`, so a production image can't run
 on a board that was never locked.
 
@@ -402,9 +403,18 @@ The V5F runs code that faces the card and the terminal, so it mustn't be
 able to change stage 1, the security sector or the record, or read the
 token.
 
-- **Forth:** `VM_IO_PAGE` maps all the peripherals today. In a production
-  build it's an allowlist without the flash controller, the DMA
-  controllers, SDIO, the ECDC, the RNG, RCC/PWR and the option bytes
+- **Forth:** `VM_IO_PAGE` maps the peripheral registers. At
+  `SECURITY_LEVEL` 0 (`Common/security.h`) that's all of them. At 1 and 2
+  it's the guarded page (`vm_io_page` in
+  `src/vm.h`): every access goes through the allowlist in
+  `V5F/User/io_allow.h`, which leaves out the flash controller, the DMA
+  controllers and the peripherals with DMA of their own, SDIO, the ECDC,
+  the RNG, PWR, USB and external memory, and makes RCC, the RTC, the
+  watchdogs and the debug UART read-only. Anything else is an invalid
+  address (-9), and a write to a read-only one is write-protected (-20).
+  `vm.c` and `vm_rv32.S` both check it (`unit_tests/ioguard`,
+  `unit_tests/vmasm`); memory under a page's read limit costs nothing
+  more. The option bytes aren't in the I/O page at all
   ([security-plan.md](security-plan.md) section 5.6).
 - **The V5F's C code:** PMP. LiteForth already runs in user mode (see
   *What the board showed*, below), and only machine-mode code can change
@@ -507,7 +517,7 @@ RDP 0:
    `sim.c`, with the board's memory mapped at the chip's own addresses,
    and the V5F is a model. `test_stage1.py` plays every scenario on it,
    with a fresh board for each, and checks the output: B3 to B8, the
-   refusals, Ctrl+X x3, the recovery console, `STRICT_RDP`, and a power
+   refusals, Ctrl+X x3, the recovery console, level 2's lock-down, and a power
    cut at every flash and card write of an install. It writes the
    board's output word for word to `reports/stage1sim.md`. It runs in
    CI with `make test`, in about 40 seconds.

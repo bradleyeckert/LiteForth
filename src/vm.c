@@ -11,6 +11,8 @@ uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
 uint32_t vm_memory_wp_limit[VM_MEM_PAGES] = { 0 };
 uint32_t vm_memory_executable[VM_MEM_PAGES] = { 0 };
 char* vm_memory_name[VM_MEM_PAGES] = { NULL };
+uint32_t vm_io_page = VM_MEM_PAGES;     // the guarded page: none
+const vm_io_range* vm_io_ranges = NULL;
 
 /*
  * The VM's registers and stacks are unsigned: cells are bit patterns, and
@@ -55,14 +57,31 @@ uint32_t vmFieldPlus(uint32_t addr) {
     return (bsize << 27) | (bshift << 22) | (addr & 0x3FFFFF);
 }
 
+/*
+ * Past a page's read limit: on the guarded page, the allowlist decides.
+ * Returns 0 if the access (VM_IO_READ or VM_IO_WRITE) is allowed.
+ */
+static int vmGuarded(uint32_t page, uint32_t a, uint32_t need) {
+    if (page != vm_io_page) return ERR_INVALID_ADDRESS;
+    for (const vm_io_range* r = vm_io_ranges; r->end; r++) {
+        if ((a >= r->end) || (a < r->first)) continue;
+        if (r->flags & need) return 0;
+        return (need == VM_IO_WRITE) ? ERR_WRITE_PROTECTED : ERR_INVALID_ADDRESS;
+    }
+    return ERR_INVALID_ADDRESS;
+}
+
 PLACE_IN_ITCM;
 int vmFetch(uint32_t addr, uint32_t* data) {
     uint32_t bitfield_size = addr >> 27;
     uint32_t page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_PAGE_MASK;
     if (a >= vm_memory_rd_limit[page]) {
-        *data = 0;                      // a failed @ leaves 0 in T
-        return ERR_INVALID_ADDRESS;
+        int ior = vmGuarded(page, a, VM_IO_READ);
+        if (ior) {
+            *data = 0;                  // a failed @ leaves 0 in T
+            return ior;
+        }
     }
     uint32_t res = vm_memory[page][a];
     if (bitfield_size) {
@@ -78,9 +97,9 @@ int vmStore(uint32_t addr, uint32_t data) {
     uint32_t page = (addr >> (22 - VM_LOG2_PAGES)) & (VM_MEM_PAGES - 1);
     uint32_t a = addr & VM_PAGE_MASK;
     if (a >= vm_memory_rd_limit[page]) { // must be below the read limit
-        return ERR_INVALID_ADDRESS;
-    }
-    if (a < vm_memory_wp_limit[page]) { // and above the write protect limit
+        int ior = vmGuarded(page, a, VM_IO_WRITE);
+        if (ior) return ior;
+    } else if (a < vm_memory_wp_limit[page]) { // and above the write protect limit
         return ERR_WRITE_PROTECTED;
     }
     if (bitfield_size) { // bit fields need a RMW operation

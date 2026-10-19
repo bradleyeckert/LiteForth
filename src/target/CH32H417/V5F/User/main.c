@@ -23,6 +23,10 @@
 #include "blocks.h"
 #include "lftime.h"
 #include "main.h"
+#include "security.h"                   /* SECURITY_LEVEL (Common/) */
+#ifdef VM_IO_PAGE
+#include "io_allow.h"                   /* the peripherals Forth may reach */
+#endif
 #include "v5f_crumbs.h"                /* reset debugging trail */
 
 /*********************************************************************
@@ -86,10 +90,17 @@ static int lfMapMemory(uint32_t** flash)
         }
 #ifdef VM_IO_PAGE
         else if (i == VM_IO_PAGE) {
-            // The peripheral registers: writable, not executable
+            // The peripheral registers, not executable. Security level 0:
+            // all of them. 1 and 2: the guarded page, through io_allow.h.
             vm_memory[i] = (uint32_t*)IO_BASE;
             vm_memory_name[i] = "I/O";
+#if !SEC_IO_ALLOWLIST
             vm_memory_rd_limit[i] = IO_CELLS;
+#else
+            vm_memory_rd_limit[i] = 0;
+            vm_io_page = VM_IO_PAGE;
+            vm_io_ranges = io_allow;
+#endif
             vm_memory_wp_limit[i] = 0;
             vm_memory_executable[i] = 0;
         }

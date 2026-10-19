@@ -278,7 +278,7 @@ One script, `scripts/admin/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 |---|---|
 | `root-key ROOT` | Makes the root key pair, `ROOT.key` and `ROOT.pub` (on the offline machine) |
 | `release-key ROOT.key SERIAL OUT --product P` | Makes a release key pair and its certificate; the root's private key signs it, so this runs on the offline machine and only the release key file leaves it |
-| `board-key OUT [--uid HEX] [--insecure]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1). `--insecure` gives the key a board built with `INSECURE` derives from its UID ([updates.md](updates.md) section 6) |
+| `board-key OUT [--uid HEX] [--insecure]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1). `--insecure` gives the key a board built below `SECURITY_LEVEL` 2 derives from its UID ([updates.md](updates.md) section 6) |
 | `seal PLAIN SEALED --release R --boards boards.csv --revision N [--cipher aes\|sm4]` | Builds a sealed file from a plain one |
 | `package IMAGE PACKAGE --component v5f\|stage1 --release R --boards CSV --revision N [--hw-rev N] [--min-version N] [--cipher aes\|sm4]` | Makes a firmware update package: a sealed file marked `F`, with the image as its content ([firmware-updates.md](firmware-updates.md) section 5) |
 | `check SEALED --root ROOT.pub` | Checks everything a board would that needs no board key: certificate, signature, header fields, table hashes, block hashes |
@@ -404,15 +404,15 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
   fails its hash, but a whole older file is stopped only by the lowest
   revision in flash, which code on the board could lower.
 - **Anyone at the terminal can replace the file** on a board built
-  without `SEALED_ONLY` ([updates.md](updates.md) section 6): `-1 ymodem`
+  below `SECURITY_LEVEL` 2 ([updates.md](updates.md) section 6): `-1 ymodem`
   takes a plain block file as readily as a sealed one. That gives away
-  nothing sealed. With `SEALED_ONLY` the board refuses plain files, but an
+  nothing sealed. At level 2 the board refuses plain files, but an
   install cut short still leaves it without a usable file until the file
   is sent again: that needs two copies on the card, switching only after
   the new one checks out.
-- **An `INSECURE` build** ([updates.md](updates.md) section 6) derives
-  its key from its UID, so anyone who knows the UID can open what is sealed
-  for it. It's for development boards whose flash gets erased by
-  downloads.
+- **Below `SECURITY_LEVEL` 2** ([updates.md](updates.md) section 6) a
+  board derives its key from its UID, so anyone who knows the UID can open
+  what is sealed for it. It's for development boards whose flash gets
+  erased by downloads; a level 2 build never uses it.
 - **Side channels** on the engine and in the software X25519 aren't
   considered (security-plan.md section 1 rules them out for now).

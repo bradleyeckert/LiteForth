@@ -26,7 +26,8 @@
 #include "../../../../monocypher.h"
 #include "../../../../errcodes.h"
 #if __has_include("../../V5F/User/sealed_root.h")
-#include "../../V5F/User/sealed_root.h"     /* SEALED_ROOT_KEY, SEALED_PRODUCT, INSECURE */
+#include "../../V5F/User/sealed_root.h"     /* SEALED_ROOT_KEY, SEALED_PRODUCT */
+#include "security.h"                       /* again: no old flags in sealed_root.h */
 #endif
 
 #define SECTOR_BYTES        512u
@@ -194,7 +195,7 @@ static int keys_get(sealed_board *b, const char **why) {
     memcpy(b->uid, (const void *)UID_ADDR, 8);
     memcpy(b->root, root, 32);
     b->product = SEALED_PRODUCT;
-#ifdef INSECURE
+#if SEC_UID_KEY
     (void)why;
     static const uint8_t person[8] = "LFinsec1";
     blake2s_state S;
@@ -267,7 +268,7 @@ static void io_init(void) {
     io.backup_write = b_write;
     io.random = rng;
     io.hw_rev = 0;
-    io.adopt_blank = STAGE1_DEVELOPMENT;    /* see stage1.h */
+    io.adopt_blank = SEC_ADOPT;             /* see stage1.h */
 }
 
 /* ------------------------------------------------------------------------
@@ -313,7 +314,7 @@ static int security_check(void) {
  */
 static int recovering;                  /* stage1_boot said STAGE1_RECOVERY */
 static int forced;                      /* by Ctrl+X x3 twice: the V5F got stuck */
-static int locked_out;                  /* STRICT_RDP and not locked down */
+static int locked_out;                  /* level 2 and not locked down */
 static char why_recovery[220];
 
 /* The V5F stays off: recovery, in stage1_poll */
@@ -346,7 +347,7 @@ static void nostart_set(uint32_t n) {
    image doesn't start don't count here. */
 static int start_or_not(int updating) {
     if (locked_out) {
-        return enter_recovery("STRICT_RDP: this board isn't locked down, so the V5F won't start");
+        return enter_recovery("security level 2: this board isn't locked down, so the V5F won't start");
     }
     if (forced) {
         return enter_recovery("Ctrl+X x3 twice: the V5F got stuck before LiteForth started");
@@ -388,9 +389,7 @@ int stage1_boot(void) {
     io_init();
     if (security_check()) {
         printf("V3F security: not locked down: %s\r\n", insecure);
-#ifdef STRICT_RDP
-        locked_out = 1;
-#endif
+        locked_out = SEC_STRICT_RDP;
     }
     forced = (CDC_SHARED->recover == CDC_RECOVER_MAGIC);
     if (forced) {
@@ -511,8 +510,8 @@ static void help(void) {
         return;
     }
     say("In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.");
-#if STAGE1_DEVELOPMENT
-    say("adopt: take the V5F image in flash as it is (development builds only).");
+#if SEC_ADOPT
+    say("adopt: take the V5F image in flash as it is (security levels 0 and 1 only).");
 #endif
     say("reset: start again.");
 }
@@ -582,7 +581,7 @@ static void command(const char *line) {
         say("recovery: only -2 ymodem (a firmware update package) works here");
         t_put(0x18);
         t_put(0x18);
-#if STAGE1_DEVELOPMENT
+#if SEC_ADOPT
     } else if (strcmp(line, "adopt") == 0) {
         static char msg[100];
         int err = upd_adopt(&io, msg, sizeof msg);

@@ -17,10 +17,10 @@
  * Fills b with what the board holds: its UID (ESIG UNIID1 and UNIID2, as
  * they lie in memory), its private key, the root key and product ID from
  * sealed_root.h, and its minimums. msg receives the reason if it can't.
- * b->sealed_only is SEALED_ONLY from sealed_root.h (0 if it isn't
- * defined), set even when it fails.
+ * b->sealed_only is 1 at SECURITY_LEVEL 2 (Common/security.h), else 0,
+ * set even when it fails.
  * Returns 0, or ERR_UNSUPPORTED_OPERATION if there is no root key built
- * in or the board hasn't been enrolled (an INSECURE build needs no
+ * in or the board hasn't been enrolled (below SECURITY_LEVEL 2 a board needs no
  * record: its key comes from the UID).
  */
 int board_get(sealed_board *b, char *msg, int len);
@@ -28,7 +28,7 @@ int board_get(sealed_board *b, char *msg, int len);
 /**
  * Forth word `enroll`  ( -- )
  * Makes the board's X25519 key pair from the RNG (from the UID in an
- * INSECURE build) and stores the private key in the flash record, unless
+ * levels 0 and 1) and stores the private key in the flash record, unless
  * it has one already; then prints the
  * board's line for boards.csv: UID and public key, in hex. Run once per
  * board at provisioning. The key never leaves the board.

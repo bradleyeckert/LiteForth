@@ -7,15 +7,15 @@
     sealblocks.py board-key OUT [--uid HEX] [--insecure]
                                                    make a board key pair (for testing; a real
                                                    board makes its own) and print its boards.csv line;
-                                                   --insecure: the key an INSECURE build derives
-                                                   from that UID
+                                                   --insecure: the key a build below
+                                                   SECURITY_LEVEL 2 derives from that UID
     sealblocks.py lf-board OUT --board-key B --root ROOT.pub --product P
                   [--min-revision N] [--min-serial N] [--sealed-only]
                                                    write a board file for the desktop lf (-K)
-    sealblocks.py root-header ROOT.pub --product P [--sealed-only] [-o FILE]
+    sealblocks.py root-header ROOT.pub --product P [-o FILE]
                                                    write sealed_root.h (the root key and product
                                                    ID that a CH32H417 build reads sealed files with;
-                                                   --sealed-only: SEALED_ONLY, no plain files)
+                                                   SECURITY_LEVEL in Common/security.h says the rest)
     sealblocks.py seal PLAIN SEALED --release R --boards CSV --revision N [--cipher aes|sm4]
     sealblocks.py package IMAGE PACKAGE --component v5f|stage1 --release R --boards CSV
                   --revision N [--hw-rev N] [--min-version N] [--cipher aes|sm4]
@@ -329,7 +329,7 @@ def cmd_release_key(a):
 
 
 def insecure_key(uid):
-    """The private key of a board built with INSECURE (V5F/User/board.c):
+    """The private key of a board built below SECURITY_LEVEL 2 (V5F/User/board.c):
     BLAKE2s of its UID, personalization LFinsec1."""
     return hashlib.blake2s(uid, digest_size=32, person=b'LFinsec1').digest()
 
@@ -338,7 +338,7 @@ def cmd_board_key(a):
     uid = bytes.fromhex(a.uid) if a.uid else os.urandom(8)
     if len(uid) != 8:
         raise SealError('--uid takes 16 hex digits')
-    if a.insecure:                      # as a CH32H417 built with INSECURE derives it
+    if a.insecure:                      # as a CH32H417 below level 2 derives it
         if not a.uid:
             raise SealError('--insecure needs the board\'s --uid')
         k = X25519PrivateKey.from_private_bytes(insecure_key(uid))
@@ -376,17 +376,14 @@ def cmd_root_header(a):
             '   files with (doc/encrypted-blocks.md, V5F/User/board.h). */\n'
             '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'
             '#define SEALED_ROOT_KEY { \\\n%s }\n\n'
-            '#define SEALED_PRODUCT 0x%08xu\n\n%s#endif /* SEALED_ROOT_H */\n'
-            % (os.path.basename(a.root), rows.replace('\n', ' \\\n'), a.product,
-               '/* Only sealed block files: plain ones are refused */\n'
-               '#define SEALED_ONLY 1\n\n' if a.sealed_only else ''))
+            '#define SEALED_PRODUCT 0x%08xu\n\n#endif /* SEALED_ROOT_H */\n'
+            % (os.path.basename(a.root), rows.replace('\n', ' \\\n'), a.product))
     if a.out:
         if os.path.exists(a.out) and not a.force:
             raise SealError(f'{a.out} exists (use --force to replace it)')
         with open(a.out, 'w', newline='\n') as f:
             f.write(text)
-        print(f'{a.out}: root key {pub.hex()[:16]}..., product {a.product:#x}'
-              + (', sealed files only' if a.sealed_only else ''))
+        print(f'{a.out}: root key {pub.hex()[:16]}..., product {a.product:#x}')
     else:
         sys.stdout.write(text)
 
@@ -553,7 +550,7 @@ def main(argv=None):
     s.add_argument('out')
     s.add_argument('--uid', help='16 hex digits (default: random)')
     s.add_argument('--insecure', action='store_true',
-                   help="the key a CH32H417 built with INSECURE derives from --uid")
+                   help="the key a CH32H417 below SECURITY_LEVEL 2 derives from --uid")
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('lf-board', help='write a board file for the desktop lf (-K)')
     s.add_argument('out')
@@ -563,13 +560,11 @@ def main(argv=None):
     s.add_argument('--min-revision', type=num, default=0)
     s.add_argument('--min-serial', type=num, default=0)
     s.add_argument('--sealed-only', action='store_true',
-                   help='refuse plain block files, as a SEALED_ONLY build does')
+                   help='refuse plain block files, as a SECURITY_LEVEL 2 build does')
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('root-header', help='write sealed_root.h for a CH32H417 build')
     s.add_argument('root', help='the root .pub file')
     s.add_argument('--product', type=num, required=True)
-    s.add_argument('--sealed-only', action='store_true',
-                   help='define SEALED_ONLY: the board refuses plain block files')
     s.add_argument('-o', dest='out', help='the file (default: standard output)')
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('seal', help='make a sealed file from a plain one')

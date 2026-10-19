@@ -2,7 +2,7 @@
 """Plays stage 1's scenarios on the simulated board (sim.c): installs,
 trials, rollbacks, refusals, recovery over USB (from the card and from
 RAM), recovery on request (Ctrl+X x3 twice), the lock-down check and
-STRICT_RDP, and a power cut at every flash and card write of an install.
+security level 2's lock-down, and a power cut at every flash and card write of an install.
 Each scenario starts from a fresh board: flash with an adopted V5F image,
 a card made by mkexfat.py.
 
@@ -108,8 +108,8 @@ def gen():
                 f.write(f'{k["uid"]},{k["public"]},{name}\n')
         tool('root-header', 'root.pub', '--product', PRODUCT, '-o', 'sealed_root.h')
         with open('sim_root.h', 'w') as f:
-            f.write('/* the test root key, with INSECURE: the board key comes from the UID */\n'
-                    '#include "sealed_root.h"\n#define INSECURE 1\n')
+            f.write('/* the test root key; below SECURITY_LEVEL 2 the board key comes from the UID */\n'
+                    '#include "sealed_root.h"\n')
         for name, data in IMAGES.items():
             with open(name + '.bin', 'wb') as f:
                 f.write(data)
@@ -565,7 +565,7 @@ def s_recovery_commands():
 
 
 def s_lockdown():
-    """The lock-down check, and STRICT_RDP."""
+    """The lock-down check, and security level 2 (no V5F on an open board)."""
     b = Board('lockdown')
     r = b.boot(obr=LOCKED_OBR, wpr=LOCKED_WPR)
     check(r.wait_debug(r'LiteForth starting') is not None, 'locked: starts')
@@ -578,7 +578,7 @@ def s_lockdown():
         line = b.boot_until(r'security', obr=obr, wpr=wpr)
         check(line and what in line, f'lockdown: {what} ({line})')
     r = b.boot(strict=True)
-    check(r.wait_debug(r'STRICT_RDP') is not None or r.wait_debug(r'recovery mode') is not None,
+    check(r.wait_debug(r'security level 2') is not None or r.wait_debug(r'recovery mode') is not None,
           'strict: recovery')
     check(r.wait_usb('recovery ok> ') is not None, 'strict: prompt')
     r.send('-2 ymodem\n')

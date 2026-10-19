@@ -10,7 +10,7 @@
  *
  * - It does nothing at all on a board that has never been updated: no
  *   security record and no package waiting. Then the V3F boots as before.
- * - In a development build (STAGE1_DEVELOPMENT), a blank record takes the
+ * - Below SECURITY_LEVEL 2 (SEC_ADOPT), a blank record takes the
  *   V5F image in flash (its whole 128 KB slot) as installed, version 0
  *   (upd_io.adopt_blank), so that it can be backed up and rolled back to,
  *   and recovery offers `adopt`.
@@ -22,7 +22,7 @@
  *   lfstage.bin (src/ymrecv.c), which it then installs and, if that works,
  *   resets the chip to try it, on trial as usual. With no lfstage.bin (or
  *   no card) the package goes into RAM and installs from there. Also
- *   `reset`, and in a development build `adopt` (upd_adopt: the image in
+ *   `reset`, and below level 2 `adopt` (upd_adopt: the image in
  *   flash as it is, for a V5F reprogrammed by the debugger).
  * - Recovery on request: Ctrl+X x3 restarts the V5F without the app; if
  *   it's still stuck before LiteForth when Ctrl+X x3 comes again, the V3F
@@ -35,23 +35,18 @@
  * - The lock-down check, at every boot: read protection on, the V3F's
  *   sectors write-protected and the rest writable (stage1_layout.h), and
  *   the boot ROM's USB and USART downloads off. Anything else is one
- *   "V3F security: not locked down: ..." line on the debug UART. With
- *   STRICT_RDP defined, such a board also doesn't start the V5F: recovery
- *   says why and takes only `reset`.
+ *   "V3F security: not locked down: ..." line on the debug UART. At
+ *   SECURITY_LEVEL 2 (SEC_STRICT_RDP) such a board also doesn't start the
+ *   V5F: recovery says why and takes only `reset`.
  *
  * It needs the card's lfstage.bin (for the package) and lfbackup.bin (at
  * least 33 blocks, 132 KB, for the old image), both made in a PC; the
  * root key and product from V5F/User/sealed_root.h; and the board's key
- * from the V5F's board record (0x08070000) or, in an INSECURE build, from
- * the UID, as V5F/User/board.c has them.
+ * from the V5F's board record (0x08070000) or, below SECURITY_LEVEL 2,
+ * from the UID, as V5F/User/board.c has them.
  */
 
-#ifndef STAGE1_DEVELOPMENT
-#define STAGE1_DEVELOPMENT  1           /* 0 for a production build */
-#endif
-
-/* #define STRICT_RDP */             /* refuse to start the V5F on a board that isn't
-                                           locked down: production builds */
+#include "security.h"                   /* SECURITY_LEVEL (Common/) */
 
 #ifndef STAGE1_V5F_START_MS
 #define STAGE1_V5F_START_MS 3000        /* stage1_wait_v5f: then the chip resets; 0 = wait for good */

@@ -18,7 +18,7 @@ goes in here as it is.
 |---|---|
 | Board | nanoCH32H417 (WCH CH32H417, V3F + V5F cores), UID `69a90e647f9cf6a9` |
 | Protection | RDP 0, no write protection (WRPR): everything can be undone with the WCH-Link ([firmware-updates.md](firmware-updates.md) section 9, step 2) |
-| Board key | `INSECURE` build: the X25519 private key is BLAKE2s of the UID (person `LFinsec1`). For testing only; a production board uses the random key from `enroll` |
+| Board key | the X25519 private key is BLAKE2s of the UID (person `LFinsec1`): an `INSECURE` build up to B6, `SECURITY_LEVEL` 0 or 1 from B7 on. For development only; a level 2 board uses the random key from `enroll` |
 | Root key | a test root, public key `5700c0f2...83ade742`; release key 1, product 0x4C46 |
 | Card | microSD with an exFAT volume: `lfblocks.fb4` (sealed, revision 6), `lfstage.bin` (1 MB), `lfbackup.bin` (256 KB) |
 | Host | kwai v0.5 on COM17; the V3F's debug UART at 9600 baud |
@@ -663,3 +663,104 @@ Build: `V3F: built Oct 18 2026 22:20:41, GCC 12.2.0`
 - **Rollback:** the hung image went through its three trial boots and was rolled back in about 15 seconds, with no reset from outside. Each time, the V3F gave up on the V5F after 3 s and reset the chip itself. The "1 in a row" count started over at every trial boot, because an update was under way; the trial counted those boots instead.
 - **Recovery:** the second Ctrl+X x3 arrived while the V5F was still mounting the card after the first one, which gave recovery on the first try. Stage 1 then took version 3 over USB, marked the installed image as not working, installed version 3 without a backup, and LiteForth confirmed it.
 - **Crumbs:** every software reset now lists the V5F's last crumbs, about 40 lines. At 9600 baud that adds a few seconds to each boot.
+
+### B7. The I/O allowlist, `SECURITY_LEVEL` 1 (19 October 2026)
+
+What Forth can reach in the peripheral page (`VM_IO_PAGE`, VM addresses
+`280000H` and up: register `40000000H + 4c` is at `280000H + c`). At
+`SECURITY_LEVEL` 1 and 2 every access goes through the allowlist in
+`V5F/User/io_allow.h`; at level 0 Forth reaches every register.
+
+**Firmware:**
+- Branch `io-allowlist` at 5452018 (PR #183), built by the board's owner in MounRiver.
+- Baseline: the firmware from before the allowlist (B6's), which is level 0's map.
+- Test: both cores built with `SECURITY_LEVEL` 1.
+- V3F built Oct 19 2026 09:35:17, GCC 12.2.0. The image hashes weren't recorded.
+
+**Debug UART at the start of the level 1 run:**
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 2; the previous run left 54 crumbs
+V3F: the V5F is running
+V3F: built Oct 19 2026 09:35:17, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 17 ms)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+At level 1 an open board gets the warning but still starts the V5F (at
+level 2 it would stay in recovery). The board key still comes from the
+UID: the sealed card made for B3-B6 mounted. LiteForth's flash was blank
+after the download, so only the built-in words were there; none of the
+test needs more.
+
+**Registers used:**
+- GPIOA (`40010800H`, `284200H`): allowed, read and write.
+- RCC (`40021000H`, `288400H`, the clock control register): read only.
+- FLASH (`40022000H`, `288800H`, the flash controller): not listed.
+- SDMMC (`40024000H`, `289000H`): not listed.
+
+**Expected at level 1:**
+- GPIOA reads and writes work.
+- RCC reads work; a write gives -20 (write address prohibited) and changes nothing.
+- FLASH and SDMMC reads and writes give -9 (invalid memory address).
+
+**Baseline, level 0** (typed by hand in kwai; `.` with option 200H prints plain hex):
+- `284200 @ .` gave `44444444H`.
+- `288800 @ .` gave `4801H`: Forth reads the flash controller.
+- `0 288400 !` was accepted: it wrote 0 to RCC's clock control register. The board stayed up; `288400 @ .` then read `3336983H`, so the clocks the chip runs on stayed on. `reboot` reset it.
+
+**Level 1, first try, typed by hand:**
+- `284200 @ .` gave `44444444H`.
+- `288800 @ .` gave -9.
+- The RCC lines after it also gave -9, but they don't count: after an error LiteForth sets `BASE` back to decimal (`quitReset` in `forth.c`), so `288400` was read as decimal, an address past the end of flash page 0. Every line below starts with `hex` so that can't happen.
+
+**Level 1, run through COM17 by Claude (the LiteForth MCP tool, which sends each line and waits for `ok>`):**
+
+```
+> hex 200 >options
+ok>
+> hex 284200 @ .
+8:11:44444H ok>
+> hex 288800 @ .
+Error: ior=-9 invalid memory address
+ok>
+> hex 288400 @ .
+3336983H ok>
+```
+
+The FLASH read was refused, so this was the level 1 build. Only then were the writes sent:
+
+```
+> hex 0 288400 !
+Error: ior=-20 write address prohibited
+ok>
+> hex 288400 @ .
+3336983H ok>
+> hex 0 288800 !
+Error: ior=-9 invalid memory address
+ok>
+> hex 289000 @ .
+Error: ior=-9 invalid memory address
+ok>
+> hex 0 284200 !
+ok>
+> hex 284200 @ .
+0H ok>
+> hex 44444444 284200 !
+ok>
+> hex 284200 @ .
+8:11:44444H ok>
+```
+
+`8:11:44444H` is `44444444H` printed as a slice address. `200 >options`
+had turned the plain-hex option off again, since the earlier session had
+already set it.
+
+**Result:** pass.
+- GPIOA read and written: the write set PA0-PA7 to analog inputs for a moment, then wrote back the reset value `44444444H`.
+- RCC read, and its write refused with -20. The register read the same before and after.
+- The flash controller and SDMMC refused with -9, for a read and a write.

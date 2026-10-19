@@ -129,7 +129,7 @@ COMPONENTS = [
         'download': 'https://pypi.org/project/cryptography/',
         'purl': 'pkg:pypi/cryptography', 'license': 'Apache-2.0 OR BSD-3-Clause',
         'copyright': 'NOASSERTION', 'files': [],
-        'summary': 'Used by scripts/sealblocks.py and its tests; not part of this repository',
+        'summary': 'Used by scripts/admin/sealblocks.py and its tests; not part of this repository',
     },
     {
         'id': 'python-pillow', 'name': 'Pillow', 'version': 'NOASSERTION', 'kind': 'tool',

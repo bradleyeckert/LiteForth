@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests scripts/sealblocks.py: round trips with AES and SM4, the counter
+"""Tests scripts/admin/sealblocks.py: round trips with AES and SM4, the counter
 layout, and each refusal a board makes (doc/encrypted-blocks.md section 4).
 Runs in a temporary directory on a copy of bin/lfblocks.fb4."""
 import contextlib
@@ -13,7 +13,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, '../../../../..'))
-sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.join(ROOT, 'scripts', 'admin'))
 import sealblocks as sb  # noqa: E402
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402

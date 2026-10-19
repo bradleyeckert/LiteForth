@@ -1,7 +1,7 @@
 # Sealed block files: encrypted, signed lfblocks.fb4
 
 Plan, 2026-10-17. Steps 1 to 4 of section 8 are done: BLAKE2s in `src/`,
-`scripts/sealblocks.py`, the desktop `lf` reading sealed files (`lf -K`),
+`scripts/admin/sealblocks.py`, the desktop `lf` reading sealed files (`lf -K`),
 and the CH32H417 reading them, with CTR on its ECDC engine since
 2026-10-18 (tested on a nanoCH32H417). The anti-rollback minimums come next.
 
@@ -271,7 +271,7 @@ the blocks read back the same as the plain file's, and a write gave -96.
 
 ## 5. On the PC
 
-One script, `scripts/sealblocks.py` (needs `cryptography`; BLAKE2s is in
+One script, `scripts/admin/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 `hashlib`):
 
 | Command | Does |
@@ -297,7 +297,7 @@ a text file that `sealblocks.py lf-board` writes (format in
 `src/target/desktop/board.h`):
 
 ```
-python3 scripts/sealblocks.py lf-board a.lfb --board-key a.key --root root.pub --product 0x4C46
+python3 scripts/admin/sealblocks.py lf-board a.lfb --board-key a.key --root root.pub --product 0x4C46
 ./bin/lf -k sealed.fb4 -K a.lfb
 ```
 

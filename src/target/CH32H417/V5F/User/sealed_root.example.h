@@ -2,7 +2,7 @@
  * An example of sealed_root.h, which the application's build supplies
  * beside board.c: the root public key that certifies release keys, and
  * the product ID, for sealed block files (doc/encrypted-blocks.md).
- * `scripts/sealblocks.py root-header ROOT.pub --product P` writes one.
+ * `scripts/admin/sealblocks.py root-header ROOT.pub --product P` writes one.
  *
  * Copy it to sealed_root.h (which git ignores) with your own values.
  * Without sealed_root.h the board reads no sealed files. Never build a

@@ -1,6 +1,6 @@
 /* Tests src/update.c, stage 1's install logic (doc/firmware-updates.md),
  * with the board's flash, lfstage.bin and lfbackup.bin simulated in RAM,
- * and packages made by gen.py with scripts/sealblocks.py.
+ * and packages made by gen.py with scripts/admin/sealblocks.py.
  *
  * Power cuts: every erase and write (flash or card) counts as one step,
  * and a cut at step k stops the run there, leaving that step half done (a

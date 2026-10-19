@@ -93,6 +93,23 @@ def locked(obr, wpr):
     return bool(obr & OBR_RDPRT) and not (obr & DOWNLOADS) and wpr == LOCKED_WPR
 
 
+class Probe(Wlink):
+    """wlink, with the read-only commands (status, dump, reset) tried again
+    when the probe fails to attach: right after a flash it sometimes says
+    "underlying protocol error" and works a second later. A flash runs
+    once; a wrong read-back isn't a probe failure, so it's never retried."""
+
+    def run(self, args, timeout=30):
+        tries = 1 if args[0] == 'flash' else 4
+        for i in range(tries):
+            code, text = super().run(args, timeout)
+            if code == 0 or i == tries - 1:
+                return code, text
+            say(f'(wlink {args[0]} failed, try {i + 1}: '
+                f'{text.strip().splitlines()[-2:][0] if text.strip() else "no output"}; trying again)')
+            time.sleep(1)
+
+
 class Fail(Exception):
     pass
 
@@ -106,7 +123,7 @@ def status(wl):
 
 
 def cmd_check(a):
-    wl = Wlink(a.wlink)
+    wl = Probe(a.wlink)
     text, uid, prot = status(wl)
     block('wlink status', text)
     try:
@@ -162,7 +179,7 @@ def debug_log(dbg, start, title):
 
 
 def cmd_run(a):
-    wl = Wlink(a.wlink)
+    wl = Probe(a.wlink)
     say(f'# Lock-down run, {time.strftime("%Y-%m-%d %H:%M:%S")}')
     say()
     say('## The board before')

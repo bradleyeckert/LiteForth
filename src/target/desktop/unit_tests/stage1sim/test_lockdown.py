@@ -52,6 +52,10 @@ if cmd == "status":
     print("Connected to WCH-Link v2.20(v40) (WCH-LinkE-CH32V305) (fake)")
     print("Chip ESIG: FlashSize(960KB) UID(01-02-03-04-05-06-07-08)")
     print("Flash protected: " + ("true" if ob()[0] & 2 else "false"))
+elif cmd == "dump" and os.path.exists(os.path.join(board, "flaky")):
+    os.remove(os.path.join(board, "flaky"))     # the probe doesn't attach, once
+    print("Error: WCH-Link underlying protocol error: 0x55")
+    sys.exit(1)
 elif cmd == "dump":
     a, n = num(args[1]), num(args[2])
     if a == 0x4002201C:
@@ -174,8 +178,10 @@ def main():
     code, text = rig.lockdown(wlink, 'check')
     check(code == 1 and 'NOT locked down' in text, 'lockdown.py check: an open board', text)
     rig.log()
+    open(os.path.join(rig.board.dir, 'flaky'), 'w').close()    # the first dump fails
     code, text = rig.lockdown(wlink, *run)
     check(code == 0 and 'Locked down.' in text and rig.ob(), 'lockdown.py run: locked', text)
+    check('(wlink dump failed, try 1:' in text and 'trying again' in text, 'lockdown.py run: a failed attach tried again', text)
     check('lockdown: option bytes now RDPR 00FF' in text and 'LiteForth starting' in text,
             'lockdown.py run: the report has both ports\' output', text)
     with open(os.path.join(rig.board.dir, 'flash.bin'), 'rb') as f:

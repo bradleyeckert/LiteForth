@@ -102,7 +102,10 @@ WCH-LinkE (`wlink unprotect`, done by hand) always takes a board back; this
 script never runs it, or any erase. `check` only reads: the probe, the
 UID, the option bytes, and whether the board is locked down. `lock` is
 `run` without the flashing (steps 3 to 5), for a board that already runs a
-level 2 build and sits in recovery.
+level 2 build and sits in recovery, fresh from a power-up: it uses no wlink
+until the board is locked (wlink leaves the V3F halted, and then often
+can't attach again), and takes the option bytes from stage 1's recovery
+console.
 
 wlink halts the core to read it and leaves it halted, so after its reads
 the script runs `wlink resume` and then a reset, for a clean start (the

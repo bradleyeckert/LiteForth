@@ -11,8 +11,16 @@ nothing else does.
                     [--v3f-address A] [--v5f-address A] [--wlink EXE] [--report FILE]
 
 check only reads: the probe, the chip, its UID and the option bytes, and
-whether the board is locked down. lock is run without the flashing: for a
-board that already runs a level 2 build and sits in recovery.
+whether the board is locked down. lock is run without the flashing, for a
+board that already runs a level 2 build and sits in recovery, fresh from a
+power-up: it doesn't use wlink until the board is locked, and takes the
+option bytes from stage 1's recovery console instead.
+
+wlink halts the V3F to read it and leaves it halted (its USB stops
+answering), and on a board in recovery the WCH-LinkE then often fails to
+attach again (protocol error 0x55). So run resumes and resets it after
+flashing, and asks you to turn the power off and on if it still doesn't
+start; lock reads the probe's view only at the end.
 
 run:
  1. Refuses a board that's read- or write-protected already: wlink's flash
@@ -199,24 +207,58 @@ def debug_log(dbg, start, title):
     block(title, '\n'.join(dbg.since(start)))
 
 
+def open_console(a, dbg, start):
+    """The recovery console on the cli port, with its help: (Usb, text)"""
+    usb = UsbPort(a.usb)
+    if not usb.open(20):
+        name = a.usb or find_board_port()
+        if not name:
+            raise Fail('no cli port (LiteForth\'s USB port, 1A86:FE0C): is the board\'s own '
+                       'USB connected to this PC? (`hiltest.py --list` shows the ports)')
+        if os.name == 'nt' and name not in [p.device for p in list_ports.comports()]:
+            raise Fail(f'there\'s no {name} (`hiltest.py --list` shows the ports)')
+        try:
+            serial.Serial(name, 115200).close()
+        except serial.SerialException as e:
+            raise Fail(f'{name} is there but won\'t open ({e}): is kwai or another terminal '
+                       'using it, or is the V3F halted (wlink halts it: turn the power off and '
+                       'on)? Then run `lock`.')
+        raise Fail(f'{name} wouldn\'t open within 20 s')
+    usb.write('help\r')                 # any other line: stage 1 prints its help
+    if not usb.wait('recovery ok> ', 8):
+        usb.write('\r')
+        usb.wait('recovery ok> ', 5)
+    console = bytes(usb.text).decode('latin-1')
+    debug_log(dbg, start, 'Debug port')
+    block('Cli port (recovery console)', console)
+    if 'recovery ok> ' not in console:
+        raise Fail('no recovery console on the cli port: is the board locked already, or not '
+                   'a level 2 build? (Turn the power off and on if wlink touched it last.)')
+    if 'lockdown: lock this board' not in console:
+        raise Fail('the recovery console doesn\'t offer lockdown: not a level 2 build, or '
+                   'locked already')
+    return usb, console
+
+
 def cmd_run(a):
     wl = Probe(a.wlink)
-    say(f'# Lock-down run, {time.strftime("%Y-%m-%d %H:%M:%S")}')
+    say(f'# Lock-down {a.cmd}, {time.strftime("%Y-%m-%d %H:%M:%S")}')
     say()
-    say('## The board before')
-    text, uid, prot = status(wl)
-    block('wlink status', text)
-    if prot:
-        raise Fail('the flash is read-protected already: wlink would wipe it to flash it. '
-                   'Nothing done.')
-    obr, wpr = wl.option_bytes()
-    say(ob_text(obr, wpr))
-    if obr & OBR_RDPRT or wpr != WPR_NONE:
-        raise Fail('the option bytes protect the flash already: wlink would unprotect it to '
-                   'flash it. Nothing done.')
-    say(f'UID: {uid or "not found"}')
-    say()
+    uid = None
     if a.cmd == 'run':
+        say('## The board before')
+        text, uid, prot = status(wl)
+        block('wlink status', text)
+        if prot:
+            raise Fail('the flash is read-protected already: wlink would wipe it to flash it. '
+                       'Nothing done.')
+        obr, wpr = wl.option_bytes()
+        say(ob_text(obr, wpr))
+        if obr & OBR_RDPRT or wpr != WPR_NONE:
+            raise Fail('the option bytes protect the flash already: wlink would unprotect it '
+                       'to flash it. Nothing done.')
+        say(f'UID: {uid or "not found"}')
+        say()
         say('## Flashing')
         v3f_bin = image(a.v3f, a.v3f_address, V3F_MAX, 'V3F')
         v5f_bin = image(a.v5f, a.v5f_address, V5F_MAX, 'V5F')
@@ -234,45 +276,35 @@ def cmd_run(a):
             verify(wl, a.v3f, a.v3f_address)
         if v5f_bin:
             verify(wl, a.v5f, a.v5f_address)
-    start = dbg.mark()
-    release(wl, True)                   # a clean start, not halted
-    say()
-    say('## The level 2 build on an open board'
-        + ('' if a.cmd == 'run' else ' (already flashed: not flashing)'))
-    line = dbg.wait(r'recovery mode|LiteForth starting', start, 30)
-    if not line or 'recovery' not in line:
-        debug_log(dbg, start, 'Debug port')
-        raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t start '
-                   '(turn the power off and on, then run `lock`)')
-    usb = UsbPort(a.usb)
-    if not usb.open(20):
-        name = a.usb or find_board_port()
-        if not name:
-            raise Fail('no cli port (LiteForth\'s USB port, 1A86:FE0C): is the board\'s own '
-                       'USB connected to this PC? (`hiltest.py --list` shows the ports)')
-        if os.name == 'nt' and name not in [p.device for p in list_ports.comports()]:
-            raise Fail(f'there\'s no {name} (`hiltest.py --list` shows the ports)')
-        try:
-            serial.Serial(name, 115200).close()
-        except serial.SerialException as e:
-            raise Fail(f'{name} is there but won\'t open ({e}): is kwai or another '
-                       'terminal using it? Close it and run this again.')
-        raise Fail(f'{name} wouldn\'t open within 20 s')
-    if not usb.wait('recovery ok> ', 5):
-        usb.write('\r')
-        usb.wait('recovery ok> ', 5)
-    usb.write('help\r')                 # any other line: stage 1 prints its help
-    usb.wait('recovery ok> ', 5)
-    console = bytes(usb.text).decode('latin-1')
-    debug_log(dbg, start, 'Debug port')
-    block('Cli port (recovery console)', console)
-    if 'lockdown: lock this board' not in console:
-        raise Fail('the recovery console doesn\'t offer lockdown: not a level 2 build')
+        start = dbg.mark()
+        release(wl, True)               # a clean start, not halted, if the probe can
+        say()
+        say('## The level 2 build on an open board')
+        line = dbg.wait(r'recovery mode|LiteForth starting', start, 15)
+        if not line:
+            say('No start on the debug port after the reset: the probe left the V3F halted.')
+            print('\nTurn the board off and on (unplug the WCH-LinkE and the board\'s USB, '
+                  'wait, plug them in), then press Enter.')
+            input()
+            say('Power turned off and on.')
+            line = dbg.wait(r'recovery mode|LiteForth starting', start, 60)
+        if not line or 'recovery' not in line:
+            debug_log(dbg, start, 'Debug port')
+            raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t '
+                       'start')
+    else:
+        say('## The board before (from stage 1)')
+        say('wlink isn\'t used before the lock: it leaves the V3F halted, and its USB with it. '
+            'Stage 1\'s recovery console says what the option bytes are.')
+    usb, console = open_console(a, dbg, start)
+    ob = re.search(r'\(OBR ([0-9A-F]{8}), WPR ([0-9A-F]{8})\)', console)
+    if ob:
+        say('Stage 1: ' + ob_text(int(ob.group(1), 16), int(ob.group(2), 16)))
     say()
     say('## Locking')
     print('\nThis locks the board down: read protection on, the V3F\'s sectors write-protected,\n'
           'the boot ROM\'s USB and USART downloads off. Only a chip erase through the\n'
-          f'WCH-LinkE undoes it. Board UID {uid}.')
+          'WCH-LinkE undoes it.' + (f' Board UID {uid}.' if uid else ''))
     answer = input('Type LOCK to lock it down: ').strip()
     if answer != 'LOCK':
         say(f'Not locked (the answer was {answer!r}); the board stays in recovery.')
@@ -302,6 +334,9 @@ def cmd_run(a):
         raise Fail('the board still says it isn\'t locked down')
     if not booted or 'LiteForth starting' not in booted:
         raise Fail('LiteForth didn\'t start')
+    say('Stage 1 started the V5F with no lock-down warning: its check of OBR and WPR passed.')
+    say()
+    say('## The probe\'s view (last: it halts the V3F)')
     text, uid2, prot = status(wl)
     block('wlink status', text)
     try:
@@ -309,12 +344,12 @@ def cmd_run(a):
         say(ob_text(obr, wpr))
     except OSError as e:
         say(f'option bytes: not read through the debug port ({e})')
-    release(wl, False)                  # let it run on
-    if not prot:
-        raise Fail('wlink says the flash isn\'t protected')
+    release(wl, False)
+    say('wlink says the flash is ' + ('protected.' if prot else 'NOT protected (or it couldn\'t '
+                                      'tell).'))
     say()
-    say('**Locked down.** Next: `enroll`, the new line in boards.csv, and the card\'s files '
-        'sealed for it.')
+    say('**Locked down.** The probe may have left the V3F halted: turn the power off and on. '
+        'Next: `enroll`, the new line in boards.csv, and the card\'s files sealed for it.')
     return 0
 
 

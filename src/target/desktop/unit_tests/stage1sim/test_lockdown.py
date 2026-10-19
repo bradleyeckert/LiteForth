@@ -230,6 +230,9 @@ def main():
     check(code == 0 and 'Locked down.' in text and rig.ob()
           and not any(l.startswith('flash') for l in log),
           'lockdown.py lock: locked, nothing flashed', (text, log))
+    check('Stage 1: OBR 00000304, WPR FFFFFFFF' in text and log[:1] == ['status'],
+          'lockdown.py lock: the option bytes from stage 1, wlink only after the lock',
+          (text, log))
     rig.close()
     if t.failures:
         print(f'lockdown.py on the simulated board: {t.failures} checks FAILED')

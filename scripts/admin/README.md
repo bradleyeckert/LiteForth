@@ -10,6 +10,7 @@ the Windows launcher, run in this folder; on Linux and macOS use
 |---|---|
 | `sealblocks.py` | Makes and checks sealed (encrypted, signed) block files and firmware update packages, and their keys |
 | `hiltest.py` | Runs stage 1's update, rollback and recovery tests on a real board, with nobody at it, and writes the report |
+| `lockdown.py` | Flashes a board with a `SECURITY_LEVEL` 2 build and locks it down (read protection, write protection, boot ROM downloads off), and writes the report |
 
 ## sealblocks.py
 
@@ -83,3 +84,44 @@ The card needs `lfstage.bin` and `lfbackup.bin`. The packages write the
 V5F's flash slot and the security record. Needs `pyserial`
 (`py -m pip install pyserial`). `unit_tests/stage1sim/test_hil.py` runs
 it against the simulated board.
+
+## lockdown.py
+
+```
+py lockdown.py check
+py lockdown.py run --v3f LiteForth_V3F.bin --v5f LiteForth_V5F.bin
+```
+
+Flashes a board with a `SECURITY_LEVEL` 2 build and locks it down: read
+protection on, the V3F's sectors write-protected, the boot ROM's USB and
+USART downloads off. The debug port stays, so a chip erase through the
+WCH-LinkE (`wlink unprotect`, done by hand) always takes a board back; this
+script never runs it, or any erase. `check` only reads: the probe, the
+UID, the option bytes, and whether the board is locked down.
+
+`run`:
+1. Refuses a board that's read- or write-protected already, since wlink's
+   flash would unprotect it, and so wipe it or clear its write protection.
+2. Flashes both images with wlink (a `.bin` at 0x08000000 and 0x08010000,
+   or `--v3f-address`, `--v5f-address`; a `.hex` or `.elf` carries its
+   own), without erasing anything else, reads the start of each back, and
+   resets the chip.
+3. Checks that stage 1 stays in recovery and that its console offers
+   `lockdown`: a level 2 build on an open board.
+4. Asks you to type `LOCK`, then sends `lockdown yes`. Stage 1 programs the
+   option bytes (one erase, one pass), reads them back and resets.
+5. Waits for LiteForth to start with no lock-down warning, asking you to
+   power the board off and on if the option bytes didn't load at that
+   reset, and checks that `wlink status` says the flash is protected.
+
+The report (`--report`, default `lockdown-report-DATE.md`) has every step,
+both ports' output, the images' sha256 and the UID, for
+[doc/board-tests.md](../../doc/board-tests.md). Then run `enroll` (a level
+2 board's key comes from the RNG), add its line to `boards.csv`, and seal
+the card's `lfblocks.fb4` and packages for it.
+
+It needs wlink (see `scripts/README.md`, which `lfmcp.py`'s `wlink` tool
+uses too) and `pyserial`. `--debug` defaults to COM14 and `--usb` finds
+the board's port by its USB IDs. Try it on a spare board first.
+`unit_tests/stage1sim/test_lockdown.py` runs it against the simulated
+board with a fake wlink.

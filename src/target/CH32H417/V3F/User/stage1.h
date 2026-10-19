@@ -37,7 +37,11 @@
  *   the boot ROM's USB and USART downloads off. Anything else is one
  *   "V3F security: not locked down: ..." line on the debug UART. At
  *   SECURITY_LEVEL 2 (SEC_STRICT_RDP) such a board also doesn't start the
- *   V5F: recovery says why and takes only `reset`.
+ *   V5F: recovery says why and takes only `reset` and `lockdown`, which
+ *   programs the option bytes as the check wants them (one erase and one
+ *   pass, the values WCH's library would write), reads them back and
+ *   resets; only a chip erase undoes it. scripts/admin/lockdown.py flashes
+ *   a board and drives this.
  *
  * It needs the card's lfstage.bin (for the package) and lfbackup.bin (at
  * least 33 blocks, 132 KB, for the old image), both made in a PC; the

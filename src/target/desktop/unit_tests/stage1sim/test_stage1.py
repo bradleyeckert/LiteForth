@@ -589,6 +589,47 @@ def s_lockdown():
     check(line and 'LiteForth' in line, 'strict: a locked board starts')
 
 
+def s_lockdown_command():
+    """Level 2's `lockdown` in the recovery console of an open board: it
+    says what it will do, `lockdown yes` programs the option bytes and
+    resets, and the board then starts locked. Below level 2 there's no
+    such command."""
+    b = Board('lockdown-command')
+    ob = os.path.join(b.dir, 'ob.bin')
+    r = b.boot(strict=True)
+    got = r.wait_usb('recovery ok> ')
+    check(got is not None and 'lockdown: lock this board' in got, 'lockdown: offered in help')
+    r.send('lockdown\n')
+    got = r.wait_usb('recovery ok> ')
+    check(got is not None and 'lockdown yes:' in got and not os.path.exists(ob),
+          'lockdown: says what it will do, changes nothing')
+    r.send('lockdown yes\n')
+    check(r.wait_exit() == 2, 'lockdown yes: resets')
+    line = r.wait_debug(r'option bytes now')
+    r.stop()
+    check(line and 'RDPR 00FF USER 3E01 WRPR0 0000: ok' in line,
+          f'lockdown yes: option bytes as the check wants ({line})')
+    r = b.boot(strict=True)
+    check(r.wait_debug(r'LiteForth starting') is not None, 'locked: the V5F starts')
+    r.stop()
+    check(not any('not locked down' in l for l in r.debug), 'locked: no warning')
+    b2 = Board('lockdown-level0')       # level 0: recovery by Ctrl+X x3 twice
+    r = b2.boot(v5f='stuck')
+    r.wait_debug(r'V5F stuck')
+    r.send(b'\x18\x18\x18')
+    r.wait_debug(r'V5F restarted')
+    r.send(b'\x18\x18\x18')
+    r.wait_exit()
+    r.stop()
+    r = b2.boot(v5f='stuck')
+    r.wait_usb('recovery ok> ')
+    r.send('lockdown yes\n')
+    got = r.wait_usb('recovery ok> ')
+    r.stop()
+    check(got is not None and 'lockdown' not in got.split('lockdown yes', 1)[-1]
+          and not os.path.exists(os.path.join(b2.dir, 'ob.bin')), f'level 0: no lockdown ({got!r})')
+
+
 def s_power_cuts(stride):
     """A power cut at every flash and card write of an install (v3 over the
     adopted image): after it, the board ends up running the old image or
@@ -630,7 +671,7 @@ def s_power_cuts(stride):
 
 SCENARIOS = [s_fresh, s_install, s_rollback, s_rollback_unattended, s_nostart, s_reboot,
              s_refusals, s_recovery_card,
-             s_recovery_ram_and_ctrl_x, s_recovery_commands, s_lockdown]
+             s_recovery_ram_and_ctrl_x, s_recovery_commands, s_lockdown, s_lockdown_command]
 
 
 def main():

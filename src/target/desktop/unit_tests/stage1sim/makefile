@@ -7,7 +7,8 @@
 # scenario's output word for word, goes to reports/stage1sim.md. Then
 # test_hil.py runs scripts/admin/hiltest.py, the tests for a real board,
 # against the simulated one (its ports as ptys; needs pyserial), writing
-# reports/hil-sim.md. Needs Linux (the
+# reports/hil-sim.md, and test_lockdown.py runs scripts/admin/lockdown.py
+# on a level 2 board (sim_strict) with a fake wlink. Needs Linux (the
 # board's memory is mapped at its own addresses), python3 and the
 # cryptography package; skipped otherwise.
 
@@ -51,9 +52,9 @@ test:
 	else \
 		mkdir -p reports && python3 test_stage1.py --report reports/stage1sim.md && \
 		if python3 -c "import serial" 2>/dev/null; then \
-			python3 test_hil.py; \
+			python3 test_hil.py && python3 test_lockdown.py; \
 		else \
-			echo "hiltest.py on the simulated board skipped: python3's pyserial not found"; \
+			echo "hiltest.py and lockdown.py on the simulated board skipped: python3's pyserial not found"; \
 		fi; \
 	fi
 

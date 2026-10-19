@@ -8,7 +8,7 @@
  * blocks are encrypted (AES-128 or SM4 in CTR mode) for a list of boards,
  * with BLAKE2s hashes of the encrypted blocks in hash table blocks and a
  * block 0 signed by a release key that the root key certifies.
- * scripts/sealblocks.py makes them. The targets' blocks.c call
+ * scripts/admin/sealblocks.py makes them. The targets' blocks.c call
  * sealed_mount when block 0 starts with SEALED_MAGIC, and sealed_open_block
  * on every content block they read.
  */

@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/1b742632d1432a7ee67018d3178d37ff",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/5d3de299b41faa0c6cf531b178af231b",
   "creationInfo": {
-    "created": "2026-10-19T01:39:29Z",
+    "created": "2026-10-19T02:55:39Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
@@ -292,7 +292,7 @@
       "licenseConcluded": "Apache-2.0 OR BSD-3-Clause",
       "licenseDeclared": "Apache-2.0 OR BSD-3-Clause",
       "copyrightText": "NOASSERTION",
-      "summary": "Used by scripts/sealblocks.py and its tests; not part of this repository",
+      "summary": "Used by scripts/admin/sealblocks.py and its tests; not part of this repository",
       "primaryPackagePurpose": "LIBRARY",
       "externalRefs": [
         {

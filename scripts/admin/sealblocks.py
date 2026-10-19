@@ -371,7 +371,7 @@ def cmd_root_header(a):
     pub = hexbytes(read_json(a.root, 'root'), 'public', 32, a.root)
     rows = ',\n'.join('    ' + ', '.join('0x%02x' % b for b in pub[i:i + 8])
                       for i in range(0, 32, 8))
-    text = ('/* sealed_root.h, written by scripts/sealblocks.py root-header from %s:\n'
+    text = ('/* sealed_root.h, written by scripts/admin/sealblocks.py root-header from %s:\n'
             '   the root public key and product ID this build reads sealed block\n'
             '   files with (doc/encrypted-blocks.md, V5F/User/board.h). */\n'
             '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'

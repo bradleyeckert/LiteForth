@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Makes the keys, images and packages that test_update.c installs, in the
-directory given (default work/), with scripts/sealblocks.py:
+directory given (default work/), with scripts/admin/sealblocks.py:
 
     root.pub.bin    the root's Ed25519 public key, 32 bytes
     board.bin       the board: UID (8 bytes) then X25519 private key (32)
@@ -22,7 +22,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, '..', '..', '..', '..', '..', 'scripts'))
+sys.path.insert(0, os.path.join(HERE, '..', '..', '..', '..', '..', 'scripts', 'admin'))
 import sealblocks as sb  # noqa: E402
 
 PRODUCT = 0x4C46

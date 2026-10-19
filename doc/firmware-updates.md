@@ -372,6 +372,12 @@ RDP 0:
   open to them: this core most likely ignores MPRV. They need probes from
   real user mode, one per run, letting `HardFault_Handler` report the
   fault and reset.
+- **With no entry set, user mode has full access.** LiteForth runs in user
+  mode with `pmpcfg0` = 0 and reads and writes all memory normally. So on
+  this core an unset PMP doesn't deny user mode, although the RISC-V spec
+  (and an outside review that relied on it) says an access that matches no
+  entry fails once any entry is implemented. Whether that changes once an
+  entry is set is still open (above).
 - **Not yet run:** the code flash's two windows, the V5F reading the
   V3F's RAM, and the V5F running code in the V3F's flash.
 
@@ -386,7 +392,9 @@ RDP 0:
    other slot, and recovery over USB. `unit_tests/vmasm`'s RV32 emulator runs the
    V3F code as built, for size and speed.
 2. **This board, RDP 0, no WRPR.** Phases A-F for real, then recovery.
-   Anything that goes wrong is fixed with the WCH-Link.
+   Anything that goes wrong is fixed with the WCH-Link. Every run is
+   logged in [board-tests.md](board-tests.md), with the firmware, the
+   packages' hashes and the board's output.
 3. **The spare board.** WRPR on stage 0, then RDP 2; then an update, a
    rollback and a recovery over USB. Only this step can't be undone.
 

@@ -116,11 +116,12 @@ check("unknown tool", err, text)
 
 # wlink: the allowed commands pass through; nothing that locks or wipes
 text, err = tool("wlink", command="status")
-check("wlink status", not err and text == "fake wlink: status" and wlink_log() == ["status"], text)
+check("wlink status", not err and text.startswith("fake wlink: status")
+      and wlink_log() == ["status", "resume"], text)
 text, err = tool("wlink", command="reset")
-check("wlink reset", not err and wlink_log() == ["reset"], text)
+check("wlink reset", not err and wlink_log() == ["resume", "reset"], text)
 text, err = tool("wlink", command="dump", address="0x08000000", length=16)
-check("wlink dump", not err and wlink_log() == ["dump 0x8000000 16"], text)
+check("wlink dump", not err and wlink_log() == ["dump 0x8000000 16", "resume"], text)
 text, err = tool("wlink", command="dump", address=0, length=5000)
 check("wlink dump too long", err and wlink_log() == [], text)
 for bad in ("erase", "protect", "unprotect", "write-mem", "write-reg", "halt", "set-power"):
@@ -140,8 +141,8 @@ with open("ob.txt", "w") as f:
     f.write("000003FC FFFFFFFF")
 text, err = tool("wlink", command="flash", path=os.path.abspath("fw.bin"), address="0x08010000")
 log = wlink_log()
-check("wlink flash", not err and "not protected" in text and len(log) == 2
-      and log[1] == "flash --address 0x8010000 " + os.path.abspath("fw.bin")
+check("wlink flash", not err and "not protected" in text and len(log) == 3
+      and log[1] == "flash --address 0x8010000 " + os.path.abspath("fw.bin") and log[2] == "resume"
       and not any("-e" in l.split() or "--erase" in l for l in log), (text, log))
 text, err = tool("wlink", command="flash", path="nosuch.bin")
 check("wlink flash: no such file", err and wlink_log() == [], text)

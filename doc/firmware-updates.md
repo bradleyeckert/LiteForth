@@ -316,7 +316,8 @@ three commands:
   worth keeping) and resets the chip, so the new image starts on trial as
   usual. A refusal is reported and leaves the board in recovery.
 - `reset`, to try again, for example with the card back in.
-- `adopt`, in a development build only (`STAGE1_DEVELOPMENT`, which also
+- `adopt`, in a development build only (`STAGE1_DEVELOPMENT`, which
+  follows `DEVELOPER_MODE` in `Common/security.h` and also
   turns on `adopt_blank`). It takes the image in flash as it is
   (`upd_adopt`), for a V5F that the debugger reprogrammed without erasing
   the record.
@@ -384,7 +385,8 @@ At every boot, before anything else, stage 1 reads the option bytes as
 
 The masks are in `stage1_layout.h`. Anything else gives one line on the
 debug UART, `V3F security: not locked down: ...`, listing what's wrong,
-with the two registers. A build with `STRICT_RDP` defined (`stage1.h`)
+with the two registers. A build with `STRICT_RDP` defined (`stage1.h`;
+always in a product build, `DEVELOPER_MODE` 0 in `Common/security.h`)
 also refuses to start the V5F on such a board. It goes into recovery,
 which says why and takes only `reset`, so a production image can't run
 on a board that was never locked.
@@ -402,9 +404,18 @@ The V5F runs code that faces the card and the terminal, so it mustn't be
 able to change stage 1, the security sector or the record, or read the
 token.
 
-- **Forth:** `VM_IO_PAGE` maps all the peripherals today. In a production
-  build it's an allowlist without the flash controller, the DMA
-  controllers, SDIO, the ECDC, the RNG, RCC/PWR and the option bytes
+- **Forth:** `VM_IO_PAGE` maps the peripheral registers. In a development
+  build (`DEVELOPER_MODE` 1 in `Common/security.h`) that's all of them. In
+  a product (`DEVELOPER_MODE` 0) it's the guarded page (`vm_io_page` in
+  `src/vm.h`): every access goes through the allowlist in
+  `V5F/User/io_allow.h`, which leaves out the flash controller, the DMA
+  controllers and the peripherals with DMA of their own, SDIO, the ECDC,
+  the RNG, PWR, USB and external memory, and makes RCC, the RTC, the
+  watchdogs and the debug UART read-only. Anything else is an invalid
+  address (-9), and a write to a read-only one is write-protected (-20).
+  `vm.c` and `vm_rv32.S` both check it (`unit_tests/ioguard`,
+  `unit_tests/vmasm`); memory under a page's read limit costs nothing
+  more. The option bytes aren't in the I/O page at all
   ([security-plan.md](security-plan.md) section 5.6).
 - **The V5F's C code:** PMP. LiteForth already runs in user mode (see
   *What the board showed*, below), and only machine-mode code can change

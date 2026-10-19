@@ -18,7 +18,8 @@
  * they lie in memory), its private key, the root key and product ID from
  * sealed_root.h, and its minimums. msg receives the reason if it can't.
  * b->sealed_only is SEALED_ONLY from sealed_root.h (0 if it isn't
- * defined), set even when it fails.
+ * defined), or 1 when DEVELOPER_MODE is 0 (Common/security.h), set even
+ * when it fails.
  * Returns 0, or ERR_UNSUPPORTED_OPERATION if there is no root key built
  * in or the board hasn't been enrolled (an INSECURE build needs no
  * record: its key comes from the UID).

@@ -40,7 +40,8 @@ make clean      # leaves the tracked bin/*.bin images alone
   own small RV32IMC emulator, `rv32emu.c`) and compares the states, with one
   and two TOS registers. It skips itself without clang's riscv32 target and
   `ld.lld`. `make bench` there prints RV32 instructions per VM instruction.
-  Any change to `vmExec` needs the same change in `vm_rv32.S`.
+  Any change to `vmExec` needs the same change in `vm_rv32.S`. Its page 2
+  is a guarded page; `unit_tests/ioguard` checks vm.c's rules for it.
 - `unit_tests/rtc/` tests the RTC words on the desktop, where the clock is
   the host's plus an offset and `standby` sleeps until the alarm, then
   restarts lf in-process (`lfReset` in main.c: `longjmp` back to before
@@ -302,6 +303,16 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   header that points to one, and frees the buffer; the pool's LIFO order
   means this nests inside `open-flash`/`close-flash`. `save-wids` and
   `close-flash` refuse with -122 until `-heads`.
+- **The guarded page** (`vm_io_page`, `vm_io_ranges` in `vm.h`): past a
+  page's read limit, `vmFetch`/`vmStore` (and `vm_rv32.S`'s `mem_fetch`/
+  `mem_store`, spilling `a3` at 24(sp)) look the cell up in an allowlist
+  of `{first, end, flags}` ranges, if it's that page; other accesses cost
+  nothing more. The CH32H417 uses it for `VM_IO_PAGE` when
+  `DEVELOPER_MODE` is 0 (`Common/security.h`, both cores): then Forth
+  reaches only `V5F/User/io_allow.h`'s peripherals, plain block files are
+  refused, `INSECURE` is an `#error`, and stage 1 has `STRICT_RDP` and no
+  `adopt`. `DEVELOPER_MODE` 1 (the repository's setting) is the full map
+  and the regular Forth.
 - The interpreter's token buffer is static on purpose (keeps recursion cheap
   on MCU stacks); a level never reads it after executing a word.
 

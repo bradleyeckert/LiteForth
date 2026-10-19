@@ -27,6 +27,10 @@
 #include "../../../../errcodes.h"
 #if __has_include("../../V5F/User/sealed_root.h")
 #include "../../V5F/User/sealed_root.h"     /* SEALED_ROOT_KEY, SEALED_PRODUCT, INSECURE */
+
+#if defined(INSECURE) && !DEVELOPER_MODE
+#error "INSECURE (sealed_root.h) is for development: DEVELOPER_MODE is 0 (Common/security.h)"
+#endif
 #endif
 
 #define SECTOR_BYTES        512u

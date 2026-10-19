@@ -9,7 +9,8 @@
  *         2^32 times inside one instruction)
  *   word  vmRun(0, 0, addr) on random straight-line code ending in a return
  * The API functions are stubs that push, pop, fail, remap memory or run a
- * nested word, so API calls and re-entry are covered too.
+ * nested word, so API calls and re-entry are covered too. Page 2 is the
+ * guarded page (vm_io_page) with an allowlist of every kind of range.
  *
  * Build with -DBENCH to time instead: it runs a few loops and prints the
  * RV32 instructions per VM instruction (`make bench`).
@@ -54,11 +55,24 @@ uint32_t g_lf_sys_options;
                                         // stores can't make code that loops for ages
 #define RAM_CELLS   1024                // page 1: RAM
 #define ROM_CELLS   16                  // page 7: read-only
+#define IO_CELLS    64                  // page 2: guarded, through io_ranges
 #define NESTED      500                 // a word the API stub runs (cells)
 
 static uint32_t page0[CODE_CELLS];
 static uint32_t page1[RAM_CELLS];
 static uint32_t page7[ROM_CELLS];
+static uint32_t page2[IO_CELLS];
+
+static const vm_io_range io_ranges[] = {
+    {  0,  8, VM_IO_READ | VM_IO_WRITE },
+    { 12, 20, VM_IO_READ },
+    { 16, 32, VM_IO_READ | VM_IO_WRITE },   // overlaps: the first range wins
+    { 32, 40, VM_IO_WRITE },
+    { 40, 48, 0 },
+    { 50, 51, VM_IO_READ | VM_IO_WRITE },
+    { 60, IO_CELLS, VM_IO_READ | VM_IO_WRITE },
+    {  0,  0, 0 }
+};
 
 static uint32_t seed = 0x2545F491u;
 static uint32_t rnd(void) {             // xorshift32
@@ -83,6 +97,9 @@ static void map_memory(void) {
     vm_memory[7] = page7;
     vm_memory_rd_limit[7] = ROM_CELLS;
     vm_memory_wp_limit[7] = ROM_CELLS;
+    vm_memory[2] = page2;               // read limit 0: all through the list
+    vm_io_page = 2;
+    vm_io_ranges = io_ranges;
 }
 
 #define PAGE_SHIFT (22 - VM_LOG2_PAGES)
@@ -90,7 +107,8 @@ static void map_memory(void) {
 static uint32_t rnd_addr(void) {        // a cell or slice address, mostly valid
     static const uint8_t pages[8] = { 0, 0, 0, 1, 1, 1, 2, 7 };
     uint32_t page = pages[below(8)];
-    uint32_t lim = (page == 0) ? CODE_CELLS : (page == 1) ? RAM_CELLS : ROM_CELLS;
+    uint32_t lim = (page == 0) ? CODE_CELLS : (page == 1) ? RAM_CELLS :
+                   (page == 2) ? IO_CELLS - 8 : ROM_CELLS;
     uint32_t a = (page << PAGE_SHIFT) | below(lim + 8);
     if (below(16) == 0) a = rnd() & 0x3FFFFF;
     if (below(4) == 0) {                // a slice: size 1..31, shift 0..31
@@ -224,6 +242,7 @@ UNUSED_IN_BENCH static void rnd_state(void) {
     for (int i = 0; i < CODE_CELLS; i++) page0[i] = rnd_value();
     for (int i = 0; i < RAM_CELLS; i++) page1[i] = rnd_value();
     for (int i = 0; i < ROM_CELLS; i++) page7[i] = rnd();
+    for (int i = 0; i < IO_CELLS; i++) page2[i] = rnd();
     page0[NESTED] = (VMI_LIT | 7) | ((uint32_t)(VM_UOPS | VM_RET | (VMU_PLUS << 9)) << 16);
     map_memory();
     g_lf_sys_options = 0;
@@ -242,6 +261,7 @@ static uint32_t state_hash(void) {
     for (size_t i = 0; i < sizeof lf_vm / 4; i++) mix(p[i]);
     for (int i = 0; i < CODE_CELLS; i++) mix(page0[i]);
     for (int i = 0; i < RAM_CELLS; i++) mix(page1[i]);
+    for (int i = 0; i < IO_CELLS; i++) mix(page2[i]);
     mix(vm_memory_executable[0]);
     mix(api_sum);  mix(usec_calls);  mix(pings);
     return hash;

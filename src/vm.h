@@ -21,6 +21,8 @@ Each segment can have its own read, write-protect, and executable limits.
 - Code reads are valid from 0 to `vm_memory_executable`-1.
 - Data reads are valid from 0 to `vm_memory_rd_limit`-1.
 - Data writes are valid from `vm_memory_wp_limit` to `vm_memory_rd_limit`-1.
+- Past the read limit of page `vm_io_page` (the guarded page), data reads and
+  writes go through the `vm_io_ranges` allowlist instead (vmFetch, vmStore).
 These pointers take 256 bytes of RAM if VM_SEGMENTS = 8.
 */
 
@@ -31,6 +33,33 @@ extern uint32_t vm_memory_rd_limit[VM_MEM_PAGES];
 extern uint32_t vm_memory_wp_limit[VM_MEM_PAGES];  
 extern uint32_t vm_memory_executable[VM_MEM_PAGES];
 extern char* vm_memory_name[VM_MEM_PAGES];
+
+/*
+The guarded page: an allowlist for a page of peripheral registers, so that
+Forth reaches only the peripherals a product lets it. Give the page a read
+limit of 0, set vm_io_page to it and vm_io_ranges to the list: then every
+data access to the page looks up its cell in the list (the first range that
+holds it). Outside every range, or a read of a range without VM_IO_READ:
+ERR_INVALID_ADDRESS (a read leaves 0). A write to a range without
+VM_IO_WRITE: ERR_WRITE_PROTECTED. Memory under its read limit costs nothing
+extra: the list is looked at only where an access would fail anyway.
+vm_io_page is VM_MEM_PAGES (no page) by default. vm_rv32.S reads the list
+at the offsets below (12 bytes an entry).
+*/
+typedef struct {
+    uint32_t first;                     // first cell, in the page
+    uint32_t end;                       // cell after the last; 0 ends the list
+    uint32_t flags;                     // VM_IO_READ | VM_IO_WRITE
+} vm_io_range;
+
+extern uint32_t vm_io_page;
+extern const vm_io_range* vm_io_ranges;
+#endif /* __ASSEMBLER__ */
+
+#define VM_IO_READ   1
+#define VM_IO_WRITE  2
+
+#ifndef __ASSEMBLER__
 
 /*
 All the VM state is in one struct, lf_vm (vm.c), so vm_rv32.S reaches it
@@ -112,6 +141,7 @@ int vmRunning(void);
  * @param addr Cell or slice address to fetch
  * @param data Pointer to destination of the read data
  * @return ior, 0 if okay, or ERR_INVALID_ADDRESS at or past the page's read limit
+ *         (on the guarded page: outside the allowlist, or a range without VM_IO_READ)
  */
 int vmFetch(uint32_t addr, uint32_t* data);
 
@@ -124,6 +154,8 @@ int vmFetch(uint32_t addr, uint32_t* data);
  * @param data 32-bit data to store (truncated to the slice width)
  * @return ior, 0 if okay, ERR_INVALID_ADDRESS at or past the page's read limit,
  *         or ERR_WRITE_PROTECTED below the page's write-protect limit
+ *         (on the guarded page: ERR_INVALID_ADDRESS outside the allowlist,
+ *         ERR_WRITE_PROTECTED in a range without VM_IO_WRITE)
  */
 int vmStore(uint32_t addr, uint32_t data);
 

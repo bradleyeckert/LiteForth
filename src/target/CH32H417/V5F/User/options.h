@@ -54,8 +54,10 @@
 
 [4] main.c maps page VM_IO_PAGE onto the peripheral registers: the register
     at IO_BASE + 4c is at VM address (VM_IO_PAGE << 19) + c, so GPIOA
-    (0x40010800) is 0x284200. Reads and writes are whole 32-bit words, and
-    nothing checks for the gaps between peripherals.
+    (0x40010800) is 0x284200. Reads and writes are whole 32-bit words. In a
+    development build (DEVELOPER_MODE in Common/security.h) that's every
+    register, and nothing checks for the gaps between peripherals; in a
+    product, only the ranges in io_allow.h.
 
 CH32H417: flash pages 0..RAM_PAGE-1 are FLASH_PAGE_CELLS*4 bytes each,
 starting at __lf_flash_start. flash.c erases and programs a whole page at

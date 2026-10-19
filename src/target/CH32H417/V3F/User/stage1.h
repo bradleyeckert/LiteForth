@@ -36,8 +36,8 @@
  *   sectors write-protected and the rest writable (stage1_layout.h), and
  *   the boot ROM's USB and USART downloads off. Anything else is one
  *   "V3F security: not locked down: ..." line on the debug UART. With
- *   STRICT_RDP defined, such a board also doesn't start the V5F: recovery
- *   says why and takes only `reset`.
+ *   STRICT_RDP defined (always, when DEVELOPER_MODE is 0), such a board
+ *   also doesn't start the V5F: recovery says why and takes only `reset`.
  *
  * It needs the card's lfstage.bin (for the package) and lfbackup.bin (at
  * least 33 blocks, 132 KB, for the old image), both made in a PC; the
@@ -46,12 +46,17 @@
  * the UID, as V5F/User/board.c has them.
  */
 
+#include "security.h"                   /* DEVELOPER_MODE (Common/) */
+
 #ifndef STAGE1_DEVELOPMENT
-#define STAGE1_DEVELOPMENT  1           /* 0 for a production build */
+#define STAGE1_DEVELOPMENT  DEVELOPER_MODE  /* 0 for a production build */
 #endif
 
-/* #define STRICT_RDP */             /* refuse to start the V5F on a board that isn't
-                                           locked down: production builds */
+/* STRICT_RDP: refuse to start the V5F on a board that isn't locked down.
+   On in a production build (DEVELOPER_MODE 0); a build may define it. */
+#if !DEVELOPER_MODE && !defined(STRICT_RDP)
+#define STRICT_RDP
+#endif
 
 #ifndef STAGE1_V5F_START_MS
 #define STAGE1_V5F_START_MS 3000        /* stage1_wait_v5f: then the chip resets; 0 = wait for good */

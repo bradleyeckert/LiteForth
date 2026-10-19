@@ -524,7 +524,8 @@ static int card_read(uint32_t sector, uint8_t *buf) {
     return err ? err : finish();
 }
 
-/* SEALED_ONLY in sealed_root.h: plain block files are refused */
+/* SEALED_ONLY in sealed_root.h, or DEVELOPER_MODE 0 (security.h): plain
+   block files are refused */
 static int sealed_only(void) {
     sealed_board board;
     char msg[80];
@@ -609,7 +610,7 @@ static uint32_t find(void) {
     if (writable && !sealed && sealed_only()) {
         writable = 0;
         limit = 0;
-        printf("V5F blocks: a plain block file, but this build takes only sealed files (SEALED_ONLY)\r\n");
+        printf("V5F blocks: a plain block file, but this build takes only sealed files (SEALED_ONLY, or DEVELOPER_MODE 0)\r\n");
     }
     return limit;
 }

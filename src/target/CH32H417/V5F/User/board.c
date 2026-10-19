@@ -37,6 +37,11 @@
 #include "../../../../tools.h"
 #if __has_include("sealed_root.h")
 #include "sealed_root.h"            /* SEALED_ROOT_KEY, SEALED_PRODUCT, SEALED_ONLY, INSECURE */
+#include "security.h"               /* DEVELOPER_MODE (Common/) */
+
+#if defined(INSECURE) && !DEVELOPER_MODE
+#error "INSECURE (sealed_root.h) is for development: DEVELOPER_MODE is 0 (Common/security.h)"
+#endif
 #endif
 
 extern const uint32_t __lf_flash_start[];   /* Link_v5f.ld */
@@ -148,6 +153,9 @@ int board_get(sealed_board *b, char *msg, int len) {
     memset(b, 0, sizeof *b);
 #ifdef SEALED_ONLY
     b->sealed_only = SEALED_ONLY;       /* set even if the rest fails */
+#endif
+#if !DEVELOPER_MODE
+    b->sealed_only = 1;                 /* a product takes only sealed files */
 #endif
 #ifndef SEALED_ROOT_KEY
     snprintf(msg, len, "no root key built in (V5F/User/sealed_root.h)");

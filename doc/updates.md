@@ -200,6 +200,12 @@ Two more outcomes need a second look:
 
 ## 6. Build options
 
+### Both cores: `Common/security.h`
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `DEVELOPER_MODE` | 1 | 1, a development build: LiteForth boots the regular Forth from a plain `lfblocks.fb4` as always, Forth reaches every peripheral register, `INSECURE` is allowed, and stage 1 has `adopt` and only warns about a board that isn't locked down. 0, a product: `SEALED_ONLY` is on, Forth reaches only the peripherals in `V5F/User/io_allow.h` (not the flash controller, DMA, SDIO, the ECDC, the RNG, RCC/PWR writes or USB), `INSECURE` stops the build, and stage 1 has no `adopt` and `STRICT_RDP` is on, so the V5F starts only on a locked board. Set it in the header, or `-DDEVELOPER_MODE=0` for both projects. |
+
 ### The V5F firmware: `V5F/User/sealed_root.h`
 
 Your application's file, beside `board.c`, written by
@@ -210,8 +216,8 @@ ignores it. Clean the project after changing it (section 2).
 |---|---|
 | `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the board reads no sealed files (`no root key built in`) but still takes plain ones. |
 | `SEALED_PRODUCT` | The 32-bit product ID that release keys and sealed files must name. |
-| `SEALED_ONLY` | Optional. `1`: the board takes only sealed files. A plain `lfblocks.fb4` offers no blocks (`capacity` 0; the debug UART says why), and `-1 ymodem` refuses plain files. A sealed file can still be installed over it. Leave it out for development boards. |
-| `INSECURE` | Optional, development only. `1`: the board's private key is BLAKE2s of its unique ID (personalization `LFinsec1`) instead of coming from the RNG, so `enroll` prints the same line every time, the board needs no flash record to open sealed files, and a download that erases the flash loses nothing. `sealblocks.py board-key OUT --uid UID --insecure` gives the same key, and so the boards.csv line, without the board. Anyone who knows the UID can read what is sealed for it: never in a product. |
+| `SEALED_ONLY` | Optional. `1`: the board takes only sealed files. A plain `lfblocks.fb4` offers no blocks (`capacity` 0; the debug UART says why), and `-1 ymodem` refuses plain files. A sealed file can still be installed over it. Leave it out for development boards. Always on when `DEVELOPER_MODE` is 0. |
+| `INSECURE` | Optional, development only. `1`: the board's private key is BLAKE2s of its unique ID (personalization `LFinsec1`) instead of coming from the RNG, so `enroll` prints the same line every time, the board needs no flash record to open sealed files, and a download that erases the flash loses nothing. `sealblocks.py board-key OUT --uid UID --insecure` gives the same key, and so the boards.csv line, without the board. Anyone who knows the UID can read what is sealed for it: never in a product, and a build with `DEVELOPER_MODE` 0 stops with an error. |
 
 ### The MounRiver projects
 
@@ -239,8 +245,8 @@ or a card image, which `-1 ymodem` installs into the same way.
 
 ## 7. Known limits
 
-- Anyone at the terminal of a board without `SEALED_ONLY` can install a
-  plain file. That gives away nothing sealed, but it can replace the
+- Anyone at the terminal of a board without `SEALED_ONLY` (a development
+  build) can install a plain file. That gives away nothing sealed, but it can replace the
   application.
 - An install cut short leaves the board without its application until the
   file is sent again; there's only one copy on the card. On a `SEALED_ONLY`

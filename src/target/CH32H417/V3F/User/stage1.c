@@ -4,6 +4,11 @@
  * to the V5F's slot and the two record sectors, so no mistake here can
  * erase the V3F itself), the card's lfstage.bin and lfbackup.bin (WCH's
  * polling SD driver, through src/card.c to find them), and the RNG.
+ *
+ * Recovery (stage1.h): the V5F stays off, and stage 1 itself is the other
+ * end of the USB rings: it reads what the host sends from the rx ring and
+ * writes its replies into the tx ring, as the V5F would, while
+ * cdc_bridge_poll moves them to and from USB as usual.
  */
 #include <stdio.h>
 #include <string.h>
@@ -13,7 +18,9 @@
 #include "stage1.h"
 #include "../../V5F/User/sdio.h"
 #include "cdc_shared.h"
+#include "cdc_bridge.h"
 #include "../../../../update.h"
+#include "../../../../ymrecv.h"
 #include "../../../../card.h"
 #include "../../../../blake2s.h"
 #include "../../../../monocypher.h"
@@ -113,6 +120,11 @@ static int b_read(uint32_t blk, uint8_t *buf) {
     return block_io(backup_base, io.backup_blocks, blk, buf, 0);
 }
 
+static int s_write(uint32_t blk, const uint8_t *buf) {
+    memcpy(io_buf, buf, UPD_BLOCK);
+    return block_io(stage_base, io.stage_blocks, blk, (uint8_t *)io_buf, 1);
+}
+
 static int b_write(uint32_t blk, const uint8_t *buf) {
     memcpy(io_buf, buf, UPD_BLOCK);         /* WCH's driver takes a non-const, aligned buffer */
     return block_io(backup_base, io.backup_blocks, blk, (uint8_t *)io_buf, 1);
@@ -161,6 +173,7 @@ static int keys_get(sealed_board *b, const char **why) {
     memcpy(b->root, root, 32);
     b->product = SEALED_PRODUCT;
 #ifdef INSECURE
+    (void)why;
     static const uint8_t person[8] = "LFinsec1";
     blake2s_state S;
     b2s_init(&S, 32, NULL, 0, NULL, person);
@@ -229,10 +242,13 @@ static void io_init(void) {
     io.backup_write = b_write;
     io.random = rng;
     io.hw_rev = 0;
-    io.adopt_blank = 1;                     /* development: see stage1.h */
+    io.adopt_blank = STAGE1_DEVELOPMENT;    /* see stage1.h */
 }
 
-void stage1_boot(void) {
+static int recovering;                  /* stage1_boot said STAGE1_RECOVERY */
+static char why_recovery[160];
+
+int stage1_boot(void) {
     static upd_record rec;
     static char msg[160];
     sealed_board keys;
@@ -241,16 +257,16 @@ void stage1_boot(void) {
     int waiting = (CDC_SHARED->update == CDC_UPDATE_MAGIC);
     int r = upd_record_load(&io, &rec);
     if (r == 1 && !waiting) {
-        return;                             /* never updated: boot as before */
+        return STAGE1_START;                /* never updated: boot as before */
     }
     if (r < 0) {
         printf("V3F update: can't read the security record (%d)\r\n", r);
-        return;
+        return STAGE1_START;
     }
     if (keys_get(&keys, &why) != 0) {
         printf("V3F update: %s; nothing done\r\n", why);
         CDC_SHARED->update = 0;
-        return;
+        return STAGE1_START;
     }
     int busy = (r == 0 && rec.state != UPD_IDLE);
     card_open();                            /* a record exists, or a package waits */
@@ -261,17 +277,209 @@ void stage1_boot(void) {
     if (result < 0) {
         printf("V3F update: stopped by error %d (%s); it carries on at the next reset\r\n",
                result, msg);
+        if (rec.state != UPD_INSTALLING && rec.state != UPD_ROLLING_BACK) {
+            return STAGE1_START;            /* the image in flash wasn't touched */
+        }
+        snprintf(why_recovery, sizeof why_recovery,     /* half programmed: don't run it */
+                 "update: stopped by error %d part way through programming; "
+                 "type reset to carry on", result);
     } else if (waiting || busy || result != UPD_START) {
         printf("V3F %s\r\n", msg);
     }
+    if (result == UPD_START) {
+        return STAGE1_START;
+    }
     if (result == UPD_RECOVERY) {
-        printf("V3F update: the V5F image fails its check; starting it anyway "
-               "(no recovery mode yet)\r\n");
+        snprintf(why_recovery, sizeof why_recovery, "%s", msg);
+    }
+    recovering = 1;
+    CDC_SHARED->binary = CDC_BINARY_MAGIC;  /* no Ctrl+X restart: there's no V5F */
+    CDC_FENCE();
+    printf("V3F: recovery mode: the V5F stays off; waiting for a package over USB\r\n");
+    return STAGE1_RECOVERY;
+}
+
+/* ------------------------------------------------------------------------
+ * Recovery: the terminal, through the rings
+ */
+#define RING_MASK   (CDC_RING_SIZE - 1u)
+
+/* The next byte from the host, or -1 after ms (0: just a look) */
+static int t_get(int ms) {
+    cdc_ring_t *r = &CDC_SHARED->rx;
+    for (int t = 0; ; t++) {
+        cdc_bridge_poll();
+        if (cdc_ring_count(r)) {
+            uint8_t c = r->data[r->tail & RING_MASK];
+            CDC_FENCE();
+            r->tail++;
+            return c;
+        }
+        if (t >= ms * 10) {
+            return -1;
+        }
+        Delay_Us(100);
+    }
+}
+
+/* Sends a byte; dropped if the ring stays full (nobody reading) */
+static void t_put(int c) {
+    cdc_ring_t *r = &CDC_SHARED->tx;
+    for (int t = 0; cdc_ring_space(r) == 0; t++) {
+        if (!CDC_SHARED->host_open || t > 20000) {
+            return;
+        }
+        cdc_bridge_poll();
+        Delay_Us(100);
+    }
+    r->data[r->head & RING_MASK] = (uint8_t)c;
+    CDC_FENCE();
+    r->head++;
+}
+
+/* A line to the terminal, and to the debug UART */
+static void say(const char *s) {
+    printf("V3F %s\r\n", s);
+    while (*s) {
+        t_put(*s++);
+    }
+    t_put('\r');
+    t_put('\n');
+}
+
+static void prompt(void) {
+    for (const char *p = "recovery ok> "; *p; p++) {
+        t_put(*p);
+    }
+}
+
+/* Lets the host take what's in the tx ring, then resets the chip */
+static void restart(void) {
+    for (int t = 0; cdc_ring_count(&CDC_SHARED->tx) && t < 10000; t++) {
+        cdc_bridge_poll();
+        Delay_Us(100);
+    }
+    Delay_Ms(50);
+    NVIC_SystemReset();
+}
+
+static void help(void) {
+    say("LiteForth stage 1: recovery mode. The V5F stays off:");
+    say(why_recovery);
+    say("In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.");
+#if STAGE1_DEVELOPMENT
+    say("adopt: take the V5F image in flash as it is (development builds only).");
+#endif
+    say("reset: start again.");
+}
+
+/* `-2 ymodem`: a package into lfstage.bin, then the install */
+static void receive(void) {
+    static uint8_t block0[UPD_BLOCK] __attribute__((aligned(4)));
+    static uint8_t work[UPD_BLOCK] __attribute__((aligned(4)));
+    static upd_record rec;
+    static char msg[160];
+    if (io.stage_blocks == 0) {
+        say("recovery: there's no lfstage.bin on the card (or no card): can't take a package");
+        t_put(0x18);                        /* CAN CAN: kwai stops waiting */
+        t_put(0x18);
+        return;
+    }
+    ymr_io y = { t_get, t_put, s_write, io.stage_blocks, "LITEFORTHF", block0, work, 60000 };
+    uint32_t size;
+    int err = ymr_receive(&y, &size, msg, sizeof msg);
+    say(msg);
+    if (err) {
+        return;
+    }
+    sealed_board keys;
+    const char *why = "";
+    if (keys_get(&keys, &why) != 0) {
+        say(why);
+        return;
+    }
+    int result = upd_boot(&io, &keys, 1, &rec, msg, sizeof msg);
+    crypto_wipe(&keys, sizeof keys);
+    say(msg);
+    if (result == UPD_START) {
+        say("recovery: installed; restarting to try it");
+        restart();
+    }
+    if (result < 0) {
+        say("recovery: stopped by an error; it carries on at the next reset");
+    } else {
+        snprintf(why_recovery, sizeof why_recovery, "%s", msg);
+    }
+}
+
+static void command(const char *line) {
+    if (strcmp(line, "-2 ymodem") == 0) {
+        receive();
+    } else if (strstr(line, "ymodem")) {
+        say("recovery: only -2 ymodem (a firmware update package) works here");
+        t_put(0x18);
+        t_put(0x18);
+#if STAGE1_DEVELOPMENT
+    } else if (strcmp(line, "adopt") == 0) {
+        static char msg[100];
+        int err = upd_adopt(&io, msg, sizeof msg);
+        say(msg);
+        if (!err) {
+            restart();
+        }
+#endif
+    } else if (strcmp(line, "reset") == 0) {
+        restart();
+    } else if (line[0]) {
+        help();
+    }
+}
+
+static void recovery_poll(void) {
+    static char line[64];
+    static int n, opened;
+    if (CDC_SHARED->host_open && !opened) {     /* a terminal came: say why */
+        opened = 1;
+        help();
+        prompt();
+    } else if (!CDC_SHARED->host_open) {
+        opened = 0;
+    }
+    int c = t_get(0);
+    if (c < 0) {
+        return;
+    }
+    if (c == '\r' || c == '\n') {
+        line[n] = 0;
+        t_put('\r');
+        t_put('\n');
+        while (n && line[n - 1] == ' ') {
+            line[--n] = 0;
+        }
+        const char *p = line;
+        while (*p == ' ') {
+            p++;
+        }
+        command(p);
+        n = 0;
+        prompt();
+    } else if ((c == 8 || c == 127) && n) {
+        n--;
+        t_put(8);
+        t_put(' ');
+        t_put(8);
+    } else if (c >= ' ' && c < 127 && n < (int)sizeof line - 1) {
+        line[n++] = (char)c;
+        t_put(c);
     }
 }
 
 void stage1_poll(void) {
     static upd_record rec;
+    if (recovering) {
+        recovery_poll();
+        return;
+    }
     if (CDC_SHARED->update != CDC_CONFIRM_MAGIC) {
         return;
     }

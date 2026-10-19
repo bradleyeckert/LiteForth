@@ -151,3 +151,150 @@ V3F: USB configured
 - At the fifth reset, stage 1 restored version 1 from the encrypted backup on the card. The restored image passed its MAC check, LiteForth started from flash, and USB came up.
 - No "confirmed" line followed, because nothing was on trial.
 - During the four boots of version 2, the V3F never printed "the V5F is running", and USB never came up. A V5F that doesn't start leaves the board with no terminal, and only stage 1's rollback brings it back: what section 7's recovery mode is for.
+
+### B5a. No backup room, so no update (18 October 2026)
+
+**Firmware:**
+- PR #174 (recovery), V3F built Oct 18 2026 18:54:04, GCC 12.2.0, with the linker fix.
+- The V5F as in B3.
+- The MounRiver download erased the whole chip, so the security record was blank again, and the boot adopted the V5F slot (128 KB, version 0).
+
+**Package:** `v5f-2-hang.lfu` (B4).
+
+**Starting state:** `lfbackup.bin` renamed on the card, so stage 1 couldn't find it.
+
+**Run:** stage the package with `~x ..\mailbox\v5f-2-hang.lfu -2`, then press reset several times.
+
+**Expected:**
+- The installed image checks out, so it must be backed up before anything is programmed.
+- With no `lfbackup.bin`, the update is refused and nothing changes.
+- The V5F starts as before. The refusal clears the flag, so later resets don't try again.
+
+**Debug UART:**
+
+```
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V3F update refused: lfbackup.bin needs 33 blocks
+V3F: starting the V5F
+V3F: the V5F is running
+V5F crumbs: reset by pin, boot 2; the previous run left 301 crumbs
+V3F: built Oct 18 2026 18:54:04, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+V3F: starting the V5F
+V3F: the V5F is running
+V5F crumbs: reset by pin, boot 3; the previous run left 58 crumbs
+(the same for the next reset)
+```
+
+**Result:** pass.
+- The refusal names what's missing: 33 blocks, a header plus the 128 KB slot.
+- The working image kept running.
+- Later resets had no package waiting, so they booted quietly.
+
+### B5. Recovery over USB (18 October 2026)
+
+**Firmware:** as in B5a. Version 0 (the adopted slot) was installed.
+
+**Packages:**
+- `v5f-2-hang.lfu`, the never-confirming version 2 (B4).
+- `v5f-1.lfu`, the real V5F as version 1 (B3).
+
+**Run:**
+1. With `lfbackup.bin` in place, stage version 2 and press reset. Version 2 is installed, and version 0 is backed up.
+2. Unplug, rename `lfbackup.bin` on the card, plug in again.
+3. Press reset until stage 1 gives up on version 2.
+4. In kwai, send version 1 with `~x ..\mailbox\v5f-1.lfu -2`.
+
+**Expected:**
+1. Version 2 gets three trial boots without a confirm.
+2. The rollback finds no backup, so there's no working image and stage 1 goes into recovery: the V5F stays off, and stage 1 answers on USB.
+3. Version 1 comes in over USB into `lfstage.bin` and installs without a backup, since there's nothing worth keeping.
+4. The chip resets, and version 1 starts on trial and confirms.
+
+**Terminal (kwai):**
+
+```
+[kwai: sending ..\mailbox\v5f-2-hang.lfu: 12288 bytes]
+[kwai: 12/12]
+[kwai: sent ..\mailbox\v5f-2-hang.lfu]
+ymodem: v5f-2-hang.lfu: staged in lfstage.bin, 3 blocks, read back and checked
+ymodem: package: V5F image, 4096 bytes, version 2: signature, every block and the image hash check out; waiting for stage 1 to install it
+ok>
+[kwai: com17 lost; waiting for it to come back]
+
+[kwai: com17 is back]
+LiteForth stage 1: recovery mode. The V5F stays off:
+update: the backup is missing or damaged; can't roll back
+In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.
+adopt: take the V5F image in flash as it is (development builds only).
+reset: start again.
+recovery ok> ~x ..\mailbox\v5f-1.lfu -2
+-2 ymodem
+
+[kwai: sending ..\mailbox\v5f-1.lfu: 98304 bytes]
+[kwai: 96/96]
+[kwai: sent ..\mailbox\v5f-1.lfu]
+ymodem: v5f-1.lfu: 98304 bytes received
+update: version 1 installed, on trial
+recovery: installed; restarting to try it
+
+[kwai: com17 lost; waiting for it to come back]
+
+[kwai: com17 is back]
+
+ok>
+```
+
+**Debug UART** (from the boot before step 1):
+
+```
+V3F: the V5F is running
+V5F crumbs: reset by pin, boot 1; the previous run left 297 crumbs
+V3F: built Oct 18 2026 18:54:04, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+V3F update: version 2 installed, on trial
+V3F: starting the V5F
+V3F update: version 2 on trial, boot 1 of 3
+V3F: starting the V5F
+V3F update: version 2 on trial, boot 2 of 3
+V3F: starting the V5F
+V3F update: version 2 on trial, boot 3 of 3
+V3F: starting the V5F
+V3F update: the backup is missing or damaged; can't roll back
+V3F: recovery mode: the V5F stays off; waiting for a package over USB
+V3F: built Oct 18 2026 18:54:04, GCC 12.2.0
+V3F: USB configured
+V3F LiteForth stage 1: recovery mode. The V5F stays off:
+V3F update: the backup is missing or damaged; can't roll back
+V3F In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.
+V3F adopt: take the V5F image in flash as it is (development builds only).
+V3F reset: start again.
+V3F ymodem: v5f-1.lfu: 98304 bytes received
+V3F update: version 1 installed, on trial
+V3F recovery: installed; restarting to try it
+V3F update: version 1 on trial, boot 1 of 3
+V3F: starting the V5F
+V3F: the V5F is running
+V5F crumbs: reset by software power pin; none from before (power-up)
+V3F: built Oct 18 2026 18:54:04, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 122 blocks at sector 13888 (exFAT)
+V5F blocks: sealed file, revision 6, release key 1, AES-128, 121 blocks (checked in 18 ms)
+V5F: LiteForth starting, flash is blank
+V3F update: version 1 confirmed
+V3F: USB configured
+```
+
+**Result:** pass, every step as expected.
+- With no working image and no backup, the board refused to run the bad image and still answered on USB.
+- The recovery console worked unchanged with kwai's `~x FILE -2`: its `recovery ok>` prompt paced kwai's lines, and kwai's reconnect carried over both resets.
+- The package was checked in full before the install: signature, every block and the image hash. It was installed with no `lfbackup.bin` at all.
+- The chip reset after the install. Version 1 took one trial boot and was confirmed when LiteForth started.
+- The V5F's crumbs line after the recovery reset says "reset by software power pin; none from before (power-up)". `NVIC_SystemReset` seems to set the software and pin flags and clear the crumbs, as after a power-up. That's harmless, but worth knowing when reading the crumbs.
+

@@ -37,7 +37,8 @@ int main(void)
 
 #if (Run_Core == Run_Core_V3FandV5F)
     cdc_shared_init();                  //empty the rings before the V5F uses them
-    stage1_boot();                      //LiteForth: install a staged firmware update first
+    if (stage1_boot() == STAGE1_START)  //LiteForth: install a staged firmware update first
+    {                                   //(in recovery the V5F stays off: stage1_poll runs the terminal)
     printf("V3F: starting the V5F\r\n"); //if "V3F: the V5F is running" never follows, it didn't start
     while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET); //finish sending before STOP
 	NVIC_WakeUp_V5F(Core_V5F_StartAddr);//wake up V5
@@ -47,6 +48,7 @@ int main(void)
 	PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFE);
 	HSEM_ClearFlag(HSEM_ID0);
 	printf("V3F: the V5F is running\r\n");
+    }
 
     Hardware();
 

@@ -488,7 +488,11 @@ def main():
         return 0
     if not a.what:
         p.error('say --list, check or run')
-    rig = Rig(a)
+    try:
+        rig = Rig(a)
+    except serial.SerialException as e:
+        sys.exit(f'hiltest.py: {e}\nIs a terminal (kwai, or one watching the debug port) using '
+                 'it? Close it and run this again. (`hiltest.py --list` shows the ports.)')
     if a.what == 'check':
         print(f'resetting with: {a.reset_cmd or "reboot, typed to LiteForth"}')
         line, start = rig.reset_and_wait(r'V3F', 10)

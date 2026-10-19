@@ -10,7 +10,7 @@ driven from the PC with nobody at the board.
 It needs:
 - the board's USB terminal (LiteForth's CDC port, USB 1A86:FE0C; --usb,
   found by its IDs if not given);
-- the debug UART, through the WCH-LinkE (--debug, default COM15, 9600 baud);
+- the debug UART, through the WCH-LinkE (--debug, default COM14, 9600 baud);
 - wlink (https://github.com/ch32-rs/wlink) to reset the chip through the
   WCH-LinkE (--wlink, default the WLINK environment variable or `wlink`;
   --reset-args, default `reset`);
@@ -446,7 +446,7 @@ def main():
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--list', action='store_true', help='list the serial ports and exit')
     p.add_argument('what', nargs='?', choices=('check', 'run'))
-    p.add_argument('--debug', default='COM15', help='the debug UART (default COM15)')
+    p.add_argument('--debug', default='COM14', help='the debug UART (default COM14)')
     p.add_argument('--usb', help="the board's USB terminal (default: found by its USB IDs)")
     p.add_argument('--wlink', default=os.environ.get('WLINK', 'wlink'))
     p.add_argument('--reset-args', default='reset', help='wlink arguments for a reset')

@@ -256,6 +256,34 @@ routing (`vmTrap`, the V5F's `HardFault_Handler`) is then mainly for faults
 in the C code of API words during a VM run. Writes to the holes weren't
 tried.
 
+### What the V5F traps on, and what it doesn't
+
+Tried with a temporary test word, `cpu-fault` (PR #191), from the C code
+of an API call, on the main board at `SECURITY_LEVEL` 0 (2026-10-20). The
+trap routing (`vmTrap`) brought both exceptions back to Forth, with no
+reset, so MounRiver's GCC returns from `HardFault_Handler` with `mret` to
+the address it sets in `mepc`.
+
+```
+1 cpu-fault .   Error: ior=-128   ( illegal instruction, 0x0000 )
+2 cpu-fault .   Error: ior=-23    ( lw from an odd address )
+3 cpu-fault .   0                 ( load from 0x30000000 )
+4 cpu-fault     ( no error )      ( store to 0x30000000 )
+
+V5F fault: mcause 00000002 mepc 200AC94A mtval 45010000 ra 200AC91E sp 200FFCD0 -> Forth
+V5F fault: mcause 00000004 mepc 200AC954 mtval 200C0589 ra 200AC91E sp 200FFCD0 -> Forth
+```
+
+- **Illegal instruction:** mcause 2; mtval holds the instruction's bits,
+  32 of them even for a 16-bit one: `45010000` is the `0x0000` and the
+  next instruction, `li a0,0` (`4501`).
+- **Misaligned loads trap** (mcause 4, mtval the address): the core
+  doesn't handle them in hardware. GCC splits a misaligned access it can
+  see into byte loads, so the test needs an `lw` in inline assembly.
+- **Unmapped addresses don't fault:** 0x30000000 reads 0 and ignores a
+  store, like the holes in the peripheral map. No access fault (-127) was
+  seen at all.
+
 ## The nanoCH32H417 board
 
 - **VIO18 for the LCD connector.** VIO18 supplies the high-speed GPIOs,

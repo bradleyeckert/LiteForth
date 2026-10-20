@@ -1163,7 +1163,12 @@ mistake, not the board's.
 **Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
 locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp` at
 `36629a4` (PR #194); the V3F built 20 October 2026 10:20:30 with GCC
-12.2.0. Image hashes weren't recorded.
+12.2.0.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` |
+| `LiteForth_V5F.bin` | 90836 | `ce774d68f29c1b4c7dd62a57c10eb0f462ee85516eee4e96863981dde7f5e7dd` |
 
 **Why:** `pmp_lock` (`V5F/User/pmp.c`), called by the V5F's start-up code
 in machine mode before its `mret` into `main`, locks four NAPOT entries:

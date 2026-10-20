@@ -1266,3 +1266,59 @@ checks user-mode accesses, and the device token can't be read by the
 V5F's code. Still open: whether a user-mode access that matches no entry
 fails (the catch-all, entry 3, matches everything here).
 
+
+### B14. The flash controller and the board record behind the PMP, with the ecall service (20 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp-ecall`
+(PR #195), with one test line added by hand to `lfRtcSet` in
+`V5F/User/lftime.c`, deleted afterwards:
+
+```c
+return *(volatile uint32_t *)0x40022000UL; // delete this line
+```
+
+The V3F as in B12. Image hashes weren't recorded for this build.
+
+**Why:** PR #195 adds two unlocked PMP entries: no user-mode access to
+0x08070000-0x08077FFF (the board record and stage 1's records) or to the
+flash controller at 0x40022000. LiteForth runs in user mode, so its flash
+writes now go through an `ecall` service in machine mode
+(`Ecall_U_Mode_Handler`, `V5F/User/pmp.c`). This checks the entries, that
+the service programs flash (a fault in a trap handler would lock the core
+up), and that user mode can't reach the flash controller.
+
+**Expected:** the boot line shows `cfg0 9F181898`, as set and locked;
+`close-flash` programs the page and `foo` runs; `0 rtc!` gives -127 with
+mcause 5 and mtval 40022000, and no reset.
+
+**Run,** on the cli port:
+
+```
+0 open-flash
+ok>: foo 42 . ;
+ok>close-flash
+ok>foo
+42 ok>
+ok>0 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+```
+
+The debug port:
+
+```
+V5F PMP: cfg0 9F181898, addr 0001CFFF 0201CFFF 100089FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+
+V5F fault: mcause 00000005 mepc 200AC69E mtval 40022000 ra 200A2474 sp 200FFCD0 -> Forth
+```
+
+**Result:** pass. All four entries as set; `close-flash` programmed the
+page through the machine-mode service; a user-mode read of the flash
+controller faulted (load access fault) and came back to Forth. Not yet
+run: `enroll`, which reads and writes the board record through the
+service.

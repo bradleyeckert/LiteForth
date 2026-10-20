@@ -31,6 +31,7 @@
 #include "ch32h417.h"
 #include "board.h"
 #include "flash.h"
+#include "pmp.h"                    /* the record, through machine mode */
 #include "../../../../blake2s.h"
 #include "../../../../monocypher.h"
 #include "../../../../errcodes.h"
@@ -41,11 +42,6 @@
 #include "security.h"               /* again: no old flags in sealed_root.h */
 #endif
 
-extern const uint32_t __lf_flash_start[];   /* Link_v5f.ld */
-extern const uint8_t  __lf_flash_size[];
-
-#define RECORD_ADDR     ((uint32_t)__lf_flash_start + (uint32_t)__lf_flash_size)
-#define SECTOR_BYTES    8192u
 #define RECORD_BYTES    256u
 #define RECORD_MAGIC    0x314B464Cu         /* "LFK1" */
 #define UID_ADDR        0x1FFFF7E8u         /* ESIG UNIID1, then UNIID2 */
@@ -75,19 +71,16 @@ static void record_check(const record_t *r, uint8_t out[16]) {
 /* Copies the record from flash; returns 1 if it's valid */
 static int record_read(record_t *r) {
     uint8_t check[16];
-    memcpy(r, (const void *)RECORD_ADDR, sizeof *r);
+    if (pmp_record_read(r)) {           /* the PMP keeps user mode out */
+        return 0;
+    }
     record_check(r, check);
     return r->magic == RECORD_MAGIC && memcmp(check, r->check, 16) == 0;
 }
 
 static int record_write(record_t *r) {
     record_check(r, r->check);
-    if (FLASH_ROM_ERASE(RECORD_ADDR, SECTOR_BYTES) != FLASH_COMPLETE
-        || FLASH_ROM_WRITE(RECORD_ADDR, (uint32_t *)r, RECORD_BYTES) != FLASH_COMPLETE
-        || memcmp((const void *)RECORD_ADDR, r, RECORD_BYTES) != 0) {
-        return ERR_FLASH_WRITE_SECTOR;
-    }
-    return 0;
+    return pmp_record_write(r);         /* erase, program, check: machine mode */
 }
 
 static void uid(uint8_t out[8]) {

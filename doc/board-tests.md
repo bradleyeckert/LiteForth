@@ -1266,3 +1266,98 @@ checks user-mode accesses, and the device token can't be read by the
 V5F's code. Still open: whether a user-mode access that matches no entry
 fails (the catch-all, entry 3, matches everything here).
 
+
+### B14. The flash controller and the board record behind the PMP, with the ecall service (20 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp-ecall`
+(PR #195), with one test line added by hand to `lfRtcSet` in
+`V5F/User/lftime.c`, deleted afterwards:
+
+```c
+return *(volatile uint32_t *)0x40022000UL; // delete this line
+```
+
+The V3F as in B12.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (as in B12) |
+| `LiteForth_V5F.bin` | 91196 | `7716869ad79ed966cfa8be56e788ed4df935a24490caa52c822a0a38c838dba0` (with the test line) |
+
+**Why:** PR #195 adds two unlocked PMP entries: no user-mode access to
+0x08070000-0x08077FFF (the board record and stage 1's records) or to the
+flash controller at 0x40022000. LiteForth runs in user mode, so its flash
+writes now go through an `ecall` service in machine mode
+(`Ecall_U_Mode_Handler`, `V5F/User/pmp.c`). This checks the entries, that
+the service programs flash (a fault in a trap handler would lock the core
+up), and that user mode can't reach the flash controller.
+
+**Expected:** the boot line shows `cfg0 9F181898`, as set and locked;
+`close-flash` programs the page and `foo` runs; `0 rtc!` gives -127 with
+mcause 5 and mtval 40022000, and no reset.
+
+**Run,** on the cli port:
+
+```
+0 open-flash
+ok>: foo 42 . ;
+ok>close-flash
+ok>foo
+42 ok>
+ok>0 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+```
+
+The debug port:
+
+```
+V5F PMP: cfg0 9F181898, addr 0001CFFF 0201CFFF 100089FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+
+V5F fault: mcause 00000005 mepc 200AC69E mtval 40022000 ra 200A2474 sp 200FFCD0 -> Forth
+```
+
+Then `enroll`, which reads the board record through the service, and
+writes it if there's none, on the cli port:
+
+```
+ok>enroll
+enroll: new key made. (security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>reboot
+
+[kwai: COM17 lost; waiting for it to come back]
+
+[kwai: COM17 is back]
+enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+```
+
+The debug port at that reboot:
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 1; the previous run left 11 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F181898, addr 0001CFFF 0201CFFF 100089FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+**Result:** pass. All four entries as set; `close-flash` programmed the
+page through the machine-mode service; a user-mode read of the flash
+controller faulted (load access fault) and came back to Forth. The first
+`enroll` found no record and wrote one through the service; after the
+reboot the second read it back through the service and printed the same
+line, without making a new key. So every flash write and record access
+the V5F makes now goes through machine mode, and none faulted there.

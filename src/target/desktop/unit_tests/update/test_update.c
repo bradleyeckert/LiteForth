@@ -15,6 +15,7 @@
 #include <string.h>
 #include "update.h"
 #include "errcodes.h"
+#include "monocypher.h"
 
 #define FLASH_SIZE      (UPD_V5F_ADDR + UPD_V5F_SLOT)
 #define STAGE_BLOCKS    64
@@ -36,6 +37,16 @@ static int reads_of_tampered;
 static uint8_t *old_img, *new_img, *v3_img;
 static long old_len, new_len, v3_len;
 static sealed_board keys;
+static uint8_t held_key[32];            /* for held_x25519 */
+static int held_calls;
+
+/* The private key held outside sealed_board, as the V5F's machine-mode
+   service holds it (sealed_board.x25519) */
+static int held_x25519(uint8_t shared[32], const uint8_t their_public[32]) {
+    held_calls++;
+    crypto_x25519(shared, held_key, their_public);
+    return 0;
+}
 static int failures, checks;
 
 static void fail(const char *fmt, ...) {
@@ -523,6 +534,19 @@ int main(void) {
     test_recovery();
     test_record_copies();
     test_power_cuts();
+
+    /* Again with the key behind the hook and private_key zero */
+    memcpy(held_key, keys.private_key, 32);
+    crypto_x25519_public_key(keys.public_key, keys.private_key);
+    memset(keys.private_key, 0, 32);
+    keys.x25519 = held_x25519;
+    test_install_and_confirm();
+    test_rollback();
+    checks++;
+    if (held_calls == 0) {
+        failures++;
+        printf("FAIL: the x25519 hook wasn't called\n");
+    }
 
     if (failures) {
         printf("%d of %d update checks failed\n", failures, checks);

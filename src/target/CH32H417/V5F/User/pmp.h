@@ -21,8 +21,8 @@
  * unlocked one binds only user mode, so the machine-mode services below
  * can still program flash and reach the board record. They're reached by
  * `ecall` (Ecall_U_Mode_Handler) and check every address they're given:
- * LiteForth's flash pages and the board record only, with buffers in
- * DTCM. The V5F reads the code flash's low window only in its start-up
+ * programming LiteForth's flash pages here, and board.c's board_serve,
+ * which keeps the board's private key in machine mode; buffers in DTCM. The V5F reads the code flash's low window only in its start-up
  * copy, before the lock. PMP doesn't stop DMA.
  */
 
@@ -41,6 +41,23 @@ void pmp_lock(void);
  */
 void pmp_report(void);
 
+/* Services 16 and up are board.c's (board_serve, BOARD_SVC_*) */
+enum { PMP_SVC_FLASH_PROGRAM = 1 };
+
+/**
+ * Calls machine-mode service n with arguments a and b, by `ecall`
+ * (Ecall_U_Mode_Handler). From user mode only.
+ * @return The service's ior: 0, or ERR_UNSUPPORTED_OPERATION for an
+ * unknown n, or what the service returns.
+ */
+int pmp_call(uint32_t n, uint32_t a, uint32_t b);
+
+/**
+ * Nonzero if [p, p + n) lies in DTCM: where a service's buffers must be,
+ * so it can't be made to read or write anywhere else.
+ */
+int pmp_in_dtcm(uint32_t p, uint32_t n);
+
 /**
  * Erases one LiteForth flash page at addr (__lf_flash_start plus a whole
  * number of pages, Link_v5f.ld) and programs it from src, in machine mode,
@@ -49,19 +66,5 @@ void pmp_report(void);
  * ERR_FLASH_WRITE_SECTOR if the flash didn't take it.
  */
 int pmp_flash_program(uint32_t addr, const uint32_t *src);
-
-/**
- * Erases the board record's sector (right after LiteForth's flash pages,
- * 0x08070000) and programs its first 256 bytes from src (in DTCM), in
- * machine mode, then checks them.
- * @return 0, ERR_INVALID_ADDRESS, or ERR_FLASH_WRITE_SECTOR.
- */
-int pmp_record_write(const void *src);
-
-/**
- * Copies the board record's 256 bytes to dst (in DTCM), in machine mode.
- * @return 0 or ERR_INVALID_ADDRESS.
- */
-int pmp_record_read(void *dst);
 
 #endif /* PMP_H */

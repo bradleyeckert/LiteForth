@@ -37,7 +37,7 @@ $(WORK)/cdc_bridge.c: $(CH)/Common/cdc_bridge.c
 	cp $< $@
 
 $(WORK)/sim: $(DEPS)
-	$(CC) $(CFLAGS) $(UNITS) -o $@
+	$(CC) $(CFLAGS) -DSECURITY_LEVEL=0 $(UNITS) -o $@
 
 $(WORK)/sim_strict: $(DEPS)
 	$(CC) $(CFLAGS) -DSECURITY_LEVEL=2 $(UNITS) -o $@

@@ -144,5 +144,8 @@
 #define ERR_YMODEM_SOURCE          (-124)   /* Bad file in a YMODEM transfer */
 #define ERR_BLK_BUSY               (-125)   /* A block transfer is still in progress */
 #define ERR_BLK_TIMEOUT            (-126)   /* A block transfer took too long */
+// CPU exceptions during a VM run (vmTrap; a misaligned access gives -23)
+#define ERR_BUS_FAULT              (-127)   /* CPU access fault: no memory or peripheral there */
+#define ERR_CPU_EXCEPTION          (-128)   /* Other CPU exception (illegal instruction etc.) */
 
 #endif // ERRCODES_H

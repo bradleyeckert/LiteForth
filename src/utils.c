@@ -491,7 +491,9 @@ static const ErrorMapping error_table[] = {
     { ERR_YMODEM_TRANSFER, "YMODEM transfer failed or cancelled" },
     { ERR_YMODEM_SOURCE, "Bad file in a YMODEM transfer" },
     { ERR_BLK_BUSY, "A block transfer is still in progress" },
-    { ERR_BLK_TIMEOUT, "A block transfer took too long" }
+    { ERR_BLK_TIMEOUT, "A block transfer took too long" },
+    { ERR_BUS_FAULT, "CPU access fault: no memory or peripheral there" },
+    { ERR_CPU_EXCEPTION, "Other CPU exception (illegal instruction etc.)" }
 };
 
 /**

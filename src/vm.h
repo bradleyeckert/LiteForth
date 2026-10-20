@@ -134,6 +134,38 @@ int32_t vmRun(int once, uint32_t inst, int32_t address);
 int vmRunning(void);
 
 /**
+ * @brief Tells whether a CPU exception can be routed to the VM (vmTrap):
+ * nonzero while vmRun is under way, including the C code of the API calls
+ * it makes. Always 0 in a build with VM_NO_TRAPS (no setjmp; vmTrap
+ * isn't there).
+ * @return Nonzero inside vmRun.
+ */
+int vmTrapArmed(void);
+
+/**
+ * @brief Ends the innermost vmRun with `ior`, for a CPU exception during
+ * it (the CH32H417's HardFault_Handler, through trap_resume in
+ * ch32h417_it.c). Call only when vmTrapArmed() is nonzero, from ordinary
+ * code, not from inside the trap handler: it longjmps to that vmRun.
+ * vmRun then returns `ior` as for any error: a stepped app gets its yeet
+ * handler (X = the PC from the last time the VM registers were saved,
+ * which is the start of the run or the last API call, not the faulting
+ * instruction; Y = ior), a word call gets its PC back. The VM registers
+ * and stacks are as last saved, so the app's handler (which empties the
+ * stacks) or QUIT starts afresh. C code between the vmRun and the fault,
+ * such as an API call, is abandoned without cleaning up.
+ * @param ior The error to return, nonzero.
+ */
+#if defined(__GNUC__)
+#define VM_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+#define VM_NORETURN __declspec(noreturn)
+#else
+#define VM_NORETURN
+#endif
+VM_NORETURN void vmTrap(int32_t ior);
+
+/**
  * @brief Reads from the memory space
  *
  * A slice address returns just that bit field, zero-extended.

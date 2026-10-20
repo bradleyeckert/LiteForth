@@ -303,7 +303,7 @@ V3F: USB configured
 
 ### B6. Install, rollback, recovery and lock-down, run by hiltest.py (18 October 2026)
 
-The first run of [scripts/admin/hiltest.py](../scripts/admin/hiltest.py) on the board. Nobody touched the board during the run: every reset was `reboot` typed to LiteForth, `reset` typed to the recovery console, or the V3F's own reset when the V5F didn't start.
+The first run of [scripts/admin/hiltest.py](../../scripts/admin/hiltest.py) on the board. Nobody touched the board during the run: every reset was `reboot` typed to LiteForth, `reset` typed to the recovery console, or the V3F's own reset when the V5F didn't start.
 
 **Firmware:**
 - `main` at PR #179: the V3F's timed wait for the V5F, `reboot`, the lock-down check, and recovery on request.
@@ -822,7 +822,7 @@ both downloads off; WRPR0 `00`, so sectors 0-7 protected. The chip had
 written each complement byte itself, so the whole-halfword comparison
 failed. Stage 1 therefore skipped its reset and the script stopped. This is
 fixed in PR #185 (the data bytes only), and the finding is in
-[ch32h417-notes.md](ch32h417-notes.md).
+[ch32h417-notes.md](../ch32h417-notes.md).
 
 **After a hard reset**, as reported: the V5F booted normally. A level 2
 stage 1 starts the V5F only when its lock-down check (OBR and WPR) passes,

@@ -26,7 +26,7 @@ py sealblocks.py root-header root.pub --product 0x4C46 -o ..\..\src\target\CH32H
 ```
 
 Makes a sealed block file from a plain one, as planned in
-[doc/encrypted-blocks.md](../../doc/encrypted-blocks.md): the content blocks
+[doc/admin/encrypted-blocks.md](../../doc/admin/encrypted-blocks.md): the content blocks
 encrypted (AES-128 or SM4 in CTR mode) with a new key for each release,
 that key wrapped for each board in `boards.csv` (`UID,public key,name` in
 hex), the block hashes in hash table blocks after the content, and block 0
@@ -54,7 +54,7 @@ py hiltest.py run --good v5f-1.lfu --hang v5f-2-hang.lfu
 ```
 
 Tests stage 1 on a real CH32H417 board from the PC
-([doc/firmware-updates.md](../../doc/firmware-updates.md) section 9). It
+([doc/admin/firmware-updates.md](../../doc/admin/firmware-updates.md) section 9). It
 needs only two serial ports: the **cli port**, the board's USB terminal
 (the V3F's USB CDC port, found by its USB IDs, 1A86:FE0C, or named with
 `--cli`), and the **debug port**, the debug UART at 9600 baud (the
@@ -80,7 +80,7 @@ debug probe and no reset button. `--reset-cmd "COMMAND"` (or the
 
   It writes a Markdown report (`--report`, default `hil-report-DATE.md`)
   with each step, both ports' output and the packages' sha256, for
-  [doc/board-tests.md](../../doc/board-tests.md).
+  [doc/admin/board-tests.md](../../doc/admin/board-tests.md).
 
 The card needs `lfstage.bin` and `lfbackup.bin`. The packages write the
 V5F's flash slot and the security record. Needs `pyserial`
@@ -131,7 +131,7 @@ again if it failed before writing anything; each retry is in the report.
 
 The report (`--report`, default `lockdown-report-DATE.md`) has every step,
 both ports' output, the images' sha256 and the UID, for
-[doc/board-tests.md](../../doc/board-tests.md). Then run `enroll` (a level
+[doc/admin/board-tests.md](../../doc/admin/board-tests.md). Then run `enroll` (a level
 2 board's key comes from the RNG), add its line to `boards.csv`, and seal
 the card's `lfblocks.fb4` and packages for it.
 

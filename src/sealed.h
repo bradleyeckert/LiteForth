@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*
- * Sealed block files (doc/encrypted-blocks.md): a block file whose content
+ * Sealed block files (doc/admin/encrypted-blocks.md): a block file whose content
  * blocks are encrypted (AES-128 or SM4 in CTR mode) for a list of boards,
  * with BLAKE2s hashes of the encrypted blocks in hash table blocks and a
  * block 0 signed by a release key that the root key certifies.
@@ -15,7 +15,7 @@
 
 #define SEALED_MAGIC        "LITEFORTHS"
 #define SEALED_MAGIC_LEN    10
-/* A firmware update package (doc/firmware-updates.md section 5): a sealed
+/* A firmware update package (doc/admin/firmware-updates.md section 5): a sealed
    file whose content is a firmware image, not blocks. Never mounted as a
    block file; `-1 ymodem` refuses it. Also SEALED_MAGIC_LEN long. */
 #define PACKAGE_MAGIC       "LITEFORTHF"
@@ -42,7 +42,7 @@ typedef struct {
     uint8_t public_key[32];         /* X25519, with x25519 */
 } sealed_board;
 
-/* A firmware update package's description (doc/firmware-updates.md
+/* A firmware update package's description (doc/admin/firmware-updates.md
    section 5), from block 0 */
 enum { SEALED_V5F = 1, SEALED_STAGE1 = 2 };
 typedef struct {

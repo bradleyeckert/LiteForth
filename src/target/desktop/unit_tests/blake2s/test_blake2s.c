@@ -1,7 +1,7 @@
 /* Tests src/blake2s.c against Python's hashlib.blake2s (vectors.h): plain
    hashes, keys of 1 to 32 bytes, salt, personalization and short digests,
    fed whole and in pieces, plus the parameter checks. The sealed block
-   format (doc/encrypted-blocks.md) uses all of these. */
+   format (doc/admin/encrypted-blocks.md) uses all of these. */
 #include "blake2s.h"
 #include <stdio.h>
 #include <string.h>

@@ -323,7 +323,7 @@ which may save the next person some time:
 ## Privilege modes and PMP
 
 Found with `pmp-test` on the V5F (details in
-[firmware-updates.md](firmware-updates.md) section 8):
+[firmware-updates.md](admin/firmware-updates.md) section 8):
 
 - WCH's start-up code (`startup_ch32h417_v5f.S`, and the V3F's) writes
   `mstatus = 0x6088` before its `mret` into `main`. MPP is 0, so `main`

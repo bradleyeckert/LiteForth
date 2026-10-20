@@ -112,7 +112,7 @@ CH32H417 board: stage 0 and an updatable stage 1 in the V3F, staging and
 backups on the microSD card instead of NOR flash. It supersedes the layout
 below where they differ.
 
-LiteForth's current plan ([flashmem.md](flashmem.md)): RoT in sectors 0..N-1, a
+LiteForth's current plan ([flashmem.md](../flashmem.md)): RoT in sectors 0..N-1, a
 security sector N, then four flash pages for the dictionary. A proposal to
 pin down (**Decide** sizes):
 
@@ -166,7 +166,7 @@ At every reset, stage 0:
    last install, if the core is updatable.
 4. **Check the application.** Fast path: the per-device image MAC (5.3).
    No match: don't launch; go to QUIT at security level 2, as
-   [popthehood.md](popthehood.md) already describes.
+   [popthehood.md](../popthehood.md) already describes.
 5. **Recovery override.** A strap pin held at reset skips launching the
    app, so a bad app can't brick the unit. It only skips the launch; it
    never lowers the security level or turns off checks.
@@ -224,7 +224,7 @@ trusted just because they're in NOR:
   400 MHz.
 - **Device data** blocks each carry a MAC made with a key derived from
   K_img, in the 32 bytes binary blocks already reserve (`putbin.py`,
-  [blocks.md](blocks.md)), or in a separate MAC table. **Decide** which. A
+  [blocks.md](../blocks.md)), or in a separate MAC table. **Decide** which. A
   probe could still put back an older copy of a block with its old MAC;
   **Decide** whether that matters for the data kept there.
 - **Confidentiality**, if the Forth source or fonts are IP worth
@@ -266,7 +266,7 @@ Rules:
   repeated words) at power-up. **Verify** RNG quality on real parts at
   provisioning (collect a sample per lot).
 
-Security-level changes ([popthehood.md](popthehood.md), challenge-response): the
+Security-level changes ([popthehood.md](../popthehood.md), challenge-response): the
 challenge should include the UID, the requested level and a fresh random
 nonce. The management server answers with a signature. That's checked
 with a vendor *admin* public key in the RoT, so a leaked server database
@@ -437,7 +437,7 @@ Goal: a production unit's terminal can do only safe things until someone
 authenticates. It boots at security level 2 with a small "safe" wordlist,
 and only an authenticated unlock gives it the `forth` wordlist.
 
-Levels (refining [popthehood.md](popthehood.md)):
+Levels (refining [popthehood.md](../popthehood.md)):
 
 | Level | The interpreter finds | Can |
 |---|---|---|
@@ -517,7 +517,7 @@ exFAT, through FatFs; RF64 files, since a WAV file's 32-bit sizes stop at
 4 GB (about 70 minutes at 1 MB/s); files pre-expanded as one contiguous
 run (`f_expand`), so streaming never touches the allocation table; and a
 specified card part, so the worst-case write latency is known. The details are
-in [storage.md](storage.md) (PR #118). What matters for security:
+in [storage.md](../storage.md) (PR #118). What matters for security:
 
 - **The buffer.** It comes from the RAM pool, shared with other uses, and
   must cover the specified card's worst-case busy time at 1 MB/s plus one
@@ -688,7 +688,7 @@ default) and the old certificate revoked.
   <https://www.wch.cn/downloads/CH32H417RM_PDF.html>
 - WCH, *CH32H417/H416/H415 datasheet* V1.5:
   <https://www.wch-ic.com/downloads/CH32H417DS0_PDF.html>
-- LiteForth: [popthehood.md](popthehood.md) (RoT, security levels, boot sequence),
-  [flashmem.md](flashmem.md) (flash layout), [blocks.md](blocks.md) (block HMAC space)
+- LiteForth: [popthehood.md](../popthehood.md) (RoT, security levels, boot sequence),
+  [flashmem.md](../flashmem.md) (flash layout), [blocks.md](../blocks.md) (block HMAC space)
 - CRA timeline: <https://finitestate.io/blog/cyber-resilience-act-timeline-2026-2027>
 - RED cybersecurity (EN 18031): <https://www.tuvsud.com/en-us/services/product-certification/red-cybersecurity-requirements>

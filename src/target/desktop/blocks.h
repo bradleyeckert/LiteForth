@@ -191,7 +191,7 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
 int blk_remount(uint32_t *capacity);
 
 /*
- * Staging a firmware update package (`-2 ymodem`, doc/firmware-updates.md
+ * Staging a firmware update package (`-2 ymodem`, doc/admin/firmware-updates.md
  * section 6): lfstage.bin, a file made beforehand that the package is
  * written into in place. On a card (image) it's CARD_STAGE_FILE in the
  * exFAT root beside lfblocks.fb4, found by card_find_file; with a plain

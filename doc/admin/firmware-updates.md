@@ -609,7 +609,7 @@ RDP 0:
   (mcause 5; [board-tests.md](board-tests.md) B13). **Verify** whether
   one that matches no entry fails.
 - ~~**Verify** whether the clearing of a locked entry is ignored.~~ It
-  is (`pmp_report` at boot, [ch32h417-notes.md](ch32h417-notes.md)).
+  is (`pmp_report` at boot, [ch32h417-notes.md](../ch32h417-notes.md)).
 - **Verify** that the V5F can execute from the V3F's flash (for the shim
   in section 8).
 - **Verify,** on the spare board only: that under RDP 2 nothing clears

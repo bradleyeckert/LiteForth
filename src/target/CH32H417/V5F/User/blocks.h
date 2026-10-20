@@ -183,7 +183,7 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
 int blk_remount(uint32_t *capacity);
 
 /*
- * Staging a firmware update package (`-2 ymodem`, doc/firmware-updates.md
+ * Staging a firmware update package (`-2 ymodem`, doc/admin/firmware-updates.md
  * section 6): CARD_STAGE_FILE (lfstage.bin) in the card's exFAT root, made
  * beforehand in a PC and written in place, found by card_find_file when
  * the card is mounted.

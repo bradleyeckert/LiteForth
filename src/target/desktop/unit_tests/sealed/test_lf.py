@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""lf on sealed block files (doc/encrypted-blocks.md, step 3): sealblocks.py
+"""lf on sealed block files (doc/admin/encrypted-blocks.md, step 3): sealblocks.py
 seals a copy of bin/lfblocks.fb4, and lf -K (a board file) must load core.f
 from it and read every block exactly as from the plain file, with AES and
 SM4, as a file and inside a card image; and must refuse what a board

@@ -4,7 +4,7 @@
 /* Where stage 1's update code (src/update.c) works in the code flash, as
    offsets from its start (0x08000000), before update.h's defaults.
 
-   For now the flash map stays as it is (doc/firmware-updates.md section 2
+   For now the flash map stays as it is (doc/admin/firmware-updates.md section 2
    proposes moving things): the V3F's image in the first 64 KB, the V5F's
    in the next 128 KB (Link_v5f.ld), LiteForth's flash pages at 0x30000,
    the V5F's board record at 0x70000. The security record's two copies go

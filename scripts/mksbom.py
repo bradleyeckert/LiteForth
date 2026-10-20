@@ -12,7 +12,7 @@ where it came from, its license, and which files of this repository hold
 it. The script adds each file's SHA-1 and SHA-256, so the SBOM records
 exactly what's here; --check (run by `make test`, unit_tests/sbom) fails
 when a listed file changes, so a change to third-party code gets noticed
-and the list kept right. doc/sbom.md describes the components.
+and the list kept right. doc/admin/sbom.md describes the components.
 
 The document's creation time is the last commit's time, so the file only
 changes when the components do; --check ignores it.
@@ -281,7 +281,7 @@ def build():
             'created': created or '1970-01-01T00:00:00Z',
             'creators': ['Tool: scripts/mksbom.py', 'Person: Bradley N Eckert'],
             'comment': 'Made by scripts/mksbom.py from its component list; '
-                       'doc/sbom.md describes it.'},
+                       'doc/admin/sbom.md describes it.'},
         'hasExtractedLicensingInfos': [{
             'licenseId': 'LicenseRef-WCH-EVT', 'name': 'WCH EVT notice',
             'extractedText': WCH_NOTICE,

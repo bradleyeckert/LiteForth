@@ -10,7 +10,7 @@
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
     ],
-    "comment": "Made by scripts/mksbom.py from its component list; doc/sbom.md describes it."
+    "comment": "Made by scripts/mksbom.py from its component list; doc/admin/sbom.md describes it."
   },
   "hasExtractedLicensingInfos": [
     {

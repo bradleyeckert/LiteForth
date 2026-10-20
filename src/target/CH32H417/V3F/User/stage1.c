@@ -274,7 +274,7 @@ static void io_init(void) {
 /* ------------------------------------------------------------------------
  * The lock-down check: read protection, write protection and the boot
  * ROM's downloads, as a production board must have them
- * (doc/firmware-updates.md section 8). Only reads the option bytes.
+ * (doc/admin/firmware-updates.md section 8). Only reads the option bytes.
  */
 static char insecure[200];              /* what's wrong, or "" */
 

@@ -1,12 +1,12 @@
 # Software Bill of Materials
 
-[`sbom.spdx.json`](../sbom.spdx.json), in the repository root, lists what
+[`sbom.spdx.json`](../../sbom.spdx.json), in the repository root, lists what
 LiteForth is made of besides its own code, in
 [SPDX 2.3](https://spdx.github.io/spdx-spec/v2.3/) JSON: each component's
 name, version, supplier, source, license and copyright, and every file of
 this repository that holds it, with its SHA-1 and SHA-256. Files changed
 from what the supplier published say so. LiteForth's own files are MIT
-([LICENSE](../LICENSE)).
+([LICENSE](../../LICENSE)).
 
 `scripts/mksbom.py` writes it from a list of components kept in the
 script. Checksums are of the files as git stores them (LF line endings),

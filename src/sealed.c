@@ -1,4 +1,4 @@
-/* Sealed block files: mounting and reading (doc/encrypted-blocks.md).
+/* Sealed block files: mounting and reading (doc/admin/encrypted-blocks.md).
    The layout constants below are the table in its section 3. */
 #include <stdio.h>
 #include <string.h>

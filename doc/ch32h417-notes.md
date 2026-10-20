@@ -235,6 +235,27 @@ points:
   them all 0, and `ECDC_ITConfig` clears with a `uint8_t` mask, so neither
   can work.
 
+### Unused peripheral addresses read as 0, without a fault
+
+Reads from the V5F at the middle of three holes in the peripheral map
+(`ch32h417.h` has nothing at 0x4000C000, 0x4001C000 or 0x4002C000) gave 0
+and raised no exception; UHSIF at 0x40038000, for comparison, read
+E71618B3. Tried from Forth on the main board at `SECURITY_LEVEL` 0
+(2026-10-20), where VM page 5 maps 0x40000000..0x40038400 unfiltered:
+
+```
+283000 @ .  0H        ( 0x4000C000 )
+287000 @ .  0H        ( 0x4001C000 )
+28B000 @ .  0H        ( 0x4002C000 )
+28E000 @ .  E71618B3H ( 0x40038000, UHSIF )
+```
+
+So an `@` in the I/O page can't raise a CPU exception there, and the VM
+rejects anything past the page with -9 before the CPU reads it. The trap
+routing (`vmTrap`, the V5F's `HardFault_Handler`) is then mainly for faults
+in the C code of API words during a VM run. Writes to the holes weren't
+tried.
+
 ## The nanoCH32H417 board
 
 - **VIO18 for the LCD connector.** VIO18 supplies the high-speed GPIOs,

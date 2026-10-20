@@ -47,7 +47,7 @@
  */
 
 #ifndef SECURITY_LEVEL
-#define SECURITY_LEVEL      2
+#define SECURITY_LEVEL      0
 #endif
 
 #if (SECURITY_LEVEL < 0) || (SECURITY_LEVEL > 2)

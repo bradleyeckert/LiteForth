@@ -120,6 +120,23 @@ int lfStandby(void);
  */
 int lfReboot(void);
 
+/**
+ * Forth word `cpu-fault`  ( n -- x )
+ * TEMPORARY, for testing the trap routing (vmTrap in vm.c, the V5F's
+ * HardFault_Handler); to be removed after the board test. Makes the CPU
+ * do something it may reject, from the C code of an API call, as a bug
+ * in one would:
+ *   1  an illegal instruction (0x0000)          expect -128
+ *   2  a 32-bit load from an odd RAM address    -23, or x if the core
+ *                                               handles misaligned loads
+ *   3  a load from 0x30000000 (nothing there)   -127, or x if it reads
+ *   4  a store of 0 to 0x30000000               -127, or 0 if ignored
+ * x is what the load read (0 for 1 and 4, which push it only if the CPU
+ * carries on); any other n gives -24. On the desktop: -21.
+ * @return 0, or an ior.
+ */
+int lfAPI_cpuFault(void);
+
 #ifdef __cplusplus
 }
 #endif

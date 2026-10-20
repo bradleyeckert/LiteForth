@@ -15,7 +15,9 @@
 #define PMP_ADDR0   NAPOT(0x00070000u, 0x8000u)
 #define PMP_ADDR1   NAPOT(0x08072000u, 0x2000u)
 #define PMP_ADDR2   NAPOT(0x08074000u, 0x2000u)
-#define PMP_ADDR3   0xFFFFFFFFu                 /* NAPOT: all of memory */
+#define PMP_ADDR3   0x1FFFFFFFu                 /* NAPOT: 4 GB from 0, all of memory */
+/* (0xFFFFFFFF reads back as 0x3FFFFFFF: the core doesn't keep pmpaddr's
+   top two bits, address bits 33:32. Both still cover everything.) */
 #define PMP_CFG0    ((PMP_L | PMP_NAPOT) << 0 | (PMP_L | PMP_NAPOT) << 8 | \
                      (PMP_L | PMP_NAPOT) << 16 | (PMP_L | PMP_NAPOT | PMP_RWX) << 24)
 

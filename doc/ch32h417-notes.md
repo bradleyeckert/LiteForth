@@ -339,4 +339,17 @@ Found with `pmp-test` on the V5F (details in
   being taken.
 - MPRV seems to be ignored: with it set and MPP = user, machine-mode loads
   and stores weren't checked as user mode.
+- `pmpaddr` keeps 30 bits: `0xFFFFFFFF` reads back as `0x3FFFFFFF`
+  (address bits 33:32 aren't there). For "all memory" in NAPOT mode,
+  `0x1FFFFFFF` (4 GB from 0) reads back as written.
+- **Clearing a locked entry is ignored.** After `pmp_lock` (V5F/User/pmp.c)
+  locked four entries in the start-up code, writing 0 to `pmpaddr0` and
+  clearing entry 0's byte of `pmpcfg0` changed neither (20 October 2026):
+
+  ```
+  V5F PMP: cfg0 9F989898, addr 0001CFFF 0201CBFF 0201D3FF 3FFFFFFF: NOT as set, locked (clearing entry 0 was ignored)
+  ```
+
+  ("NOT as set" because pmp.c then wrote `0xFFFFFFFF` to `pmpaddr3`.) The
+  V5F started normally with the entries locked.
 

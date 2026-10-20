@@ -1157,3 +1157,42 @@ mistake, not the board's.
   - an install from recovery without a backup.
 - **The lock-down scenario** found no lock-down warning, and LiteForth
   started: the board is locked down.
+
+### B12. The V5F's PMP locked over stage 1's records, at power-on (20 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp` at
+`36629a4` (PR #194); the V3F built 20 October 2026 10:20:30 with GCC
+12.2.0. Image hashes weren't recorded.
+
+**Why:** `pmp_lock` (`V5F/User/pmp.c`), called by the V5F's start-up code
+in machine mode before its `mret` into `main`, locks four NAPOT entries:
+no access to 0x00070000-0x00077FFF and to stage 1's records at 0x08072000
+and 0x08074000 (the device token), then all memory RWX. Locked entries
+also apply in machine mode. It then tries to clear entry 0, and
+`pmp_report` prints what the CSRs read back.
+
+**Expected:** the V5F starts normally; the entries read back as set and
+stay set after the attempt to clear entry 0.
+
+**Run:** power-on reset; the debug port:
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 1; the previous run left 2 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F989898, addr 0001CFFF 0201CBFF 0201D3FF 3FFFFFFF: NOT as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+**Result:** pass. The V5F started with all four entries locked, and
+clearing entry 0 after the lock was ignored. "NOT as set" is the report
+being too strict: `pmpaddr3` was written as `0xFFFFFFFF` and reads back
+`0x3FFFFFFF`, because the core keeps only 30 bits of `pmpaddr`. In NAPOT
+mode that's still a region covering all of memory. pmp.c now writes
+`0x1FFFFFFF` (4 GB from 0). Not yet shown on the board: that an access
+to a fenced record faults.

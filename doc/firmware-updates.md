@@ -574,8 +574,8 @@ RDP 0:
   tested.
 - **Verify,** from real user mode: that user-mode accesses are checked,
   and whether one that matches no entry fails.
-- **Verify** whether the clearing of a locked entry is ignored (the test
-  locked up before it got that far).
+- ~~**Verify** whether the clearing of a locked entry is ignored.~~ It
+  is (`pmp_report` at boot, [ch32h417-notes.md](ch32h417-notes.md)).
 - **Verify** that the V5F can execute from the V3F's flash (for the shim
   in section 8).
 - **Verify,** on the spare board only: that under RDP 2 nothing clears

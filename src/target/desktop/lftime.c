@@ -60,6 +60,7 @@ void lfWatchdogPing(void) {
 #include <time.h>
 #include "errcodes.h"
 #include "main.h"
+#include "tools.h"                      // vmPop
 
 static int rtc_started;
 static int64_t rtc_offset;              // lfRtcGet() - time(NULL)
@@ -126,4 +127,9 @@ int lfStandby(void) {
 int lfReboot(void) {
     lfReset();                          // doesn't return
     return 0;
+}
+
+int lfAPI_cpuFault(void) {              // temporary: see lftime.h
+    (void)vmPop();
+    return ERR_UNSUPPORTED_OPERATION;
 }

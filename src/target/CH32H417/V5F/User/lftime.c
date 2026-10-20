@@ -86,6 +86,7 @@ void lfWatchdogPing(void) {
 
 #include "cdc_shared.h"
 #include "../../../../errcodes.h"
+#include "../../../../tools.h"        /* cpu-fault: vmPop, vmPush */
 
 #define RTC_SYNC_MS     100             /* RSF, RTOFF: a few RTC clocks */
 #define TX_DRAIN_MS     200             /* lfStandby lets the terminal output go */
@@ -275,5 +276,32 @@ int lfReboot(void) {
     while (cdc_ring_count(&sh->tx) && lfGetTimeMicroSec() - t0 < 100000u) {
     }
     NVIC_SystemReset();
+    return 0;
+}
+
+/* cpu-fault (temporary): see lftime.h. noinline, so the faulting
+   instruction is in here, where mepc shows it. */
+static volatile uint32_t fault_word[2];
+
+int __attribute__((noinline)) lfAPI_cpuFault(void) {
+    uint32_t n = vmPop();
+    uint32_t x = 0;
+    switch (n) {
+    case 1:
+        __asm volatile (".2byte 0x0000");   /* all zeros: defined illegal */
+        break;
+    case 2:
+        __asm volatile ("lw %0, 1(%1)" : "=r"(x) : "r"(fault_word) : "memory");
+        break;
+    case 3:
+        x = *(volatile uint32_t *)0x30000000u;
+        break;
+    case 4:
+        *(volatile uint32_t *)0x30000000u = 0;
+        break;
+    default:
+        return ERR_INVALID_NUMERIC;
+    }
+    vmPush((int32_t)x);
     return 0;
 }

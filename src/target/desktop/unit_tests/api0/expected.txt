@@ -84,4 +84,5 @@
  83 API_DOT              lfAPI_dot
  84 API_SEE              lfAPI_see
  85 API_ECDC_TEST        lfAPI_ecdcTest
-count 86
+ 86 API_CPU_FAULT        lfAPI_cpuFault
+count 87

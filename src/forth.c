@@ -209,6 +209,7 @@ static const struct s_head forth_heads[] = {
     { PREV, ".",            API0(API_DOT),                            185},
     { PREV, "see",          API0(API_SEE),                            186},
     { PREV, "ecdc-test",    API0(API_ECDC_TEST),                      205},
+    { PREV, "cpu-fault",    API0(API_CPU_FAULT), /* n -- x, temporary */ 206},
 #endif
 };
 #undef PREV

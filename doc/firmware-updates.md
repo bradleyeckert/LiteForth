@@ -572,8 +572,10 @@ RDP 0:
 - ~~**Verify** that a locked PMP entry applies in machine mode.~~ It
   does, on the V5F (section 8, *What the board showed*); the V3F not yet
   tested.
-- **Verify,** from real user mode: that user-mode accesses are checked,
-  and whether one that matches no entry fails.
+- ~~**Verify,** from real user mode, that user-mode accesses are
+  checked.~~ They are: a load from a locked no-access entry faulted
+  (mcause 5; [board-tests.md](board-tests.md) B13). **Verify** whether
+  one that matches no entry fails.
 - ~~**Verify** whether the clearing of a locked entry is ignored.~~ It
   is (`pmp_report` at boot, [ch32h417-notes.md](ch32h417-notes.md)).
 - **Verify** that the V5F can execute from the V3F's flash (for the shim

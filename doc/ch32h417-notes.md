@@ -352,4 +352,7 @@ Found with `pmp-test` on the V5F (details in
 
   ("NOT as set" because pmp.c then wrote `0xFFFFFFFF` to `pmpaddr3`.) The
   V5F started normally with the entries locked.
+- **User-mode accesses are checked.** With those entries locked, a load
+  of 0x08072000 from LiteForth's C code (user mode) faulted: mcause 5,
+  mtval `08072000` (board-tests B13).
 

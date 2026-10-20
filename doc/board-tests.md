@@ -1201,3 +1201,46 @@ being too strict: `pmpaddr3` was written as `0xFFFFFFFF` and reads back
 mode that's still a region covering all of memory. pmp.c now writes
 `0x1FFFFFFF` (4 GB from 0). Not yet shown on the board: that an access
 to a fenced record faults.
+
+### B13. A read of stage 1's record from the V5F faults under the PMP (20 October 2026)
+
+**Board and firmware:** the main board, as in B12, with the V5F from PR
+#194 and one test line added by hand to `lfRtcSet` in
+`V5F/User/lftime.c`, deleted afterwards:
+
+```c
+int lfRtcSet(uint32_t seconds) {
+    return *(volatile uint32_t *)0x08072000UL; // delete this line
+```
+
+Image hashes weren't recorded for this build.
+
+**Why:** B12 showed the entries locked, not that they stop an access.
+LiteForth's C code runs in user mode (WCH's start-up `mret`s into `main`
+with MPP = 0), so this shows whether a user-mode load from a locked
+no-access entry faults, and that the fault comes back to Forth through
+`vmTrap` (`rtc!` runs inside a VM run).
+
+**Expected:** `0 rtc!` gives -127 and a `-> Forth` fault line, with no
+reset.
+
+**Run,** on the cli port:
+
+```
+ok>0 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+```
+
+The debug port:
+
+```
+V5F fault: mcause 00000005 mepc 200AC6DE mtval 08072000 ra 200A24C6 sp 200FFCD0 -> Forth
+```
+
+**Result:** pass. The load faulted as a load access fault (mcause 5) with
+mtval the record's address, and the terminal carried on. So the PMP
+checks user-mode accesses, and the device token can't be read by the
+V5F's code. Still open: whether a user-mode access that matches no entry
+fails (the catch-all, entry 3, matches everything here).
+

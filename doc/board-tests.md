@@ -1199,8 +1199,30 @@ clearing entry 0 after the lock was ignored. "NOT as set" is the report
 being too strict: `pmpaddr3` was written as `0xFFFFFFFF` and reads back
 `0x3FFFFFFF`, because the core keeps only 30 bits of `pmpaddr`. In NAPOT
 mode that's still a region covering all of memory. pmp.c now writes
-`0x1FFFFFFF` (4 GB from 0). Not yet shown on the board: that an access
-to a fenced record faults.
+`0x1FFFFFFF` (4 GB from 0). That an access to a fenced record faults is
+B13.
+
+**Again with the fix** (PR #194 at `c4faf99` and later, with no test
+line), after a power-on:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (unchanged) |
+| `LiteForth_V5F.bin` | 90852 | `e5914328e96affe5c368594daa57c10adeeaed518f32e6b137f658a13d484bd9` |
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by software power; none from before (power-up)
+V3F: the V5F is running
+V5F PMP: cfg0 9F989898, addr 0001CFFF 0201CBFF 0201D3FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+**Result:** pass: all four entries as set and locked.
 
 ### B13. A read of stage 1's record from the V5F faults under the PMP (20 October 2026)
 

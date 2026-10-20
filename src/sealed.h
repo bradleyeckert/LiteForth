@@ -33,6 +33,13 @@ typedef struct {
     uint32_t sealed_only;           /* nonzero: the block layer refuses plain
                                        block files (SECURITY_LEVEL 2); sealed.c
                                        doesn't look at it */
+    /* If x25519 is set, it holds the private key, and private_key can stay
+       zero: sealed.c calls it for the shared secret with a file's ephemeral
+       public key (returning 0, or nonzero if it can't), and takes the
+       board's public key from public_key. The CH32H417's V5F sets it, so
+       its key stays in machine mode (V5F/User/board.c). */
+    int (*x25519)(uint8_t shared[32], const uint8_t their_public[32]);
+    uint8_t public_key[32];         /* X25519, with x25519 */
 } sealed_board;
 
 /* A firmware update package's description (doc/firmware-updates.md

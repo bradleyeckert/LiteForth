@@ -174,12 +174,20 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
     }
     uint8_t shared[32], board_pub[32], kek[16], cek[16], check[8], salt[8];
     static const uint8_t zero[32];
-    crypto_x25519(shared, board->private_key, h + 40);
+    if (board->x25519) {                        /* the key is held elsewhere */
+        if (board->x25519(shared, h + 40) != 0) {
+            crypto_wipe(shared, sizeof shared);
+            return fail(msg, len, "the board's key isn't there");
+        }
+        memcpy(board_pub, board->public_key, 32);
+    } else {
+        crypto_x25519(shared, board->private_key, h + 40);
+        crypto_x25519_public_key(board_pub, board->private_key);
+    }
     if (crypto_verify32(shared, zero) == 0) {
         crypto_wipe(shared, sizeof shared);
         return fail(msg, len, "bad ephemeral key");
     }
-    crypto_x25519_public_key(board_pub, board->private_key);
     uint8_t pubs[64];
     memcpy(pubs, h + 40, 32);
     memcpy(pubs + 32, board_pub, 32);

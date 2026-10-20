@@ -446,6 +446,23 @@ token.
 
   That leaves nothing for the RNG or the option bytes; the IO allowlist
   above keeps Forth away from them, and the C code is trusted.
+- **DMA on this chip** (CH32H417 reference manual V1.8, checked
+  20 October 2026): nothing in hardware limits what a bus master reads.
+  There's no MPU or firewall (`__MPU_PRESENT 0` in `ch32h417.h`), no lock
+  bit on any DMA, DMAMUX or RCC register, and no privilege control on
+  peripheral registers. DMA1/DMA2 read code flash (RM 10.1: "Flash memory,
+  SRAM, peripheral SRAM, HB peripherals can all be used as the sources
+  and targets"), and nothing says read protection stops them. Bus masters
+  besides DMA1/DMA2: ETH, the USB controllers, USBPD, SDMMC, DVP, SerDes,
+  LTDC, GPHA, HSADC, UHSIF, and the ECDC (`SRC_ADDR`/`DST_ADDR`), the
+  engine `ecdc.c` uses. The one access control is the V5F's
+  `MEMARY_CFGR` CSR (0xBC5, RM 4.2.3.12, machine mode, no lock), which can
+  turn off DMA reads and writes of the V5F's ITCM and DTCM, and the V3F's
+  access to them; it doesn't cover flash or the shared SRAM. So the only
+  fence is in software: keep user mode from programming any bus master.
+  DMA1, DMA2, DMAMUX, RCC and the flash controller all lie in one 16 KB
+  block (0x40020000-0x40023FFF, with CRC, USBFS and the RNG), which one
+  NAPOT entry can cover.
 - **What PMP doesn't stop:** DMA. A DMA controller isn't the core, so the
   V5F's C code could still use DMA to read the token. So the V5F's C code
   is trusted (it's signed and checked), and PMP is a second line against
@@ -474,9 +491,12 @@ token.
   flash controller and the board record through an `ecall` service in
   machine mode (`Ecall_U_Mode_Handler`, pmp.c): program a LiteForth flash
   page, write or read the board record, each address and buffer checked
-  (buffers in DTCM only). The board's key still ends up in RAM, where
-  `sealed.c` uses it; keeping it in machine mode would mean doing the
-  X25519 unwrap in the service. `pmp_report` prints the entries at each
+  (buffers in DTCM only). The board's private key never reaches user
+  mode: `board_serve` (`V5F/User/board.c`), behind the same `ecall`,
+  checks the record, makes and writes the key for `enroll`, and computes
+  X25519 with it, so user mode gets only the public key, the minimums and
+  each sealed file's shared secret (`sealed_board.x25519`, which
+  `sealed.c` calls instead of using `private_key`). `pmp_report` prints the entries at each
   start (`V5F PMP: ...`).
 
 The V3F keeps its own PMP unlocked: it's the trusted side.

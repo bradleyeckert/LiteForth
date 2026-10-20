@@ -1499,4 +1499,4 @@ through the emulation; Forth's stores to DMA and the RNG come back as
 -127 without a reset; Guarded DMA reads are right, split or not. **Not
 covered:** card writes through Guarded DMA (needs a plain block file),
 and the debug port's `V5F PMP:` line (expected `cfg0 9F191898`, entry 2
-`addr` `10008FFF`), which wasn't captured.
+`addr` `100087FF`), which wasn't captured.

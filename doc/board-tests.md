@@ -1278,7 +1278,12 @@ locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp-ecall`
 return *(volatile uint32_t *)0x40022000UL; // delete this line
 ```
 
-The V3F as in B12. Image hashes weren't recorded for this build.
+The V3F as in B12.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (as in B12) |
+| `LiteForth_V5F.bin` | 91196 | `7716869ad79ed966cfa8be56e788ed4df935a24490caa52c822a0a38c838dba0` (with the test line) |
 
 **Why:** PR #195 adds two unlocked PMP entries: no user-mode access to
 0x08070000-0x08077FFF (the board record and stage 1's records) or to the
@@ -1317,8 +1322,28 @@ V3F: USB configured
 V5F fault: mcause 00000005 mepc 200AC69E mtval 40022000 ra 200A2474 sp 200FFCD0 -> Forth
 ```
 
+Then `enroll`, which reads the board record through the service, and
+writes it if there's none, on the cli port:
+
+```
+ok>enroll
+enroll: new key made. (security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>reboot
+
+[kwai: COM17 lost; waiting for it to come back]
+
+[kwai: COM17 is back]
+enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+```
+
 **Result:** pass. All four entries as set; `close-flash` programmed the
 page through the machine-mode service; a user-mode read of the flash
-controller faulted (load access fault) and came back to Forth. Not yet
-run: `enroll`, which reads and writes the board record through the
-service.
+controller faulted (load access fault) and came back to Forth. The first
+`enroll` found no record and wrote one through the service; after the
+reboot the second read it back through the service and printed the same
+line, without making a new key. So every flash write and record access
+the V5F makes now goes through machine mode, and none faulted there.

@@ -495,6 +495,9 @@ _load_base:
     ori t0, t0, 3           
 	csrw mtvec, t0
 
+/* LiteForth: lock the PMP (V5F/User/pmp.c) while still in machine mode */
+	call pmp_lock
+
 	la t0, main
 	csrw mepc, t0
 	mret

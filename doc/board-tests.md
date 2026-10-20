@@ -1157,3 +1157,112 @@ mistake, not the board's.
   - an install from recovery without a backup.
 - **The lock-down scenario** found no lock-down warning, and LiteForth
   started: the board is locked down.
+
+### B12. The V5F's PMP locked over stage 1's records, at power-on (20 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp` at
+`36629a4` (PR #194); the V3F built 20 October 2026 10:20:30 with GCC
+12.2.0.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` |
+| `LiteForth_V5F.bin` | 90836 | `ce774d68f29c1b4c7dd62a57c10eb0f462ee85516eee4e96863981dde7f5e7dd` |
+
+**Why:** `pmp_lock` (`V5F/User/pmp.c`), called by the V5F's start-up code
+in machine mode before its `mret` into `main`, locks four NAPOT entries:
+no access to 0x00070000-0x00077FFF and to stage 1's records at 0x08072000
+and 0x08074000 (the device token), then all memory RWX. Locked entries
+also apply in machine mode. It then tries to clear entry 0, and
+`pmp_report` prints what the CSRs read back.
+
+**Expected:** the V5F starts normally; the entries read back as set and
+stay set after the attempt to clear entry 0.
+
+**Run:** power-on reset; the debug port:
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 1; the previous run left 2 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F989898, addr 0001CFFF 0201CBFF 0201D3FF 3FFFFFFF: NOT as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+**Result:** pass. The V5F started with all four entries locked, and
+clearing entry 0 after the lock was ignored. "NOT as set" is the report
+being too strict: `pmpaddr3` was written as `0xFFFFFFFF` and reads back
+`0x3FFFFFFF`, because the core keeps only 30 bits of `pmpaddr`. In NAPOT
+mode that's still a region covering all of memory. pmp.c now writes
+`0x1FFFFFFF` (4 GB from 0). That an access to a fenced record faults is
+B13.
+
+**Again with the fix** (PR #194 at `c4faf99` and later, with no test
+line), after a power-on:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (unchanged) |
+| `LiteForth_V5F.bin` | 90852 | `e5914328e96affe5c368594daa57c10adeeaed518f32e6b137f658a13d484bd9` |
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by software power; none from before (power-up)
+V3F: the V5F is running
+V5F PMP: cfg0 9F989898, addr 0001CFFF 0201CBFF 0201D3FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
+**Result:** pass: all four entries as set and locked.
+
+### B13. A read of stage 1's record from the V5F faults under the PMP (20 October 2026)
+
+**Board and firmware:** the main board, as in B12, with the V5F from PR
+#194 and one test line added by hand to `lfRtcSet` in
+`V5F/User/lftime.c`, deleted afterwards:
+
+```c
+int lfRtcSet(uint32_t seconds) {
+    return *(volatile uint32_t *)0x08072000UL; // delete this line
+```
+
+Image hashes weren't recorded for this build.
+
+**Why:** B12 showed the entries locked, not that they stop an access.
+LiteForth's C code runs in user mode (WCH's start-up `mret`s into `main`
+with MPP = 0), so this shows whether a user-mode load from a locked
+no-access entry faults, and that the fault comes back to Forth through
+`vmTrap` (`rtc!` runs inside a VM run).
+
+**Expected:** `0 rtc!` gives -127 and a `-> Forth` fault line, with no
+reset.
+
+**Run,** on the cli port:
+
+```
+ok>0 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+```
+
+The debug port:
+
+```
+V5F fault: mcause 00000005 mepc 200AC6DE mtval 08072000 ra 200A24C6 sp 200FFCD0 -> Forth
+```
+
+**Result:** pass. The load faulted as a load access fault (mcause 5) with
+mtval the record's address, and the terminal carried on. So the PMP
+checks user-mode accesses, and the device token can't be read by the
+V5F's code. Still open: whether a user-mode access that matches no entry
+fails (the catch-all, entry 3, matches everything here).
+

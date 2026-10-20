@@ -59,9 +59,10 @@ for f in ('Common/UART.c', 'Common/ch32h417_usbfs_device.c', 'Common/hardware.c'
           'SRC/Debug/debug.c', 'SRC/Debug/debug.h', 'SRC/Ld/V3F/Link_v3f.ld',
           'SRC/Ld/V5F/Link_v5f.ld', 'V3F/User/ch32h417_it.c', 'V3F/User/main.c',
           'V3F/User/system_ch32h417.c', 'V5F/User/ch32h417_it.c', 'V5F/User/main.c',
-          'V5F/User/system_ch32h417.c', 'V5F/User/system_ch32h417.h'):
+          'V5F/User/system_ch32h417.c', 'V5F/User/system_ch32h417.h',
+          'SRC/Startup/startup_ch32h417_v5f.S'):
     MODIFIED[CH32 + f] = 'Changed for LiteForth (USB CDC bridge, dual-core start-up, ' \
-                         'memory map, debug output).'
+                         'memory map, debug output, the V5F\'s PMP).'
 
 # kind: 'code' (built into the firmware or lf), 'test' (unit tests only),
 # 'data' (in a tracked block image), or 'tool' (needed by a script, not in

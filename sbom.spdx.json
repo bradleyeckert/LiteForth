@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/4024da8a7283f1e0ec7529fc3a2bc82b",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/69506e8640cf040c808335d3c6bfd1c9",
   "creationInfo": {
-    "created": "2026-10-19T21:19:26Z",
+    "created": "2026-10-20T17:16:53Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
@@ -232,7 +232,7 @@
       ],
       "filesAnalyzed": true,
       "packageVerificationCode": {
-        "packageVerificationCodeValue": "0b76bf5fc2e9e6589f0a376e2566b8bac5044d2a"
+        "packageVerificationCodeValue": "eac08b2cb019e0bea8ac0fe3a9844118634b9775"
       },
       "licenseInfoFromFiles": [
         "NOASSERTION"
@@ -536,7 +536,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-UART.h",
@@ -556,7 +556,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-ch32h417-usbfs-device.c",
@@ -576,7 +576,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-ch32h417-usbfs-device.h",
@@ -615,7 +615,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-hardware.h",
@@ -635,7 +635,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-usb-desc.c",
@@ -655,7 +655,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-Common-usb-desc.h",
@@ -675,7 +675,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Core-core-riscv.c",
@@ -733,7 +733,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Debug-debug.h",
@@ -753,7 +753,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Ld-V3F-Link-v3f.ld",
@@ -773,7 +773,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Ld-V5F-Link-v5f.ld",
@@ -793,7 +793,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-SRC-Peripheral-inc-ch32h417.h",
@@ -2340,18 +2340,19 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "5ba6152407e528d87c80039d8c4350fef36ca91a"
+          "checksumValue": "7dc80b98c1d782792b46fb409d6ee7d11328f37d"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "7b2d724b62a2c4d0211ed24835b3bc4278111a79ee5db931d34816d2765d35af"
+          "checksumValue": "1be1a1964dd6dfff963e64452e92d674436c2374210f7d3744d134e4b6a51721"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",
       "licenseInfoInFiles": [
         "NOASSERTION"
       ],
-      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd."
+      "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-conf.h",
@@ -2390,7 +2391,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-ch32h417-it.h",
@@ -2429,7 +2430,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-system-ch32h417.c",
@@ -2449,7 +2450,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V3F-User-system-ch32h417.h",
@@ -2507,7 +2508,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-ch32h417-it.h",
@@ -2534,11 +2535,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "a19a73a8bc6ef8d08e31e8bd2d8b84a01d2b0db2"
+          "checksumValue": "c173f3e75cf335fa705faacbf13db4a6da3b7cb7"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "0f462702439326680e0a94b905923254d0aa6ca520ef2dd98f92d9872be47541"
+          "checksumValue": "17826f486fd844dafd8b24b949dcd8a865bc6904d67dd12d41adb438accffac8"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",
@@ -2546,7 +2547,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-sdio.c",
@@ -2604,7 +2605,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-CH32H417-V5F-User-system-ch32h417.h",
@@ -2624,7 +2625,7 @@
         "NOASSERTION"
       ],
       "copyrightText": "Copyright (c) 2025 Nanjing Qinheng Microelectronics Co., Ltd.",
-      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output)."
+      "comment": "Modified: Changed for LiteForth (USB CDC bridge, dual-core start-up, memory map, debug output, the V5F's PMP)."
     },
     {
       "SPDXID": "SPDXRef-File-src-target-desktop-unit-tests-unity-LICENSE.txt",

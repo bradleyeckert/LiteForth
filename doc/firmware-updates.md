@@ -456,6 +456,17 @@ token.
   the entries and then jumps to the image. **Verify** that the V5F can run
   code from the V3F's flash.
 
+- **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
+  at 0x10000, the records at 0x72000 and 0x74000): the start-up code calls
+  `pmp_lock` just before its `mret`, which locks four NAPOT entries:
+  0x00070000-0x00077FFF (the low window over the records) and the two
+  records at 0x08072000 and 0x08074000, no access; then all memory, RWX.
+  That keeps the device token from every V5F instruction, trap handlers
+  included. The V5F's own board record (0x08070000) stays open, and the
+  flash controller isn't fenced yet. `pmp_report` prints what the CSRs
+  read back on the debug port at each start (`V5F PMP: ...`), and whether
+  clearing a locked entry was ignored.
+
 The V3F keeps its own PMP unlocked: it's the trusted side.
 
 ### What the board showed (`pmp-test`, 18 October 2026)
@@ -561,10 +572,12 @@ RDP 0:
 - ~~**Verify** that a locked PMP entry applies in machine mode.~~ It
   does, on the V5F (section 8, *What the board showed*); the V3F not yet
   tested.
-- **Verify,** from real user mode: that user-mode accesses are checked,
-  and whether one that matches no entry fails.
-- **Verify** whether the clearing of a locked entry is ignored (the test
-  locked up before it got that far).
+- ~~**Verify,** from real user mode, that user-mode accesses are
+  checked.~~ They are: a load from a locked no-access entry faulted
+  (mcause 5; [board-tests.md](board-tests.md) B13). **Verify** whether
+  one that matches no entry fails.
+- ~~**Verify** whether the clearing of a locked entry is ignored.~~ It
+  is (`pmp_report` at boot, [ch32h417-notes.md](ch32h417-notes.md)).
 - **Verify** that the V5F can execute from the V3F's flash (for the shim
   in section 8).
 - **Verify,** on the spare board only: that under RDP 2 nothing clears

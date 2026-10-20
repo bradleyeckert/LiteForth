@@ -469,6 +469,54 @@ void test_plain_block_file_has_no_fence(void) {
     remove("scratch.img");
 }
 
+/* exfat_list: names joined with '|', directories ending in '/' */
+static char listed[1024];
+static int list_stop_after;             /* stop after this many, 0 = never */
+static int list_count;
+
+static int list_name(void *ctx, const char *name, const exfat_file *f) {
+    (void)ctx;
+    strcat(listed, name);
+    if (f->flags & EXFAT_DIRECTORY) {
+        strcat(listed, "/");
+    }
+    strcat(listed, "|");
+    if (++list_count == list_stop_after) {
+        return 77;
+    }
+    return 0;
+}
+
+static int list(void) {
+    listed[0] = '\0';
+    list_count = 0;
+    return exfat_list(image_read, &vol, vol.root, list_name, NULL);
+}
+
+void test_list_root(void) {
+    mount("a.img");
+    list_stop_after = 0;
+    TEST_ASSERT_EQUAL_INT(0, list());
+    /* deleted copies and padding skipped, bad.txt's checksum fails */
+    TEST_ASSERT_EQUAL_STRING("notes.txt|lfblocks.fb4|A long file name.dat|frag.bin|"
+                             "fatc.bin|half.bin|sub/|empty.txt|", listed);
+}
+
+void test_list_fragmented_root(void) {
+    mount("b.img");                     /* 512-byte clusters, the root fragmented */
+    list_stop_after = 0;
+    TEST_ASSERT_EQUAL_INT(0, list());
+    TEST_ASSERT_EQUAL_STRING("x.bin|lfblocks.fb4|", listed);
+}
+
+void test_list_stops_when_asked(void) {
+    mount("a.img");
+    list_stop_after = 2;
+    TEST_ASSERT_EQUAL_INT(77, list());
+    TEST_ASSERT_EQUAL_STRING("notes.txt|lfblocks.fb4|", listed);
+    list_stop_after = 0;
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_mount_mbr_card);
@@ -496,5 +544,8 @@ int main(void) {
     RUN_TEST(test_blocks_on_card_image);
     RUN_TEST(test_sectors_and_fence);
     RUN_TEST(test_plain_block_file_has_no_fence);
+    RUN_TEST(test_list_root);
+    RUN_TEST(test_list_fragmented_root);
+    RUN_TEST(test_list_stops_when_asked);
     return UNITY_END();
 }

@@ -194,6 +194,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "block-status", API0(API_BLOCK_STATUS),                   203},
     { PREV, "enroll",       API0(API_ENROLL),                         204},
     { PREV, "reboot",       API0(API_REBOOT),                         205},
+    { PREV, "dir",          API0(API_DIR),                            206},
 #if (FAT_FORTH & 1)                                     
     { PREV, "}t",           API0(API_ENDTEST),                        174},
     { PREV, "->",           API0(API_DOTEST),                         175},

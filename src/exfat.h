@@ -72,6 +72,24 @@ int exfat_mount(exfat_read_fn read, exfat_vol *vol);
 int exfat_find(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
                const char *name, exfat_file *file);
 
+/* exfat_list's callback: name (ASCII, any other character as '?') and
+   what the entry set says (length, valid, first_cluster, flags with only
+   EXFAT_NOFATCHAIN and EXFAT_DIRECTORY; the clusters aren't followed).
+   Returns 0 to go on, nonzero to stop the listing. */
+typedef int (*exfat_list_fn)(void *ctx, const char *name, const exfat_file *file);
+
+/**
+ * Lists the directory starting at cluster `dir` (vol->root for the root
+ * directory), as exfat_find walks it: deleted entries are skipped, and an
+ * entry set whose SetChecksum doesn't match is left out. Calls fn for each
+ * file and directory, in the order they're stored.
+ * Returns 0, fn's nonzero result if it stopped the listing,
+ * ERR_BLK_PARSE_FAIL for a broken directory or FAT, or the read
+ * function's error.
+ */
+int exfat_list(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
+               exfat_list_fn fn, void *ctx);
+
 /**
  * The card sector where cluster c starts, or 0 if c isn't a cluster of
  * the volume.

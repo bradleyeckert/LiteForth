@@ -393,6 +393,13 @@ uint32_t blk_space(void) {
     return space;
 }
 
+int blk_dir(exfat_list_fn fn, void *ctx) {
+    if (mode != MODE_CARD || !map.mounted) {
+        return ERR_BLK_OPEN_FAIL;
+    }
+    return card_list(card_read, &map, fn, ctx);
+}
+
 /* Checks a raw request for length blocks from blk; on success *lba is the
    first sector */
 static int check_raw(uint32_t blk, int length, uint32_t *lba) {

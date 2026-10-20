@@ -2,7 +2,7 @@
 
 How a CH32H417 board running LiteForth takes security patches to its C
 firmware in the field, once its JTAG/SDI is gone for good (RDP level 2).
-This is the design; nothing here is built yet. It applies
+This is the design; it applies
 [security-plan.md](security-plan.md) (sections 5.1-5.6) to this chip and
 board, with two changes: the root of trust is in the **V3F** core, and
 staging and backups go on the **microSD card**, not on a NOR flash.
@@ -472,6 +472,7 @@ token.
   alternative: stage 1 starts the V5F at a small shim in stage 0 that sets
   the entries and then jumps to the image. **Verify** that the V5F can run
   code from the V3F's flash.
+--**The Fix:** Use PMP to deny DMA access in User Mode. Implement a Guarded Mode API.
 
 - **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
   at 0x10000, LiteForth's pages at 0x30000, the board record at 0x70000,

@@ -24,4 +24,12 @@ jobs:
       run: python3 -c "import serial" || (sudo apt-get update && sudo apt-get install -y python3-serial)
 
     - name: Run primitives test and unit tests
-      run: make test
+      shell: bash
+      # On a failure, the end of the output also goes into an annotation,
+      # which the API serves (the log itself is only a download)
+      run: |
+        set -o pipefail
+        make test 2>&1 | tee test.log && exit 0
+        status=$?
+        tail -n 60 test.log | python3 -c 'import sys; t = sys.stdin.read(); print("::error title=make test failed::" + t.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
+        exit $status

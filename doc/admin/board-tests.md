@@ -1361,3 +1361,142 @@ controller faulted (load access fault) and came back to Forth. The first
 reboot the second read it back through the service and printed the same
 line, without making a new key. So every flash write and record access
 the V5F makes now goes through machine mode, and none faulted there.
+
+### B15. Guarded DMA: PMP entry 2 over the DMA registers, RCC/CRC store emulation (20 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down (OBR `000003FC`, WPR `FFFFFFFF`), `SECURITY_LEVEL` 0. The
+V5F built in MounRiver from branch `guarded-dma` (commit `205455f`),
+flashed with wlink from `LiteForth_V5F.hex` (94040 bytes at
+0x08010000). The V3F as in B12. The card holds a sealed `lfblocks.fb4`
+(block 0 starts `LITEFORTHS`), 121 blocks, so it's mounted read-only.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (as in B12) |
+| `LiteForth_V5F.bin` | (to add) | (to add: not taken during the run) |
+
+**Why:** a DMA controller isn't bound by the PMP, so user mode (all of
+LiteForth) mustn't program one. PMP entry 2 now covers 0x40020000-0x40023FFF
+(DMA1, DMA2, DMAMUX, RCC, the flash controller, CRC, USBFS, the RNG),
+read-only to user mode. The SD card's DMA goes through the Guarded DMA
+service (`gdma.c`) in machine mode, with its own 16 KB buffer, burned
+after every transfer; a run over 32 sectors is split into several SD
+commands. User-mode stores to RCC and CRC fault and are done by the
+HardFault handler (`guard.c` decodes them). This checks that the image
+boots (WCH's drivers write RCC from user mode during start-up), that
+Forth's stores to the DMA registers and the RNG fault back to Forth,
+that stores to RCC and CRC still take effect, and that card reads,
+including a split 64-sector one, are right.
+
+**Expected:** a normal start; `!` to DMA2 channel 1's CFGR and to the RNG
+give -127 and no reset; a write to RCC's HBPCENR and to CRC take effect;
+an 8-block `read-block` matches single-block reads of the same blocks.
+
+**Run:** the crumb trail after the flash (read through wlink at
+0x2017C000) showed `BOOT`, `CARD`, then each card read as `READ`
+`CHNK` `STRT` (`PROG`...) `DEND` `CM12` `DONE`, the `MAP`, and `QUIT`
+(capacity 0x79), with no `FLT5`, `TRP5`, `GDMA` or `DMA!` crumb, and
+the V3F had seen `CDC_CONFIRM_MAGIC`. Then, on the cli port (after a
+`wlink reset`: `wlink regs` and `dump` halt the V3F, and the USB port
+stopped taking data after them). The I/O page is VM page 5, so register
+r is at 0x280000 + (r - 0x40000000) / 4:
+
+```
+> hex
+ok>
+> 288102 @ .
+0H ok>
+> 288406 @ .
+20007H ok>
+> 0 288102 !
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+> hex
+ok>
+> 288102 @ .
+0H ok>
+> 288406 @ 40 + 288406 !
+ok>
+> 288406 @ .
+20047H ok>
+> 1 288C02 !
+ok>
+> 12345678 288C00 !
+ok>
+> 288C00 @ .
+DF8A8A2BH ok>
+> hex
+ok>
+> 288F00 @ .
+0H ok>
+> 0 288F00 !
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+> 1 2 + .
+3 ok>
+```
+
+0x288102 is DMA2 channel 1's CFGR (0x40020408), 0x288406 RCC's HBPCENR
+(0x40021018; bit 0x40 is CRC's clock), 0x288C00 and 0x288C02 CRC's
+DATAR and CTLR, 0x288F00 the RNG (0x40023C00). DF8A8A2B is the
+CRC-32/MPEG-2 of the word 12345678 (computed in Python). An error sets
+`BASE` back to decimal, hence the `hex` after each.
+
+Then, after a `reboot`, with flash page 3 opened as a 64 KB RAM cache
+(never closed, so no flash write):
+
+```
+> hex
+ok>
+> 180000 open-flash
+ok>
+> capacity .
+79H ok>
+> 180000 0 8 read-block
+ok>
+> block-status .
+1H ok>
+> block-status .
+0H ok>
+...
+> 180000 @ .
+8:15:14494CH ok>
+> 182000 3 1 read-block
+...
+> 180FFF @ . 1823FF @ .
+4:0:202020H 4:0:202020H ok>
+> 180F00 @ . 182300 @ .
+5:14:2D2028H 5:14:2D2028H ok>
+> 182000 4 1 read-block
+...
+> 181000 @ . 182000 @ .
+D:5:C2028H D:5:C2028H ok>
+> 181080 @ . 182080 @ .
+D:11:262028H D:11:262028H ok>
+> 182000 7 1 read-block
+...
+> 181FFF @ . 1823FF @ .
+4:0:202020H 4:0:202020H ok>
+> 181C00 @ . 182000 @ .
+D:5:C2028H D:5:C2028H ok>
+> hex
+ok>
+> 181010 @ . 181C10 @ . 182010 @ .
+6:4:2F3031H 7:4:2F3031H 7:4:2F3031H ok>
+```
+
+(`...` is `block-status .` lines, `0H ok>` each.) Blocks 0-7 are 64
+sectors, moved as two 32-sector commands; block 3's last cell and block
+4's first are on either side of the split. Each read of the sealed file
+was checked against its hash and decrypted after Guarded DMA copied it
+out. A `write-block` of 8 blocks gave -96 (write-protected), as it
+should for a sealed file, before anything reached the card.
+
+**Result:** pass, for what it covers. The image starts with entry 2 over
+the DMA registers; user-mode RCC writes at start-up and from Forth go
+through the emulation; Forth's stores to DMA and the RNG come back as
+-127 without a reset; Guarded DMA reads are right, split or not. **Not
+covered:** card writes through Guarded DMA (needs a plain block file),
+and the debug port's `V5F PMP:` line (expected `cfg0 9F191898`, entry 2
+`addr` `10008FFF`), which wasn't captured.

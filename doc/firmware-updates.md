@@ -457,15 +457,27 @@ token.
   code from the V3F's flash.
 
 - **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
-  at 0x10000, the records at 0x72000 and 0x74000): the start-up code calls
-  `pmp_lock` just before its `mret`, which locks four NAPOT entries:
-  0x00070000-0x00077FFF (the low window over the records) and the two
-  records at 0x08072000 and 0x08074000, no access; then all memory, RWX.
-  That keeps the device token from every V5F instruction, trap handlers
-  included. The V5F's own board record (0x08070000) stays open, and the
-  flash controller isn't fenced yet. `pmp_report` prints what the CSRs
-  read back on the debug port at each start (`V5F PMP: ...`), and whether
-  clearing a locked entry was ignored.
+  at 0x10000, LiteForth's pages at 0x30000, the board record at 0x70000,
+  stage 1's records at 0x72000 and 0x74000): the start-up code calls
+  `pmp_lock` just before its `mret`, which sets four NAPOT entries:
+
+  | # | Region | User | Machine | Locked |
+  |---|---|---|---|---|
+  | 0 | 0x00070000-0x00077FFF, the low window over the records | none | none | yes |
+  | 1 | 0x08070000-0x08077FFF: the board record, stage 1's records | none | all | no |
+  | 2 | 0x40022000-0x40022FFF: the flash controller | none | all | no |
+  | 3 | all memory | RWX | RWX | yes |
+
+  There are four entries, so the device token's sectors share entry 1
+  with the board record, unlocked: user mode (all of LiteForth) can't
+  reach them, the trap handlers can. `flash.c` and `board.c` reach the
+  flash controller and the board record through an `ecall` service in
+  machine mode (`Ecall_U_Mode_Handler`, pmp.c): program a LiteForth flash
+  page, write or read the board record, each address and buffer checked
+  (buffers in DTCM only). The board's key still ends up in RAM, where
+  `sealed.c` uses it; keeping it in machine mode would mean doing the
+  X25519 unwrap in the service. `pmp_report` prints the entries at each
+  start (`V5F PMP: ...`).
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
 

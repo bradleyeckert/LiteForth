@@ -9,15 +9,17 @@
  * flash_program, because flash reads cost wait states; it reads the others
  * in place, as the desktop build reads its flash array.
  *
- * flash_program uses WCH's FLASH_ROM_ERASE and FLASH_ROM_WRITE (fast mode:
- * 8KB sectors or 64KB blocks, 256-byte program pages), which unlock and
- * re-lock the flash themselves. Both cores run their code from RAM (ITCM /
+ * flash_program has pmp.c's machine-mode service erase and program the
+ * page with WCH's FLASH_ROM_ERASE and FLASH_ROM_WRITE (fast mode: 8KB
+ * sectors or 64KB blocks, 256-byte program pages), since the PMP keeps
+ * user mode, where LiteForth runs, away from the flash controller. Both cores run their code from RAM (ITCM /
  * RAM_CODE), so neither stalls on instruction fetch while the flash is busy.
  */
 #include <string.h>
 #include "ch32h417.h"
 #include "flash.h"
 #include "options.h"
+#include "pmp.h"                    /* pmp_flash_program */
 #include "../../../../errcodes.h"   /* src/errcodes.h */
 
 /* From SRC/Ld/V5F/Link_v5f.ld. Their addresses are the values. */
@@ -70,13 +72,7 @@ int flash_program(uint32_t *m, int page) {
     if (memcmp(dst, m, PAGE_BYTES) == 0) {
         return 0;                       /* unchanged: don't wear the flash */
     }
-    if (FLASH_ROM_ERASE(addr, PAGE_BYTES) != FLASH_COMPLETE) {
-        ior = ERR_FLASH_WRITE_SECTOR;
-    } else if (FLASH_ROM_WRITE(addr, m, PAGE_BYTES) != FLASH_COMPLETE) {
-        ior = ERR_FLASH_WRITE_SECTOR;
-    } else if (memcmp(dst, m, PAGE_BYTES) != 0) {
-        ior = ERR_FLASH_WRITE_SECTOR;   /* didn't take */
-    }
+    ior = pmp_flash_program(addr, m);   /* erase, program, check: machine mode */
 #if FLASH_SHADOW_PAGES
     if (page < FLASH_SHADOW_PAGES) {    /* the RAM copy follows the flash */
         memcpy(&shadow[page * FLASH_PAGE_CELLS], dst, PAGE_BYTES);

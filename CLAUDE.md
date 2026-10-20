@@ -266,6 +266,20 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   With piped input the app mostly runs after EOF, when there's nothing to
   read. To test on a tty, use a pty (python `pty.fork`); if you wrap lf in
   `timeout`, use `--foreground` or lf can't read the tty.
+- **CPU exceptions go to Forth** (`vmTrap`, vm.c): each `vmRun` sets a
+  `setjmp` (in a function of its own: `vmExec` is `VM_NOINLINE`, since
+  inlining it there breaks at -O2). The V5F's `HardFault_Handler`
+  (`ch32h417_it.c`), for a misaligned access (-23), an access fault
+  (`ERR_BUS_FAULT`, -127) or an illegal instruction (`ERR_CPU_EXCEPTION`,
+  -128) while `vmTrapArmed()` and no other interrupt is active, prints the
+  fault on the debug port with ` -> Forth`, sets `mepc` to `trap_resume`
+  and returns; `trap_resume` calls `vmTrap`, which longjmps to the
+  innermost `vmRun`. That returns the ior: a stepped app gets its yeet
+  handler (X = the PC last saved, not the faulting instruction), a word
+  call goes back to the terminal. VM registers are as last saved, and C
+  code in between (an API call) is abandoned. Anything else still resets.
+  `VM_NO_TRAPS` leaves it out (vmasm's freestanding RV32 build);
+  `unit_tests/traps` tests it with API calls standing in for the fault.
 - **Header links are tagged** (doc on `s_head` in `forth.h`): a link or
   `s_wid.head` is 0 (end), `(a << 1) | 1` (header in VM memory at cell
   address a), `(n << 2) | 2` (the built-in list of wordlist n), or else a C

@@ -1,5 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
+#ifndef VM_NO_TRAPS
+#include <setjmp.h>
+#endif
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
@@ -192,10 +195,21 @@ int32_t vmApiCall(uint32_t inst) {
     return api0 ? VMapi0Call((int)imm) : VMapi1Call((int)imm);
 }
 
+// vmExec mustn't be inlined into vmRun, which calls setjmp (vmTrap): the
+// compiler may keep VM state in registers across the API calls a longjmp
+// can return from. (vm_rv32.S's vmExecAsm is never inlined.)
+#if defined(__GNUC__)
+#define VM_NOINLINE __attribute__((noinline))
+#elif defined(_MSC_VER)
+#define VM_NOINLINE __declspec(noinline)
+#else
+#define VM_NOINLINE
+#endif
+
 #ifdef VM_ASM
 #define vmExec vmExecAsm                // vm_rv32.S
 #else
-static int32_t vmExec(int once, uint32_t inst, uint32_t address) {
+static VM_NOINLINE int32_t vmExec(int once, uint32_t inst, uint32_t address) {
 #ifdef TWO_REGISTER_TOS
     uint32_t nos;                       // N
 #endif
@@ -473,6 +487,10 @@ byee:
  * The caller's PC is put back even after an error: the terminal's errors
  * must not disturb the app. (vmExec sends a stepped app's errors to its
  * yeet handler.)
+ *
+ * Each vmRun is also where a CPU exception during the run comes back to
+ * (vmTrap): the innermost one returns its ior as if vmExec had, and sends
+ * a stepped app to its yeet handler.
  */
 static int running;                     // vmRun calls under way (vmRunning)
 
@@ -480,19 +498,61 @@ int vmRunning(void) {
     return running;
 }
 
+#ifdef VM_NO_TRAPS                      // no setjmp (vmasm's RV32 build)
+int vmTrapArmed(void) {
+    return 0;
+}
+
 int32_t vmRun(int once, uint32_t inst, int32_t address) {
     int32_t ior;
+    uint32_t pc = lf_vm.PC;
     running++;
-    if (once || inst) {
-        ior = vmExec(once, inst, (uint32_t)address);
-    } else {
-        uint32_t pc = lf_vm.PC;
-        ior = vmExec(0, 0, (uint32_t)address);
-        lf_vm.PC = pc;
+    ior = vmExec(once, inst, (uint32_t)address);
+    if ((once == 0) && (inst == 0)) {
+        lf_vm.PC = pc;                  // a word call: the app's PC back
     }
     running--;
     return ior;
 }
+#else
+static jmp_buf *trap_jump;              // the innermost vmRun, NULL if none
+static int32_t trap_ior;                // vmTrap's ior, for that vmRun
+
+int vmTrapArmed(void) {
+    return trap_jump != NULL;
+}
+
+void vmTrap(int32_t ior) {
+    trap_ior = ior;
+    longjmp(*trap_jump, 1);
+}
+
+int32_t vmRun(int once, uint32_t inst, int32_t address) {
+    int32_t ior;
+    uint32_t pc = lf_vm.PC;             // none of these change after setjmp,
+    int depth = running;                // so they survive a longjmp
+    jmp_buf here;
+    jmp_buf *outer = trap_jump;
+    running = depth + 1;
+    trap_jump = &here;
+    if (setjmp(here) == 0) {
+        ior = vmExec(once, inst, (uint32_t)address);
+    } else {                            // a CPU exception (vmTrap): the VM
+        ior = trap_ior;                 // registers are as last saved
+        if ((once == 0) && inst) {      // a stepped app: its yeet handler
+            lf_vm.X = lf_vm.PC;
+            lf_vm.Y = (uint32_t)ior;
+            lf_vm.PC = VM_YEET_ADDRESS << 1;
+        }
+    }
+    if ((once == 0) && (inst == 0)) {
+        lf_vm.PC = pc;                  // a word call: the app's PC back
+    }
+    trap_jump = outer;
+    running = depth;
+    return ior;
+}
+#endif
 
 // API access to internal VM state
 

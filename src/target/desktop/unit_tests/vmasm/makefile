@@ -15,7 +15,7 @@ CASES  ?= 2000
 
 CFLAGS = -O2 -Wall -Wextra -I$(DESKTOP_DIR) -I$(SRC_DIR)
 RV     = $(CLANG) --target=riscv32-unknown-elf -march=rv32imc -mabi=ilp32 \
-         -ffreestanding -nostdlib -fuse-ld=lld -Wl,-Ttext=0x10000 \
+         -ffreestanding -nostdlib -fuse-ld=lld -Wl,-Ttext=0x10000 -DVM_NO_TRAPS \
          -Wall -Wextra -I$(DESKTOP_DIR) -I$(SRC_DIR)
 
 VM     = $(SRC_DIR)/vm.c $(SRC_DIR)/vm.h $(SRC_DIR)/vm_labels.h

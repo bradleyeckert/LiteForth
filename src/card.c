@@ -103,3 +103,10 @@ int card_find_file(exfat_read_fn read, uint32_t card_sectors, const card_map *m,
     *blocks = (uint32_t)n;
     return 0;
 }
+
+int card_list(exfat_read_fn read, const card_map *m, exfat_list_fn fn, void *ctx) {
+    if (!m->mounted) {
+        return ERR_FILE_NOT_FOUND;
+    }
+    return exfat_list(read, &m->vol, m->vol.root, fn, ctx);
+}

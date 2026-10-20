@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "options.h"
 #include "../../../../sealed.h"     /* sealed_package */
+#include "../../../../exfat.h"      /* exfat_list_fn, for blk_dir */
 
 #define BLK_SIZE_BYTES           (BLOCK_SIZE_CELLS * sizeof(uint32_t))
 #define BLK_MAX_LENGTH           8   /* most blocks one blk_*_imm call moves */
@@ -217,5 +218,13 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len);
  * 1 isn't built yet, so for now nothing acts on it.
  */
 void blk_stage_ready(void);
+
+/**
+ * Lists the root directory of the card's exFAT volume (card.c's
+ * card_list): fn gets each file's and directory's name and entry.
+ * Returns 0, ERR_BLK_OPEN_FAIL if there's no card volume (no card, or no exFAT volume on it), fn's
+ * nonzero result, or a read or format error.
+ */
+int blk_dir(exfat_list_fn fn, void *ctx);
 
 #endif /* BLOCKS_H */

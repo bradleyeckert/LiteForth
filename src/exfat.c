@@ -432,3 +432,86 @@ int exfat_find(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
     }
     return err ? err : ERR_FILE_NOT_FOUND;
 }
+
+int exfat_list(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
+               exfat_list_fn fn, void *ctx) {
+    char name[256];
+    fat_cached = 0;
+    dir_cursor d;
+    dir_open(&d, read, vol, dir);
+    int err;
+    const uint8_t *e = dir_entry(&d, &err, NULL);
+    while (e != NULL) {
+        if (e[0] == T_END) {
+            return 0;
+        }
+        if (e[0] != T_FILE || e[1] < 2 || e[1] > 18) {
+            err = dir_advance(&d);
+            if (err) {
+                return err;
+            }
+            e = dir_entry(&d, &err, NULL);
+            continue;
+        }
+        /* An entry set: 85, C0, C1..., maybe other secondaries */
+        exfat_file f;
+        memset(&f, 0, sizeof f);
+        int count = e[1];
+        uint16_t stored = le16(e + 2);
+        uint16_t attributes = le16(e + 4);
+        uint16_t sum = exfat_sum16(0, e, 2);
+        sum = exfat_sum16(sum, e + 4, ENTRY_BYTES - 4);
+        uint8_t name_len = 0;
+        uint32_t chars = 0;
+        int ok = 1, taken = 1;
+        for (int k = 1; k <= count; k++) {
+            err = dir_advance(&d);
+            if (err) {
+                return err;
+            }
+            e = dir_entry(&d, &err, NULL);
+            if (e == NULL) {
+                return err ? err : ERR_BLK_PARSE_FAIL;
+            }
+            if ((e[0] & (T_INUSE | T_SECONDARY)) != (T_INUSE | T_SECONDARY)
+                || (k == 1 && e[0] != T_STREAM)) {
+                ok = 0;                     /* not part of the set: look at it afresh */
+                taken = 0;
+                break;
+            }
+            sum = exfat_sum16(sum, e, ENTRY_BYTES);
+            if (k == 1) {
+                if (e[1] & FLAG_NOFATCHAIN) {
+                    f.flags |= EXFAT_NOFATCHAIN;
+                }
+                name_len = e[3];
+                f.valid = le64(e + 8);
+                f.first_cluster = le32(e + 20);
+                f.length = le64(e + 24);
+            } else if (e[0] == T_NAME) {
+                for (int j = 0; j < NAME_CHARS && chars < name_len; j++, chars++) {
+                    uint16_t c = le16(e + 2 + 2 * j);
+                    name[chars] = (c >= 0x20 && c < 0x7F) ? (char)c : '?';
+                }
+            }
+        }
+        if (ok && sum == stored && name_len > 0 && chars == name_len) {
+            name[chars] = '\0';
+            if (attributes & ATTR_DIRECTORY) {
+                f.flags |= EXFAT_DIRECTORY;
+            }
+            int stop = fn(ctx, name, &f);
+            if (stop) {
+                return stop;
+            }
+        }
+        if (taken) {
+            err = dir_advance(&d);
+            if (err) {
+                return err;
+            }
+        }
+        e = dir_entry(&d, &err, NULL);
+    }
+    return err;
+}

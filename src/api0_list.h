@@ -99,7 +99,8 @@
     X(API_WRITE_BLOCK,      writeBlock)         \
     X(API_BLOCK_STATUS,     blockStatus)        \
     X(API_ENROLL,           lfAPI_enroll)       \
-    X(API_REBOOT,           reboot)
+    X(API_REBOOT,           reboot)             \
+    X(API_DIR,              dir)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

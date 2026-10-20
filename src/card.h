@@ -53,4 +53,12 @@ int card_find_blocks(exfat_read_fn read, uint32_t card_sectors, card_map *m,
 int card_find_file(exfat_read_fn read, uint32_t card_sectors, const card_map *m,
                    const char *name, uint32_t *base, uint32_t *blocks);
 
+/**
+ * Lists the root directory of the volume card_find_blocks found
+ * (m->mounted) through exfat_list: fn gets each name and entry.
+ * Returns 0, ERR_FILE_NOT_FOUND if there's no volume, fn's nonzero result,
+ * or exfat_list's errors.
+ */
+int card_list(exfat_read_fn read, const card_map *m, exfat_list_fn fn, void *ctx);
+
 #endif /* CARD_H */

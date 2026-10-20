@@ -423,6 +423,22 @@ static int blockStatus(void) {
     return vmPush(blk_status());
 }
 
+/* One name per line for `dir`, directories with a trailing / */
+static int dirLine(void *ctx, const char *name, const exfat_file *file) {
+    (void)ctx;
+    lf_puts(name);
+    if (file->flags & EXFAT_DIRECTORY) {
+        lf_puts("/");
+    }
+    lfCR();
+    return 0;
+}
+
+/* DIR  ( -- )  Lists the files in the root directory of the card */
+static int dir(void) {
+    return blk_dir(dirLine, NULL);
+}
+
 /* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */
 static int toaux(void) {
     return lfToHeader(0, vmPop());

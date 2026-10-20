@@ -663,6 +663,13 @@ uint32_t blk_space(void) {
     return map_bad ? 0 : map.space;
 }
 
+int blk_dir(exfat_list_fn fn, void *ctx) {
+    if (!map.mounted || !map_ok()) {
+        return ERR_BLK_OPEN_FAIL;
+    }
+    return card_list(card_read, &map, fn, ctx);
+}
+
 /* A raw transfer of length blocks from blk, waited for */
 static int raw(uint32_t blk, uint32_t *buf, int length, int write) {
     if (!map_ok()) {

@@ -53,7 +53,7 @@
  * unsaved changes. One file per batch.
  *
  * n = -2: one firmware update package (from `sealblocks.py package`,
- * doc/firmware-updates.md) into lfstage.bin, a file made beforehand
+ * doc/admin/firmware-updates.md) into lfstage.bin, a file made beforehand
  * (blk_stage_space: on a card, in the exFAT root beside lfblocks.fb4).
  * It must be whole 4 KB blocks, fit, and start with PACKAGE_MAGIC; block
  * 0 is zeros while the rest go in and is written last, so a transfer cut

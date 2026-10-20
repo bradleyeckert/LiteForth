@@ -42,7 +42,7 @@ Security holes we know about and will plug later are listed at the end
 | Item | Kept | Notes |
 |---|---|---|
 | Board key | X25519 private key, 32 bytes, in protected flash | Made on the board from its RNG when it's provisioned. Never leaves it |
-| UID | `ESIG_UNIID1` and `UNIID2`, 8 bytes | Finds the board's entry in a file. Not secret. (`UNIID3` reads as erased flash, see [ch32h417-notes.md](ch32h417-notes.md)) |
+| UID | `ESIG_UNIID1` and `UNIID2`, 8 bytes | Finds the board's entry in a file. Not secret. (`UNIID3` reads as erased flash, see [ch32h417-notes.md](../ch32h417-notes.md)) |
 | Root public key | Ed25519, 32 bytes, in the firmware | Changes only with a new firmware image |
 | Lowest revision | 4 bytes in protected flash | Anti-rollback: older files are refused |
 | Lowest release key serial | 4 bytes in protected flash | A replaced release key can't sign again |
@@ -80,7 +80,7 @@ normally defined (a 128-bit big-endian counter) and what Python's
 2^56 blocks. The ECDC engine steps its counter by one per 16 bytes in its
 RAM-to-RAM mode, matching this for whole blocks (measured with
 `ecdc-test`; its byte order and other quirks are in
-[ch32h417-notes.md](ch32h417-notes.md)).
+[ch32h417-notes.md](../ch32h417-notes.md)).
 
 The CEK is new for every release, and so is the nonce. A key and counter
 pair is therefore never used on two different plaintexts.
@@ -188,7 +188,7 @@ is refused.
    it runs, as in [security-plan.md](security-plan.md) 5.5).
 
 A failure at any step leaves the file unmounted with a message on the
-debug port, like the messages in [sdcard.md](sdcard.md): capacity 0, so
+debug port, like the messages in [sdcard.md](../sdcard.md): capacity 0, so
 nothing from it runs.
 
 ### Reading a block
@@ -340,7 +340,7 @@ revision number ([updates.md](updates.md) walks through it). The file
 goes onto cards, or to a board by YMODEM:
 `-1 ymodem` (kwai: `~x lfblocks.fb4 -1`) checks its block 0 as a mount
 would before writing anything, writes it into the card's `lfblocks.fb4`,
-reads it back and mounts it ([blocks.md](blocks.md)).
+reads it back and mounts it ([blocks.md](../blocks.md)).
 
 ### 6.3 Replacing a release key
 

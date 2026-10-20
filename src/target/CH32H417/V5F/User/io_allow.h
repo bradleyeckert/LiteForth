@@ -12,7 +12,7 @@
  * reads as an invalid address (-9).
  *
  * Left out, because Forth could use them to get past LiteForth's checks
- * (doc/security-plan.md 5.6, doc/firmware-updates.md section 8):
+ * (doc/admin/security-plan.md 5.6, doc/admin/firmware-updates.md section 8):
  *   - FLASH (the flash controller): unlocking, erasing, the option bytes;
  *   - DMA1, DMA2, DMAMUX, and the peripherals that are bus masters with
  *     their own DMA (LTDC, GPHA, HSADC, SDMMC, USBPD, DVP, SERDES, ETH,

@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*
- * The V5F's PMP (doc/firmware-updates.md section 8) and the machine-mode
+ * The V5F's PMP (doc/admin/firmware-updates.md section 8) and the machine-mode
  * services behind it. LiteForth runs in user mode (WCH's start-up code
  * `mret`s into `main` with MPP = 0), where the PMP CSRs can't be reached.
  *

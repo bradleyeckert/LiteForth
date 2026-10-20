@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Tests scripts/admin/sealblocks.py: round trips with AES and SM4, the counter
-layout, and each refusal a board makes (doc/encrypted-blocks.md section 4).
+layout, and each refusal a board makes (doc/admin/encrypted-blocks.md section 4).
 Runs in a temporary directory on a copy of bin/lfblocks.fb4."""
 import contextlib
 import io
@@ -131,7 +131,7 @@ def main():
         expect('root-header: no security flags (SECURITY_LEVEL has them)',
                not any(f in header for f in ('SEALED_ONLY', 'INSECURE', 'STRICT_RDP')), header)
 
-        # firmware update packages (doc/firmware-updates.md section 5)
+        # firmware update packages (doc/admin/firmware-updates.md section 5)
         image = bytes((i * 7 + 3) & 255 for i in range(9000))      # not a whole block
         write('fw.bin', image)
         base_pk = ['--release', 'rel1.json', '--boards', 'boards.csv']
@@ -230,7 +230,7 @@ def main():
             expect(f'counter block {n} piece {i}',
                    dec == pdata[n * BLOCK + 16 * i:n * BLOCK + 16 * i + 16])
 
-        # The layout of doc/encrypted-blocks.md, computed here from its formulas
+        # The layout of doc/admin/encrypted-blocks.md, computed here from its formulas
         # and offsets rather than with sealblocks.py's own helpers.
         b0 = sdata[:BLOCK]
         ver, ciph, flags, prod, rev, cc, tt, rr = struct.unpack_from('<BBIIIIHH', b0, 10)

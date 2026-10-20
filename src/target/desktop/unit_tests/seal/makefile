@@ -1,4 +1,4 @@
-# Tests scripts/admin/sealblocks.py (doc/encrypted-blocks.md): seal, check and open
+# Tests scripts/admin/sealblocks.py (doc/admin/encrypted-blocks.md): seal, check and open
 # round trips with AES and SM4, and every refusal a board would make. Needs
 # python3 and the cryptography package; skipped (with a note) without it.
 

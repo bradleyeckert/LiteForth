@@ -1,4 +1,4 @@
-# The SBOM (sbom.spdx.json, doc/sbom.md) must match the repository:
+# The SBOM (sbom.spdx.json, doc/admin/sbom.md) must match the repository:
 # scripts/mksbom.py --check fails when a third-party file listed in it has
 # changed, and --scan when a file carries a copyright notice that no
 # component claims. Needs python3; skipped without it.

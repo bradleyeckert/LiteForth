@@ -113,7 +113,7 @@ int lfStandby(void);
 
 /**
  * Resets the whole chip, as the reset pin does: on the CH32H417 both cores
- * restart, the V3F's stage 1 first (doc/firmware-updates.md), after the
+ * restart, the V3F's stage 1 first (doc/admin/firmware-updates.md), after the
  * terminal has had up to 100 ms to send what's waiting. On the desktop, lf
  * restarts its interpreter as lfStandby does (lfReset in main.c).
  * @return Doesn't.

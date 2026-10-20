@@ -6,7 +6,7 @@
 
 /*
  * AES-128 and SM4 in software, and CTR mode as sealed block files use it
- * (doc/encrypted-blocks.md): the 16-byte counter block for the first 16
+ * (doc/admin/encrypted-blocks.md): the 16-byte counter block for the first 16
  * bytes of block n is an 8-byte nonce followed by n * 256 as a 64-bit
  * big-endian number, counting up by one for each 16 bytes. On the
  * CH32H417 (CTR_HW, defined by its lf_ctr.c), ctr_crypt_block hands whole

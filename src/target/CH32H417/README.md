@@ -142,9 +142,9 @@ print there; the lines appear in about this order:
 
 | Line | Means |
 |---|---|
-| `V3F security: not locked down: ...` | read protection off, write protection not as `stage1_layout.h` has it, or the boot ROM's downloads on; at `SECURITY_LEVEL` 2 (`Common/security.h`) the V5F then stays off (`doc/firmware-updates.md`, *The lock-down check*) |
-| `V3F update: ...` | only when stage 1 did something: a package installed, refused, on trial, rolled back, or an image that fails its check (`V3F/User/stage1.c`, `doc/firmware-updates.md`) |
-| `V3F: recovery mode: ...` | no working V5F image: the V5F stays off, and stage 1 answers on the USB terminal instead (send a package with kwai's `~x FILE -2`; `doc/firmware-updates.md` section 7) |
+| `V3F security: not locked down: ...` | read protection off, write protection not as `stage1_layout.h` has it, or the boot ROM's downloads on; at `SECURITY_LEVEL` 2 (`Common/security.h`) the V5F then stays off (`doc/admin/firmware-updates.md`, *The lock-down check*) |
+| `V3F update: ...` | only when stage 1 did something: a package installed, refused, on trial, rolled back, or an image that fails its check (`V3F/User/stage1.c`, `doc/admin/firmware-updates.md`) |
+| `V3F: recovery mode: ...` | no working V5F image: the V5F stays off, and stage 1 answers on the USB terminal instead (send a package with kwai's `~x FILE -2`; `doc/admin/firmware-updates.md` section 7) |
 | `V3F: starting the V5F` | V3F booted, woke the V5F and went to sleep |
 | `V3F: the V5F didn't start within ...` | the V5F didn't release HSEM0 within `STAGE1_V5F_START_MS`: the V3F resets the chip (a trial boot, or after 3 in a row, recovery) |
 | `V3F: the V5F is running` | the V5F booted and released HSEM0, waking the V3F; if this never comes, look at the V5F image (flashing) |
@@ -204,7 +204,7 @@ of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 
 **The board's key record: `0x08070000`.** The 8K sector after LiteForth's
 flash holds the board's record for sealed block files (`V5F/User/board.c`,
-[doc/encrypted-blocks.md](../../../doc/encrypted-blocks.md)): its X25519
+[doc/admin/encrypted-blocks.md](../../../doc/admin/encrypted-blocks.md)): its X25519
 private key, made by `enroll`, and the lowest revision and release key
 serial it takes. It lies inside the 480K of single-flash mode. A download
 keeps it (below), but *Erase All* wipes it, so the board then needs
@@ -217,7 +217,7 @@ mounts it with the board's record and the root key in
 `sealed_root.example.h`, or `sealblocks.py root-header`; git ignores it).
 At `SECURITY_LEVEL` 2 the board takes only sealed files: a plain
 `lfblocks.fb4` offers no blocks and `-1 ymodem` refuses plain files
-([doc/updates.md](../../../doc/updates.md) covers the whole process and
+([doc/admin/updates.md](../../../doc/admin/updates.md) covers the whole process and
 these options).
 
 **Security level.** `SECURITY_LEVEL` in `Common/security.h` (0, 1 or 2;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sealed block files: encrypted, signed lfblocks.fb4 (doc/encrypted-blocks.md).
+"""Sealed block files: encrypted, signed lfblocks.fb4 (doc/admin/encrypted-blocks.md).
 
     sealblocks.py root-key ROOT                    make root key pair ROOT.key, ROOT.pub
     sealblocks.py release-key ROOT.key SERIAL OUT --product P
@@ -20,7 +20,7 @@
     sealblocks.py package IMAGE PACKAGE --component v5f|stage1 --release R --boards CSV
                   --revision N [--hw-rev N] [--min-version N] [--cipher aes|sm4]
                                                    make a firmware update package from a .bin
-                                                   (doc/firmware-updates.md section 5)
+                                                   (doc/admin/firmware-updates.md section 5)
     sealblocks.py check SEALED --root ROOT.pub     check everything that needs no board key
     sealblocks.py open SEALED PLAIN --root ROOT.pub --board-key B
                   [--min-revision N] [--min-serial N] [--product P]
@@ -59,7 +59,7 @@ except ImportError:
 BLOCK = 4096
 SIGNATURE = b'LITEFORTH'
 SEALED_MARK = b'S'
-PACKAGE_MARK = b'F'             # a firmware update package (doc/firmware-updates.md)
+PACKAGE_MARK = b'F'             # a firmware update package (doc/admin/firmware-updates.md)
 FORMAT_VERSION = 1
 CIPHERS = {'aes': 1, 'sm4': 2}
 CIPHER_NAMES = {v: k for k, v in CIPHERS.items()}
@@ -373,7 +373,7 @@ def cmd_root_header(a):
                       for i in range(0, 32, 8))
     text = ('/* sealed_root.h, written by scripts/admin/sealblocks.py root-header from %s:\n'
             '   the root public key and product ID this build reads sealed block\n'
-            '   files with (doc/encrypted-blocks.md, V5F/User/board.h). */\n'
+            '   files with (doc/admin/encrypted-blocks.md, V5F/User/board.h). */\n'
             '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'
             '#define SEALED_ROOT_KEY { \\\n%s }\n\n'
             '#define SEALED_PRODUCT 0x%08xu\n\n#endif /* SEALED_ROOT_H */\n'

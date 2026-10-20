@@ -2,7 +2,7 @@
 #define YMRECV_H
 
 /*
- * A small YMODEM receiver for stage 1's recovery mode (doc/firmware-updates.md
+ * A small YMODEM receiver for stage 1's recovery mode (doc/admin/firmware-updates.md
  * section 7): takes one file into whole 4 KB blocks through callbacks, with
  * none of LiteForth around it. The protocol is the one src/ymodem.c and
  * kwai's ~x speak: batch, CRC-16, 128-byte or 1K packets, the file's length

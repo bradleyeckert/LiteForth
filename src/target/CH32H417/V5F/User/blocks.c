@@ -16,7 +16,7 @@
  * are cell arrays, so they meet the 4-byte alignment DMA needs.
  *
  * A sealed lfblocks.fb4 (block 0 starts with SEALED_MAGIC,
- * doc/encrypted-blocks.md) is mounted at blk_init with what board.c holds,
+ * doc/admin/encrypted-blocks.md) is mounted at blk_init with what board.c holds,
  * and offered read-only: when a read of its blocks finishes, blk_status
  * checks each block against its hash and decrypts it (sealed.c), reading
  * the hash table block it needs first, before it reports the read done.

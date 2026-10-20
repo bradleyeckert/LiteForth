@@ -1,4 +1,4 @@
-/* Tests src/update.c, stage 1's install logic (doc/firmware-updates.md),
+/* Tests src/update.c, stage 1's install logic (doc/admin/firmware-updates.md),
  * with the board's flash, lfstage.bin and lfbackup.bin simulated in RAM,
  * and packages made by gen.py with scripts/admin/sealblocks.py.
  *

@@ -35,12 +35,12 @@ resets the board once and shows that all three work. `run` plays:
 
 GOOD.lfu and HANG.lfu are packages for this board (sealblocks.py package):
 GOOD.lfu a V5F image that runs LiteForth, HANG.lfu one that doesn't start
-(v5f-2-hang.lfu in doc/board-tests.md B4). They write the V5F's flash slot
+(v5f-2-hang.lfu in doc/admin/board-tests.md B4). They write the V5F's flash slot
 and the security record; the WCH-LinkE can always put things right.
 
 The report (--report, default hil-report-DATE.md) has each scenario's
 steps and both ports' output word for word, the packages' sha256 and the
-board's build line, ready for doc/board-tests.md. Exit status 0 if every
+board's build line, ready for doc/admin/board-tests.md. Exit status 0 if every
 scenario passed.
 """
 import argparse

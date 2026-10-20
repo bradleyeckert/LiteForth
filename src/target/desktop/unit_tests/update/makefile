@@ -1,4 +1,4 @@
-# Tests src/update.c, stage 1's install logic (doc/firmware-updates.md):
+# Tests src/update.c, stage 1's install logic (doc/admin/firmware-updates.md):
 # installs, confirms, rollbacks, every refusal, and a power cut at every
 # step. gen.py makes the packages with scripts/admin/sealblocks.py, so this needs
 # python3 and the cryptography package; skipped (with a note) without it.

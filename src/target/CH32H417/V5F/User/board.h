@@ -5,7 +5,7 @@
 #include "ecdc.h"                   /* lfAPI_ecdcTest, for api0.c */
 
 /*
- * What this board keeps for sealed block files (doc/encrypted-blocks.md):
+ * What this board keeps for sealed block files (doc/admin/encrypted-blocks.md):
  * its X25519 key and the two minimums, in a record in the 8 KB flash
  * sector right after LiteForth's flash pages (0x08070000), and the root
  * public key and product ID, which the application's build supplies in

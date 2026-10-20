@@ -2,7 +2,7 @@
 #define STAGE1_H
 
 /*
- * Stage 1 on the V3F (doc/firmware-updates.md): installing a V5F image
+ * Stage 1 on the V3F (doc/admin/firmware-updates.md): installing a V5F image
  * from a package that `-2 ymodem` staged in the card's lfstage.bin, with
  * src/update.c, before the V5F starts; and recovery when there's no
  * working V5F image. Not yet: stage 0, the two stage 1 slots, the new

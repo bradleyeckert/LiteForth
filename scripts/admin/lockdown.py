@@ -39,7 +39,7 @@ run:
     flash is protected.
 The report (--report, default lockdown-report-DATE.md) has every step and
 both ports' output word for word, the images' sha256 and the UID, for
-doc/board-tests.md. Exit status 0 if the board ended up locked down.
+doc/admin/board-tests.md. Exit status 0 if the board ended up locked down.
 
 After it: run `enroll` (a level 2 board's key comes from the RNG), put the
 new line in boards.csv, and seal the card's lfblocks.fb4 and packages for it.

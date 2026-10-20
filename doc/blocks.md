@@ -108,7 +108,7 @@ blocks and fit; blocks after it are left as they were. One file per batch.
 
 1. Block 0 arrives first and is checked before anything is written. It must
    start with `LITEFORTH`; a sealed file must be one this board would mount
-   ([encrypted-blocks.md](encrypted-blocks.md): signature, product,
+   ([encrypted-blocks.md](admin/encrypted-blocks.md): signature, product,
    revision, a recipient), so a file the board can't open never replaces
    one it can.
 2. Block 0 on the card becomes a plain block 0 that says the install

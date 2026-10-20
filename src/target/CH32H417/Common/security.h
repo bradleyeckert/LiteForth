@@ -3,8 +3,8 @@
 
 /*
  * SECURITY_LEVEL: one setting for the security of both cores' builds
- * (doc/updates.md section 6, doc/firmware-updates.md section 8,
- * doc/security-plan.md 5.6). Each level adds to the one below it.
+ * (doc/admin/updates.md section 6, doc/admin/firmware-updates.md section 8,
+ * doc/admin/security-plan.md 5.6). Each level adds to the one below it.
  *
  *                               core    0         1         2
  *   Forth reaches peripherals   V5F     all       allowlist allowlist

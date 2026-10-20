@@ -23,7 +23,7 @@
  * and `sealblocks.py board-key OUT --uid UID --insecure` knows it without
  * the board. Anyone who knows a board's UID can read its files.
  *
- * The private key stays in machine mode (doc/firmware-updates.md section
+ * The private key stays in machine mode (doc/admin/firmware-updates.md section
  * 8): the PMP keeps user mode, where LiteForth runs, out of this sector,
  * and board_serve, reached by pmp.c's ecall service, does everything that
  * needs the key: it checks the record, makes and writes the key

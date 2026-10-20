@@ -1374,7 +1374,7 @@ flashed with wlink from `LiteForth_V5F.hex` (94040 bytes at
 | Image | Size | sha256 |
 |---|---|---|
 | `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (as in B12) |
-| `LiteForth_V5F.bin` | (to add) | (to add: not taken during the run) |
+| `LiteForth_V5F.bin` | 94040 | `017737b138c5d86cdd9b562f7490559f9c481f3116f7e661fa34e47c5c0eac21` |
 
 **Why:** a DMA controller isn't bound by the PMP, so user mode (all of
 LiteForth) mustn't program one. PMP entry 2 now covers 0x40020000-0x40023FFF
@@ -1493,10 +1493,36 @@ was checked against its hash and decrypted after Guarded DMA copied it
 out. A `write-block` of 8 blocks gave -96 (write-protected), as it
 should for a sealed file, before anything reached the card.
 
+The debug port at start-up:
+
+```
+V5F PMP: cfg0 9F191898, addr 0001CFFF 0201CFFF 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+```
+
+Afterwards, loading the dictionary from the card (blocks read through
+Guarded DMA, then committed to flash through the machine-mode flash
+service, now reached by `pmp_call3`), on the cli port:
+
+```
+ok>1 load
+value test: 11 10
+Dictionary loaded and committed to flash memory.
+If you need Flash writable again, use `0 open-flash`.
+_udata used 110 unused 858 cells
+_idata used 16 unused 1016 cells
+_code  used 1165 unused 7027 cells
+_text  used 1357 unused 6835 cells
+
+Type `cold` to reboot, `try` to launch the clock demo.
+ok>cold
+ok>学如不及, 犹恐失之 try
+ok>
+```
+
 **Result:** pass, for what it covers. The image starts with entry 2 over
 the DMA registers; user-mode RCC writes at start-up and from Forth go
 through the emulation; Forth's stores to DMA and the RNG come back as
--127 without a reset; Guarded DMA reads are right, split or not. **Not
-covered:** card writes through Guarded DMA (needs a plain block file),
-and the debug port's `V5F PMP:` line (expected `cfg0 9F191898`, entry 2
-`addr` `100087FF`), which wasn't captured.
+-127 without a reset; Guarded DMA reads are right, split or not. Entry 2 reads back as
+set (`cfg0 9F191898`, `addr` `100087FF`: 16 KB from 0x40020000, user R).
+`1 load` and `close-flash` still work. **Not covered:** card writes
+through Guarded DMA (needs a plain block file).

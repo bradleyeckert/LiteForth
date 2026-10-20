@@ -456,6 +456,17 @@ token.
   the entries and then jumps to the image. **Verify** that the V5F can run
   code from the V3F's flash.
 
+- **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
+  at 0x10000, the records at 0x72000 and 0x74000): the start-up code calls
+  `pmp_lock` just before its `mret`, which locks four NAPOT entries:
+  0x00070000-0x00077FFF (the low window over the records) and the two
+  records at 0x08072000 and 0x08074000, no access; then all memory, RWX.
+  That keeps the device token from every V5F instruction, trap handlers
+  included. The V5F's own board record (0x08070000) stays open, and the
+  flash controller isn't fenced yet. `pmp_report` prints what the CSRs
+  read back on the debug port at each start (`V5F PMP: ...`), and whether
+  clearing a locked entry was ignored.
+
 The V3F keeps its own PMP unlocked: it's the trusted side.
 
 ### What the board showed (`pmp-test`, 18 October 2026)

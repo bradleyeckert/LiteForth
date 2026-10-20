@@ -28,6 +28,7 @@
 #include "io_allow.h"                   /* the peripherals Forth may reach */
 #endif
 #include "v5f_crumbs.h"                /* reset debugging trail */
+#include "pmp.h"                        /* what the start-up locked */
 
 /*********************************************************************
  * LiteForth on the V5F, after src/target/desktop/main.c.
@@ -221,6 +222,7 @@ int main(void)
     HSEM_ReleaseOneSem(HSEM_ID0, 0);    /* wake the V3F, which runs USB */
     lfTimeInit();                       /* no Delay_Us/Delay_Ms on the V5F after this */
     crumbs_report();                    /* what happened before the last reset */
+    pmp_report();
     crumb(TAG('B','O','O','T'), RCC->RSTSCKR, 0);
     int rtc = lfRtcInit();              /* the RTC (and an alarm wake-up mark) */
     if (rtc) {

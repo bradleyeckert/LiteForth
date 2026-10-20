@@ -1340,6 +1340,20 @@ enroll
 ok>
 ```
 
+The debug port at that reboot:
+
+```
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 1; the previous run left 11 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F181898, addr 0001CFFF 0201CFFF 100089FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 10:20:30, GCC 12.2.0
+V5F blocks: no SD card (error 3)
+V5F: LiteForth starting, flash is blank
+V3F: USB configured
+```
+
 **Result:** pass. All four entries as set; `close-flash` programmed the
 page through the machine-mode service; a user-mode read of the flash
 controller faulted (load access fault) and came back to Forth. The first

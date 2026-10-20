@@ -7,7 +7,13 @@
  * (BLK_DMA, below), driven from here: WCH's DMA mode waits for the
  * transfer and uses DMA1 channel 1, which the V3F's UART code also uses
  * (USART4 TX; channel 2 is its RX). This file uses DMA2 channel 1
- * instead, routed to the SDIO request through DMAMUX channel 9.
+ * instead, routed to the SDIO request through DMAMUX channel 9, and only
+ * through Guarded DMA (gdma.h, channel GDMA_SDIO): user mode can't write
+ * the DMA registers (PMP entry 2, pmp.h). Machine mode moves the data
+ * through its own buffer, copies a read out to dest when it ends, and
+ * burns the buffer and the channel after every transfer. The buffer
+ * holds CHUNK_SECTORS (32, 16 KB), so a longer run is moved as several
+ * multiple-block commands, one after another, each ended with CMD12.
  *
  * Everything is a run of 1 to BLK_MAX_SECTORS 512-byte card sectors,
  * moved with one multiple-block command (CMD18 or CMD25) and ended with
@@ -32,6 +38,7 @@
 #include "board.h"
 #include "v5f_crumbs.h"                /* reset debugging trail */
 #include "cdc_shared.h"                /* update: a package waits for stage 1 */
+#include "gdma.h"                       /* Guarded DMA: the card's channel */
 
 extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
 #include "../../../../errcodes.h"   /* src/errcodes.h */
@@ -39,10 +46,6 @@ extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
 #ifndef BLK_DMA
 #define BLK_DMA             1           /* 0: WCH's polling transfers, which wait */
 #endif
-#define BLK_DMA_CHANNEL     DMA2_Channel1
-#define BLK_DMA_FLAG_TC     DMA2_FLAG_TC1
-#define BLK_DMAMUX_CHANNEL  DMA_MuxChannel9 /* feeds DMA2 channel 1 */
-#define BLK_DMA_REQUEST     111         /* SDIO, in the RM's DMAMUX table (1-based) */
 #define BLK_TIMEOUT_US      1000000u    /* a step that takes longer fails: ERR_BLK_TIMEOUT */
 #define SDIO_DCTRL_DMAEN    (1u << 3)   /* SDIO_DCTRL: DMA enable (RM, SDIO chapter) */
 
@@ -52,6 +55,8 @@ extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
 
 _Static_assert(BLK_SIZE_BYTES % SECTOR_BYTES == 0, "a block must be whole sectors");
 _Static_assert(BLK_MAX_SECTORS == BLK_MAX_LENGTH * SECTORS_PER_BLOCK, "runs of sectors and of blocks");
+#define CHUNK_SECTORS       (GDMA_BUF_BYTES / SECTOR_BYTES)  /* one card command's worth: 32 */
+_Static_assert(CHUNK_SECTORS >= 1 && CHUNK_SECTORS <= BLK_MAX_SECTORS, "Guarded DMA's buffer");
 
 static card_map map;                    /* where the block space is */
 static card_map map_copy;               /* what blk_init put there: see map_ok */
@@ -175,6 +180,13 @@ SD_Error IsCardProgramming(u8 *pstatus);    /* CMD13: the card's state */
 enum { IDLE, MOVING, SETTLING };        /* DMA transfer steps */
 static int step;
 static uint64_t started;                /* lfGetTimeMicroSec at the start */
+static uint32_t run_lba;                /* a run of more than CHUNK_SECTORS: */
+static uint32_t *run_buf;               /* where the next chunk goes or comes from, */
+static int run_left;                    /* the sectors after the current chunk, */
+static int run_write;                   /* and which way */
+static uint32_t *xfer_buf;              /* the transfer's buffer, */
+static uint32_t xfer_bytes;             /* its length, */
+static int xfer_read;                   /* and whether it's a read (copied out at the end) */
 
 #define SDIO_DATA_ERRORS   (SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_TXUNDERR \
                            | SDIO_FLAG_RXOVERR | SDIO_FLAG_STBITERR)
@@ -204,26 +216,14 @@ static void data_path(uint32_t dir, int count) {
     SDIO_DataConfig(&data);
 }
 
-/* Points DMA2 channel 1 at buf and the SDIO FIFO and starts it; dir is
-   DMA_DIR_PeripheralSRC (card to memory) or DMA_DIR_PeripheralDST */
-static void dma_start(uint32_t *buf, uint32_t dir, int count) {
-    DMA_InitTypeDef d = {0};
-    DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
-    DMA_ClearFlag(DMA2, BLK_DMA_FLAG_TC);
-    d.DMA_PeripheralBaseAddr = (uint32_t)&SDIO->FIFO;
-    d.DMA_Memory0BaseAddr = (uint32_t)buf;
-    d.DMA_DIR = dir;
-    d.DMA_BufferSize = SECTOR_CELLS * (uint32_t)count;
-    d.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    d.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    d.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
-    d.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
-    d.DMA_Mode = DMA_Mode_Normal;
-    d.DMA_Priority = DMA_Priority_High;
-    d.DMA_M2M = DMA_M2M_Disable;
-    DMA_Init(BLK_DMA_CHANNEL, &d);
-    DMA_MuxChannelConfig(BLK_DMAMUX_CHANNEL, BLK_DMA_REQUEST);
-    DMA_Cmd(BLK_DMA_CHANNEL, ENABLE);
+/* Starts the card's Guarded DMA channel for count sectors: dir is
+   GDMA_FROM_PERIPH (card to memory, into buf when it ends) or
+   GDMA_TO_PERIPH (from buf, copied now). Returns gdma_start's ior. */
+static int dma_start(uint32_t *buf, int dir, int count) {
+    xfer_buf = buf;
+    xfer_bytes = SECTOR_BYTES * (uint32_t)count;
+    xfer_read = (dir == GDMA_FROM_PERIPH);
+    return gdma_start(GDMA_SDIO, dir, buf, xfer_bytes);
 }
 
 /* Card address of sector lba: sectors on SDHC/SDXC, bytes on SDSC */
@@ -231,13 +231,15 @@ static uint32_t card_address(uint32_t lba) {
     return (SDCardInfo.CardType == SDIO_HIGH_CAPACITY_SD_CARD) ? lba : lba * SECTOR_BYTES;
 }
 
-/* Stops a transfer: DMA off, data path off, CMD12, flags cleared */
+/* Stops a transfer: data path off, DMA stopped and burned, CMD12, flags
+   cleared */
 static void stop(void) {
     SDIO->DCTRL = 0;
-    DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
+    gdma_finish(GDMA_SDIO, NULL, 0);
     command(SD_CMD_STOP_TRANSMISSION, 0);
     SDIO_ClearFlag(SDIO_STATIC_FLAGS);
     step = IDLE;
+    run_left = 0;                       /* the rest of a run isn't started */
 }
 
 /* Ends the transfer with an error */
@@ -255,7 +257,11 @@ static int start_read(uint32_t lba, uint32_t *dest, int count) {
         SDIO->DCTRL = 0;
         return ERR_BLK_READ_FAIL;
     }
-    dma_start(dest, DMA_DIR_PeripheralSRC, count);
+    int err = dma_start(dest, GDMA_FROM_PERIPH, count);
+    if (err) {
+        stop();                         /* the card has started sending: CMD12 */
+        return err;
+    }
     SDIO->DCTRL |= SDIO_DCTRL_DMAEN;
     status = 1;
     return 0;
@@ -267,7 +273,11 @@ static int start_write(uint32_t lba, uint32_t *src, int count) {
     if (command(SD_CMD_WRITE_MULT_BLOCK, card_address(lba)) != SD_OK) {
         return ERR_BLK_WRITE_FAIL;
     }
-    dma_start(src, DMA_DIR_PeripheralDST, count);
+    int err = dma_start(src, GDMA_TO_PERIPH, count);
+    if (err) {
+        stop();                         /* the card waits for data: CMD12 */
+        return err;
+    }
     data_path(SDIO_TransferDir_ToCard, count);
     SDIO->DCTRL |= SDIO_DCTRL_DMAEN;
     status = 2;
@@ -289,6 +299,23 @@ static void check_timeout(void) {
     }
 }
 
+/* Starts the run's next chunk of up to CHUNK_SECTORS; returns an ior */
+static int next_chunk(void) {
+    int count = run_left < (int)CHUNK_SECTORS ? run_left : (int)CHUNK_SECTORS;
+    int err = run_write ? start_write(run_lba, run_buf, count) : start_read(run_lba, run_buf, count);
+    crumb(TAG('C','H','N','K'), run_lba, (uint32_t)count);
+    if (err) {
+        run_left = 0;
+        return err;
+    }
+    run_lba += (uint32_t)count;
+    run_buf += SECTOR_CELLS * (uint32_t)count;
+    run_left -= count;
+    step = MOVING;
+    started = lfGetTimeMicroSec();
+    return 0;
+}
+
 /* One step of the transfer in progress; updates status */
 static void advance(void) {
     if (step == IDLE) {
@@ -304,24 +331,39 @@ static void advance(void) {
             fail(err);
             return;
         }
-        if (!(SDIO->STA & SDIO_FLAG_DATAEND) || !DMA_GetFlagStatus(DMA2, BLK_DMA_FLAG_TC)) {
+        int dma = gdma_poll(GDMA_SDIO);
+        if (dma < 0) {
+            crumb(TAG('D','M','A','!'), (uint32_t)dma, gdma_left(GDMA_SDIO));
+            printf("V5F blk: %s DMA error, left %lu\r\n", status == 1 ? "read" : "write",
+                   (unsigned long)gdma_left(GDMA_SDIO));
+            fail(err);
+            return;
+        }
+        if (!(SDIO->STA & SDIO_FLAG_DATAEND) || dma != 0) {
             /* debugging: a crumb each time another sector's worth has arrived */
             static uint32_t last_left;
             uint32_t left = SDIO->DCOUNT;
             if (left + SECTOR_BYTES <= last_left || left > last_left) {
-                crumb(TAG('P','R','O','G'), left, BLK_DMA_CHANNEL->CNTR);
+                crumb(TAG('P','R','O','G'), left, gdma_left(GDMA_SDIO));
                 last_left = left;
             }
             check_timeout();            /* still moving */
             return;
         }
-        crumb(TAG('D','E','N','D'), SDIO->STA, DMA2->INTFR);
+        crumb(TAG('D','E','N','D'), SDIO->STA, gdma_left(GDMA_SDIO));
         SDIO->DCTRL = 0;
-        DMA_Cmd(BLK_DMA_CHANNEL, DISABLE);
+        /* A read's data goes to its buffer now; either way the channel and
+           machine mode's buffer are burned */
+        int g = gdma_finish(GDMA_SDIO, xfer_read ? xfer_buf : NULL, xfer_bytes);
         SD_Error e = command(SD_CMD_STOP_TRANSMISSION, 0);
         crumb(TAG('C','M','1','2'), (uint32_t)e, SDIO->STA);
         SDIO_ClearFlag(SDIO_STATIC_FLAGS);
-        if (e != SD_OK) {
+        if (g) {
+            crumb(TAG('G','D','M','A'), (uint32_t)g, (uint32_t)xfer_buf);
+            printf("V5F blk: Guarded DMA refused the %s's buffer %08lX (%d)\r\n",
+                   status == 1 ? "read" : "write", (unsigned long)(uintptr_t)xfer_buf, g);
+        }
+        if (e != SD_OK || g) {
             step = IDLE;
             status = err;
             return;
@@ -333,6 +375,12 @@ static void advance(void) {
     if (IsCardProgramming(&state) != SD_OK) {
         step = IDLE;
         status = err;
+    } else if (state == SD_CARD_TRANSFER && run_left > 0) {
+        int e = next_chunk();           /* the card is ready for the next command */
+        if (e) {
+            step = IDLE;
+            status = e;
+        }
     } else if (state == SD_CARD_TRANSFER) {
         step = IDLE;
         status = 0;
@@ -353,15 +401,14 @@ static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
-    started = lfGetTimeMicroSec();
     crumb(write ? TAG('W','R','I','T') : TAG('R','E','A','D'), lba, (uint32_t)buf);
-    int err = write ? start_write(lba, buf, count) : start_read(lba, buf, count);
+    run_lba = lba;
+    run_buf = buf;
+    run_left = count;
+    run_write = write;
+    int err = next_chunk();             /* the first chunk; advance starts the rest */
     crumb(TAG('S','T','R','T'), (uint32_t)err, (uint32_t)count);
-    if (err) {
-        return err;
-    }
-    step = MOVING;
-    return 0;
+    return err;
 }
 
 /* Steps the transfer in progress; returns its status */
@@ -623,9 +670,7 @@ int blk_init(char *filename, uint32_t *capacity) {
 
     SD_Error err = SD_Init();
     NVIC_DisableIRQ(SDIO_IRQn);         /* polling: no SDIO interrupts on this core */
-#if BLK_DMA
-    RCC_HBPeriphClockCmd(RCC_HBPeriph_DMA1 | RCC_HBPeriph_DMA2, ENABLE);  /* DMA1 as WCH's driver has it for DMAMUX */
-#endif
+    /* (Guarded DMA turns on the DMA clocks itself, in machine mode) */
     if (err != SD_OK) {
         printf("V5F blocks: no SD card (error %d)\r\n", (int)err);
         return 0;

@@ -14,7 +14,10 @@
  *   1  0x08070000..0x08077FFF     none   all      no   the board record, and
  *                                                      stage 1's records A and
  *                                                      B (the device token)
- *   2  0x40022000..0x40022FFF     none   all      no   the flash controller
+ *   2  0x40020000..0x40023FFF     R      all      no   DMA1, DMA2, DMAMUX,
+ *                                                      RCC, the flash
+ *                                                      controller, CRC, USBFS
+ *                                                      and the RNG
  *   3  all memory                 RWX    RWX      yes
  *
  * A locked entry binds machine mode too, and only a reset clears it. An
@@ -23,7 +26,26 @@
  * `ecall` (Ecall_U_Mode_Handler) and check every address they're given:
  * programming LiteForth's flash pages here, and board.c's board_serve,
  * which keeps the board's private key in machine mode; buffers in DTCM. The V5F reads the code flash's low window only in its start-up
- * copy, before the lock. PMP doesn't stop DMA.
+ * copy, before the lock.
+ *
+ * Entry 2 is about DMA: a DMA controller isn't bound by the PMP and can
+ * read or write any memory, so user mode mustn't program one. DMA1, DMA2
+ * and DMAMUX share one 16 KB NAPOT region with the flash controller (and
+ * RCC, CRC, USBFS and the RNG), so one entry fences them all. It's
+ * read-only to user mode, not closed, so reading any of them (RCC's clock
+ * settings, a DMA channel's flags) still works. Writes are another matter:
+ *   - DMA: only through Guarded DMA (gdma.h), the machine-mode service
+ *     that owns the channels, their dedicated buffer, and burning both
+ *     after use;
+ *   - RCC and CRC, which user mode writes (WCH's drivers enable clocks,
+ *     lftime.c runs the RTC's domain, Forth's I/O page reaches CRC): the
+ *     HardFault handler (ch32h417_it.c) does the store for it, if
+ *     guard_store_allowed says it's one of theirs, and carries on after
+ *     it;
+ *   - the flash controller: only through the flash service below;
+ *   - USBFS (the V3F's) and the RNG (board.c's key, in machine mode): not
+ *     at all. Any other store there faults: to Forth with ior -127
+ *     (ERR_BUS_FAULT) if it came from Forth, else it resets the chip.
  */
 
 /**
@@ -41,7 +63,8 @@ void pmp_lock(void);
  */
 void pmp_report(void);
 
-/* Services 16 and up are board.c's (board_serve, BOARD_SVC_*) */
+/* Services 8 to 15 are Guarded DMA's (gdma_serve, GDMA_SVC_*), 16 and up
+   board.c's (board_serve, BOARD_SVC_*) */
 enum { PMP_SVC_FLASH_PROGRAM = 1 };
 
 /**
@@ -51,6 +74,12 @@ enum { PMP_SVC_FLASH_PROGRAM = 1 };
  * unknown n, or what the service returns.
  */
 int pmp_call(uint32_t n, uint32_t a, uint32_t b);
+
+/**
+ * pmp_call with a third argument, c (the Guarded DMA services, gdma.h,
+ * which are 8 to 15).
+ */
+int pmp_call3(uint32_t n, uint32_t a, uint32_t b, uint32_t c);
 
 /**
  * Nonzero if [p, p + n) lies in DTCM: where a service's buffers must be,

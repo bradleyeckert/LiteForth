@@ -149,12 +149,22 @@ class Rig:
         if args[0] != 'check':
             cmd += ['--usb', os.ttyname(self.usb_s), '--debug', os.ttyname(self.dbg_s),
                     '--report', report]
-        r = subprocess.run(cmd,
-                           input=answer, capture_output=True, text=True, env=env, timeout=300)
-        text = r.stdout + r.stderr
+        try:
+            r = subprocess.run(cmd, input=answer, capture_output=True, text=True, env=env,
+                               timeout=150)
+            code, text = r.returncode, r.stdout + r.stderr
+        except subprocess.TimeoutExpired as e:  # say what it got to
+            out = [x.decode(errors='replace') if isinstance(x, bytes) else (x or '')
+                   for x in (e.stdout, e.stderr)]
+            code, text = 124, f'lockdown.py {args[0]} timed out after 150 s\n' + ''.join(out)
+            print(text[-3000:], flush=True)
+            p = os.path.join(self.board.dir, 'wlink.log')
+            if os.path.exists(p):
+                with open(p) as f:
+                    print('wlink calls:', f.read().splitlines(), flush=True)
         if os.path.exists(report):
             text += open(report).read()
-        return r.returncode, text
+        return code, text
 
     def log(self):
         p = os.path.join(self.board.dir, 'wlink.log')

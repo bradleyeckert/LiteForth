@@ -9,8 +9,11 @@
  * `mret`s into `main` with MPP = 0), where the PMP CSRs can't be reached.
  *
  *   #  region                     user   machine  locked
- *   0  0x00070000..0x00077FFF     none   none     yes  the code flash's low
- *                                                      window over the records
+ *   0  0x00000000..0x0800FFFF     none   none     yes  TOR: all of the code
+ *                                                      flash's low window, and
+ *                                                      the V3F's image (stage
+ *                                                      0 and 1) in the high
+ *                                                      window
  *   1  0x08070000..0x08077FFF     none   all      no   the board record, and
  *                                                      stage 1's records A and
  *                                                      B (the device token)
@@ -32,7 +35,10 @@
  * programming LiteForth's flash pages here (it only reads its source,
  * which must lie in DTCM), board.c's board_serve, which keeps the board's
  * private key in machine mode, and Guarded DMA (gdma.c). The V5F reads
- * the code flash's low window only in its start-up copy, before the lock.
+ * the code flash's low window only in its start-up code, at a cold start,
+ * before the lock; it's never restarted without a chip reset (Ctrl+X x3
+ * resets the chip, Common/cdc_bridge.c), so that code never runs again
+ * with entry 0 locked.
  *
  * Entry 2 is about DMA: a DMA controller isn't bound by the PMP and can
  * read or write any memory, so user mode mustn't program one. DMA1, DMA2

@@ -11,8 +11,9 @@
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "../../../../errcodes.h"
 
-/* pmpcfg bytes: L (locked), A = NAPOT, X W R */
+/* pmpcfg bytes: L (locked), A = TOR or NAPOT, X W R */
 #define PMP_L       0x80u
+#define PMP_TOR     0x08u
 #define PMP_NAPOT   0x18u
 #define PMP_RWX     0x07u
 #define PMP_R       0x01u
@@ -36,13 +37,21 @@ _Static_assert(RNG_BASE >= GUARD_BLOCK_BASE
 _Static_assert(PMP_SVC_FLASH_PROGRAM < GDMA_SVC_START && GDMA_SVC_LAST < BOARD_SVC_INFO,
                "the services' numbers don't overlap");
 
-#define PMP_ADDR0   NAPOT(0x00070000u, 0x8000u)
+/* Entry 0, TOR: everything below the V5F's slot in the high window. That's
+   all of the code flash's low window (the V3F's image, the V5F's, LiteForth's
+   pages and the records, all seen at 0x00000000 too), and the V3F's image
+   (stage 0 and 1) in the high window. Locked, so machine mode can't reach it
+   either. The V5F runs from the low window only at a cold start, before
+   this (its start-up code), and nothing restarts it without a chip reset:
+   Ctrl+X x3 resets the chip (Common/cdc_bridge.c). */
+#define V5F_SLOT_HIGH   0x08010000u     /* Link_v5f.ld's FLASH, in the high window */
+#define PMP_ADDR0   (V5F_SLOT_HIGH >> 2)
 #define PMP_ADDR1   NAPOT(RECORDS, 0x8000u)
 #define PMP_ADDR2   NAPOT(GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE)
 #define PMP_ADDR3   0x1FFFFFFFu                 /* NAPOT: 4 GB from 0, all of memory */
 /* (0xFFFFFFFF reads back as 0x3FFFFFFF: the core doesn't keep pmpaddr's
    top two bits, address bits 33:32. Both still cover everything.) */
-#define PMP_CFG0    ((PMP_L | PMP_NAPOT) << 0 | (PMP_NAPOT) << 8 | \
+#define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | (PMP_NAPOT) << 8 | \
                      (PMP_NAPOT | PMP_R) << 16 | (PMP_L | PMP_NAPOT | PMP_RWX) << 24)
 
 static uint32_t got_cfg, got_addr[4];   /* read back after the lock */

@@ -84,7 +84,6 @@ static long steps, cut_at = -1;
 static int card_fd = -1;
 static uint64_t rng_state;
 static int stdin_eof;
-static int restart_hsem;                /* the V3F released CDC_RESTART_HSEM */
 
 int sim_debug_printf(const char *fmt, ...) {
     va_list ap;
@@ -254,10 +253,8 @@ FlagStatus HSEM_GetFlagStatus(HSEM_ID_TypeDef id) {
 }
 
 void HSEM_ReleaseOneSem(HSEM_ID_TypeDef id, uint32_t process) {
+    (void)id;                           /* the V3F only releases HSEM0's take */
     (void)process;
-    if (id == (HSEM_ID_TypeDef)CDC_RESTART_HSEM) {
-        restart_hsem = 1;
-    }
 }
 
 /* The card, 512-byte sectors from card.img */
@@ -397,16 +394,11 @@ static void v5f_ymodem(void) {
     v5f_put(out);
 }
 
-/* Runs alongside the V3F: restarts on CDC_RESTART_HSEM (its interrupt is
-   on, stuck or not), starts LiteForth once its memory setup is done, and
-   answers each line */
+/* Runs alongside the V3F: starts LiteForth once its memory setup is done,
+   and answers each line. (Ctrl+X x3 resets the chip: the V3F's
+   NVIC_SystemReset, exit 2.) */
 static void v5f_service(void) {
     if (!v5f_running || v5f_busy) {
-        return;
-    }
-    if (restart_hsem) {
-        restart_hsem = 0;
-        v5f_boot();
         return;
     }
     if (v5f_ready_at && now_ms() >= v5f_ready_at) {

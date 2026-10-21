@@ -11,8 +11,9 @@ call its tools:
   forth          send lines to LiteForth and return what it printed, each
                  line (shown as `> line`) waiting for the `ok>` prompt
   forth_read     return what the board printed on its own (a running app)
-  forth_restart  send Ctrl+X three times: on the CH32H417, restart the V5F
-                 without starting the app
+  forth_restart  send Ctrl+X three times: on the CH32H417, reset the chip,
+                 LiteForth starting without the app (the port goes and
+                 comes back)
   wlink          the WCH-LinkE debug probe, through the wlink program
                  (`cargo install wlink`; on Windows build it for
                  i686-pc-windows-msvc, which uses WCH's own driver). Only
@@ -213,7 +214,8 @@ class Board:
             p.write(b"\x18\x18\x18")
         finally:
             p.close()
-        return "sent Ctrl+X three times; the V5F restarts without starting the app"
+        return ("sent Ctrl+X three times; the chip resets and LiteForth starts without "
+                "the app (the port goes for a moment)")
 
 
 # ---------------------------------------------------------------------------
@@ -330,8 +332,9 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {
          "seconds": {"type": "number", "description": "how long to listen (default 1)"}}}},
     {"name": "forth_restart",
-     "description": "Send Ctrl+X three times. On the CH32H417 this restarts LiteForth "
-                    "without starting the app: the way out of a runaway app.",
+     "description": "Send Ctrl+X three times. On the CH32H417 this resets the chip, "
+                    "and LiteForth starts without starting the app: the way out of a "
+                    "runaway app. The port goes and comes back.",
      "inputSchema": {"type": "object", "properties": {}}},
     {"name": "wlink",
      "description": "The WCH-LinkE debug probe, through wlink. Commands: status (probe, chip, "

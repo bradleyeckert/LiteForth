@@ -150,7 +150,7 @@ CH32H417's USB CDC port, and the WCH-LinkE debug probe. It has four tools:
 |---|---|
 | `forth` | Sends one or more lines and returns what LiteForth printed, each line shown as `> line` and followed by its output, waiting for `ok>` (5 s by default) |
 | `forth_read` | Listens for a while without sending anything, for a running app's output |
-| `forth_restart` | Sends Ctrl+X three times: on the CH32H417, restarts LiteForth without starting the app |
+| `forth_restart` | Sends Ctrl+X three times: on the CH32H417, resets the chip and LiteForth starts without the app (the port goes and comes back) |
 | `wlink` | Runs [wlink](https://github.com/ch32-rs/wlink) for the WCH-LinkE: `status`, `list`, `regs`, `dump` (up to 4 KB), `reset` and `flash` only |
 
 It opens the port for each call and closes it after, so kwai can use the

@@ -42,9 +42,9 @@
  *   discards the tx ring until the host reads again, so the V5F never
  *   waits forever.
  *
- * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host
- * restart the V5F in safe-boot mode (see cdc_shared.h): it boots without
- * starting the app. The bytes still go to the V5F, so a single Ctrl+X is
+ * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host reset
+ * the chip with the V5F in safe-boot mode (see cdc_shared.h): it boots
+ * without starting the app. The bytes still go to the V5F, so a single Ctrl+X is
  * an ordinary character. They are seen as they are copied into the rx
  * ring, so if the V5F has stopped reading and the ring is full (4K of
  * unread input), they can't arrive; then only a reset helps.
@@ -80,7 +80,7 @@ void cdc_shared_init(void) {
     sh->standby = 0;                    /* a standby ends with a chip reset */
     sh->binary = 0;                     /* the Ctrl+X escape is on */
     /* safe_boot is left alone: it must survive the chip reset that
-       v5f_safe_restart falls back on. v5f_starts only ever counts up. */
+       v5f_safe_restart makes. v5f_starts only ever counts up. */
     CDC_FENCE();
     sh->magic = CDC_SHARED_MAGIC;
     CDC_FENCE();
@@ -107,7 +107,7 @@ static void slot_release(void) {
 }
 
 /*=========================================================================
-* Ctrl+X x3: restart the V5F in safe-boot mode
+* Ctrl+X x3: reset the chip, the V5F in safe-boot mode
 =========================================================================*/
 
 static uint8_t ctrl_x_run;              /* consecutive Ctrl+X bytes seen */
@@ -129,18 +129,16 @@ static void debug_uart_drain(void) {
     while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
 }
 
-/* Restarts the V5F so that it boots without starting the app. Signals it
-   through HSEM CDC_RESTART_HSEM, which its interrupt answers by jumping to
-   its reset entry; serial_open then counts the start in v5f_starts. If the
-   V5F doesn't start again within CDC_RESTART_WAIT_MS (it isn't taking
-   interrupts), resets the whole chip; safe_boot survives that. If the last
-   safe start hasn't cleared safe_boot yet (the V5F got stuck before
-   LiteForth), resets into stage 1's recovery instead (`recover` in
-   cdc_shared.h). The bridge
-   isn't polled meanwhile; the USB interrupt keeps the device alive. */
+/* Restarts the V5F so that it boots without starting the app: sets
+   safe_boot, which survives a reset, and resets the whole chip. Not a
+   restart of the V5F alone: a V5F that runs its start-up code again, in
+   machine mode with its PMP already locked, would need the code flash's
+   low window, which PMP entry 0 closes to it for good (V5F/User/pmp.c).
+   If the last safe start hasn't cleared safe_boot yet (the V5F got stuck
+   before LiteForth), resets into stage 1's recovery instead (`recover` in
+   cdc_shared.h). */
 static void v5f_safe_restart(void) {
     cdc_shared_t *sh = CDC_SHARED;
-    uint32_t starts = sh->v5f_starts;
 
     ctrl_x_run = 0;                     /* the V5F drops the input around it */
     if (sh->safe_boot == CDC_SAFE_BOOT_MAGIC) { /* the last safe start never got going */
@@ -150,21 +148,9 @@ static void v5f_safe_restart(void) {
         debug_uart_drain();
         NVIC_SystemReset();
     }
-    printf("Ctrl+X x3: restarting the V5F in safe mode\r\n");
+    printf("Ctrl+X x3: resetting the chip; the V5F starts in safe mode\r\n");
     sh->safe_boot = CDC_SAFE_BOOT_MAGIC;
     CDC_FENCE();
-    HSEM_FastTake((HSEM_ID_TypeDef)CDC_RESTART_HSEM);
-    HSEM_ReleaseOneSem((HSEM_ID_TypeDef)CDC_RESTART_HSEM, 0);
-
-    for (int ms = 0; ms < CDC_RESTART_WAIT_MS; ms++) {
-        Delay_Ms(1);
-        if (sh->v5f_starts != starts) {
-            printf("V5F restarted\r\n");
-            return;
-        }
-    }
-    printf("V5F didn't restart: resetting the chip\r\n");
-    crumb_v3f_note(TAG('R','S','T','3'), sh->v5f_starts, starts);
     debug_uart_drain();
     NVIC_SystemReset();
 }

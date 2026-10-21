@@ -36,11 +36,14 @@
  * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host make
  * the V3F restart the V5F in safe-boot mode, so a runaway app can always be
  * stopped from the terminal. The V3F sets safe_boot to CDC_SAFE_BOOT_MAGIC
- * and signals HSEM CDC_RESTART_HSEM; the V5F's HSEM interrupt restarts it
- * from its reset entry, and serial_open counts the start in v5f_starts.
- * If that count doesn't change within CDC_RESTART_WAIT_MS, the V3F resets
- * the whole chip. safe_boot lives here, outside both cores' .bss, so a
- * restart doesn't clear it; the V5F clears it once it has seen it, after
+ * and resets the whole chip, so the V5F only ever starts from a reset:
+ * its PMP is set once, at its cold start, and nothing in machine mode
+ * runs its start-up code again (V5F/User/pmp.c: entry 0, locked, keeps
+ * even machine mode out of the code flash's low window, where that code
+ * is). USB restarts too: the host sees the port go and come back.
+ * serial_open counts each start in v5f_starts. safe_boot lives here,
+ * outside both cores' .bss, so the reset doesn't clear it (cdc_shared_init
+ * leaves it alone); the V5F clears it once it has seen it, after
  * its memory setup (the card). If Ctrl+X x3 comes again while safe_boot is
  * still set, that safe start never got that far: the V5F is stuck in its
  * C code, so the V3F sets recover to CDC_RECOVER_MAGIC and resets the
@@ -75,11 +78,9 @@ extern "C" {
 #define CDC_SHARED_MAGIC    0x43444331u     /* "CDC1": rings initialized */
 #define CDC_RING_SIZE       4096u           /* bytes per ring, power of 2 */
 #define CDC_SAFE_BOOT_MAGIC 0x5AFEB007u     /* safe_boot: skip the app's autorun */
-#define CDC_RESTART_HSEM    1               /* HSEM_ID1: V3F -> V5F restart request */
                                             /* (HSEM0 wakes the V3F at boot; HSEM2 guards the
                                                debug UART, DEBUG_HSEM in SRC/Debug/debug.h) */
-#define CDC_RESTART_WAIT_MS 500             /* then the V3F resets the chip */
-#define CDC_CTRL_X          0x18            /* three in a row restart the V5F */
+#define CDC_CTRL_X          0x18            /* three in a row reset the chip, the V5F safe */
 #define CDC_STANDBY_MAGIC   0x5133B00Bu     /* standby: the V5F asks the V3F to sleep */
 #define CDC_RTC_WAKE_MAGIC  0xA1A4A4E0u     /* rtc_wake: the RTC alarm caused this reset */
 #define CDC_BINARY_MAGIC    0xB1A4DA7Au     /* binary: host bytes are data, no Ctrl+X escape */

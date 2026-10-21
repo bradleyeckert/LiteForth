@@ -509,10 +509,23 @@ token.
 
   | # | Region | User | Machine | Locked |
   |---|---|---|---|---|
-  | 0 | 0x00070000-0x00077FFF, the low window over the records | none | none | yes |
+  | 0 | TOR, 0x00000000-0x0800FFFF: the whole low window, and the V3F's image (stage 0 and 1) in the high window | none | none | yes |
   | 1 | 0x08070000-0x08077FFF: the board record, stage 1's records | none | all | no |
   | 2 | 0x40020000-0x40023FFF: DMA1, DMA2, DMAMUX, RCC, the flash controller, CRC, USBFS, RNG | read | all | no |
   | 3 | all memory | RWX | RWX | yes |
+
+  Entry 0 (20 October 2026) is one TOR entry from address 0 up to the
+  V5F's slot in the high window, 0x08010000: the code flash's whole low
+  window (the V3F's image, the V5F's own, LiteForth's pages and the
+  records all appear there too) and the V3F's image in the high window.
+  So the V5F, machine mode included, can't read stage 0 or stage 1 at all.
+  What it still sees of the code flash is its own image and LiteForth's
+  pages, through the high window, and the records under entry 1. The V5F
+  runs from the low window only in its start-up code, before `pmp_lock`,
+  so nothing may run that code again with the entry locked: Ctrl+X x3,
+  which used to restart the V5F alone (an HSEM interrupt jumping to
+  `handle_reset`), now resets the chip (`Common/cdc_bridge.c`), and the
+  V5F only ever starts from a reset.
 
   There are four entries, so the device token's sectors share entry 1
   with the board record, unlocked: user mode (all of LiteForth) can't

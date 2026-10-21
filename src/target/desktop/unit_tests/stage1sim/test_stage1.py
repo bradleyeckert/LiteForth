@@ -506,8 +506,12 @@ def s_recovery_ram_and_ctrl_x():
     r = b.boot(v5f='stuck')
     check(r.wait_debug(r'V5F stuck') is not None, 'ctrl+x: the V5F gets stuck')
     r.send(b'\x18\x18\x18')
-    check(r.wait_debug(r'restarting the V5F in safe mode') is not None, 'ctrl+x: safe restart')
-    check(r.wait_debug(r'V5F restarted') is not None, 'ctrl+x: it restarted')
+    check(r.wait_debug(r'resetting the chip; the V5F starts in safe mode') is not None,
+          'ctrl+x: safe restart')
+    check(r.wait_exit() == 2, 'ctrl+x: by a chip reset')
+    r.stop()
+    r = b.boot(v5f='stuck')                 # safe_boot survived the reset
+    check(r.wait_debug(r'V5F stuck') is not None, 'ctrl+x: it restarted, stuck again')
     r.send(b'\x18\x18\x18')
     check(r.wait_debug(r'the V5F is stuck; resetting into recovery') is not None,
           'ctrl+x: again: recovery')
@@ -530,12 +534,17 @@ def s_recovery_ram_and_ctrl_x():
     b = Board('ctrl-x-healthy')             # a healthy V5F: just a safe restart, every time
     r = b.boot()
     r.wait_debug(r'LiteForth starting')
+    debug = []
     for _ in range(2):
         r.send(b'\x18\x18\x18')
+        check(r.wait_exit() == 2, 'healthy: a chip reset')
+        r.stop()
+        debug += r.debug
+        r = b.boot()
         check(r.wait_debug(r'safe boot') is not None, 'healthy: safe boot')
-        time.sleep(0.3)
     r.stop()
-    check(not any('recovery' in l for l in r.debug), 'healthy: never recovery')
+    debug += r.debug
+    check(not any('recovery' in l for l in debug), 'healthy: never recovery')
 
 
 def s_recovery_commands():
@@ -546,7 +555,10 @@ def s_recovery_commands():
     r = b.boot(v5f='stuck')
     r.wait_debug(r'V5F stuck')
     r.send(b'\x18\x18\x18')
-    r.wait_debug(r'V5F restarted')
+    r.wait_exit()
+    r.stop()
+    r = b.boot(v5f='stuck')
+    r.wait_debug(r'V5F stuck')
     r.send(b'\x18\x18\x18')
     r.wait_exit()
     r.stop()
@@ -617,7 +629,10 @@ def s_lockdown_command():
     r = b2.boot(v5f='stuck')
     r.wait_debug(r'V5F stuck')
     r.send(b'\x18\x18\x18')
-    r.wait_debug(r'V5F restarted')
+    r.wait_exit()
+    r.stop()
+    r = b2.boot(v5f='stuck')
+    r.wait_debug(r'V5F stuck')
     r.send(b'\x18\x18\x18')
     r.wait_exit()
     r.stop()

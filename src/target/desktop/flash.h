@@ -23,6 +23,12 @@ int flash_init(char *filename, uint32_t** mem);
 int flash_program(uint32_t *m, int page);
 
 /**
+ * Nonzero if LiteForth's flash pages can't be written (see the CH32H417's
+ * flash.h). On the desktop they always can: returns 0.
+ */
+int flash_locked(void);
+
+/**
  * Simulation stub for filling in a random key at the end of the Root of Trust (RoT) sector.
  * Does nothing for the desktop implementation.
  * Returns 0.

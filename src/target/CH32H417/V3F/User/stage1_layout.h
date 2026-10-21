@@ -15,7 +15,12 @@
 #define UPD_RECORD_A        0x72000u
 #define UPD_RECORD_B        0x74000u
 
+#define UPD_PAGES_LEN       0x40000u        /* LiteForth's 4 x 64K flash pages (V5F/User/options.h) */
 #define STAGE1_FLASH_BASE   0x08000000u     /* the code flash, for reading and FLASH_ROM_* */
+
+/* A SEALED_V5F_APP package's image is the V5F's slot and then LiteForth's
+   flash pages, which Link_v5f.ld puts right after it (__lf_flash_start) */
+_Static_assert(UPD_V5F_ADDR + UPD_V5F_SLOT == 0x30000u, "the flash pages follow the V5F slot");
 
 /* Write protection as a locked-down board has it (stage1.c's check; WPR has
    one bit per 8 KB sector, sectors 31-119 sharing bit 31, and a 0 means

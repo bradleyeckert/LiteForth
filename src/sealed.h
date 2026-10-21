@@ -44,9 +44,10 @@ typedef struct {
 
 /* A firmware update package's description (doc/admin/firmware-updates.md
    section 5), from block 0 */
-enum { SEALED_V5F = 1, SEALED_STAGE1 = 2 };
+enum { SEALED_V5F = 1, SEALED_STAGE1 = 2,
+       SEALED_V5F_APP = 3 };            /* the V5F slot, padded, then LiteForth's flash pages */
 typedef struct {
-    uint32_t component;             /* SEALED_V5F or SEALED_STAGE1 */
+    uint32_t component;             /* SEALED_V5F, SEALED_STAGE1 or SEALED_V5F_APP */
     uint32_t hw_rev;                /* 0: any */
     uint32_t length;                /* the image's bytes */
     uint32_t min_version;           /* the new minimum, or 0 */

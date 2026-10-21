@@ -469,19 +469,20 @@ int blk_remount(uint32_t *capacity) {
 * Staging a firmware update package (-2 ymodem): lfstage.bin
 =========================================================================*/
 
-/* Where lfstage.bin is: *lba its first sector in the card image, or
-   STAGEFILENAME (*file set); returns its blocks, or 0 */
-static uint32_t stage_find(uint32_t *lba, int *file) {
+/* Where a file beside the block file is (lfstage.bin, lfpages.bin): *lba
+   its first sector in the card image (card_name), or the file `name` in
+   the current directory (*file set); returns its blocks, or 0 */
+static uint32_t side_find(const char *card_name, const char *name, uint32_t *lba, int *file) {
     uint32_t blocks = 0;
     *lba = 0;
     *file = 0;
     if (mode == MODE_CARD) {
-        if (card_find_file(card_read, dev_sectors, &map, CARD_STAGE_FILE, lba, &blocks) != 0) {
+        if (card_find_file(card_read, dev_sectors, &map, card_name, lba, &blocks) != 0) {
             return 0;
         }
         return blocks;
     }
-    FILE *f = fopen(STAGEFILENAME, "rb");
+    FILE *f = fopen(name, "rb");
     if (!f) {
         return 0;
     }
@@ -495,14 +496,15 @@ static uint32_t stage_find(uint32_t *lba, int *file) {
 uint32_t blk_stage_space(void) {
     uint32_t lba;
     int file;
-    return stage_find(&lba, &file);
+    return side_find(CARD_STAGE_FILE, STAGEFILENAME, &lba, &file);
 }
 
-/* A transfer of block blk of lfstage.bin */
-static int stage_io(uint32_t blk, uint32_t *buf, int write) {
+/* A transfer of block blk of such a file */
+static int side_io(const char *card_name, const char *name, uint32_t blk, uint32_t *buf,
+                   int write) {
     uint32_t lba;
     int file;
-    if (blk >= stage_find(&lba, &file)) {
+    if (blk >= side_find(card_name, name, &lba, &file)) {
         return ERR_BLK_BOUNDS;
     }
     if (!file) {
@@ -514,7 +516,7 @@ static int stage_io(uint32_t blk, uint32_t *buf, int write) {
         return write ? write_now(lba, buf, SECTORS_PER_BLOCK)
                      : read_now(lba, buf, SECTORS_PER_BLOCK);
     }
-    FILE *f = fopen(STAGEFILENAME, write ? "r+b" : "rb");
+    FILE *f = fopen(name, write ? "r+b" : "rb");
     if (!f) {
         return ERR_BLK_OPEN_FAIL;
     }
@@ -527,6 +529,10 @@ static int stage_io(uint32_t blk, uint32_t *buf, int write) {
     }
     fclose(f);
     return err;
+}
+
+static int stage_io(uint32_t blk, uint32_t *buf, int write) {
+    return side_io(CARD_STAGE_FILE, STAGEFILENAME, blk, buf, write);
 }
 
 int blk_stage_read(uint32_t blk, uint32_t *dest) {
@@ -556,4 +562,18 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len) {
 }
 
 void blk_stage_ready(void) {
+}
+
+/*=========================================================================
+* Saving the flash pages (save-pages): lfpages.bin
+=========================================================================*/
+
+uint32_t blk_pages_space(void) {
+    uint32_t lba;
+    int file;
+    return side_find(CARD_PAGES_FILE, PAGESFILENAME, &lba, &file);
+}
+
+int blk_pages_write(uint32_t blk, const uint32_t *src) {
+    return side_io(CARD_PAGES_FILE, PAGESFILENAME, blk, (uint32_t *)src, 1);
 }

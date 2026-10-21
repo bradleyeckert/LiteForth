@@ -57,4 +57,12 @@ int flash_program(uint32_t *m, int page);
  */
 int flash_rndkey(void);
 
+/**
+ * Nonzero if LiteForth's flash pages can't be written here: on the
+ * CH32H417 at SECURITY_LEVEL 2 (SEC_LOCKED_PAGES), where only update
+ * packages write them and stage 1 checks them at every boot. open-flash
+ * refuses then (ERR_WRITE_PROTECTED), and so does pmp.c's flash service.
+ */
+int flash_locked(void);
+
 #endif /* FLASH_H */

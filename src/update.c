@@ -184,6 +184,31 @@ static uint32_t blocks_of(uint32_t length) {
     return (length + UPD_BLOCK - 1) / UPD_BLOCK;
 }
 
+/* How much of an installed image of `length` bytes its MAC covers. With
+   check_pages, always the whole span (slot and pages), whatever the
+   record says: an image installed without check_pages (its MAC over less)
+   then fails its check, and the board needs a package installed with it.
+   Else no more than the V5F slot, so pages a developer changes after an
+   app package don't fail the check. */
+static uint32_t mac_length(const upd_io *io, uint32_t length) {
+    if (io->check_pages) {
+        return UPD_APP_SPAN;
+    }
+    return length <= UPD_V5F_SLOT ? length : UPD_V5F_SLOT;
+}
+
+/* The installed image's MAC, as the record keeps it */
+static int installed_mac(const upd_io *io, const upd_record *r, uint8_t out[32]) {
+    return image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, mac_length(io, r->v5f_length), out);
+}
+
+/* The length an installed package's image counts as: with check_pages,
+   the whole span, so its backup, its rollback and its MAC take in the
+   pages whatever the package carried */
+static uint32_t installed_length(const upd_io *io, uint32_t pkg_length) {
+    return io->check_pages ? UPD_APP_SPAN : pkg_length;
+}
+
 /* ------------------------------------------------------------------------
  * The package in lfstage.bin
  */
@@ -212,7 +237,7 @@ static int mount_package(const upd_io *io, const sealed_board *keys, const upd_r
     if (err) {
         return err;
     }
-    if (pkg->component != SEALED_V5F) {
+    if (pkg->component != SEALED_V5F && pkg->component != SEALED_V5F_APP) {
         snprintf(msg, len, "update refused: not a V5F image");
         return ERR_BLK_PARSE_FAIL;
     }
@@ -221,8 +246,13 @@ static int mount_package(const upd_io *io, const sealed_board *keys, const upd_r
                  (unsigned long)pkg->hw_rev);
         return ERR_BLK_PARSE_FAIL;
     }
-    if (pkg->length > UPD_V5F_SLOT) {
+    if (pkg->component == SEALED_V5F && pkg->length > UPD_V5F_SLOT) {
         snprintf(msg, len, "update refused: larger than the V5F slot");
+        return ERR_BLK_PARSE_FAIL;
+    }
+    if (pkg->component == SEALED_V5F_APP && pkg->length != UPD_APP_SPAN) {
+        snprintf(msg, len, "update refused: an app image must be the V5F slot and every "
+                 "flash page, %lu bytes", (unsigned long)UPD_APP_SPAN);
         return ERR_BLK_PARSE_FAIL;
     }
     if (!check_all) {
@@ -350,6 +380,7 @@ static int make_backup(const upd_io *io, upd_record *r) {
 static int backup_good(const upd_io *io, const upd_record *r, uint8_t nonce[8]) {
     uint8_t mac[32];
     if (r->backup_length == 0 || io->backup_read == NULL
+        || (io->check_pages && r->backup_length != UPD_APP_SPAN)  /* would leave pages as they are */
         || backup_mac(io, r, r->backup_length, mac) != 0
         || crypto_verify32(mac, r->backup_mac) != 0
         || io->backup_read(0, buf) != 0
@@ -401,7 +432,7 @@ static int roll_back(const upd_io *io, upd_record *r, char *msg, int len) {
     }
     r->v5f_version = r->backup_version;
     r->v5f_length = r->backup_length;
-    err = image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, r->v5f_length, r->v5f_mac);
+    err = installed_mac(io, r, r->v5f_mac);
     if (err) {
         return err;
     }
@@ -460,8 +491,8 @@ static int install(const upd_io *io, const sealed_board *keys, upd_record *r,
         return err;
     }
     r->v5f_version = pkg.version;
-    r->v5f_length = pkg.length;
-    err = image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, r->v5f_length, r->v5f_mac);
+    r->v5f_length = installed_length(io, pkg.length);
+    err = installed_mac(io, r, r->v5f_mac);
     if (err) {
         return err;
     }
@@ -488,7 +519,7 @@ static int start_update(const upd_io *io, const sealed_board *keys, upd_record *
     int keep = 0;
     if (r->v5f_length) {
         uint8_t mac[32];
-        err = image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, r->v5f_length, mac);
+        err = installed_mac(io, r, mac);
         if (err) {
             return err;
         }
@@ -542,8 +573,8 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
             return err;
         }
         if (io->adopt_blank) {
-            r->v5f_length = UPD_V5F_SLOT;
-            err = image_mac(io, r, UPD_V5F_ADDR, 0, UPD_V5F_SLOT, r->v5f_mac);
+            r->v5f_length = installed_length(io, UPD_V5F_SLOT);
+            err = installed_mac(io, r, r->v5f_mac);
             if (err) {
                 return err;
             }
@@ -612,7 +643,7 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
         return UPD_RECOVERY;
     }
     uint8_t mac[32];
-    err = image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, r->v5f_length, mac);
+    err = installed_mac(io, r, mac);
     if (err) {
         return err;
     }
@@ -629,7 +660,7 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
         if (err) {
             return err;
         }
-        err = image_mac(io, r, UPD_V5F_ADDR, r->v5f_version, r->v5f_length, mac);
+        err = installed_mac(io, r, mac);
         if (!err && crypto_verify32(mac, r->v5f_mac) == 0 && r->result == UPD_R_ROLLED_BACK) {
             return UPD_START;
         }
@@ -674,8 +705,8 @@ int upd_adopt(const upd_io *io, char *msg, int len) {
         return ERR_BLK_PARSE_FAIL;
     }
     r.v5f_version = 0;
-    r.v5f_length = UPD_V5F_SLOT;
-    err = image_mac(io, &r, UPD_V5F_ADDR, 0, UPD_V5F_SLOT, r.v5f_mac);
+    r.v5f_length = installed_length(io, UPD_V5F_SLOT);
+    err = installed_mac(io, &r, r.v5f_mac);
     if (!err) {
         r.result = UPD_R_NONE;
         err = record_store(io, &r);

@@ -57,7 +57,7 @@ static uint32_t io_buf[UPD_BLOCK / 4] __attribute__((aligned(32)));
  */
 static int in_range(uint32_t addr, uint32_t len) {
     uint32_t end = addr + len;
-    return (addr >= UPD_V5F_ADDR && end <= UPD_V5F_ADDR + UPD_V5F_SLOT && end > addr)
+    return (addr >= UPD_V5F_ADDR && end <= UPD_V5F_ADDR + UPD_APP_SPAN && end > addr)
         || (addr >= UPD_RECORD_A && end <= UPD_RECORD_A + UPD_SECTOR)
         || (addr >= UPD_RECORD_B && end <= UPD_RECORD_B + UPD_SECTOR);
 }
@@ -269,6 +269,7 @@ static void io_init(void) {
     io.random = rng;
     io.hw_rev = 0;
     io.adopt_blank = SEC_ADOPT;             /* see stage1.h */
+    io.check_pages = SEC_LOCKED_PAGES;      /* the flash pages are part of the image */
 }
 
 /* ------------------------------------------------------------------------

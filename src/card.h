@@ -17,6 +17,7 @@
 
 #define CARD_BLOCKS_FILE    "lfblocks.fb4"
 #define CARD_STAGE_FILE     "lfstage.bin"   /* a firmware update package, by -2 ymodem */
+#define CARD_PAGES_FILE     "lfpages.bin"   /* LiteForth's flash pages, by save-pages */
 #define CARD_BACKUP_FILE    "lfbackup.bin"  /* stage 1's backup of the V5F image */
 
 enum { CARD_NONE, CARD_EXFAT_FILE };

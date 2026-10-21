@@ -14,6 +14,10 @@ directory given (default work/), with scripts/admin/sealblocks.py:
     other.lfu       for another board only
     stage1.lfu      a stage 1 image, not a V5F one
     hwrev.lfu       for hardware revision 7 (the test board is 1)
+    pages.bin       LiteForth's flash pages, as save-pages writes them
+    app.lfu         new.bin and pages.bin (component app), version 4
+    app.bin         what app.lfu puts in flash: new.bin padded to the slot, then the pages
+    appshort.lfu    an app package with too few pages (stage 1 refuses it)
 """
 import contextlib
 import io
@@ -82,6 +86,18 @@ def main():
          '--boards', 'boards_b.csv', '--revision', 2)
     tool('package', 'v3.bin', 'stage1.lfu', '--component', 'stage1', '--release', 'rel.key',
          '--boards', 'boards.csv', '--revision', 2)
+
+    # update.h's defaults, which the test builds with: a 160 KB slot, 256 KB of pages
+    slot, pages_len = 160 * 1024, 256 * 1024
+    pages = image(pages_len, 11)
+    with open('pages.bin', 'wb') as f:
+        f.write(pages)
+    with open('app.bin', 'wb') as f:
+        f.write(images['new.bin'] + b'\xff' * (slot - len(images['new.bin'])) + pages)
+    app = ['--component', 'app', '--release', 'rel.key', '--boards', 'boards.csv',
+           '--pages', 'pages.bin', '--slot', slot]
+    tool('package', 'new.bin', 'app.lfu', *app, '--revision', 4)
+    tool('package', 'new.bin', 'appshort.lfu', *app, '--pages-len', 192 * 1024, '--revision', 4)
 
 
 if __name__ == '__main__':

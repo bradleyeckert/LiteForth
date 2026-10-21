@@ -17,9 +17,9 @@
 #include "errcodes.h"
 #include "monocypher.h"
 
-#define FLASH_SIZE      (UPD_V5F_ADDR + UPD_V5F_SLOT)
-#define STAGE_BLOCKS    64
-#define BACKUP_BLOCKS   64
+#define FLASH_SIZE      (UPD_V5F_ADDR + UPD_APP_SPAN)   /* the slot, then the flash pages */
+#define STAGE_BLOCKS    128             /* an app package is about 105 */
+#define BACKUP_BLOCKS   128
 #define CUT             (-1000)         /* upd_boot stopped by a power cut */
 
 static uint8_t flash[FLASH_SIZE];
@@ -139,7 +139,7 @@ static int rng(uint8_t *out, int len) {
 
 static upd_io io = {
     f_read, f_erase, f_write, s_read, STAGE_BLOCKS, b_read, b_write, BACKUP_BLOCKS,
-    rng, 1, 1,
+    rng, 1, 1, 0,
 };
 
 /* ------------------------------------------------------------------------
@@ -202,7 +202,8 @@ static void adopt(void) {
     fresh();
     int r = boot(0);
     CHECK(r == UPD_START, "first boot: %d (%s)", r, msg);
-    CHECK(rec.v5f_length == UPD_V5F_SLOT && rec.v5f_version == 0, "first boot: adopted");
+    CHECK(rec.v5f_length == (io.check_pages ? UPD_APP_SPAN : UPD_V5F_SLOT) && rec.v5f_version == 0,
+          "first boot: adopted");
 }
 
 /* ------------------------------------------------------------------------
@@ -375,6 +376,109 @@ static void test_power_cuts(void) {
     CHECK(back == total, "every cut resumed the rollback (%d of %ld)", back, total);
 }
 
+/* ------------------------------------------------------------------------
+ * App packages: the V5F slot and LiteForth's flash pages
+ */
+static uint8_t *app_img;                /* what app.lfu puts in flash */
+static long app_len;
+#define PAGE_BYTE   (UPD_V5F_ADDR + UPD_V5F_SLOT + 70000)   /* somewhere in page 1 */
+
+static int is_region(const uint8_t *img) {
+    return memcmp(flash + UPD_V5F_ADDR, img, UPD_APP_SPAN) == 0;
+}
+
+/* Development (no check_pages): the pages install, but the MAC covers the
+   slot only, so a developer may change them afterwards */
+static void test_app_development(void) {
+    io.check_pages = 0;
+    adopt();
+    put_package("app.lfu");
+    int r = boot(1);
+    CHECK(r == UPD_START && strstr(msg, "version 4 installed"), "app: %d (%s)", r, msg);
+    CHECK(app_len == UPD_APP_SPAN && is_region(app_img), "app: the slot and the pages in flash");
+    CHECK(rec.v5f_length == UPD_APP_SPAN && rec.backup_length == UPD_V5F_SLOT,
+          "app: installed as the whole span, the adopted slot backed up");
+    CHECK(upd_confirm(&io) == 0, "app: confirm");
+    flash[PAGE_BYTE] ^= 0x40;           /* close-flash after the install */
+    r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_INSTALLED, "app: a changed page is fine: %s", msg);
+    flash[UPD_V5F_ADDR + 99] ^= 1;      /* the V5F image itself still counts */
+    r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && rec.v5f_version == 0,
+          "app: a changed slot rolls back: %d %s", r, msg);
+
+    adopt();
+    put_package("appshort.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && rec.result == UPD_R_REFUSED && strstr(msg, "every flash page"),
+          "app: too few pages refused: %s", msg);
+}
+
+/* SECURITY_LEVEL 2 (check_pages): every installed image is the whole
+   span, its MAC covers the pages, and a changed page is caught */
+static void test_app_locked(void) {
+    static uint8_t before[UPD_APP_SPAN];
+    io.check_pages = 1;
+    adopt();
+    CHECK(rec.v5f_length == UPD_APP_SPAN, "locked: adopted as the whole span");
+    memcpy(before, flash + UPD_V5F_ADDR, UPD_APP_SPAN);
+    put_package("app.lfu");
+    int r = boot(1);
+    CHECK(r == UPD_START && is_region(app_img), "locked: app installed: %d %s", r, msg);
+    CHECK(rec.v5f_length == UPD_APP_SPAN && rec.backup_length == UPD_APP_SPAN,
+          "locked: the old span backed up, pages and all");
+    CHECK(upd_confirm(&io) == 0, "locked: confirm");
+    flash[PAGE_BYTE] ^= 0x40;           /* a page changed behind stage 1's back */
+    r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_region(before),
+          "locked: a changed page is caught and the old span restored: %d %s", r, msg);
+
+    adopt();                            /* a V5F-only package: still the whole span */
+    put_package("new0.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && rec.v5f_length == UPD_APP_SPAN, "locked: V5F-only: %d %s", r, msg);
+    CHECK(upd_confirm(&io) == 0, "locked: confirm V5F-only");
+    flash[PAGE_BYTE] ^= 0x40;
+    r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK, "locked: pages checked after a "
+          "V5F-only package too: %s", msg);
+
+    /* A record from before check_pages (its MAC over the slot only) isn't
+       trusted, and a slot-only backup isn't restored */
+    io.check_pages = 0;
+    adopt();
+    io.check_pages = 1;
+    r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN,
+          "locked: a slot-only record goes to recovery: %d %s", r, msg);
+
+    /* Power cuts through an app install */
+    io.check_pages = 1;
+    adopt();
+    put_package("app.lfu");
+    long start = steps;
+    boot(1);
+    long total = steps - start, installed = 0;
+    for (long k = 0; k < total; k++) {
+        adopt();
+        put_package("app.lfu");
+        cut_at = steps + k;
+        r = boot(1);
+        int boots = 0;
+        do {
+            r = boot(1);
+        } while (r < 0 && ++boots < 3);
+        if (r == UPD_START && is_region(app_img) && rec.v5f_version == 4) {
+            installed++;
+        } else {
+            fail("app cut at step %ld of %ld: %d, %s", k, total, r, msg);
+        }
+    }
+    CHECK(installed == total, "locked: every cut resumed the app install (%ld of %ld)",
+          installed, total);
+    io.check_pages = 0;
+}
+
 /* The package replaced while an install was cut short. (Cut during the
    backup instead, the update simply starts over, with whatever package is
    there then: that's right, since nothing has been programmed yet.) */
@@ -516,6 +620,7 @@ int main(void) {
     old_img = load("old.bin", &old_len);
     new_img = load("new.bin", &new_len);
     v3_img = load("v3.bin", &v3_len);
+    app_img = load("app.bin", &app_len);
     long n;
     uint8_t *root = load("root.pub.bin", &n), *board = load("board.bin", &n);
     memcpy(keys.root, root, 32);
@@ -534,6 +639,8 @@ int main(void) {
     test_recovery();
     test_record_copies();
     test_power_cuts();
+    test_app_development();
+    test_app_locked();
 
     /* Again with the key behind the hook and private_key zero */
     memcpy(held_key, keys.private_key, 32);

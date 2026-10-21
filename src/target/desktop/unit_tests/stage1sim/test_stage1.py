@@ -158,6 +158,7 @@ class Run:
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.usb = queue.Queue()
         self.debug = []                 # lines of the debug UART
+        self.debug_done = False         # its pipe has ended: every line is in
         self.debug_cv = threading.Condition()
         self.usb_text = bytearray()
         threading.Thread(target=self._read_usb, daemon=True).start()
@@ -178,6 +179,9 @@ class Run:
             with self.debug_cv:
                 self.debug.append(line)
                 self.debug_cv.notify_all()
+        with self.debug_cv:
+            self.debug_done = True
+            self.debug_cv.notify_all()
 
     def wait_debug(self, pattern, timeout=TIMEOUT):
         """Waits for a debug line matching pattern; returns it, or None."""
@@ -191,11 +195,9 @@ class Run:
                         return line
                 seen = len(self.debug)
                 left = end - time.time()
-                if left <= 0 or (self.p.poll() is not None and seen == len(self.debug)):
-                    if self.p.poll() is not None:
-                        time.sleep(0.05)
-                        if len(self.debug) > seen:
-                            continue
+                # Gone: but only once its last lines are read (a line printed
+                # just before an exit, such as a reset's, may still be in the pipe)
+                if left <= 0 or self.debug_done:
                     return None
                 self.debug_cv.wait(min(left, 0.1))
 
@@ -557,7 +559,9 @@ def s_recovery_ram_and_ctrl_x():
     r = b.boot()
     check(r.wait_debug(r'safe boot') is not None, 'twice: LiteForth back, safe boot')
     r.send(b'\x18\x18\x18')                # the first input since the reset
-    check(r.wait_debug(r'Ctrl\+X x3 again: asked for; resetting into recovery') is not None,
+    # "asked for", or "the V5F is stuck" if this came before the V5F model
+    # cleared safe_boot: either way, recovery
+    check(r.wait_debug(r'Ctrl\+X x3 again: .*resetting into recovery') is not None,
           'twice: recovery, though the V5F is fine')
     check(r.wait_exit() == 2, 'twice: the chip resets')
     r.stop()

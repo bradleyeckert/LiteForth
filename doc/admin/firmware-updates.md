@@ -173,7 +173,7 @@ The 12 reserved bytes at offset 180 describe the image:
 
 | Offset | Size | Contents |
 |---|---|---|
-| 180 | 1 | Component: 1 = V5F image, 2 = stage 1 |
+| 180 | 1 | Component: 1 = V5F image, 2 = stage 1, 3 = V5F image and LiteForth's flash pages ("app") |
 | 181 | 1 | Flags, 0 |
 | 182 | 2 | Hardware revision, 0 = any |
 | 184 | 4 | Image length in bytes |
@@ -194,7 +194,37 @@ image, so stage 0 checks the slot with block 0's signature and this hash.
 Stage 1 also checks the decrypted V5F image against it before it stores
 the image's MAC.
 
-Made by `sealblocks.py package IMAGE PACKAGE --component v5f|stage1
+**App packages (component 3)** carry the Forth application with the
+firmware. The image is the V5F's slot, the `.bin` padded with 0xFF to the
+slot's size, followed by all of LiteForth's flash pages: one region in the
+code flash (0x10000 to 0x6FFFF today), which stage 1 installs, backs up,
+rolls back and checks like a V5F image, just longer. Stage 1 takes one
+only if it's exactly that long. The way an application gets to a product:
+
+1. A developer, on a board at `SECURITY_LEVEL` 0 or 1, loads the Forth
+   source from a plain block file (`1 load`), which compiles into the
+   flash pages, caches fonts (`font-cache`), and so on.
+2. `save-pages` writes the pages into `lfpages.bin` on the card (made
+   beforehand like `lfstage.bin`: 262144 bytes, contiguous).
+3. The administrator packages them with the V5F's build:
+   `sealblocks.py package LiteForth_V5F.bin app.lfu --component app
+   --pages lfpages.bin --release R --boards CSV --revision N` (`--slot` and
+   `--pages-len` give another layout).
+4. The package installs as any other, by `-2 ymodem` or recovery.
+
+At `SECURITY_LEVEL` 2 (`SEC_LOCKED_PAGES`) only packages write the pages:
+`open-flash`, the V5F's machine-mode flash service and `save-pages`
+refuse. Stage 1 counts every installed image there as the whole region,
+slot and pages (`upd_io.check_pages`): its MAC, checked at every boot,
+covers the pages, its backup holds them, and a rollback restores them. So
+a changed page is caught like a changed V5F image. An image installed
+without that (a record from a lower level, its MAC over the slot only)
+fails the check, and a slot-only backup isn't trusted for a rollback,
+since it would leave the pages as they are. At levels 0 and 1 the MAC
+covers the V5F image only, so a developer can go on changing the pages
+after an app package.
+
+Made by `sealblocks.py package IMAGE PACKAGE --component v5f|stage1|app
 --release R --boards CSV --revision N [--hw-rev N] [--min-version N]
 [--cipher aes|sm4]`; `check` and `open` read packages too (`open` writes
 the image itself and checks its hash). A package is never a block file:
@@ -209,7 +239,9 @@ The card holds two files, made once in a PC and contiguous like
 system:
 
 - `lfstage.bin`: an update package, exactly as it came;
-- `lfbackup.bin`: the V5F image as it was before the last update.
+- `lfbackup.bin`: the V5F image as it was before the last update; with
+  the flash pages too, after an app package or at `SECURITY_LEVEL` 2
+  (`1 + 96` blocks for today's 128 KB slot and 256 KB of pages).
 
 | Phase | Runs in | Trusted? | Does |
 |---|---|---|---|
@@ -325,7 +357,8 @@ three commands:
 With no `lfstage.bin`, or no card at all, the package goes into RAM
 instead: 36 blocks (144 KB) of the V3F's spare RAM, enough for the
 largest V5F package, which `upd_boot` then reads as it would read
-`lfstage.bin`. That isn't the block-by-block install planned above, since
+`lfstage.bin`. An app package (about 390 KB) doesn't fit: it needs
+`lfstage.bin`, and the receiver refuses it otherwise. That isn't the block-by-block install planned above, since
 a package's hash table comes after its content, so no block could be
 checked as it arrives. A reset part way through an install from RAM loses
 the package: the install can't resume, so the board ends up in recovery

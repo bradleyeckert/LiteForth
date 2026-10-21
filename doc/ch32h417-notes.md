@@ -306,6 +306,31 @@ V5F fault: mcause 00000004 mepc 200AC954 mtval 200C0589 ra 200AC91E sp 200FFCD0 
   the card a supply that can take them: a regulator with headroom, and bulk
   plus local decoupling capacitance right at the slot.
 
+## Debugging through the WCH-LinkE
+
+Seen on 20 October 2026 (board test B15), through `wlink` and
+`scripts/lfmcp.py`:
+
+- **The probe sees the V3F, not the V5F.** `wlink regs` and `status`
+  halt and report the V3F's hart (PC in 0x2010xxxx, `mtvec` 0x20100003),
+  so they say nothing about where the V5F is. To see how the V5F's start
+  went, read its crumb trail in the shared SRAM instead:
+  `wlink dump 0x2017C000` (`CRUMB_ADDR`, `Common/crumbs.h`). After the
+  header (magic `C2C2B0B0`, `next`, `boots`, three V3F words) come
+  16-byte entries (tag, a, b, time); only the first `next` are from this
+  run, and the rest of the ring is left over from earlier ones. A start
+  that reached LiteForth ends in `QUIT`; a fault leaves `FLT5` or `TRP5`.
+- **Halting the V3F can stall the USB console.** `regs`, `dump` and
+  `status` halt the V3F while they look, and the V3F runs USB. After a
+  few of them the board's CDC port was still there and could be opened
+  and read, but writes to it timed out (`write failed: the port went
+  away?` from `lfmcp.py`: the device stopped taking data), while the V5F
+  carried on normally. A `wlink reset` (no flash write) brought it back.
+  So don't probe while using the console; if the console stops taking
+  input after probing, reset the chip.
+- **`wlink flash` resets the chip** when it's done, and stage 1 starts
+  the new V5F image as usual.
+
 ## What matched the documents
 
 Some behavior we checked against the RM and found exactly as described,

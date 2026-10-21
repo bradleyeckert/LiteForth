@@ -36,20 +36,20 @@
  * one. A file that wouldn't fit, or whose header has no length, isn't
  * written.
  *
- * n = -1: one whole block file (an lfblocks.fb4, plain or sealed) replaces
+ * n = -1: one whole block file (an lfblocks.fb4) replaces
  * the one there, block 0 included, so the card needn't come out of the
  * board. It goes into the space the block file has (blk_space: on a card,
  * lfblocks.fb4's size, which the board can't change), so it must be whole
  * 4 KB blocks and fit; any blocks after it are left as they were. Block 0
  * is checked first (blk_check_image): it must start with BLK_SIGNATURE,
- * and a sealed file must be one this board would mount. Nothing is
+ * and not be sealed (a package, or a retired sealed block file: sealed.h's
+ * sealed_not_blocks). Nothing is
  * written until it passes. Then block 0 says the install hasn't finished
  * while the other blocks are written, and the real block 0 goes in last,
  * so a transfer cut short leaves a plain block file saying so: send the
  * file again. When the batch ends, the file is read back and compared
  * with what came (BLAKE2s), and mounted again (blk_remount), which sets
- * `capacity`; every content block of a sealed file is read to check its
- * hash. The block buffers are emptied before and after, discarding
+ * `capacity`. The block buffers are emptied before and after, discarding
  * unsaved changes. One file per batch.
  *
  * n = -2: one firmware update package (from `sealblocks.py package`,
@@ -61,8 +61,8 @@
  * back and compared (BLAKE2s), and checked as stage 1 will check it
  * (blk_stage_check: signature, certificate, product, recipient, every
  * block's hash and the image hash; not the board's minimum version). If
- * it passes, blk_stage_ready tells stage 1 a package is waiting. The
- * block file is mounted again afterwards. One package per batch.
+ * it passes, blk_stage_ready tells stage 1 a package is waiting. One
+ * package per batch.
  *
  * After `ymodem`, start the send in the terminal program (kwai: `~x FILE`
  * types `0 ymodem`, `~x FILE N` types `N ymodem`, and `~x FILE -1` and
@@ -75,8 +75,7 @@
  *
  * @return 0 on success; ERR_YMODEM_TRANSFER if the sender never started,
  *         cancelled, or the transfer failed after YMODEM_RETRIES tries;
- *         ERR_YMODEM_SOURCE for a problem with a file; ERR_BLOCK_READ_ERROR
- *         if an installed sealed file's blocks fail their hashes; or the
+ *         ERR_YMODEM_SOURCE for a problem with a file; or the
  *         error from writing a block. With several files, the first
  *         problem's.
  */

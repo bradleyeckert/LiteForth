@@ -11,11 +11,12 @@ What's covered:
 
 - **The V5F image**: LiteForth's C code and the product's own C code.
 - **Stage 1** of the V3F: the USB bridge and the update code.
+- **The application**: LiteForth's flash pages, as a developer built
+  them from plain block files with `1 load`, in an app package with the
+  V5F image (section 5). (Sealed block files carried the application
+  before; they are retired, [encrypted-blocks.md](encrypted-blocks.md).)
 
-What isn't: the application. Forth source, fonts and data already arrive
-as sealed block files ([encrypted-blocks.md](encrypted-blocks.md),
-[updates.md](updates.md)), and the dictionary in flash is rebuilt from
-them by `1 load`. Stage 0 itself never changes (section 1).
+Stage 0 itself never changes (section 1).
 
 ## 1. The chain of stages
 
@@ -94,7 +95,7 @@ Proposed:
 | 0x2E000 | 8 KB | Reserved | No |
 | 0x30000 | 160 KB | V5F image | No |
 | 0x58000 | 256 KB | LiteForth flash pages 0-3 (the dictionary) | No |
-| 0x98000 | 8 KB | The V5F's board record (sealed files' X25519 key, minimums) | No |
+| 0x98000 | 8 KB | The V5F's board record (the X25519 key, minimums) | No |
 | 0x9A000 | 344 KB | Free | |
 
 Everything the V3F owns is below 0x30000, so one PMP entry can fence it
@@ -161,13 +162,13 @@ packages, which the release key signs.
 
 ## 5. The update package
 
-A sealed block file ([encrypted-blocks.md](encrypted-blocks.md) section 3)
-with `F` instead of `S` at offset 9, whose content blocks are the firmware
-image. Everything else is unchanged: the root key certifies the release
-key, the release key signs block 0, each content block is checked against
-the BLAKE2s hash table, and the image is encrypted with a CEK wrapped for
-each board in `boards.csv`. So stage 1 reuses `sealed.c`, and
-`sealblocks.py` gains one command, `package`.
+A file in the sealed format ([encrypted-blocks.md](encrypted-blocks.md)
+section 3), marked `F` at offset 9 (`LITEFORTHF`), whose content blocks
+are the firmware image: the root key certifies the release key, the
+release key signs block 0, each content block is checked against the
+BLAKE2s hash table, and the image is encrypted with a CEK wrapped for
+each board in `boards.csv`. Stage 1 opens it with `sealed.c`, and
+`sealblocks.py package` makes it.
 
 The 12 reserved bytes at offset 180 describe the image:
 
@@ -184,8 +185,7 @@ board only (from support) lists just that board as a recipient.
 
 Bytes 4000-4031, just before the signature, hold the plaintext image's
 hash: `BLAKE2s(image, digest_size=32, person="LFimage")`, over exactly
-the image's length. So the table hashes and recipients must end by 4000
-(32 bytes less room than a sealed block file). The image is padded with
+the image's length. So the table hashes and recipients must end by 4000. The image is padded with
 0xFF (erased flash) to whole blocks before it's encrypted.
 
 The hash is what makes an installed image checkable without the board's
@@ -320,7 +320,7 @@ For development, and until the rest exists:
 - No working V5F image: recovery (section 7), on the USB terminal.
 - The board's key comes from the V5F's board record, or from the UID below
   `SECURITY_LEVEL` 2, and the root key and product from
-  `V5F/User/sealed_root.h`, as for sealed block files.
+  `V5F/User/sealed_root.h`, as on the V5F.
 
 ## 7. Recovery
 
@@ -582,7 +582,7 @@ token.
   mode: `board_serve` (`V5F/User/board.c`), behind the same `ecall`,
   checks the record, makes and writes the key for `enroll`, and computes
   X25519 with it, so user mode gets only the public key, the minimums and
-  each sealed file's shared secret (`sealed_board.x25519`, which
+  each package's shared secret (`sealed_board.x25519`, which
   `sealed.c` calls instead of using `private_key`). `pmp_report` prints the entries at each
   start (`V5F PMP: ...`).
 

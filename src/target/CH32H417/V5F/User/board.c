@@ -1,5 +1,5 @@
 /*
- * The board's record for sealed block files (board.h): an 8 KB flash
+ * The board's record for firmware update packages (board.h): an 8 KB flash
  * sector after LiteForth's 256 KB of flash pages, holding one 256-byte
  * record:
  *
@@ -286,7 +286,6 @@ static int x25519_service(uint8_t shared[32], const uint8_t their_public[32]) {
 
 int board_get(sealed_board *b, char *msg, int len) {
     memset(b, 0, sizeof *b);
-    b->sealed_only = SEC_SEALED_ONLY;   /* level 2; set even if the rest fails */
 #ifndef SEALED_ROOT_KEY
     snprintf(msg, len, "no root key built in (V5F/User/sealed_root.h)");
     return ERR_UNSUPPORTED_OPERATION;

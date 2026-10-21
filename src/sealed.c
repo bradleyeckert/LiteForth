@@ -1,4 +1,5 @@
-/* Sealed block files: mounting and reading (doc/admin/encrypted-blocks.md).
+/* The sealed format: mounting and reading firmware update packages
+   (doc/admin/encrypted-blocks.md; sealed block files are retired).
    The layout constants below are the table in its section 3. */
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +26,6 @@ static ctr_key key;
 static uint8_t nonce[8];
 static uint32_t content_end;                    /* C, or 0: nothing mounted */
 static uint32_t tables;                         /* T */
-static uint32_t revision;
 static sealed_read_fn read_raw;
 
 static uint32_t get16(const uint8_t *p) {
@@ -64,7 +64,7 @@ static int fail(char *msg, int len, const char *why) {
 void sealed_unmount(void) {
     ctr_wipe(&key);
     crypto_wipe(nonce, sizeof nonce);
-    content_end = tables = revision = 0;
+    content_end = tables = 0;
     table_index = UINT32_MAX;
     read_raw = NULL;
 }
@@ -73,22 +73,16 @@ uint32_t sealed_blocks(void) {
     return content_end;
 }
 
-uint32_t sealed_revision(void) {
-    return revision;
-}
-
-/* sealed_mount, or with pkg a package (sealed_mount_package) */
-static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
-                 sealed_read_fn read, char *msg, int len, sealed_package *pkg) {
+int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
+                         sealed_read_fn read, char *msg, int len, sealed_package *pkg) {
     sealed_unmount();
     memcpy(header, b0, SEALED_BLOCK_BYTES);
     const uint8_t *h = header;
-    uint32_t end = pkg ? IMAGE_HASH_AT : SIG_AT;
+    uint32_t end = IMAGE_HASH_AT;
 
     /* the fields */
-    if (memcmp(h, pkg ? PACKAGE_MAGIC : SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
-        return fail(msg, len, pkg ? "block 0 doesn't start with " PACKAGE_MAGIC
-                                  : "block 0 doesn't start with " SEALED_MAGIC);
+    if (memcmp(h, PACKAGE_MAGIC, SEALED_MAGIC_LEN) != 0) {
+        return fail(msg, len, "block 0 doesn't start with " PACKAGE_MAGIC);
     }
     if (h[10] != FORMAT_VERSION) {
         return fail(msg, len, "unknown format version");
@@ -118,30 +112,22 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
             return fail(msg, len, "data in block 0's reserved bytes");
         }
     }
-    if (pkg) {                                  /* the image's description */
-        pkg->component = h[180];
-        pkg->hw_rev = get16(h + 182);
-        pkg->length = get32(h + 184);
-        pkg->min_version = get32(h + 188);
-        pkg->version = rev;
-        memcpy(pkg->image_hash, h + IMAGE_HASH_AT, 32);
-        if (pkg->component != SEALED_V5F && pkg->component != SEALED_STAGE1
-            && pkg->component != SEALED_V5F_APP) {
-            return fail(msg, len, "unknown component");
-        }
-        if (h[181]) {
-            return fail(msg, len, "unknown image flags");
-        }
-        if (pkg->length <= (c - 2) * SEALED_BLOCK_BYTES
-            || pkg->length > (c - 1) * SEALED_BLOCK_BYTES) {
-            return fail(msg, len, "the image's length doesn't match its blocks");
-        }
-    } else {
-        for (int i = 180; i < TABLE_HASHES; i++) {
-            if (h[i]) {
-                return fail(msg, len, "data in block 0's reserved bytes");
-            }
-        }
+    pkg->component = h[180];                    /* the image's description */
+    pkg->hw_rev = get16(h + 182);
+    pkg->length = get32(h + 184);
+    pkg->min_version = get32(h + 188);
+    pkg->version = rev;
+    memcpy(pkg->image_hash, h + IMAGE_HASH_AT, 32);
+    if (pkg->component != SEALED_V5F && pkg->component != SEALED_STAGE1
+        && pkg->component != SEALED_V5F_APP) {
+        return fail(msg, len, "unknown component");
+    }
+    if (h[181]) {
+        return fail(msg, len, "unknown image flags");
+    }
+    if (pkg->length <= (c - 2) * SEALED_BLOCK_BYTES
+        || pkg->length > (c - 1) * SEALED_BLOCK_BYTES) {
+        return fail(msg, len, "the image's length doesn't match its blocks");
     }
 
     /* the certificate: the root signed product ID, serial, release key */
@@ -213,23 +199,12 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
     memcpy(nonce, h + 32, 8);
     content_end = c;
     tables = t;
-    revision = rev;
     read_raw = read;
-    snprintf(msg, len, "%s, revision %lu, release key %lu, %s, %lu blocks",
-             pkg ? "package" : "sealed file", (unsigned long)rev,
+    snprintf(msg, len, "package, revision %lu, release key %lu, %s, %lu blocks",
+             (unsigned long)rev,
              (unsigned long)get32(h + 80), h[11] == CTR_SM4 ? "SM4" : "AES-128",
              (unsigned long)c);
     return 0;
-}
-
-int sealed_mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
-                 sealed_read_fn read, char *msg, int len) {
-    return mount(b0, file_blocks, board, read, msg, len, NULL);
-}
-
-int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
-                         sealed_read_fn read, char *msg, int len, sealed_package *pkg) {
-    return mount(b0, file_blocks, board, read, msg, len, pkg);
 }
 
 int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
@@ -239,7 +214,7 @@ int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
     b.min_revision = 0;                 /* stage 1 checks its own minimum */
     int err = read(0, buf);
     if (!err) {
-        err = mount(buf, file_blocks, &b, read, msg, len, pkg);
+        err = sealed_mount_package(buf, file_blocks, &b, read, msg, len, pkg);
     }
     crypto_wipe(&b, sizeof b);
     if (err) {

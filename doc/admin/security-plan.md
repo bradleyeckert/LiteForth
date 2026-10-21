@@ -232,14 +232,18 @@ trusted just because they're in NOR:
   installs it (AES-CTR on the ECDC engine), so a dump of one unit's NOR
   is useless without that unit's key. **Decide.**
 
-[encrypted-blocks.md](encrypted-blocks.md) plans the block file itself as
-the update: a *sealed* `lfblocks.fb4`, encrypted with a fresh key per
+[encrypted-blocks.md](encrypted-blocks.md) first planned the block file
+itself as the update: a *sealed* `lfblocks.fb4`, encrypted with a fresh key per
 release that is wrapped for each board's own X25519 key (no key shared by
 all units), signed with a release key the root key certifies, and checked
 block by block with BLAKE2s hashes, which replace the SHA-256 table above.
-It reads blocks straight from the sealed file, decrypting each as it's
-read, so the questions of re-encrypting at install and of a product-wide
-package key (5.5) become questions about that format.
+The board read blocks straight from the sealed file, decrypting each as it was
+read. Sealed block files are retired now: the format carries firmware
+update packages instead ([firmware-updates.md](firmware-updates.md)
+section 5), and an app package carries a product's Forth as flash pages,
+which stage 1 installs and checks with the V5F image. There is no
+product-wide package key (5.5): each package's key is wrapped for each
+board.
 
 ### 5.4 Unique keys
 

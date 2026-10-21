@@ -1,5 +1,5 @@
 /* AES-128 (FIPS-197) and SM4 (GB/T 32907-2016) encryption in software, and
-   the CTR mode of sealed block files. Small rather than fast: the desktop
+   the sealed format's CTR mode (firmware update packages). Small rather than fast: the desktop
    uses it, and the CH32H417 has the ECDC engine. Table-driven, so not
    hardened against cache-timing side channels (encrypted-blocks.md 9). */
 #include <stdint.h>

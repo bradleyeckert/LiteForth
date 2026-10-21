@@ -37,11 +37,8 @@ static int writable = 0;
 /* Blocks an installed image may fill (blk_space) */
 static uint32_t space = 0;
 
-/* A sealed file is mounted: its content blocks are checked and decrypted
-   as they're read (sealed.c), and nothing can be written */
-static int sealed = 0;
-
-/* What this simulated board holds for sealed files (blk_set_board), or NULL */
+/* What this simulated board holds, for checking a staged firmware update
+   package (blk_stage_check; lf -K), or NULL */
 static const sealed_board *board = NULL;
 
 void blk_set_board(const sealed_board *b) {
@@ -105,50 +102,19 @@ static int write_now(uint32_t lba, uint32_t *src, int count) {
     return (put == want) ? 0 : ERR_BLK_WRITE_FAIL;
 }
 
-/* sealed.c's raw block reader, for the hash table blocks */
-static int raw_block(uint32_t blk, uint8_t *buf) {
-    return read_now(base + blk * SECTORS_PER_BLOCK, (uint32_t *)buf, SECTORS_PER_BLOCK);
-}
-
-/* If the blocks found so far (file_blocks of them, from sector base) are a
-   sealed file, mounts it and offers its content, read-only; if it can't
-   be mounted, or it's a firmware update package, offers nothing. Leaves
-   other files alone. */
-static void check_sealed(uint32_t file_blocks) {
-    static uint8_t b0[BLK_SIZE_BYTES];
-    if (file_blocks == 0 || raw_block(0, b0) != 0) {
+/* If the blocks found so far (file_blocks of them, from sector base) are
+   sealed (a firmware update package, or a retired sealed block file),
+   offers nothing and never writes them. Install space is kept. */
+static void check_not_blocks(uint32_t file_blocks) {
+    static uint32_t b0[BLK_SIZE_BYTES / 4];
+    if (file_blocks == 0 || read_now(base, b0, SECTORS_PER_BLOCK) != 0) {
         return;
     }
-    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
+    const char *why = sealed_not_blocks((const uint8_t *)b0);
+    if (why) {
         writable = 0;
         actual_blocks = 0;
-        fprintf(stderr, "blocks: a firmware update package, not a block file\n");
-        return;
-    }
-    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
-        return;
-    }
-    char msg[120];
-    writable = 0;
-    actual_blocks = 0;
-    if (board == NULL) {
-        fprintf(stderr, "blocks: a sealed file, but lf has no board file (-K)\n");
-    } else if (sealed_mount(b0, file_blocks, board, raw_block, msg, sizeof msg) == 0) {
-        sealed = 1;
-        actual_blocks = sealed_blocks();
-        fprintf(stderr, "blocks: %s\n", msg);
-    } else {
-        fprintf(stderr, "blocks: %s\n", msg);
-    }
-}
-
-/* A plain block file on a board that takes only sealed ones (sealed-only
-   in the board file): offers nothing. Install space is kept. */
-static void check_plain(void) {
-    if (!sealed && writable && board != NULL && board->sealed_only) {
-        writable = 0;
-        actual_blocks = 0;
-        fprintf(stderr, "blocks: a plain block file, but this board takes only sealed files\n");
+        fprintf(stderr, "blocks: %s\n", why);
     }
 }
 
@@ -168,8 +134,6 @@ int blk_init(char* filename, uint32_t* capacity) {
     actual_blocks = 0;
     writable = 0;
     space = 0;
-    sealed = 0;
-    sealed_unmount();
     mode = MODE_FILE;
     base = 0;
     dev_sectors = 0;
@@ -211,8 +175,7 @@ int blk_init(char* filename, uint32_t* capacity) {
             space = map.space;
             fprintf(stderr, "blocks: %s\n", msg);
             if (writable) {
-                check_sealed(actual_blocks);
-                check_plain();
+                check_not_blocks(actual_blocks);
             }
         } else {
             // Block 0 can be read, if it's all there
@@ -223,9 +186,8 @@ int blk_init(char* filename, uint32_t* capacity) {
         actual_blocks = (uint32_t)(file_len / BLK_SIZE_BYTES);
         space = actual_blocks;
         writable = 1;
-        check_sealed(actual_blocks);
-        check_plain();
-        if (!writable) {                // sealed or refused: never padded or written
+        check_not_blocks(actual_blocks);
+        if (!writable) {                // sealed: never padded or written
             if (capacity != NULL) {
                 *capacity = actual_blocks;
             }
@@ -331,12 +293,6 @@ int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
         return err;
     }
     status = read_now(base + blk * SECTORS_PER_BLOCK, dest, length * SECTORS_PER_BLOCK);
-    for (int i = 0; sealed && status == 0 && i < length; i++) {
-        status = sealed_open_block(blk + i, (uint8_t *)dest + i * BLK_SIZE_BYTES);
-        if (status) {                   // leave no ciphertext behind either
-            memset((uint8_t *)dest + i * BLK_SIZE_BYTES, 0, (size_t)(length - i) * BLK_SIZE_BYTES);
-        }
-    }
     return 0;
 }
 
@@ -429,34 +385,18 @@ int blk_raw_write(uint32_t blk, const uint32_t *src, int length) {
 }
 
 int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
-    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
-        snprintf(msg, len, "a firmware update package, not a block file");
+    (void)blocks;
+    const char *why = sealed_not_blocks(b0);
+    if (why) {
+        snprintf(msg, len, "%s", why);
         return ERR_BLK_PARSE_FAIL;
     }
-    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
-        if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
-            snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
-            return ERR_BLK_PARSE_FAIL;
-        }
-        if (board != NULL && board->sealed_only) {
-            snprintf(msg, len, "a plain block file, but this board takes only sealed files");
-            return ERR_BLK_PARSE_FAIL;
-        }
-        snprintf(msg, len, "a plain block file");
-        return 0;
-    }
-    if (sealed) {                       /* sealed_mount forgets it: offer nothing */
-        sealed = 0;
-        actual_blocks = 0;
-    }
-    if (board == NULL) {
-        snprintf(msg, len, "a sealed file, but lf has no board file (-K)");
-        sealed_unmount();
+    if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
+        snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
         return ERR_BLK_PARSE_FAIL;
     }
-    int err = sealed_mount(b0, blocks, board, raw_block, msg, len);
-    sealed_unmount();
-    return err;
+    snprintf(msg, len, "a plain block file");
+    return 0;
 }
 
 int blk_remount(uint32_t *capacity) {
@@ -552,10 +492,6 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len) {
     if (board == NULL) {
         snprintf(msg, len, "not checked: lf has no board file (-K)");
         return ERR_BLK_PARSE_FAIL;
-    }
-    if (sealed) {                       /* sealed_check_package unmounts it */
-        sealed = 0;
-        actual_blocks = 0;
     }
     return sealed_check_package(blk_stage_space(), board, stage_block, (uint8_t *)buf,
                                 pkg, msg, len);

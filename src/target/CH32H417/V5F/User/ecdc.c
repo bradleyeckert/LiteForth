@@ -258,7 +258,7 @@ static void run(const char *what, int cipher, int in_place, uint32_t settle, int
     int err = 0;
     uint32_t t_copy = 0;
     settle_us = settle;
-    if (via_ctr == 1) {                 /* the path sealed files take: an aligned buffer */
+    if (via_ctr == 1) {                 /* the path packages take: an aligned buffer */
         memcpy(hard, plain, sizeof hard);
         t0 = lfGetTimeMicroSec();
         ctr_crypt_block(&k, test_nonce, TEST_BLOCK, (uint8_t *)hard, sizeof hard);

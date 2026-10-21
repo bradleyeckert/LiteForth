@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Sealed block files: encrypted, signed lfblocks.fb4 (doc/admin/encrypted-blocks.md).
+"""Firmware update packages: encrypted, signed images in the sealed format
+(doc/admin/encrypted-blocks.md, doc/admin/firmware-updates.md section 5).
 
     sealblocks.py root-key ROOT                    make root key pair ROOT.key, ROOT.pub
     sealblocks.py release-key ROOT.key SERIAL OUT --product P
@@ -10,13 +11,12 @@
                                                    --insecure: the key a build below
                                                    SECURITY_LEVEL 2 derives from that UID
     sealblocks.py lf-board OUT --board-key B --root ROOT.pub --product P
-                  [--min-revision N] [--min-serial N] [--sealed-only]
+                  [--min-revision N] [--min-serial N]
                                                    write a board file for the desktop lf (-K)
     sealblocks.py root-header ROOT.pub --product P [-o FILE]
                                                    write sealed_root.h (the root key and product
-                                                   ID that a CH32H417 build reads sealed files with;
+                                                   ID that a CH32H417 build checks packages with;
                                                    SECURITY_LEVEL in Common/security.h says the rest)
-    sealblocks.py seal PLAIN SEALED --release R --boards CSV --revision N [--cipher aes|sm4]
     sealblocks.py package IMAGE PACKAGE --component v5f|stage1|app --release R --boards CSV
                   --revision N [--hw-rev N] [--min-version N] [--cipher aes|sm4]
                   [--pages lfpages.bin] [--slot N] [--pages-len N]
@@ -24,11 +24,14 @@
                                                    (doc/admin/firmware-updates.md section 5);
                                                    app: the V5F .bin padded to its slot, then
                                                    LiteForth's flash pages (save-pages)
-    sealblocks.py check SEALED --root ROOT.pub     check everything that needs no board key
-    sealblocks.py open SEALED PLAIN --root ROOT.pub --board-key B
+    sealblocks.py check PACKAGE --root ROOT.pub    check everything that needs no board key
+    sealblocks.py open PACKAGE IMAGE --root ROOT.pub --board-key B
                   [--min-revision N] [--min-serial N] [--product P]
-                                                   check and decrypt, as a board would; for a
-                                                   package, PLAIN gets the image itself
+                                                   check and decrypt, as a board would: IMAGE
+                                                   gets the image itself
+
+Sealed block files (block 0 LITEFORTHS) are retired: an app's Forth goes in
+an app package now, and block files are plain.
 
 Key files are JSON. *.key files hold private keys: keep the root's offline.
 boards.csv: one line per board, `UID,public key,name`, UID and key in hex
@@ -61,7 +64,7 @@ except ImportError:
 
 BLOCK = 4096
 SIGNATURE = b'LITEFORTH'
-SEALED_MARK = b'S'
+SEALED_MARK = b'S'              # a sealed block file: retired, refused
 PACKAGE_MARK = b'F'             # a firmware update package (doc/admin/firmware-updates.md)
 FORMAT_VERSION = 1
 CIPHERS = {'aes': 1, 'sm4': 2}
@@ -82,7 +85,7 @@ PAD = 0xFF                      # erased flash
 
 
 class SealError(Exception):
-    """A sealed file or key that fails a check."""
+    """A package or key that fails a check."""
 
 
 def b2s(data, size, key=b'', salt=b'', person=b''):
@@ -207,11 +210,12 @@ def read_boards(path):
 
 def parse_header(b0, file_blocks):
     """Checks block 0's fields (not its signatures) and returns them."""
-    if b0[:9] != SIGNATURE or b0[9:10] not in (SEALED_MARK, PACKAGE_MARK):
-        raise SealError('not a sealed block file or package '
-                        '(block 0 must start with LITEFORTHS or LITEFORTHF)')
-    package = b0[9:10] == PACKAGE_MARK
-    end = IMAGE_HASH_AT if package else SIG_AT
+    if b0[:10] == SIGNATURE + SEALED_MARK:
+        raise SealError('a sealed block file (LITEFORTHS): no longer supported; '
+                        'an app goes in an app package now')
+    if b0[:10] != SIGNATURE + PACKAGE_MARK:
+        raise SealError('not a firmware update package (block 0 must start with LITEFORTHF)')
+    end = IMAGE_HASH_AT
     version, cipher = b0[10], b0[11]
     flags, product, revision, c = struct.unpack_from('<IIII', b0, 12)
     t, r = struct.unpack_from('<HH', b0, 28)
@@ -229,20 +233,18 @@ def parse_header(b0, file_blocks):
     if c + t > file_blocks:
         raise SealError(f'the file has {file_blocks} blocks, the header needs {c + t}')
     rcp = TABLE_HASHES + 32 * t
-    desc = None
-    if package:
-        component, dflags, hw_rev, length, min_version = struct.unpack_from('<BBHII', b0, 180)
-        if component not in COMPONENT_NAMES:
-            raise SealError(f'unknown component {component}')
-        if dflags:
-            raise SealError(f'unknown image flags {dflags:#x}')
-        if not (c - 2) * BLOCK < length <= (c - 1) * BLOCK:
-            raise SealError(f'an image of {length} bytes doesn\'t fill {c - 1} content blocks')
-        if length > COMPONENT_LIMIT[component]:
-            raise SealError(f'a {COMPONENT_NAMES[component]} image of {length} bytes is larger '
-                            f'than its {COMPONENT_LIMIT[component]}-byte slot')
-        desc = {'component': component, 'hw_rev': hw_rev, 'length': length,
-                'min_version': min_version, 'image_hash': b0[IMAGE_HASH_AT:SIG_AT]}
+    component, dflags, hw_rev, length, min_version = struct.unpack_from('<BBHII', b0, 180)
+    if component not in COMPONENT_NAMES:
+        raise SealError(f'unknown component {component}')
+    if dflags:
+        raise SealError(f'unknown image flags {dflags:#x}')
+    if not (c - 2) * BLOCK < length <= (c - 1) * BLOCK:
+        raise SealError(f'an image of {length} bytes doesn\'t fill {c - 1} content blocks')
+    if length > COMPONENT_LIMIT[component]:
+        raise SealError(f'a {COMPONENT_NAMES[component]} image of {length} bytes is larger '
+                        f'than its {COMPONENT_LIMIT[component]}-byte slot')
+    desc = {'component': component, 'hw_rev': hw_rev, 'length': length,
+            'min_version': min_version, 'image_hash': b0[IMAGE_HASH_AT:SIG_AT]}
     return {
         'package': desc, 'end': end,
         'cipher': cipher, 'product': product, 'revision': revision, 'c': c, 't': t,
@@ -276,8 +278,7 @@ def verify(data, root_pub, min_serial=0, min_revision=0, product=None):
         Ed25519PublicKey.from_public_bytes(h['release']).verify(b0[SIG_AT:], b0[:SIG_AT])
     except InvalidSignature:
         raise SealError('block 0\'s signature doesn\'t match the release key')
-    if any(b0[TABLE_HASHES + 32 * h['t'] + RECIPIENT * len(h['recipients']):h['end']]) \
-            or (h['package'] is None and any(b0[180:192])):
+    if any(b0[TABLE_HASHES + 32 * h['t'] + RECIPIENT * len(h['recipients']):h['end']]):
         raise SealError('block 0 has data in its reserved bytes')
     if h['revision'] < min_revision:
         raise SealError(f'revision {h["revision"]} is below {min_revision}')
@@ -365,11 +366,10 @@ def cmd_lf_board(a):
     if os.path.exists(a.out) and not a.force:
         raise SealError(f'{a.out} exists (use --force to replace it)')
     with open(a.out, 'w') as f:
-        f.write('# lf -K board file: what a board keeps for sealed block files\n'
+        f.write('# lf -K board file: what a board keeps for checking packages\n'
                 f'uid {uid.hex()}\nprivate {priv.hex()}\nroot {pub.hex()}\n'
                 f'product {a.product:#x}\nmin-revision {a.min_revision}\n'
-                f'min-serial {a.min_serial}\n'
-                + ('sealed-only 1\n' if a.sealed_only else ''))
+                f'min-serial {a.min_serial}\n')
     print(f'{a.out}: board {uid.hex()} for lf -K')
 
 
@@ -378,8 +378,8 @@ def cmd_root_header(a):
     rows = ',\n'.join('    ' + ', '.join('0x%02x' % b for b in pub[i:i + 8])
                       for i in range(0, 32, 8))
     text = ('/* sealed_root.h, written by scripts/admin/sealblocks.py root-header from %s:\n'
-            '   the root public key and product ID this build reads sealed block\n'
-            '   files with (doc/admin/encrypted-blocks.md, V5F/User/board.h). */\n'
+            '   the root public key and product ID this build checks firmware update\n'
+            '   packages with (doc/admin/encrypted-blocks.md, V5F/User/board.h). */\n'
             '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'
             '#define SEALED_ROOT_KEY { \\\n%s }\n\n'
             '#define SEALED_PRODUCT 0x%08xu\n\n#endif /* SEALED_ROOT_H */\n'
@@ -394,12 +394,11 @@ def cmd_root_header(a):
         sys.stdout.write(text)
 
 
-def sealed_bytes(blocks, mark, a, desc=b'', ihash=b''):
-    """A sealed file: block 0, then blocks (content blocks 1..C-1, 4 KB
-    each, plain) encrypted, then the hash tables. mark is SEALED_MARK or
-    PACKAGE_MARK; a package also gets desc (12 bytes at 180) and ihash
-    (its image hash, at IMAGE_HASH_AT). a: the command's arguments
-    (release, boards, revision, cipher)."""
+def sealed_bytes(blocks, a, desc, ihash):
+    """A package: block 0, then blocks (content blocks 1..C-1, 4 KB each,
+    plain) encrypted, then the hash tables; desc (12 bytes at 180) and
+    ihash (the image hash, at IMAGE_HASH_AT) in block 0. a: the command's
+    arguments (release, boards, revision, cipher)."""
     rel = read_json(a.release, 'release')
     rel_priv = Ed25519PrivateKey.from_private_bytes(hexbytes(rel, 'private', 32, a.release))
     rel_pub = raw_public(rel_priv)
@@ -408,7 +407,7 @@ def sealed_bytes(blocks, mark, a, desc=b'', ihash=b''):
     boards = read_boards(a.boards)
     c = len(blocks) + 1
     t = (c + PER_TABLE - 1) // PER_TABLE
-    end = IMAGE_HASH_AT if mark == PACKAGE_MARK else SIG_AT
+    end = IMAGE_HASH_AT
     if TABLE_HASHES + 32 * t + RECIPIENT * len(boards) > end:
         raise SealError(f'{len(boards)} boards and {t} table blocks don\'t fit block 0')
     cipher = CIPHERS[a.cipher]
@@ -425,7 +424,7 @@ def sealed_bytes(blocks, mark, a, desc=b'', ihash=b''):
         tables[i][j * ENTRY:(j + 1) * ENTRY] = block_hash(n, enc)
 
     b0 = bytearray(BLOCK)
-    b0[0:10] = SIGNATURE + mark
+    b0[0:10] = SIGNATURE + PACKAGE_MARK
     b0[10], b0[11] = FORMAT_VERSION, cipher
     struct.pack_into('<IIIIHH', b0, 12, 0, product, a.revision, c, t, len(boards))
     b0[32:40] = nonce
@@ -435,8 +434,7 @@ def sealed_bytes(blocks, mark, a, desc=b'', ihash=b''):
     b0[84:116] = rel_pub
     b0[116:180] = cert
     b0[180:180 + len(desc)] = desc
-    if ihash:
-        b0[IMAGE_HASH_AT:SIG_AT] = ihash
+    b0[IMAGE_HASH_AT:SIG_AT] = ihash
     for i in range(t):
         b0[TABLE_HASHES + 32 * i:TABLE_HASHES + 32 * i + 32] = table_hash(i, bytes(tables[i]))
     at = TABLE_HASHES + 32 * t
@@ -448,24 +446,6 @@ def sealed_bytes(blocks, mark, a, desc=b'', ihash=b''):
         at += RECIPIENT
     b0[SIG_AT:] = rel_priv.sign(bytes(b0[:SIG_AT]))
     return bytes(b0) + b''.join(content) + b''.join(bytes(x) for x in tables), t, len(boards)
-
-
-def cmd_seal(a):
-    with open(a.plain, 'rb') as f:
-        plain = f.read()
-    if plain[:9] != SIGNATURE or plain[9:10] in (SEALED_MARK, PACKAGE_MARK):
-        raise SealError(f'{a.plain} is not a plain block file')
-    if len(plain) % BLOCK:
-        raise SealError(f'{a.plain} isn\'t a whole number of 4 KB blocks')
-    c = len(plain) // BLOCK
-    if c < 2:
-        raise SealError(f'{a.plain} has no content blocks')
-    data, t, nb = sealed_bytes([plain[n * BLOCK:(n + 1) * BLOCK] for n in range(1, c)],
-                               SEALED_MARK, a)
-    with open(a.sealed, 'wb') as f:
-        f.write(data)
-    print(f'{a.sealed}: {c - 1} content blocks, {t} hash table block(s), '
-          f'{nb} board(s), revision {a.revision}, {a.cipher.upper()}')
 
 
 def app_image(a, v5f):
@@ -502,7 +482,7 @@ def cmd_package(a):
     padded = image + bytes([PAD]) * (-len(image) % BLOCK)
     blocks = [padded[i:i + BLOCK] for i in range(0, len(padded), BLOCK)]
     desc = struct.pack('<BBHII', component, 0, a.hw_rev, len(image), a.min_version)
-    data, t, nb = sealed_bytes(blocks, PACKAGE_MARK, a, desc, image_hash(image))
+    data, t, nb = sealed_bytes(blocks, a, desc, image_hash(image))
     with open(a.package, 'wb') as f:
         f.write(data)
     print(f'{a.package}: {a.component} image, {len(image)} bytes in {len(blocks)} block(s), '
@@ -526,8 +506,7 @@ def cmd_check(a):
           f'release key {h["serial"]}, {CIPHER_NAMES[h["cipher"]].upper()}, '
           f'{h["c"] - 1} content blocks, boards: '
           + ' '.join(u.hex() for u, _ in h['recipients']))
-    if h['package']:
-        print(f'{a.sealed}: a firmware package: {describe(h)}')
+    print(f'{a.sealed}: a firmware package: {describe(h)}')
 
 
 def cmd_open(a):
@@ -535,30 +514,21 @@ def cmd_open(a):
         data = f.read()
     h = verify(data, root_public(a.root), a.min_serial, a.min_revision, a.product)
     cek = unwrap(h, read_json(a.board_key, 'board'))
-    if h['package']:
-        d = h['package']
-        image = b''.join(crypt(h['cipher'], cek, h['nonce'], n, data[n * BLOCK:(n + 1) * BLOCK])
-                         for n in range(1, h['c']))
-        if any(b != PAD for b in image[d['length']:]):
-            raise SealError('the image\'s padding isn\'t erased flash (0xFF)')
-        image = image[:d['length']]
-        if image_hash(image) != d['image_hash']:
-            raise SealError('the decrypted image doesn\'t match its hash in block 0')
-        with open(a.plain, 'wb') as f:
-            f.write(image)
-        print(f'{a.plain}: {describe(h)}')
-        return
-    b0 = (SIGNATURE + b'BLK opened from a sealed file, revision %d' % h['revision'])
-    out = [b0.ljust(BLOCK, b' ')]
-    for n in range(1, h['c']):
-        out.append(crypt(h['cipher'], cek, h['nonce'], n, data[n * BLOCK:(n + 1) * BLOCK]))
+    d = h['package']
+    image = b''.join(crypt(h['cipher'], cek, h['nonce'], n, data[n * BLOCK:(n + 1) * BLOCK])
+                     for n in range(1, h['c']))
+    if any(b != PAD for b in image[d['length']:]):
+        raise SealError('the image\'s padding isn\'t erased flash (0xFF)')
+    image = image[:d['length']]
+    if image_hash(image) != d['image_hash']:
+        raise SealError('the decrypted image doesn\'t match its hash in block 0')
     with open(a.plain, 'wb') as f:
-        f.write(b''.join(out))
-    print(f'{a.plain}: {h["c"] - 1} content blocks, revision {h["revision"]}')
+        f.write(image)
+    print(f'{a.plain}: {describe(h)}')
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description='Sealed (encrypted, signed) LiteForth block files',
+    p = argparse.ArgumentParser(description='LiteForth firmware update packages (sealed: encrypted, signed)',
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
                                 epilog=__doc__.split('\n\n', 1)[1])
     num = lambda s: int(s, 0)
@@ -585,21 +555,12 @@ def main(argv=None):
     s.add_argument('--product', type=num, required=True)
     s.add_argument('--min-revision', type=num, default=0)
     s.add_argument('--min-serial', type=num, default=0)
-    s.add_argument('--sealed-only', action='store_true',
-                   help='refuse plain block files, as a SECURITY_LEVEL 2 build does')
     s.add_argument('--force', action='store_true')
     s = sub.add_parser('root-header', help='write sealed_root.h for a CH32H417 build')
     s.add_argument('root', help='the root .pub file')
     s.add_argument('--product', type=num, required=True)
     s.add_argument('-o', dest='out', help='the file (default: standard output)')
     s.add_argument('--force', action='store_true')
-    s = sub.add_parser('seal', help='make a sealed file from a plain one')
-    s.add_argument('plain')
-    s.add_argument('sealed')
-    s.add_argument('--release', required=True, help='release key file')
-    s.add_argument('--boards', required=True, help='boards.csv')
-    s.add_argument('--revision', type=num, required=True)
-    s.add_argument('--cipher', choices=sorted(CIPHERS), default='aes')
     s = sub.add_parser('package', help='make a firmware update package from a .bin')
     s.add_argument('image')
     s.add_argument('package')
@@ -616,12 +577,12 @@ def main(argv=None):
     s.add_argument('--min-version', type=num, default=0,
                    help='raise the board\'s minimum version to this on install (default 0: leave it)')
     s.add_argument('--cipher', choices=sorted(CIPHERS), default='aes')
-    s = sub.add_parser('check', help='check a sealed file (no board key needed)')
-    s.add_argument('sealed')
+    s = sub.add_parser('check', help='check a package (no board key needed)')
+    s.add_argument('sealed', metavar='package')
     s.add_argument('--root', required=True, help='the root .pub file')
-    s = sub.add_parser('open', help='check and decrypt a sealed file, as a board would')
-    s.add_argument('sealed')
-    s.add_argument('plain')
+    s = sub.add_parser('open', help='check and decrypt a package, as a board would')
+    s.add_argument('sealed', metavar='package')
+    s.add_argument('plain', metavar='image')
     s.add_argument('--root', required=True)
     s.add_argument('--board-key', required=True)
     s.add_argument('--min-revision', type=num, default=0)
@@ -641,7 +602,7 @@ def main(argv=None):
     try:
         {'root-key': cmd_root_key, 'release-key': cmd_release_key, 'board-key': cmd_board_key,
          'lf-board': cmd_lf_board, 'root-header': cmd_root_header,
-         'seal': cmd_seal, 'package': cmd_package, 'check': cmd_check,
+         'package': cmd_package, 'check': cmd_check,
          'open': cmd_open}[a.cmd](a)
     except SealError as e:
         print(f'sealblocks: {e}', file=sys.stderr)

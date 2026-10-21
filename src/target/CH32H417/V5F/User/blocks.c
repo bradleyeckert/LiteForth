@@ -21,11 +21,8 @@
  * (card.c finds it: lfblocks.fb4 on the exFAT volume). Buffers
  * are cell arrays, so they meet the 4-byte alignment DMA needs.
  *
- * A sealed lfblocks.fb4 (block 0 starts with SEALED_MAGIC,
- * doc/admin/encrypted-blocks.md) is mounted at blk_init with what board.c holds,
- * and offered read-only: when a read of its blocks finishes, blk_status
- * checks each block against its hash and decrypts it (sealed.c), reading
- * the hash table block it needs first, before it reports the read done.
+ * A block file whose block 0 is sealed (a firmware update package, or a
+ * retired sealed block file: sealed_not_blocks) is offered as nothing.
  */
 #include <stdio.h>
 #include <string.h>
@@ -64,11 +61,7 @@ static card_map map_copy;               /* what blk_init put there: see map_ok *
 static int map_bad;                     /* map changed: no more transfers */
 static uint32_t card_sectors;           /* the card's size */
 static int writable;                    /* block 0 has the signature */
-static uint32_t limit;                  /* blocks offered: map.blocks, or a sealed file's */
-static int sealed;                      /* a sealed file is mounted */
-static uint32_t post_blk;               /* a read of sealed blocks to finish: */
-static uint8_t *post_buf;               /* check and decrypt them when it's done */
-static int post_len;
+static uint32_t limit;                  /* blocks offered: map.blocks, or 0 */
 
 static int status;                      /* blk_status: 0, an error, 1 reading, 2 writing */
 static uint32_t stage_base;             /* lfstage.bin: its first sector, */
@@ -393,14 +386,9 @@ static void advance(void) {
     }
 }
 
-static void finish_sealed(void);
-
 /* Starts a checked transfer of count sectors from lba */
 static int start(uint32_t lba, uint32_t *buf, int count, int write) {
     advance();                          /* a finished transfer isn't busy */
-    if (post_len && status == 0) {
-        finish_sealed();                /* a sealed read nobody asked about yet */
-    }
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
@@ -422,13 +410,8 @@ static int poll(void) {
 
 #else /* BLK_DMA */
 
-static void finish_sealed(void);
-
 /* Does a checked transfer of count sectors from lba */
 static int start(uint32_t lba, uint32_t *buf, int count, int write) {
-    if (post_len) {
-        finish_sealed();                /* a sealed read nobody asked about yet */
-    }
     if (status > 0) {
         return ERR_BLK_BUSY;
     }
@@ -443,49 +426,8 @@ static int poll(void) {
 
 #endif /* BLK_DMA */
 
-/* sealed.c's raw block reader, for block 0 and the hash table blocks: a
-   transfer of its own, waited for, with no post-processing */
-static int raw_block(uint32_t blk, uint8_t *buf) {
-    if (blk >= map.blocks) {
-        return ERR_BLK_BOUNDS;
-    }
-    while (poll() > 0) {
-    }
-    int err = start(map.base + blk * SECTORS_PER_BLOCK, (uint32_t *)buf, SECTORS_PER_BLOCK, 0);
-    if (err) {
-        return err;
-    }
-    int s;
-    while ((s = poll()) > 0) {
-    }
-    return s;
-}
-
-/* A read of sealed blocks has finished: check and decrypt them. On a
-   failure the rest of the run is zeroed and the read fails. */
-static void finish_sealed(void) {
-    int n = post_len;
-    post_len = 0;                       /* raw_block below doesn't come back here */
-    for (int i = 0; i < n; i++) {
-        int err = sealed_open_block(post_blk + (uint32_t)i, post_buf + i * BLK_SIZE_BYTES);
-        if (err) {
-            memset(post_buf + i * BLK_SIZE_BYTES, 0, (size_t)(n - i) * BLK_SIZE_BYTES);
-            status = err;
-            return;
-        }
-    }
-    status = 0;
-}
-
 int blk_status(void) {
-    int s = poll();
-    if (s == 0 && post_len) {
-        finish_sealed();
-        s = status;
-    } else if (s < 0) {
-        post_len = 0;                   /* the read failed: nothing to decrypt */
-    }
-    return s;
+    return poll();
 }
 
 int blk_sector_read_imm(uint32_t lba, uint32_t *dest, int count) {
@@ -516,11 +458,6 @@ int blk_read_imm(uint32_t blk, uint32_t *dest, int length) {
     int err = check_run(blk, length, &lba);
     if (!err) {
         err = start(lba, dest, length * SECTORS_PER_BLOCK, 0);
-    }
-    if (!err && sealed) {               /* blk_status finishes it */
-        post_blk = blk;
-        post_buf = (uint8_t *)dest;
-        post_len = length;
     }
     return err;
 }
@@ -574,51 +511,19 @@ static int card_read(uint32_t sector, uint8_t *buf) {
     return err ? err : finish();
 }
 
-/* SECURITY_LEVEL 2 (security.h): plain block files are refused */
-static int sealed_only(void) {
-    sealed_board board;
-    char msg[80];
-    board_get(&board, msg, sizeof msg);
-    int only = board.sealed_only != 0;
-    memset(&board, 0, sizeof board);
-    return only;
-}
-
-/* If the block file is sealed, mounts it with what the board holds and
-   offers its content read-only; if it can't, or it's a firmware update
-   package, offers nothing */
-static void mount_sealed(void) {
+/* If block 0 of the block file is sealed (sealed_not_blocks), offers
+   nothing and never writes it. Install space (map.space) is kept. */
+static void check_not_blocks(void) {
     static uint32_t b0[BLK_SIZE_BYTES / 4];
-    char msg[120];
-    if (raw_block(0, (uint8_t *)b0) != 0) {
+    if (map.blocks == 0 || blk_raw_read(0, b0, 1) != 0) {
         return;
     }
-    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
+    const char *why = sealed_not_blocks((const uint8_t *)b0);
+    if (why) {
         writable = 0;
         limit = 0;
-        printf("V5F blocks: a firmware update package, not a block file\r\n");
-        return;
+        printf("V5F blocks: %s\r\n", why);
     }
-    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
-        return;                         /* a plain block file */
-    }
-    writable = 0;
-    limit = 0;
-    sealed_board board;
-    uint64_t t0 = lfGetTimeMicroSec();
-    int err = board_get(&board, msg, sizeof msg);
-    if (!err) {
-        err = sealed_mount((const uint8_t *)b0, map.blocks, &board, raw_block, msg, sizeof msg);
-    }
-    memset(&board, 0, sizeof board);
-    if (err) {
-        printf("V5F blocks: sealed file refused: %s\r\n", msg);
-        return;
-    }
-    sealed = 1;
-    limit = sealed_blocks();
-    printf("V5F blocks: %s (checked in %lu ms)\r\n", msg,
-           (unsigned long)((lfGetTimeMicroSec() - t0) / 1000));
 }
 
 /* Clears what blk_init or blk_remount found */
@@ -628,11 +533,8 @@ static void forget(void) {
     map_bad = 0;
     writable = 0;
     limit = 0;
-    sealed = 0;
-    post_len = 0;
     stage_base = stage_blocks = 0;
     pages_base = pages_blocks = 0;
-    sealed_unmount();
 }
 
 /* Finds the block space on the card and mounts it; returns the capacity */
@@ -659,12 +561,7 @@ static uint32_t find(void) {
         pages_base = pages_blocks = 0;
     }
     if (writable) {
-        mount_sealed();
-    }
-    if (writable && !sealed && sealed_only()) {
-        writable = 0;
-        limit = 0;
-        printf("V5F blocks: a plain block file, but this build takes only sealed files (security level 2)\r\n");
+        check_not_blocks();
     }
     return limit;
 }
@@ -738,7 +635,6 @@ static int raw(uint32_t blk, uint32_t *buf, int length, int write) {
     int count = length * SECTORS_PER_BLOCK;
     int err = write ? blk_write_fence(lba, count) : 0;
     finish();
-    post_len = 0;                       /* nothing to decrypt */
     if (!err) {
         err = start(lba, buf, count, write);
     }
@@ -760,34 +656,18 @@ int blk_raw_write(uint32_t blk, const uint32_t *src, int length) {
 }
 
 int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len) {
-    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
-        snprintf(msg, len, "a firmware update package, not a block file");
+    (void)blocks;
+    const char *why = sealed_not_blocks(b0);
+    if (why) {
+        snprintf(msg, len, "%s", why);
         return ERR_BLK_PARSE_FAIL;
     }
-    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) != 0) {
-        if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
-            snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
-            return ERR_BLK_PARSE_FAIL;
-        }
-        if (sealed_only()) {
-            snprintf(msg, len, "a plain block file, but this build takes only sealed files");
-            return ERR_BLK_PARSE_FAIL;
-        }
-        snprintf(msg, len, "a plain block file");
-        return 0;
+    if (memcmp(b0, BLK_SIGNATURE, BLK_SIGNATURE_LEN) != 0) {
+        snprintf(msg, len, "block 0 doesn't start with " BLK_SIGNATURE);
+        return ERR_BLK_PARSE_FAIL;
     }
-    if (sealed) {                       /* sealed_mount forgets it: offer nothing */
-        sealed = 0;
-        limit = 0;
-    }
-    sealed_board board;
-    int err = board_get(&board, msg, len);
-    if (!err) {
-        err = sealed_mount(b0, blocks, &board, raw_block, msg, len);
-    }
-    memset(&board, 0, sizeof board);
-    sealed_unmount();
-    return err ? ERR_BLK_PARSE_FAIL : 0;
+    snprintf(msg, len, "a plain block file");
+    return 0;
 }
 
 /*=========================================================================
@@ -810,7 +690,6 @@ static int side_io(uint32_t base, uint32_t blocks, uint32_t blk, uint32_t *buf, 
     uint32_t lba = base + blk * SECTORS_PER_BLOCK;
     int err = write ? blk_write_fence(lba, SECTORS_PER_BLOCK) : 0;
     finish();
-    post_len = 0;                       /* nothing to decrypt */
     if (!err) {
         err = start(lba, buf, SECTORS_PER_BLOCK, write);
     }
@@ -846,10 +725,6 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len) {
     if (err) {
         memset(&board, 0, sizeof board);
         return err;
-    }
-    if (sealed) {                       /* sealed_check_package unmounts it */
-        sealed = 0;
-        limit = 0;
     }
     err = sealed_check_package(stage_blocks, &board, stage_block, (uint8_t *)buf,
                                pkg, msg, len);

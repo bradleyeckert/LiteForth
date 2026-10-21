@@ -2,15 +2,18 @@
 #define SEALED_H
 
 #include <stdint.h>
+#include <string.h>
 
 /*
- * Sealed block files (doc/admin/encrypted-blocks.md): a block file whose content
- * blocks are encrypted (AES-128 or SM4 in CTR mode) for a list of boards,
- * with BLAKE2s hashes of the encrypted blocks in hash table blocks and a
- * block 0 signed by a release key that the root key certifies.
- * scripts/admin/sealblocks.py makes them. The targets' blocks.c call
- * sealed_mount when block 0 starts with SEALED_MAGIC, and sealed_open_block
- * on every content block they read.
+ * The sealed format (doc/admin/encrypted-blocks.md): blocks encrypted
+ * (AES-128 or SM4 in CTR mode) for a list of boards, with BLAKE2s hashes of
+ * the encrypted blocks in hash table blocks and a block 0 signed by a
+ * release key that the root key certifies. scripts/admin/sealblocks.py
+ * makes them. Firmware update packages use it (PACKAGE_MAGIC): stage 1
+ * opens them (src/update.c). Sealed block files (SEALED_MAGIC) are
+ * retired: update packages carry a Forth application now (component 3),
+ * and block files are plain. Neither is ever mounted as a block file
+ * (sealed_not_blocks).
  */
 
 #define SEALED_MAGIC        "LITEFORTHS"
@@ -21,8 +24,25 @@
 #define PACKAGE_MAGIC       "LITEFORTHF"
 #define SEALED_BLOCK_BYTES  4096
 
+/**
+ * Whether block 0 of a would-be block file is sealed, and so not to be
+ * mounted or written: a firmware update package, or a sealed block file,
+ * which LiteForth no longer reads. Both start with the plain signature
+ * "LITEFORTH" too, so a block file's check must ask this first.
+ * @return NULL for anything else, or why it isn't a block file.
+ */
+static inline const char *sealed_not_blocks(const uint8_t *b0) {
+    if (memcmp(b0, PACKAGE_MAGIC, SEALED_MAGIC_LEN) == 0) {
+        return "a firmware update package, not a block file";
+    }
+    if (memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN) == 0) {
+        return "a sealed block file: no longer read (an app goes in an update package now)";
+    }
+    return NULL;
+}
+
 /* What a board holds: its own key, the root public key, its product, and
-   the lowest revision and release key serial it takes */
+   the lowest version and release key serial it takes */
 typedef struct {
     uint8_t uid[8];                 /* ESIG_UNIID1, UNIID2, as in memory */
     uint8_t private_key[32];        /* X25519 */
@@ -30,9 +50,6 @@ typedef struct {
     uint32_t product;
     uint32_t min_revision;
     uint32_t min_serial;
-    uint32_t sealed_only;           /* nonzero: the block layer refuses plain
-                                       block files (SECURITY_LEVEL 2); sealed.c
-                                       doesn't look at it */
     /* If x25519 is set, it holds the private key, and private_key can stay
        zero: sealed.c calls it for the shared secret with a file's ephemeral
        public key (returning 0, or nonzero if it can't), and takes the
@@ -61,22 +78,14 @@ typedef struct {
 typedef int (*sealed_read_fn)(uint32_t blk, uint8_t *buf);
 
 /**
- * Checks block 0 of a sealed file of file_blocks blocks as a board does:
- * its fields, the release key's certificate (with board->root), the
- * release key's serial, block 0's signature, the revision, then finds
+ * Checks block 0 of a firmware update package (PACKAGE_MAGIC) of
+ * file_blocks blocks as a board does: its fields and description (which
+ * fill pkg), the release key's certificate (with board->root), the release
+ * key's serial, block 0's signature, the version (board->min_revision is
+ * the lowest version the board takes for this kind of image), then finds
  * board->uid among the recipients and unwraps the content key. `read`
- * will read the hash table blocks later. Unmounts any file mounted
+ * will read the hash table blocks later. Unmounts any package mounted
  * before. msg receives one line saying what was mounted or why not.
- * Returns 0 if the file is mounted (its content is blocks 1 to
- * sealed_blocks() - 1), or ERR_BLK_PARSE_FAIL.
- */
-int sealed_mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
-                 sealed_read_fn read, char *msg, int len);
-
-/**
- * sealed_mount for a firmware update package (PACKAGE_MAGIC): the same
- * checks (board->min_revision is then the lowest version the board takes
- * for this kind of image), with block 0's description, which fills pkg.
  * Its content blocks, 1 to sealed_blocks() - 1, are the image, padded,
  * read with sealed_open_block. The image hash isn't checked here: it's
  * of the decrypted image, so the caller checks it as it reads the blocks.
@@ -111,14 +120,9 @@ void sealed_unmount(void);
 uint32_t sealed_blocks(void);
 
 /**
- * Returns the mounted file's revision, or 0.
- */
-uint32_t sealed_revision(void);
-
-/**
  * Checks block n, just read from the file into buf, against its hash and
  * decrypts it in place. Block 0 is left as it is. Reads the hash table
- * block that covers n (with the `read` given to sealed_mount) and checks
+ * block that covers n (with the `read` given to sealed_mount_package) and checks
  * it against block 0, unless it's the one it read last.
  * Returns 0, ERR_BLOCK_READ_ERROR if a hash doesn't match or a crypto
  * engine failed partway (buf is then zeroed), ERR_BLK_BOUNDS if n isn't a content block, or read's error.

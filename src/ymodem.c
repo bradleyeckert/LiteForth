@@ -348,7 +348,6 @@ typedef struct {
     int pos;                            // bytes in it so far
     int started;                        // MARKER is in block 0: the old file is gone
     int done;                           // all of it written, block 0 too
-    int sealed;                         // the image is a sealed file
     int ior;                            // the first problem, or 0
     const char* err_msg;
     char msg[120];                      // blk_check_image's reason
@@ -423,7 +422,6 @@ static void instBlock(inst_state* t) {
         if (ior == 0) t->started = 1;
     } else if (t->block == 0) {
         const uint8_t* b0 = (const uint8_t*)inst_b0;
-        t->sealed = !memcmp(b0, SEALED_MAGIC, SEALED_MAGIC_LEN);
         if (blk_check_image(b0, t->blocks, t->msg, sizeof(t->msg))) {
             instFail(t, ERR_YMODEM_SOURCE, t->msg);
             return;
@@ -678,7 +676,7 @@ static void reportStage(const char* name, const inst_state* t, int check, const 
     rCR();
 }
 
-static void reportInstall(const char* name, const inst_state* t, uint32_t bad, uint32_t checked) {
+static void reportInstall(const char* name, const inst_state* t) {
     rPuts("ymodem: ");
     rPuts(name);
     rPuts(": ");
@@ -688,24 +686,6 @@ static void reportInstall(const char* name, const inst_state* t, uint32_t bad, u
         rPuts(" blocks, read back and checked; capacity now ");
         putU(g_block_capacity);
         rCR();
-        if (t->sealed) {
-            rPuts("ymodem: sealed file, revision ");
-            putU(sealed_revision());
-            rPuts(": ");
-            if (bad) {
-                putU(bad);
-                rPuts(" of ");
-                putU(checked);
-                rPuts(" content blocks fail their hashes");
-            } else if (checked == 0) {
-                rPuts("the sealed file wasn't mounted");
-            } else {
-                rPuts("all ");
-                putU(checked);
-                rPuts(" content blocks pass their hashes");
-            }
-            rCR();
-        }
         return;
     }
     rPuts(t->err_msg);
@@ -933,8 +913,6 @@ int lfAPI_ymodem(void) {
             if (check == 0) {
                 blk_stage_ready();
             }
-            blk_remount(&g_block_capacity);     // the check unmounts a sealed block file
-            lfAPI_emptyBuffers();
         }
         reportStage(inst_name, &inst, check, msg);
         if (inst.ior && (ior == 0) && (result == 0)) result = inst.ior;
@@ -949,21 +927,10 @@ int lfAPI_ymodem(void) {
     } else if (install && files) {
         instEnd(&inst, inst_complete);
         if (inst.on) {                  // the block file may have changed
-            uint32_t bad = 0, checked = 0;
             blk_remount(&g_block_capacity);
             lfAPI_emptyBuffers();
-            if (inst.done && (inst.ior == 0) && inst.sealed) {
-                for (uint32_t i = 1; i < g_block_capacity; i++) {
-                    checked++;
-                    if (blk_read(i, inst_buf)) bad++;
-                    lfWatchdogPing();
-                }
-            }
-            reportInstall(inst_name, &inst, bad, checked);
-            if (bad && (result == 0)) result = ERR_BLOCK_READ_ERROR;
-        } else {
-            reportInstall(inst_name, &inst, 0, 0);
         }
+        reportInstall(inst_name, &inst);
         if (inst.ior && (ior == 0) && (result == 0)) result = inst.ior;
         if (inst_extra) {
             rPuts("ymodem: ");

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Tests scripts/admin/sealblocks.py: round trips with AES and SM4, the counter
-layout, and each refusal a board makes (doc/admin/encrypted-blocks.md section 4).
-Runs in a temporary directory on a copy of bin/lfblocks.fb4."""
+"""Tests scripts/admin/sealblocks.py: firmware update packages, round trips with
+AES and SM4, the counter layout, and each refusal a board makes
+(doc/admin/encrypted-blocks.md section 4). Runs in a temporary directory."""
 import contextlib
 import io
 import os
@@ -77,9 +77,12 @@ def main():
     tmp = tempfile.mkdtemp()
     try:
         os.chdir(tmp)
-        plain = 'plain.fb4'
+        plain = 'plain.fb4'                     # a block file: never an image
         shutil.copy(os.path.join(ROOT, 'bin', 'lfblocks.fb4'), plain)
-        pdata = read(plain)
+        # an image of whole blocks, so content block n is image block n - 1
+        pimg = bytes((i * 131 + i // 4096) & 255 for i in range(20 * BLOCK))
+        write('img.bin', pimg)
+        pdata = bytes(BLOCK) + pimg             # block n of the "plain" content
         c = len(pdata) // BLOCK
 
         # keys
@@ -170,8 +173,9 @@ def main():
                        '--component', 'v5f', *base_pk, '--revision', 1)
         expect_refused('a block file as an image', 'is a block file', 'package', 'plain.fb4',
                        'x.lfu', '--component', 'v5f', *base_pk, '--revision', 1)
-        expect_refused('seal refuses a package', 'not a plain block file', 'seal', 'fw.lfu',
-                       'x.fb4', *base_pk, '--revision', 1)
+        write('old.fb4', b'LITEFORTHS' + bytes(2 * BLOCK - 10))
+        expect_refused('a sealed block file is retired', 'no longer supported', 'check',
+                       'old.fb4', '--root', 'root.pub')
         for name, at, value, why in (
                 ('unknown component', 180, 9, 'unknown component'),
                 ('image flags', 181, 1, 'unknown image flags'),
@@ -197,30 +201,28 @@ def main():
 
         # round trips
         for cipher in ('aes', 'sm4'):
-            sealed = f'sealed-{cipher}.fb4'
-            expect_ok('seal ' + cipher, 'seal', plain, sealed, '--release', 'rel1.json',
-                      '--boards', 'boards.csv', '--revision', 5, '--cipher', cipher)
+            sealed = f'sealed-{cipher}.lfu'
+            expect_ok('package ' + cipher, 'package', 'img.bin', sealed, '--component', 'v5f',
+                      '--release', 'rel1.json', '--boards', 'boards.csv', '--revision', 5,
+                      '--cipher', cipher)
             sdata = read(sealed)
             t = (c + 255) // 256
-            expect('sealed size ' + cipher, len(sdata) == (c + t) * BLOCK, len(sdata))
-            expect('sealed header ' + cipher, sdata[:10] == b'LITEFORTHS')
+            expect('package size ' + cipher, len(sdata) == (c + t) * BLOCK, len(sdata))
+            expect('package header ' + cipher, sdata[:10] == b'LITEFORTHF')
             expect('content encrypted ' + cipher,
                    all(sdata[n * BLOCK:(n + 1) * BLOCK] != pdata[n * BLOCK:(n + 1) * BLOCK]
                        for n in range(1, c)))
             expect_ok('check ' + cipher, 'check', sealed, '--root', 'root.pub')
             for board in ('a', 'b'):
-                out = f'open-{cipher}-{board}.fb4'
+                out = f'open-{cipher}-{board}.bin'
                 expect_ok(f'open {cipher} {board}', 'open', sealed, out, '--root', 'root.pub',
                           '--board-key', board + '.json', '--min-revision', 5,
                           '--min-serial', 1, '--product', 0x4C46)
-                odata = read(out)
-                expect(f'round trip {cipher} {board}',
-                       len(odata) == len(pdata) and odata[BLOCK:] == pdata[BLOCK:]
-                       and odata[:9] == b'LITEFORTH')
+                expect(f'round trip {cipher} {board}', read(out) == pimg)
 
         # The counter: 16 bytes at offset 16 i of block n use nonce || n * 256 + i,
         # so any piece of any block decrypts on its own.
-        sdata = read('sealed-aes.fb4')
+        sdata = read('sealed-aes.lfu')
         h = sb.parse_header(sdata[:BLOCK], len(sdata) // BLOCK)
         cek = sb.unwrap(h, sb.read_json('a.json', 'board'))
         for n, i in ((1, 0), (1, 255), (c - 1, 100)):
@@ -265,27 +267,28 @@ def main():
             expect('doc: signatures', False, repr(e))
 
         # every release has a new key and nonce
-        expect_ok('seal again', 'seal', plain, 'again.fb4', '--release', 'rel1.json',
-                  '--boards', 'boards.csv', '--revision', 5)
-        again = read('again.fb4')
+        pk_args = ('--component', 'v5f', '--release', 'rel1.json', '--boards', 'boards.csv')
+        expect_ok('package again', 'package', 'img.bin', 'again.lfu', *pk_args, '--revision', 5)
+        again = read('again.lfu')
         expect('fresh nonce and key', again[32:80] != sdata[32:80]
                and again[BLOCK:2 * BLOCK] != sdata[BLOCK:2 * BLOCK])
 
         # refusals: wrong board, root, product and minimums
-        s = 'sealed-aes.fb4'
+        s = 'sealed-aes.lfu'
         base = ('--root', 'root.pub')
-        expect_refused('not a recipient', 'not a recipient', 'open', s, 'x.fb4', *base,
+        expect_refused('not a recipient', 'not a recipient', 'open', s, 'x.bin', *base,
                        '--board-key', 'c.json')
         expect_refused('wrong root', 'certificate', 'check', s, '--root', 'other.pub')
-        expect_refused('old revision', 'revision 5 is below 6', 'open', s, 'x.fb4', *base,
+        expect_refused('old revision', 'revision 5 is below 6', 'open', s, 'x.bin', *base,
                        '--board-key', 'a.json', '--min-revision', 6)
-        expect_refused('retired release key', 'serial 1 is below 2', 'open', s, 'x.fb4',
+        expect_refused('retired release key', 'serial 1 is below 2', 'open', s, 'x.bin',
                        *base, '--board-key', 'a.json', '--min-serial', 2)
-        expect_refused('other product', 'product', 'open', s, 'x.fb4', *base,
+        expect_refused('other product', 'product', 'open', s, 'x.bin', *base,
                        '--board-key', 'a.json', '--product', 0x1234)
-        expect_ok('rogue release key seals', 'seal', plain, 'rogue.fb4', '--release',
-                  'rogue.json', '--boards', 'boards.csv', '--revision', 9)
-        expect_refused('release key from another root', 'certificate', 'check', 'rogue.fb4',
+        expect_ok('rogue release key packages', 'package', 'img.bin', 'rogue.lfu',
+                  '--component', 'v5f', '--release', 'rogue.json', '--boards', 'boards.csv',
+                  '--revision', 9)
+        expect_refused('release key from another root', 'certificate', 'check', 'rogue.lfu',
                        *base)
 
         # refusals: damage
@@ -295,8 +298,8 @@ def main():
             d = bytes(d)
             if resign_with:
                 d = resign(d, resign_with)
-            write('bad.fb4', d)
-            expect_refused(name, why, 'open', 'bad.fb4', 'x.fb4', *base,
+            write('bad.lfu', d)
+            expect_refused(name, why, 'open', 'bad.lfu', 'x.bin', *base,
                            '--board-key', 'a.json')
 
         damaged('flipped content bit', 3 * BLOCK + 77, "block 3 doesn't match")
@@ -315,8 +318,8 @@ def main():
         # the real release key: X25519 must not give a usable shared secret
         d = bytearray(sdata)
         d[40:72] = bytes(32)
-        write('bad.fb4', resign(bytes(d), 'rel1.json'))
-        expect_refused('small-order ephemeral key', 'X25519', 'open', 'bad.fb4', 'x.fb4',
+        write('bad.lfu', resign(bytes(d), 'rel1.json'))
+        expect_refused('small-order ephemeral key', 'X25519', 'open', 'bad.lfu', 'x.bin',
                        *base, '--board-key', 'a.json')
 
         # header fields a board checks before anything else
@@ -325,45 +328,51 @@ def main():
                                      ('flags', 12, 1, 'flags')):
             d = bytearray(sdata)
             d[at] = value
-            write('bad.fb4', resign(bytes(d), 'rel1.json'))
-            expect_refused(name, why, 'check', 'bad.fb4', *base)
+            write('bad.lfu', resign(bytes(d), 'rel1.json'))
+            expect_refused(name, why, 'check', 'bad.lfu', *base)
         d = bytearray(sdata)
         struct.pack_into('<H', d, 28, h['t'] + 1)
-        write('bad.fb4', resign(bytes(d), 'rel1.json'))
-        expect_refused('table count', 'hash table blocks', 'check', 'bad.fb4', *base)
-        write('bad.fb4', sdata[:-BLOCK])
-        expect_refused('truncated file', 'header needs', 'check', 'bad.fb4', *base)
-        expect_refused('plain file', 'LITEFORTHS', 'check', plain, *base)
+        write('bad.lfu', resign(bytes(d), 'rel1.json'))
+        expect_refused('table count', 'hash table blocks', 'check', 'bad.lfu', *base)
+        write('bad.lfu', sdata[:-BLOCK])
+        expect_refused('truncated file', 'header needs', 'check', 'bad.lfu', *base)
+        expect_refused('plain file', 'LITEFORTHF', 'check', plain, *base)
 
-        # input checks when sealing
-        expect_refused('seal a sealed file', 'not a plain block file', 'seal', s, 'x.fb4',
-                       '--release', 'rel1.json', '--boards', 'boards.csv', '--revision', 1)
+        # input checks when packaging
         with open('dup.csv', 'w') as f:
             f.write(lines[0] + '\n' + lines[0] + '\n')
-        expect_refused('board listed twice', 'listed twice', 'seal', plain, 'x.fb4',
-                       '--release', 'rel1.json', '--boards', 'dup.csv', '--revision', 1)
+        expect_refused('board listed twice', 'listed twice', 'package', 'img.bin', 'x.lfu',
+                       '--component', 'v5f', '--release', 'rel1.json', '--boards', 'dup.csv',
+                       '--revision', 1)
         with open('many.csv', 'w') as f:
             for i in range(200):
                 f.write(f'{i:016x},{lines[0].split(",")[1]}\n')
-        expect_refused('too many boards', "don't fit", 'seal', plain, 'x.fb4',
-                       '--release', 'rel1.json', '--boards', 'many.csv', '--revision', 1)
-        write('odd.fb4', pdata + b'x')
-        expect_refused('partial block', 'whole number', 'seal', 'odd.fb4', 'x.fb4',
-                       '--release', 'rel1.json', '--boards', 'boards.csv', '--revision', 1)
+        expect_refused('too many boards', "don't fit", 'package', 'img.bin', 'x.lfu',
+                       '--component', 'v5f', '--release', 'rel1.json', '--boards', 'many.csv',
+                       '--revision', 1)
 
-        # a file with more than one hash table block
-        big = pdata + b' ' * BLOCK * (300 - c)
-        write('big.fb4', big)
-        expect_ok('seal 300 blocks', 'seal', 'big.fb4', 'bigs.fb4', '--release', 'rel2.json',
-                  '--boards', 'boards.csv', '--revision', 7)
-        expect_ok('open 300 blocks', 'open', 'bigs.fb4', 'bigo.fb4', '--root', 'root.pub',
-                  '--board-key', 'b.json', '--min-serial', 2)
-        expect('round trip 300 blocks', read('bigo.fb4')[BLOCK:] == big[BLOCK:])
-        bd = bytearray(read('bigs.fb4'))
-        bd[290 * BLOCK] ^= 0x80
-        write('bad.fb4', bytes(bd))
-        expect_refused('flipped bit under table 1', "block 290 doesn't match", 'check',
-                       'bad.fb4', *base)
+        # a package with more than one hash table block: no slot is that big
+        # today, so the format is tested with the v5f limit raised
+        limit = sb.COMPONENT_LIMIT[1]
+        sb.COMPONENT_LIMIT[1] = 299 * BLOCK
+        try:
+            big = bytes((i * 7 + i // BLOCK) & 255 for i in range(299 * BLOCK))
+            write('big.bin', big)
+            expect_ok('package 300 blocks', 'package', 'big.bin', 'bigs.lfu', '--component',
+                      'v5f', '--release', 'rel2.json', '--boards', 'boards.csv',
+                      '--revision', 7)
+            expect('300 blocks: two tables', sb.parse_header(read('bigs.lfu')[:BLOCK], 302)['t']
+                   == 2)
+            expect_ok('open 300 blocks', 'open', 'bigs.lfu', 'bigo.bin', '--root', 'root.pub',
+                      '--board-key', 'b.json', '--min-serial', 2)
+            expect('round trip 300 blocks', read('bigo.bin') == big)
+            bd = bytearray(read('bigs.lfu'))
+            bd[290 * BLOCK] ^= 0x80
+            write('bad.lfu', bytes(bd))
+            expect_refused('flipped bit under table 1', "block 290 doesn't match", 'check',
+                           'bad.lfu', *base)
+        finally:
+            sb.COMPONENT_LIMIT[1] = limit
     finally:
         os.chdir(HERE)
         shutil.rmtree(tmp)

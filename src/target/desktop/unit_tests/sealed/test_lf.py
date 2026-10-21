@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""lf on sealed block files (doc/admin/encrypted-blocks.md, step 3): sealblocks.py
-seals a copy of bin/lfblocks.fb4, and lf -K (a board file) must load core.f
-from it and read every block exactly as from the plain file, with AES and
-SM4, as a file and inside a card image; and must refuse what a board
-refuses. Usage: test_lf.py LF"""
+"""lf and sealed files: a firmware update package or a retired sealed block
+file (block 0 LITEFORTHF or LITEFORTHS) is never a block file, as a file or
+inside a card image, and `-1 ymodem` never installs one; `-2 ymodem` stages
+packages and checks them with lf -K (a board file) as stage 1 will.
+Usage: test_lf.py LF"""
 import contextlib
 import hashlib
 import io
@@ -101,13 +101,23 @@ def stage_tests(c, sums):
         st = f.read()
     expect('stage: written exactly', st[:len(pk)] == pk and st[len(pk):] == bytes(8 * BLOCK -
            len(pk)) and len(st) == 8 * BLOCK)
-    expect('stage: the block file mounted again', body(got).strip().endswith(cap0), got)
+    expect('stage: the block file still mounted', body(got).strip().endswith(cap0), got)
     _, got2 = lf(LOAD, *board)
     expect('stage: the block file unchanged', body(got2) == body(loaded), got2)
 
     got = install('fw.lfu', 'fw.lfu', '-k', 'space.fb4', block=-2)
     expect('stage without -K: staged, not checked', 'staged in lfstage.bin' in got and
            'package refused: not checked: lf has no board file (-K)' in got, got)
+    for why, lfb in (("isn't one of its recipients", 'c.lfb'),
+                     ('has been replaced', 'serial.lfb'),
+                     ('another product', 'product.lfb'),
+                     ("certificate doesn't match", 'otherroot.lfb')):
+        got = install('fw.lfu', 'fw.lfu', '-k', 'space.fb4', '-K', lfb, block=-2)
+        expect('stage refused: ' + why, 'staged in lfstage.bin' in got and why in got
+               and "stage 1 won't install it" in got, got)
+    got = install('fw.lfu', 'fw.lfu', '-k', 'space.fb4', '-K', 'newer.lfb', block=-2)
+    expect("stage: the board's minimum is stage 1's to check", 'check out; waiting for '
+           'stage 1' in got, got)
     before = sha('lfstage.bin')
     with open('plain.fb4', 'rb') as f:
         small = f.read(2 * BLOCK)
@@ -135,7 +145,7 @@ def stage_tests(c, sums):
     with open('stage0.bin', 'wb') as f:
         f.write(bytes(8 * BLOCK))
     subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'scard.img',
-                    '--file', 'lfblocks.fb4=aes.fb4', '--file', 'lfstage.bin=stage0.bin'],
+                    '--file', 'lfblocks.fb4=plain.fb4', '--file', 'lfstage.bin=stage0.bin'],
                    check=True, capture_output=True)
     got = install('fw.lfu', 'fw.lfu', '-k', 'scard.img', '-K', 'a.lfb', block=-2)
     expect('stage on a card', 'staged in lfstage.bin' in got and 'check out; waiting for '
@@ -144,72 +154,33 @@ def stage_tests(c, sums):
         expect('stage on a card: the package is in the image', pk in f.read())
 
 
-def install_tests(c, sums, damaged):
+def install_tests(c, sums):
     with open('plain.fb4', 'rb') as f:
         plain = f.read()
-    with open('space.fb4', 'wb') as f:          # room for the hash table and more
+    with open('space.fb4', 'wb') as f:          # room for more
         f.write(plain + b' ' * (4 * BLOCK))
     board = ('-k', 'space.fb4', '-K', 'a.lfb')
-    with open('aes.fb4', 'rb') as f:
-        sealed = f.read()
-    n = len(sealed) // BLOCK
     before = sha('space.fb4')
     got = install('fw.lfu', 'fw.lfu', *board)
     expect('install refused: a package', 'a firmware update package, not a block file; '
            'nothing written' in got, got)
     expect('install refused: package left the file alone', sha('space.fb4') == before)
-
-    got = install('aes.fb4', 'aes.fb4', *board)
-    expect('install sealed: checked', f'installed, {n} blocks, read back and checked; '
-           f'capacity now {c}' in got and f'revision 5: all {c - 1} content blocks pass' in got, got)
-    with open('space.fb4', 'rb') as f:
-        expect('install sealed: in the space', f.read()[:len(sealed)] == sealed)
-    _, got = lf(LOAD, *board)
-    expect('install sealed: loads core.f and reads every block', body(got) == sums, got)
-
-    before = sha('space.fb4')
-    got = install('c.fb4', 'c.fb4', *board)
-    expect('install refused: not a recipient', "isn't one of its recipients; nothing written"
-           in got, got)
-    expect('install refused: file unchanged', sha('space.fb4') == before)
-
-    damaged('blk.fb4', 7 * BLOCK + 100)
-    got = install('blk.fb4', 'blk.fb4', *board)
-    expect('install damaged: block 7 fails its hash', f'1 of {c - 1} content blocks fail' in got
-           and 'ior=-33' in got, got)
+    for args in (board, ('-k', 'space.fb4')):
+        got = install('old.fb4', 'old.fb4', *args)
+        expect('install refused: a sealed block file ' + ' '.join(args),
+               'a sealed block file: no longer read' in got and 'nothing written' in got, got)
+        expect('install refused: sealed file left the file alone', sha('space.fb4') == before)
 
     got = install('plain.fb4', 'plain.fb4', *board)
-    expect('install plain over sealed', f'installed, {c} blocks, read back and checked; '
+    expect('install plain', f'installed, {c} blocks, read back and checked; '
            f'capacity now {c + 4}' in got, got)
     with open('space.fb4', 'rb') as f:
         expect('install plain: in the space', f.read()[:len(plain)] == plain)
 
-    got = install('aes.fb4', 'aes.fb4', '-k', 'space.fb4')
-    expect('install sealed without -K', 'lf has no board file (-K); nothing written' in got, got)
-
-    # a sealed-only board (as SECURITY_LEVEL 2): no plain files, mounted or installed
-    tool('lf-board', 'only.lfb', '--board-key', 'a.key', '--root', 'root.pub',
-         '--product', PRODUCT, '--sealed-only')
-    only = ('-k', 'space.fb4', '-K', 'only.lfb')
-    _, got = lf('capacity .\nbye\n', *only)
-    expect('sealed-only: a plain file offers nothing', 'takes only sealed files' in got
-           and body(got).strip().startswith('0'), got)
-    before = sha('space.fb4')
-    got = install('plain.fb4', 'plain.fb4', *only)
-    expect('sealed-only: a plain install refused', 'takes only sealed files; nothing written'
-           in got, got)
-    expect('sealed-only: file unchanged', sha('space.fb4') == before)
-    got = install('aes.fb4', 'aes.fb4', *only)
-    expect('sealed-only: a sealed install over a plain file',
-           f'revision 5: all {c - 1} content blocks pass' in got, got)
-    _, got = lf(LOAD, *only)
-    expect('sealed-only: loads core.f from the sealed file', body(got) == sums, got)
-    got = install('plain.fb4', 'plain.fb4', *board)     # back to plain for the card test
-
     subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'card2.img',
-                    '--file', f'lfblocks.fb4=space.fb4'], check=True, capture_output=True)
-    got = install('aes.fb4', 'aes.fb4', '-k', 'card2.img', '-K', 'a.lfb')
-    expect('install on a card image', f'all {c - 1} content blocks pass' in got, got)
+                    '--file', 'lfblocks.fb4=old.fb4'], check=True, capture_output=True)
+    got = install('plain.fb4', 'plain.fb4', '-k', 'card2.img', '-K', 'a.lfb')
+    expect('install plain over a sealed file on a card', f'installed, {c} blocks' in got, got)
     _, got = lf(LOAD, '-k', 'card2.img', '-K', 'a.lfb')
     expect('card image: loads after the install', body(got) == sums, got)
 
@@ -242,56 +213,37 @@ def main():
              '--product', 0x1234)
         tool('lf-board', 'otherroot.lfb', '--board-key', 'a.key', '--root', 'other.pub',
              '--product', PRODUCT)
-        tool('seal', 'plain.fb4', 'aes.fb4', '--release', 'rel1.key', '--boards',
-             'boards.csv', '--revision', 5)
         with open('c.key') as f:
             ck = sb.json.load(f)
         with open('boards_c.csv', 'w') as f:
             f.write(f'{ck["uid"]},{ck["public"]},c\n')
-        tool('seal', 'plain.fb4', 'c.fb4', '--release', 'rel1.key', '--boards',
-             'boards_c.csv', '--revision', 5)
-        tool('seal', 'plain.fb4', 'sm4.fb4', '--release', 'rel1.key', '--boards',
-             'boards.csv', '--revision', 5, '--cipher', 'sm4')
+        # a retired sealed block file: here, just its magic over a plain one
+        with open('plain.fb4', 'rb') as f:
+            data = f.read()
+        with open('old.fb4', 'wb') as f:
+            f.write(b'LITEFORTHS' + data[10:])
 
         # the plain file, for comparison
         _, want = lf(LOAD, '-k', 'plain.fb4')
         expect('plain file loads core.f', 'value test: 11 10' in want, want)
         sums = body(want)
+        _, got = lf(LOAD, '-k', 'plain.fb4', '-K', 'a.lfb')
+        expect('plain file with a board file', body(got) == sums, got)
 
-        for name in ('aes', 'sm4'):
-            before = sha(name + '.fb4')
-            _, got = lf(LOAD, '-k', name + '.fb4', '-K', 'a.lfb')
-            expect(f'{name}: mounted', f'blocks: sealed file, revision 5, release key 1, '
-                   f'{"SM4" if name == "sm4" else "AES-128"}, {c} blocks' in got, got)
-            expect(f'{name}: loads core.f and reads every block as the plain file',
-                   body(got) == sums, got)
-            expect(f'{name}: file unchanged', sha(name + '.fb4') == before)
-
-        # inside a card image, as the board finds it
-        subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'card.img',
-                        '--file', 'lfblocks.fb4=aes.fb4'], check=True, capture_output=True)
-        _, got = lf(LOAD, '-k', 'card.img', '-K', 'a.lfb')
-        expect('card image: mounted', 'blocks: sealed file, revision 5' in got, got)
-        expect('card image: same blocks', body(got) == sums, got)
-
-        # refusals: the file offers nothing (capacity 0)
+        # a sealed block file offers nothing (capacity 0), and is never written
         cap = 'capacity .\nbye\n'
-        for why, args in (
-                ('no board file (-K)', ('-k', 'aes.fb4')),
-                ("isn't one of its recipients", ('-k', 'aes.fb4', '-K', 'c.lfb')),
-                ('an older revision', ('-k', 'aes.fb4', '-K', 'newer.lfb')),
-                ('has been replaced', ('-k', 'aes.fb4', '-K', 'serial.lfb')),
-                ('another product', ('-k', 'aes.fb4', '-K', 'product.lfb')),
-                ("certificate doesn't match", ('-k', 'aes.fb4', '-K', 'otherroot.lfb'))):
-            _, got = lf(cap, *args)
-            expect(f'refused: {why}', why in got and body(got).strip().startswith('0'), got)
-
-        def damaged(name, at, value=None):
-            with open('aes.fb4', 'rb') as f:
-                d = bytearray(f.read())
-            d[at] = value if value is not None else d[at] ^ 1
-            with open(name, 'wb') as f:
-                f.write(d)
+        for args in (('-k', 'old.fb4', '-K', 'a.lfb'), ('-k', 'old.fb4')):
+            before = sha('old.fb4')
+            _, got = lf(cap + '1 block drop update save-buffers\n', *args)
+            expect('sealed block file refused ' + ' '.join(args),
+                   'blocks: a sealed block file: no longer read' in got
+                   and body(got).strip().startswith('0'), got)
+            expect('sealed block file left alone', sha('old.fb4') == before)
+        subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'), 'card.img',
+                        '--file', 'lfblocks.fb4=old.fb4'], check=True, capture_output=True)
+        _, got = lf(cap, '-k', 'card.img', '-K', 'a.lfb')
+        expect('sealed block file refused on a card', 'a sealed block file: no longer read' in got
+               and body(got).strip().startswith('0'), got)
 
         # a firmware update package is never a block file
         with open('fw.bin', 'wb') as f:
@@ -311,50 +263,20 @@ def main():
         expect('package refused on a card', 'a firmware update package, not a block file' in got
                and body(got).strip().startswith('0'), got)
 
-        damaged('hdr.fb4', 20)                          # the revision, unsigned
-        _, got = lf(cap, '-k', 'hdr.fb4', '-K', 'a.lfb')
-        expect('refused: changed header', "signature doesn't match" in got, got)
-        damaged('ver.fb4', 10, 2)
-        _, got = lf(cap, '-k', 'ver.fb4', '-K', 'a.lfb')
-        expect('refused: format version', 'unknown format version' in got, got)
-        with open('aes.fb4', 'rb') as f:
-            data = f.read()
-        with open('short.fb4', 'wb') as f:
-            f.write(data[:-BLOCK])
-        _, got = lf(cap, '-k', 'short.fb4', '-K', 'a.lfb')
-        expect('refused: truncated', 'shorter than its header' in got, got)
-
-        # damaged blocks: mounted, but the block fails its hash (-33)
-        damaged('blk.fb4', 7 * BLOCK + 100)
-        _, got = lf('6 block drop\n7 block drop\n8 block drop\nbye\n', '-k', 'blk.fb4',
-                    '-K', 'a.lfb')
-        expect('damaged block 7 refused, blocks 6 and 8 fine', got.count('ior=-33') == 1, got)
-        damaged('tbl.fb4', c * BLOCK + 50)
-        _, got = lf('3 block @ .\nbye\n', '-k', 'tbl.fb4', '-K', 'a.lfb')
-        expect('damaged hash table refused', 'ior=-33' in got, got)
-
-        # nothing can be written, and block 0 reads as it is
-        before = sha('aes.fb4')
-        _, got = lf('1 block drop update save-buffers\n0 block drop\nbye\n',
-                    '-k', 'aes.fb4', '-K', 'a.lfb')
-        expect('write refused, block 0 readable', got.count('ior=') == 1 and 'ior=-96' in got,
-               got)
-        expect('file unchanged after a write', sha('aes.fb4') == before)
-
         # enroll prints the board's boards.csv line from the board file
-        _, got = lf('enroll\nbye\n', '-k', 'aes.fb4', '-K', 'a.lfb')
+        _, got = lf('enroll\nbye\n', '-k', 'plain.fb4', '-K', 'a.lfb')
         expect('enroll prints the boards.csv line', f'{a["uid"]},{a["public"]}' in got, got)
         _, got = lf('enroll\nbye\n', '-k', 'plain.fb4')
         expect('enroll without -K', 'no board file' in got and 'ior=-21' in got, got)
 
         # -1 ymodem installs whole files into a block file's space
-        install_tests(c, sums, damaged)
+        install_tests(c, sums)
         stage_tests(c, sums)
 
         # a bad board file stops lf
         with open('bad.lfb', 'w') as f:
             f.write('uid 0102\n')
-        status, got = lf(cap, '-k', 'aes.fb4', '-K', 'bad.lfb')
+        status, got = lf(cap, '-k', 'plain.fb4', '-K', 'bad.lfb')
         expect('bad board file', status != 0 and 'bad setting' in got, got)
     finally:
         os.chdir(HERE)

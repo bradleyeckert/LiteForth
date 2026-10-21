@@ -219,6 +219,28 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len);
  */
 void blk_stage_ready(void);
 
+/*
+ * Saving LiteForth's flash pages (`save-pages`, doc/admin/firmware-updates.md
+ * section 5): lfpages.bin, a file made beforehand that the pages are
+ * written into in place, from page 0 on, for the administrator to make an
+ * app package from (sealblocks.py package --component app). Found as
+ * lfstage.bin is: CARD_PAGES_FILE beside lfblocks.fb4 on a card, or
+ * PAGESFILENAME beside a plain block file.
+ */
+
+/**
+ * Returns lfpages.bin's size in 4 KB blocks, or 0 if there isn't one.
+ */
+uint32_t blk_pages_space(void);
+
+/**
+ * Writes block blk of lfpages.bin (4096 bytes).
+ * Returns 0, ERR_BLK_BOUNDS if blk is past its end (or there's none),
+ * ERR_WRITE_PROTECTED where the pages are locked (the CH32H417 at
+ * SECURITY_LEVEL 2), or a write error.
+ */
+int blk_pages_write(uint32_t blk, const uint32_t *src);
+
 /**
  * Lists the root directory of the card's exFAT volume (card.c's
  * card_list): fn gets each file's and directory's name and entry.

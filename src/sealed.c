@@ -125,7 +125,8 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
         pkg->min_version = get32(h + 188);
         pkg->version = rev;
         memcpy(pkg->image_hash, h + IMAGE_HASH_AT, 32);
-        if (pkg->component != SEALED_V5F && pkg->component != SEALED_STAGE1) {
+        if (pkg->component != SEALED_V5F && pkg->component != SEALED_STAGE1
+            && pkg->component != SEALED_V5F_APP) {
             return fail(msg, len, "unknown component");
         }
         if (h[181]) {
@@ -271,7 +272,8 @@ int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
     if (!err) {
         snprintf(msg, len, "%s image, %lu bytes, version %lu: signature, every block "
                  "and the image hash check out",
-                 pkg->component == SEALED_V5F ? "V5F" : "stage 1",
+                 pkg->component == SEALED_V5F ? "V5F"
+                 : pkg->component == SEALED_V5F_APP ? "V5F and app" : "stage 1",
                  (unsigned long)pkg->length, (unsigned long)pkg->version);
     }
     return err;

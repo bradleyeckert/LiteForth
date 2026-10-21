@@ -12,6 +12,7 @@
  *   The board's key (`enroll`)  both    UID       UID       RNG
  *   Board not locked down       V3F     warning   warning   no V5F
  *   Stage 1's `adopt`           V3F     yes       yes       no
+ *   Flash pages written by      both    Forth     Forth     packages only [2]
  *   Forth starts with           V5F     root      root      root [1]
  *
  * Both cores work out the board's key (V5F/User/board.c, and stage 1's
@@ -43,6 +44,12 @@
  *
  * [1] Level 2 is to start Forth with a limited security wordlist instead
  *     of root. Not yet: it starts with root, as the others do.
+ * [2] SEC_LOCKED_PAGES. At 0 and 1, close-flash writes LiteForth's flash
+ *     pages and save-pages copies them to lfpages.bin, for an app package
+ *     (sealblocks.py package --component app); stage 1's boot check covers
+ *     the V5F image only. At 2, open-flash, pmp.c's flash service and
+ *     save-pages refuse: only a package writes the pages, and stage 1's
+ *     check covers them with the image (src/update.c, upd_io.check_pages).
  *
  * Moving a board to level 2 changes its key: run `enroll`, put its new
  * line in boards.csv, and seal its files again.
@@ -64,6 +71,8 @@
 #define SEC_UID_KEY         (SECURITY_LEVEL <= 1)   /* the board's key from its UID */
 #define SEC_STRICT_RDP      (SECURITY_LEVEL >= 2)   /* no V5F on an open board */
 #define SEC_ADOPT           (SECURITY_LEVEL <= 1)   /* stage 1's `adopt` and adopt_blank */
+#define SEC_LOCKED_PAGES    (SECURITY_LEVEL >= 2)   /* LiteForth's flash pages: only packages
+                                                       write them, and stage 1 checks them */
 
 #endif /* SECURITY_H */
 

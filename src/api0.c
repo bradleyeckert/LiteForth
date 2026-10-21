@@ -231,6 +231,7 @@ static int flashOpen(void) {
     int page = (addr & 0x3FFFFF) >> (22 - VM_LOG2_PAGES);
 
     if (page >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
+    if (flash_locked()) return ERR_WRITE_PROTECTED; // only update packages write them
 
     // If a page is already open, flush/close it first
     if (openpage >= 0) {
@@ -437,6 +438,30 @@ static int dirLine(void *ctx, const char *name, const exfat_file *file) {
 /* DIR  ( -- )  Lists the files in the root directory of the card */
 static int dir(void) {
     return blk_dir(dirLine, NULL);
+}
+
+/* SAVE-PAGES  ( -- )  Writes LiteForth's flash pages, 0 to RAM_PAGE-1, into
+   lfpages.bin from its block 0 on, for an app update package
+   (blk_pages_write, doc/admin/firmware-updates.md section 5). A page must
+   not be open: close-flash first. Each 4 KB block goes through a buffer
+   from the pool (the CH32H417's Guarded DMA moves only .data and .bss
+   buffers, and the pages are in flash). */
+static int savePages(void) {
+    const uint32_t per_page = FLASH_PAGE_CELLS / BLOCK_SIZE_CELLS;
+    if (openpage >= 0) return ERR_WRITE_PROTECTED;  // close-flash first
+    if (blk_pages_space() < RAM_PAGE * per_page) return ERR_BLK_BOUNDS;
+    uint32_t* buf = pool_alloc(BLOCK_SIZE_CELLS);
+    if (buf == NULL) return ERR_ALLOCATE_FAILED;
+    int ior = 0;
+    for (uint32_t page = 0; page < RAM_PAGE && !ior; page++) {
+        for (uint32_t k = 0; k < per_page && !ior; k++) {
+            memcpy(buf, vm_memory[page] + k * BLOCK_SIZE_CELLS, BLOCK_SIZE_CELLS * 4);
+            ior = blk_pages_write(page * per_page + k, buf);
+        }
+    }
+    memset(buf, 0, BLOCK_SIZE_CELLS * 4);
+    int free_res = pool_free(buf);
+    return ior ? ior : free_res;
 }
 
 /* `>AUX` ( aux -- )  Toggle aux bits of the latest definition, as IMMEDIATE does */

@@ -20,6 +20,7 @@
 #include "flash.h"
 #include "options.h"
 #include "pmp.h"                    /* pmp_flash_program */
+#include "security.h"               /* SEC_LOCKED_PAGES (Common/) */
 #include "../../../../errcodes.h"   /* src/errcodes.h */
 
 /* From SRC/Ld/V5F/Link_v5f.ld. Their addresses are the values. */
@@ -83,4 +84,8 @@ int flash_program(uint32_t *m, int page) {
 
 int flash_rndkey(void) {
     return 0;
+}
+
+int flash_locked(void) {
+    return SEC_LOCKED_PAGES;
 }

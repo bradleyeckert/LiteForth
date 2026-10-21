@@ -8,8 +8,10 @@
  * tests it (unit_tests/update) with simulated flash and power cuts, and
  * the V3F gives it the real ones (V3F/User/stage1.c).
  *
- * So far: the V5F image (packages with component SEALED_V5F). A new
- * stage 1 into its other slot comes later.
+ * So far: the V5F image (packages with component SEALED_V5F), and the V5F
+ * image with LiteForth's flash pages after it (SEALED_V5F_APP: the slot,
+ * padded, then the pages, one region in flash). A new stage 1 into its
+ * other slot comes later.
  *
  * Every step records its progress in the security sector before the
  * next one starts, so a reset at any point resumes or rolls back at the
@@ -37,6 +39,10 @@
 #ifndef UPD_V5F_SLOT
 #define UPD_V5F_SLOT        (160u * 1024u)
 #endif
+#ifndef UPD_PAGES_LEN
+#define UPD_PAGES_LEN       (256u * 1024u)  /* LiteForth's flash pages, right after the slot */
+#endif
+#define UPD_APP_SPAN        (UPD_V5F_SLOT + UPD_PAGES_LEN)  /* a SEALED_V5F_APP image */
 #ifndef UPD_TRIAL_BOOTS
 #define UPD_TRIAL_BOOTS     3u          /* boots on trial before a rollback */
 #endif
@@ -57,6 +63,13 @@ typedef struct {
     uint32_t hw_rev;                                    /* this board's */
     int adopt_blank;    /* development: a blank record takes the V5F image
                            already in flash (all of its slot) as installed */
+    int check_pages;    /* the flash pages are part of the installed image:
+                           every installed image is the whole UPD_APP_SPAN
+                           (backed up, restored and MACed), and the boot
+                           check covers the pages (SECURITY_LEVEL 2, where
+                           the V5F can't write them). Else the MAC covers
+                           the V5F slot only, so a developer can still
+                           change the pages after an app package */
 } upd_io;
 
 /* The state of an update, in the record */

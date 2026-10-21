@@ -122,3 +122,7 @@ int flash_rndkey(void) {
     // Desktop simulation stub: do nothing
     return 0;
 }
+
+int flash_locked(void) {
+    return 0;
+}

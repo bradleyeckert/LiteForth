@@ -17,10 +17,13 @@
                                                    ID that a CH32H417 build reads sealed files with;
                                                    SECURITY_LEVEL in Common/security.h says the rest)
     sealblocks.py seal PLAIN SEALED --release R --boards CSV --revision N [--cipher aes|sm4]
-    sealblocks.py package IMAGE PACKAGE --component v5f|stage1 --release R --boards CSV
+    sealblocks.py package IMAGE PACKAGE --component v5f|stage1|app --release R --boards CSV
                   --revision N [--hw-rev N] [--min-version N] [--cipher aes|sm4]
+                  [--pages lfpages.bin] [--slot N] [--pages-len N]
                                                    make a firmware update package from a .bin
-                                                   (doc/admin/firmware-updates.md section 5)
+                                                   (doc/admin/firmware-updates.md section 5);
+                                                   app: the V5F .bin padded to its slot, then
+                                                   LiteForth's flash pages (save-pages)
     sealblocks.py check SEALED --root ROOT.pub     check everything that needs no board key
     sealblocks.py open SEALED PLAIN --root ROOT.pub --board-key B
                   [--min-revision N] [--min-serial N] [--product P]
@@ -69,9 +72,12 @@ TABLE_HASHES = 192              # offset of the table hashes in block 0
 RECIPIENT = 24                  # UID (8) + wrapped CEK (16)
 SIG_AT = BLOCK - 64             # the release key's signature
 IMAGE_HASH_AT = SIG_AT - 32     # a package's plaintext image hash
-COMPONENTS = {'v5f': 1, 'stage1': 2}
+COMPONENTS = {'v5f': 1, 'stage1': 2, 'app': 3}
 COMPONENT_NAMES = {v: k for k, v in COMPONENTS.items()}
-COMPONENT_LIMIT = {1: 160 * 1024, 2: 68 * 1024}     # the slots in firmware-updates.md section 2
+COMPONENT_LIMIT = {1: 160 * 1024, 2: 68 * 1024,     # the slots in firmware-updates.md section 2
+                   3: 960 * 1024}                   # app: the V5F slot and the flash pages
+APP_SLOT = 0x20000              # the V5F's slot on the board today (V3F/User/stage1_layout.h)
+APP_PAGES_LEN = 0x40000         # LiteForth's 4 x 64 KB flash pages (UPD_PAGES_LEN)
 PAD = 0xFF                      # erased flash
 
 
@@ -462,6 +468,22 @@ def cmd_seal(a):
           f'{nb} board(s), revision {a.revision}, {a.cipher.upper()}')
 
 
+def app_image(a, v5f):
+    """An app package's image: the V5F .bin padded with erased bytes to the
+    slot, then the flash pages from save-pages' lfpages.bin, exactly
+    --pages-len bytes. Stage 1 refuses any other length."""
+    if not a.pages:
+        raise SealError('--component app needs --pages (lfpages.bin from save-pages)')
+    if len(v5f) > a.slot:
+        raise SealError(f'{a.image}: {len(v5f)} bytes, larger than the V5F slot ({a.slot} bytes)')
+    with open(a.pages, 'rb') as f:
+        pages = f.read(a.pages_len + 1)
+    if len(pages) < a.pages_len:
+        raise SealError(f'{a.pages}: {len(pages)} bytes, less than the {a.pages_len} bytes of '
+                        f'flash pages (did save-pages finish?)')
+    return v5f + bytes([PAD]) * (a.slot - len(v5f)) + pages[:a.pages_len]
+
+
 def cmd_package(a):
     with open(a.image, 'rb') as f:
         image = f.read()
@@ -470,6 +492,10 @@ def cmd_package(a):
         raise SealError(f'{a.image} is empty')
     if image[:9] == SIGNATURE:
         raise SealError(f'{a.image} is a block file, not a firmware image')
+    if component == COMPONENTS['app']:
+        image = app_image(a, image)
+    elif a.pages:
+        raise SealError('--pages is for --component app')
     if len(image) > COMPONENT_LIMIT[component]:
         raise SealError(f'{a.image}: {len(image)} bytes, larger than the {a.component} slot '
                         f'({COMPONENT_LIMIT[component]} bytes)')
@@ -581,6 +607,11 @@ def main(argv=None):
     s.add_argument('--release', required=True, help='release key file')
     s.add_argument('--boards', required=True, help='boards.csv')
     s.add_argument('--revision', type=num, required=True, help="the image's version")
+    s.add_argument('--pages', help="app: LiteForth's flash pages (lfpages.bin from save-pages)")
+    s.add_argument('--slot', type=num, default=APP_SLOT,
+                   help=f'app: the V5F slot the .bin is padded to (default {APP_SLOT:#x})')
+    s.add_argument('--pages-len', type=num, default=APP_PAGES_LEN,
+                   help=f'app: bytes of flash pages taken (default {APP_PAGES_LEN:#x})')
     s.add_argument('--hw-rev', type=num, default=0, help='hardware revision (default 0: any)')
     s.add_argument('--min-version', type=num, default=0,
                    help='raise the board\'s minimum version to this on install (default 0: leave it)')

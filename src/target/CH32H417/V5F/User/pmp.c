@@ -9,6 +9,7 @@
 #include "board.h"                      /* board_serve */
 #include "gdma.h"                       /* gdma_serve */
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
+#include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
 #include "../../../../errcodes.h"
 
 /* pmpcfg bytes: L (locked), A = TOR or NAPOT, X W R */
@@ -121,6 +122,9 @@ static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
     uint32_t start = (uint32_t)__lf_flash_start;
     uint32_t size = (uint32_t)__lf_flash_size;
     if (n == PMP_SVC_FLASH_PROGRAM) {   /* a = page address, b = source */
+        if (SEC_LOCKED_PAGES) {
+            return ERR_WRITE_PROTECTED;   /* only update packages write them */
+        }
         if (a < start || a - start >= size || (a - start) % PAGE_BYTES
             || !pmp_in_dtcm(b, PAGE_BYTES) || (b & 3u)) {
             return ERR_INVALID_ADDRESS;

@@ -88,6 +88,7 @@ void cdc_shared_init(void) {
     ctrl_x_armed = (sh->ctrlx_reset == CDC_CTRLX_RESET_MAGIC);
     sh->ctrlx_reset = 0;
     sh->rev_magic = 0;                  /* stage 1 sets revision again */
+    sh->enroll = 0;
     CDC_FENCE();
     sh->magic = CDC_SHARED_MAGIC;
     CDC_FENCE();

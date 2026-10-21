@@ -688,6 +688,10 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
     return err ? err : UPD_RECOVERY;
 }
 
+void upd_board_key(const upd_record *r, uint8_t key[32]) {
+    derive(key, 32, r->token, "LFboard");
+}
+
 int upd_confirm(const upd_io *io) {
     upd_record r;
     int err = upd_record_load(io, &r);

@@ -8,14 +8,14 @@
  *
  *                               core    0         1         2
  *   Forth reaches peripherals   V5F     all       allowlist allowlist
- *   The board's key (`enroll`)  both    UID       UID       RNG
+ *   The board's key (`enroll`)  V3F     UID       UID       RNG
  *   Board not locked down       V3F     warning   warning   no V5F
  *   Stage 1's `adopt` [3]       V3F     yes       yes       no
  *   Flash pages written by      both    Forth     Forth     packages only [2]
  *   Forth starts with           V5F     root      root      root [1]
  *
- * Both cores work out the board's key (V5F/User/board.c, and stage 1's
- * keys_get for packages), so build both projects at the same level.
+ * Only stage 1 holds the board's key (V3F/User/stage1.c's keys_get), but
+ * both cores read the level, so build both projects at the same level.
  *
  * 0, development (the repository's setting): LiteForth boots the regular
  *   Forth from a plain lfblocks.fb4 (as every level does: sealed block
@@ -35,9 +35,10 @@
  *   like, not the flash controller, DMA, SDIO, the ECDC, the RNG, RCC/PWR
  *   writes or USB. Anything else reads as an invalid address (-9), and a
  *   write to a read-only one is write-protected (-20).
- * 2, a product: as 1, and the board's
- *   key comes from the RNG and stays in its flash record (`enroll` once,
- *   at provisioning), stage 1 has no `adopt`, and a board that isn't
+ * 2, a product: as 1, and the board's key is one of the device token's,
+ *   so it comes from the RNG with stage 1's record (`enroll` once in
+ *   recovery, at provisioning; then only an image stage 1 installed
+ *   starts), stage 1 has no `adopt`, and a board that isn't
  *   locked down (read protection, write protection, the boot ROM's
  *   downloads) doesn't start the V5F: it stays in recovery, which takes
  *   only `reset`, and the debugger can still reprogram it.

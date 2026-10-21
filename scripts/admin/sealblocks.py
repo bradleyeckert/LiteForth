@@ -79,7 +79,7 @@ COMPONENTS = {'v5f': 1, 'stage1': 2, 'app': 3}
 COMPONENT_NAMES = {v: k for k, v in COMPONENTS.items()}
 COMPONENT_LIMIT = {1: 160 * 1024, 2: 68 * 1024,     # the slots in firmware-updates.md section 2
                    3: 960 * 1024}                   # app: the V5F slot and the flash pages
-APP_SLOT = 0x20000              # the V5F's slot on the board today (V3F/User/stage1_layout.h)
+APP_SLOT = 0x1C000              # the V5F's slot on the board today (V3F/User/stage1_layout.h)
 APP_PAGES_LEN = 0x40000         # LiteForth's 4 x 64 KB flash pages (UPD_PAGES_LEN)
 PAD = 0xFF                      # erased flash
 

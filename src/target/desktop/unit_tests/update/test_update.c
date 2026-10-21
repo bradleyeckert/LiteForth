@@ -16,6 +16,7 @@
 #include "update.h"
 #include "errcodes.h"
 #include "monocypher.h"
+#include "blake2s.h"
 
 #define FLASH_SIZE      (UPD_V5F_ADDR + UPD_APP_SPAN)   /* the slot, then the flash pages */
 #define STAGE_BLOCKS    128             /* an app package is about 105 */
@@ -37,17 +38,34 @@ static int reads_of_tampered;
 static uint8_t *old_img, *new_img, *v3_img;
 static long old_len, new_len, v3_len;
 static sealed_board keys;
-static uint8_t held_key[32];            /* for held_x25519 */
-static int held_calls;
-
-/* The private key held outside sealed_board, as the V5F's machine-mode
-   service holds it (sealed_board.x25519) */
-static int held_x25519(uint8_t shared[32], const uint8_t their_public[32]) {
-    held_calls++;
-    crypto_x25519(shared, held_key, their_public);
-    return 0;
-}
 static int failures, checks;
+
+/* The board's key at level 2 (upd_board_key): BLAKE2s(key=token, person
+   "LFboard"), the same each time, and another for another token */
+static void test_board_key(void) {
+    upd_record r;
+    uint8_t k1[32], k2[32], want[32], p[8] = { 'L', 'F', 'b', 'o', 'a', 'r', 'd', 0 };
+    blake2s_state S;
+    memset(&r, 0, sizeof r);
+    for (int i = 0; i < 32; i++) {
+        r.token[i] = (uint8_t)(i * 7 + 1);
+    }
+    upd_board_key(&r, k1);
+    upd_board_key(&r, k2);
+    b2s_init(&S, 32, r.token, 32, NULL, p);
+    b2s_final(&S, want);
+    checks += 2;
+    if (memcmp(k1, k2, 32) != 0 || memcmp(k1, want, 32) != 0) {
+        failures++;
+        printf("FAIL: upd_board_key isn't BLAKE2s(key=token, LFboard)\n");
+    }
+    r.token[0] ^= 1;
+    upd_board_key(&r, k2);
+    if (memcmp(k1, k2, 32) == 0) {
+        failures++;
+        printf("FAIL: upd_board_key gave the same key for another token\n");
+    }
+}
 
 static void fail(const char *fmt, ...) {
     va_list ap;
@@ -685,18 +703,7 @@ int main(void) {
     test_app_development();
     test_app_locked();
 
-    /* Again with the key behind the hook and private_key zero */
-    memcpy(held_key, keys.private_key, 32);
-    crypto_x25519_public_key(keys.public_key, keys.private_key);
-    memset(keys.private_key, 0, 32);
-    keys.x25519 = held_x25519;
-    test_install_and_confirm();
-    test_rollback();
-    checks++;
-    if (held_calls == 0) {
-        failures++;
-        printf("FAIL: the x25519 hook wasn't called\n");
-    }
+    test_board_key();
 
     if (failures) {
         printf("%d of %d update checks failed\n", failures, checks);

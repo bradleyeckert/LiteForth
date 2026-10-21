@@ -30,7 +30,7 @@
  * it), as endpoints 2 and 3 through the real bridge. Lines starting "SIM:"
  * on stderr are this simulation's own.
  *
- * The V5F is a model, chosen by the start of its image in flash at 0x10000
+ * The V5F is a model, chosen by the start of its image in flash at UPD_V5F_ADDR
  * (or SIM_V5F): "SIMV5F:OK" boots LiteForth (counts the start, then after
  * SIM_SETUP_MS, its memory setup, clears safe_boot and confirms; answers
  * lines with ok>, and `-2 ymodem` by taking a package into lfstage.bin and

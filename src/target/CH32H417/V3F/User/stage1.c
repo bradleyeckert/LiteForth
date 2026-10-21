@@ -3,7 +3,9 @@
  * src/update.c the code flash (FLASH_ROM_ERASE and FLASH_ROM_WRITE, fenced
  * to the V5F's slot and the two record sectors, so no mistake here can
  * erase the V3F itself), the card's lfstage.bin and lfbackup.bin (WCH's
- * polling SD driver, through src/card.c to find them), and the RNG.
+ * polling SD driver, through src/card.c to find them), and the RNG. It
+ * holds the board's private key (keys_get): the V5F gets only the public
+ * key, for Forth's `enroll` (serve_enroll).
  *
  * Recovery (stage1.h): the V5F stays off, and stage 1 itself is the other
  * end of the USB rings: it reads what the host sends from the rx ring and
@@ -34,18 +36,7 @@
 #define SECTORS_PER_BLOCK   (UPD_BLOCK / SECTOR_BYTES)
 #define PROGRAM_PAGE        256u            /* FLASH_ROM_WRITE's unit */
 
-/* The V5F's board record (V5F/User/board.c): 256 bytes at 0x08070000 */
-#define BOARD_RECORD_ADDR   0x08070000u
-#define BOARD_RECORD_MAGIC  0x314B464Cu     /* "LFK1" */
-#define UID_ADDR            0x1FFFF7E8u
-typedef struct {
-    uint32_t magic;
-    uint32_t min_revision;
-    uint32_t min_serial;
-    uint32_t reserved;
-    uint8_t private_key[32];
-    uint8_t check[16];                      /* BLAKE2s-128 of the first 48 bytes, LFrecord */
-} board_record;
+#define UID_ADDR            0x1FFFF7E8u     /* ESIG UNIID1, then UNIID2 */
 
 static card_map map;
 static uint32_t card_sectors;
@@ -183,11 +174,15 @@ static int rng(uint8_t *out, int len) {
 }
 
 /* ------------------------------------------------------------------------
- * The board's keys, as V5F/User/board.c's board_get has them
+ * The board's keys. Only stage 1 holds the private key: below
+ * SECURITY_LEVEL 2 it's BLAKE2s of the UID (no secret: development), at
+ * level 2 one of the device token's keys (upd_board_key), so it comes
+ * with the security record. rec: the record, or NULL if it's blank.
  */
-static int keys_get(sealed_board *b, const char **why) {
+static int keys_get(sealed_board *b, const upd_record *rec, const char **why) {
     memset(b, 0, sizeof *b);
 #ifndef SEALED_ROOT_KEY
+    (void)rec;
     *why = "no root key built in (V5F/User/sealed_root.h)";
     return -1;
 #else
@@ -197,6 +192,7 @@ static int keys_get(sealed_board *b, const char **why) {
     b->product = SEALED_PRODUCT;
 #if SEC_UID_KEY
     (void)why;
+    (void)rec;
     static const uint8_t person[8] = "LFinsec1";
     blake2s_state S;
     b2s_init(&S, 32, NULL, 0, NULL, person);
@@ -204,25 +200,25 @@ static int keys_get(sealed_board *b, const char **why) {
     b2s_final(&S, b->private_key);
     crypto_wipe(&S, sizeof S);
 #else
-    board_record r;
-    uint8_t check[16];
-    static const uint8_t person[8] = "LFrecord";
-    blake2s_state S;
-    memcpy(&r, (const void *)BOARD_RECORD_ADDR, sizeof r);
-    b2s_init(&S, 16, NULL, 0, NULL, person);
-    b2s_puts(&S, (const uint8_t *)&r, 48);
-    b2s_final(&S, check);
-    if (r.magic != BOARD_RECORD_MAGIC || memcmp(check, r.check, 16) != 0) {
-        crypto_wipe(&r, sizeof r);
-        *why = "this board has no key: run enroll";
+    if (rec == NULL) {
+        *why = "this board has no key yet: type enroll in recovery";
         return -1;
     }
-    memcpy(b->private_key, r.private_key, 32);
-    b->min_serial = r.min_serial;
-    crypto_wipe(&r, sizeof r);
+    upd_board_key(rec, b->private_key);
 #endif
     return 0;
 #endif
+}
+
+/* The board's X25519 public key, for enroll; 0, or -1 (and why) */
+static int board_public(uint8_t pub[32], const upd_record *rec, const char **why) {
+    sealed_board keys;
+    if (keys_get(&keys, rec, why) != 0) {
+        return -1;
+    }
+    crypto_x25519_public_key(pub, keys.private_key);
+    crypto_wipe(&keys, sizeof keys);
+    return 0;
 }
 
 /* ------------------------------------------------------------------------
@@ -416,7 +412,7 @@ int stage1_boot(void) {
         printf("V3F update: can't read the security record (%d)\r\n", r);
         return start_or_not(waiting);
     }
-    if (keys_get(&keys, &why) != 0) {
+    if (keys_get(&keys, r == 0 ? &rec : NULL, &why) != 0) {
         printf("V3F update: %s; nothing done\r\n", why);
         CDC_SHARED->update = 0;
         return start_or_not(waiting);
@@ -589,6 +585,7 @@ static void help(void) {
         return;
     }
     say("In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.");
+    say("enroll: this board's line for boards.csv (at security level 2 it makes the board's key).");
 #if SEC_ADOPT
     say("adopt: take the V5F image in flash as it is (security levels 0 and 1 only).");
 #endif
@@ -617,12 +614,13 @@ static void receive(void) {
     }
     sealed_board keys;
     const char *why = "";
-    if (keys_get(&keys, &why) != 0) {
+    int blank = upd_record_load(&io, &rec);
+    if (keys_get(&keys, blank == 0 ? &rec : NULL, &why) != 0) {
         say(why);
         return;
     }
     if (forced) {                           /* the image got stuck: don't keep it */
-        if (upd_record_load(&io, &rec) == 1) {
+        if (blank == 1) {
             upd_boot(&io, &keys, 0, &rec, msg, sizeof msg);     /* make the record first */
         }
         upd_mark_broken(&io, msg, sizeof msg);
@@ -641,6 +639,57 @@ static void receive(void) {
     } else {
         snprintf(why_recovery, sizeof why_recovery, "%s", msg);
     }
+}
+
+static void put_hex(char *out, const uint8_t *p, int n) {
+    static const char digits[] = "0123456789abcdef";
+    for (int i = 0; i < n; i++) {
+        *out++ = digits[p[i] >> 4];
+        *out++ = digits[p[i] & 15];
+    }
+    *out = 0;
+}
+
+/* `enroll`: the board's boards.csv line. At level 2 a blank record is
+   made first (a new device token, and so the board's key); from then on
+   the board starts only a V5F image that stage 1 installed. */
+static void enroll(void) {
+    static upd_record rec;
+    static char line[8 * 2 + 1 + 32 * 2 + 1];
+    uint8_t pub[32];
+    const char *why = "";
+    int blank = upd_record_load(&io, &rec);
+    if (blank < 0) {
+        say("enroll: can't read the security record");
+        return;
+    }
+#if !SEC_UID_KEY
+    if (blank == 1) {
+        static char msg[160];
+        sealed_board none;
+        memset(&none, 0, sizeof none);
+        int err = upd_boot(&io, &none, 0, &rec, msg, sizeof msg);
+        if (err < 0 || upd_record_load(&io, &rec) != 0) {
+            say("enroll: can't make the security record (the RNG, or the flash)");
+            return;
+        }
+        say("enroll: new key made (a new security record and device token)");
+        blank = 0;
+    }
+#endif
+    if (board_public(pub, blank == 0 ? &rec : NULL, &why) != 0) {
+        say(why);
+        return;
+    }
+#if SEC_UID_KEY
+    say("enroll: security level below 2: the key comes from the UID, not the RNG");
+#endif
+    say("enroll: boards.csv line:");
+    put_hex(line, (const uint8_t *)UID_ADDR, 8);
+    line[16] = ',';
+    put_hex(line + 17, pub, 32);
+    say(line);
+    crypto_wipe(&rec, sizeof rec);
 }
 
 static void command(const char *line) {
@@ -679,6 +728,8 @@ static void command(const char *line) {
             restart();
         }
 #endif
+    } else if (strcmp(line, "enroll") == 0) {
+        enroll();
     } else if (strcmp(line, "reset") == 0) {
         restart();
     } else if (line[0]) {
@@ -725,11 +776,32 @@ static void recovery_poll(void) {
     }
 }
 
+/* Forth's `enroll` asks for the board's public key: from the UID below
+   level 2, else from the record, if there is one (no record: enroll in
+   recovery makes one) */
+static void serve_enroll(void) {
+    static upd_record rec;
+    uint8_t pub[32];
+    const char *why = "";
+    int blank = upd_record_load(&io, &rec);
+    int err = board_public(pub, blank == 0 ? &rec : NULL, &why);
+    crypto_wipe(&rec, sizeof rec);
+    for (int i = 0; i < 32; i++) {
+        CDC_SHARED->board_pub[i] = err ? 0 : pub[i];
+    }
+    CDC_FENCE();
+    CDC_SHARED->enroll = err ? CDC_ENROLL_NONE : CDC_ENROLL_DONE;
+    CDC_FENCE();
+}
+
 void stage1_poll(void) {
     static upd_record rec;
     if (recovering) {
         recovery_poll();
         return;
+    }
+    if (CDC_SHARED->enroll == CDC_ENROLL_ASK) {
+        serve_enroll();
     }
     if (CDC_SHARED->update != CDC_CONFIRM_MAGIC) {
         return;

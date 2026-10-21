@@ -8,7 +8,7 @@
  * data by DMA. PMP entry 2 (pmp.c) makes DMA1, DMA2 and DMAMUX read-only
  * to user mode, so it can't aim a DMA channel anywhere: a DMA controller
  * isn't bound by the PMP, and could otherwise read or write any memory,
- * the board record and machine-mode code included. User mode asks a
+ * stage 1's records and machine-mode code included. User mode asks a
  * machine-mode service (`ecall`, pmp.c) instead, which:
  *
  *   - programs only the channels in its own table (gdma.c), each with a

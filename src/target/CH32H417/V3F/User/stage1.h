@@ -44,10 +44,13 @@
  *   a board and drives this.
  *
  * It needs the card's lfstage.bin (for the package) and lfbackup.bin (at
- * least 33 blocks, 132 KB, for the old image), both made in a PC; the
- * root key and product from V5F/User/sealed_root.h; and the board's key
- * from the V5F's board record (0x08070000) or, below SECURITY_LEVEL 2,
- * from the UID, as V5F/User/board.c has them.
+ * least 29 blocks, 116 KB, for the old image), both made in a PC; the
+ * root key and product from V5F/User/sealed_root.h; and the board's key,
+ * which only stage 1 holds: one of the device token's keys
+ * (upd_board_key) or, below SECURITY_LEVEL 2, from the UID. Recovery's
+ * `enroll` prints the board's boards.csv line (at level 2 making the
+ * record, and so the key, if there's none), and so does Forth's `enroll`,
+ * through the shared block (serve_enroll).
  */
 
 #include "security.h"                   /* SECURITY_LEVEL (Common/) */

@@ -726,8 +726,8 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len) {
         memset(&board, 0, sizeof board);
         return err;
     }
-    err = sealed_check_package(stage_blocks, &board, stage_block, (uint8_t *)buf,
-                               pkg, msg, len);
+    err = sealed_verify_package(stage_blocks, &board, stage_block, (uint8_t *)buf,
+                                pkg, msg, len);
     memset(&board, 0, sizeof board);
     return err;
 }

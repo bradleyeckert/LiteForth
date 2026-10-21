@@ -6,7 +6,6 @@
 #include "ch32h417.h"
 #include "options.h"                    /* FLASH_PAGE_CELLS */
 #include "pmp.h"
-#include "board.h"                      /* board_serve */
 #include "gdma.h"                       /* gdma_serve */
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
@@ -22,8 +21,6 @@
 /* pmpaddr for a NAPOT region: base aligned to size, size a power of 2 >= 8 */
 #define NAPOT(base, size)   (((uint32_t)(base) >> 2) | (((uint32_t)(size) >> 3) - 1u))
 
-#define RECORDS     0x08070000u                 /* the board record, then stage 1's */
-
 /* Entry 2: 16 KB from 0x40020000, the one NAPOT region that holds both the
    DMA registers and the flash controller (pmp.h) */
 _Static_assert(GUARD_BLOCK_BASE == DMA1_BASE, "entry 2 starts at DMA1");
@@ -35,24 +32,25 @@ _Static_assert(RNG_BASE >= GUARD_BLOCK_BASE
                && RNG_BASE + 0x400u <= GUARD_BLOCK_BASE + GUARD_BLOCK_SIZE,
                "entry 2 covers the RNG");
 
-_Static_assert(PMP_SVC_FLASH_PROGRAM < GDMA_SVC_START && GDMA_SVC_LAST < BOARD_SVC_INFO,
-               "the services' numbers don't overlap");
+_Static_assert(PMP_SVC_FLASH_PROGRAM < GDMA_SVC_START, "the services' numbers don't overlap");
 
 /* Entry 0, TOR: everything below the V5F's slot in the high window. That's
-   all of the code flash's low window (the V3F's image, the V5F's, LiteForth's
-   pages and the records, all seen at 0x00000000 too), and the V3F's image
-   (stage 0 and 1) in the high window. Locked, so machine mode can't reach it
+   all of the code flash's low window (the V3F's image, the records, the
+   V5F's, LiteForth's pages, all seen at 0x00000000 too), and in the high
+   window the V3F's image (stage 0 and 1) and stage 1's security records
+   (the device token, and so the board's key at level 2:
+   V3F/User/stage1_layout.h). Locked, so machine mode can't reach it
    either. The V5F runs from the low window only at a cold start, before
    this (its start-up code), and nothing restarts it without a chip reset:
    Ctrl+X x3 resets the chip (Common/cdc_bridge.c). */
-#define V5F_SLOT_HIGH   0x08010000u     /* Link_v5f.ld's FLASH, in the high window */
+#define V5F_SLOT_HIGH   0x08014000u     /* Link_v5f.ld's FLASH (it checks), in the high window */
 #define PMP_ADDR0   (V5F_SLOT_HIGH >> 2)
-#define PMP_ADDR1   NAPOT(RECORDS, 0x8000u)
+#define PMP_ADDR1   0u                          /* entry 1: off, free */
 #define PMP_ADDR2   NAPOT(GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE)
 #define PMP_ADDR3   0x1FFFFFFFu                 /* NAPOT: 4 GB from 0, all of memory */
 /* (0xFFFFFFFF reads back as 0x3FFFFFFF: the core doesn't keep pmpaddr's
    top two bits, address bits 33:32. Both still cover everything.) */
-#define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | (PMP_NAPOT) << 8 | \
+#define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | 0u << 8 | \
                      (PMP_NAPOT | PMP_R) << 16 | (PMP_L | PMP_NAPOT | PMP_RWX) << 24)
 
 static uint32_t got_cfg, got_addr[4];   /* read back after the lock */
@@ -115,8 +113,8 @@ int pmp_in_dtcm(uint32_t p, uint32_t n)
 
 /* In machine mode. Nothing here may fault: a fault in a trap handler
    locks the core up (ch32h417-notes.md). Every address is checked first,
-   and the flash it touches is in entry 1 or LiteForth's pages, which
-   machine mode reaches. */
+   and the only flash it touches is LiteForth's pages, which machine mode
+   reaches. */
 static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
 {
     uint32_t start = (uint32_t)__lf_flash_start;
@@ -138,9 +136,6 @@ static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
     }
     if (n >= GDMA_SVC_START && n <= GDMA_SVC_LAST) {
         return gdma_serve(n, a, b, c);  /* Guarded DMA */
-    }
-    if (n >= BOARD_SVC_INFO && n <= BOARD_SVC_LAST) {
-        return board_serve(n, a, b);    /* the board record and its key */
     }
     return ERR_UNSUPPORTED_OPERATION;
 }

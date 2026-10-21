@@ -25,7 +25,7 @@ start; lock reads the probe's view only at the end.
 run:
  1. Refuses a board that's read- or write-protected already: wlink's flash
     would unprotect it first, which wipes it or clears its write protection.
- 2. Flashes V3F (default at 0x08000000) and V5F (default at 0x08010000)
+ 2. Flashes V3F (default at 0x08000000) and V5F (default at 0x08014000)
     with wlink, without erasing anything else, reads the start of each back
     to check it, and resets the chip. A .hex or .elf carries its addresses.
  3. On the debug port, the level 2 build's stage 1 says the board isn't
@@ -65,7 +65,7 @@ from hiltest import (DebugPort, UsbPort, list_ports, find_board_port,  # noqa: E
 from lfmcp import Wlink, OBR_RDPRT, WPR_NONE  # noqa: E402
 
 V3F_ADDRESS = 0x08000000
-V5F_ADDRESS = 0x08010000                # UPD_V5F_ADDR in stage1_layout.h
+V5F_ADDRESS = 0x08014000                # UPD_V5F_ADDR in stage1_layout.h
 V3F_MAX = 64 * 1024
 V5F_MAX = 128 * 1024                    # the V5F slot
 LOCKED_WPR = 0xFFFFFF00                 # STAGE1_WRP_WRITABLE: the V3F's 64 KB protected

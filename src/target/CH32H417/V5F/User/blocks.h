@@ -201,8 +201,10 @@ int blk_stage_read(uint32_t blk, uint32_t *dest);
 int blk_stage_write(uint32_t blk, const uint32_t *src);
 
 /**
- * Checks the package in lfstage.bin as stage 1 will (sealed_check_package,
- * with board_get's keys). msg receives the result.
+ * Checks the package in lfstage.bin as far as the V5F can without the
+ * board's private key, which only stage 1 holds (sealed_verify_package:
+ * signature, certificate, product, recipient, every block's hash).
+ * msg receives the result.
  * Returns 0 or the error from the check.
  */
 int blk_stage_check(sealed_package *pkg, char *msg, int len);

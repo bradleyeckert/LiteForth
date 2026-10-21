@@ -95,12 +95,14 @@ Proposed:
 | 0x2E000 | 8 KB | Reserved | No |
 | 0x30000 | 160 KB | V5F image | No |
 | 0x58000 | 256 KB | LiteForth flash pages 0-3 (the dictionary) | No |
-| 0x98000 | 8 KB | The V5F's board record (the X25519 key, minimums) | No |
-| 0x9A000 | 344 KB | Free | |
+| 0x98000 | 352 KB | Free | |
 
 Everything the V3F owns is below 0x30000, so one PMP entry can fence it
-off (section 8). This moves the V5F (now at 0x10000) and LiteForth's flash
-(now at 0x30000), so it changes both cores' linker scripts and `flash.c`. Sizes: today's V3F image (`LiteForth_V3F.bin`) is 17.3 KB.
+off (section 8). The board's X25519 key for packages is one of the device
+token's keys (section 4), so it lives in the security sector too. This
+moves the V5F and LiteForth's flash, so it changes both cores' linker
+scripts and `flash.c`. Today's layout, a step towards it, is in
+section 6. Sizes: today's V3F image (`LiteForth_V3F.bin`) is 17.3 KB.
 Stage 1 adds about 25-30 KB (SD driver, `card.c`/`exfat.c`, `sealed.c` with
 Monocypher, the installer), so about 45-50 KB, in a 68 KB slot. Stage 1
 runs from the V3F's 64 KB of RAM_CODE, which caps it at 64 KB of code
@@ -148,6 +150,7 @@ Each use gets its own key, so one never reveals another:
 K_img    = BLAKE2s(key=token, person="LFimage")    V5F image MAC (and stage 1's, if wanted)
 K_encard = BLAKE2s(key=token, person="LFcardenc", digest_size=16)   AES on card files
 K_maccard= BLAKE2s(key=token, person="LFcardmac")  MACs on card files
+K_board  = BLAKE2s(key=token, person="LFboard")    the board's X25519 private key, at level 2
 ```
 
 The image MAC is `BLAKE2s(key=K_img, person="LFimgmac")` over the
@@ -197,7 +200,7 @@ the image's MAC.
 **App packages (component 3)** carry the Forth application with the
 firmware. The image is the V5F's slot, the `.bin` padded with 0xFF to the
 slot's size, followed by all of LiteForth's flash pages: one region in the
-code flash (0x10000 to 0x6FFFF today), which stage 1 installs, backs up,
+code flash (0x14000 to 0x6FFFF today), which stage 1 installs, backs up,
 rolls back and checks like a V5F image, just longer. Stage 1 takes one
 only if it's exactly that long. The way an application gets to a product:
 
@@ -241,7 +244,7 @@ system:
 - `lfstage.bin`: an update package, exactly as it came;
 - `lfbackup.bin`: the V5F image as it was before the last update; with
   the flash pages too, after an app package or at `SECURITY_LEVEL` 2
-  (`1 + 96` blocks for today's 128 KB slot and 256 KB of pages).
+  (`1 + 92` blocks for today's 112 KB slot and 256 KB of pages).
 
 | Phase | Runs in | Trusted? | Does |
 |---|---|---|---|
@@ -302,9 +305,19 @@ start it, because the record says it was programming. It goes to recovery
 ### On the board now (first step)
 
 `V3F/User/stage1.c` runs this on the V3F at every reset, before it wakes
-the V5F, with the flash map as it is (`stage1_layout.h`): the V5F image at
-0x10000 in its 128 KB slot, the record's two copies at 0x72000 and
-0x74000. It does nothing at all on a board that has never been updated
+the V5F, with today's flash map (`stage1_layout.h`):
+
+| Address | Size | Region |
+|---|---|---|
+| 0x00000 | 64 KB | The V3F's image (stage 0 and 1) |
+| 0x10000 | 8 KB | Security record, copy A |
+| 0x12000 | 8 KB | Security record, copy B |
+| 0x14000 | 112 KB | The V5F's slot |
+| 0x30000 | 256 KB | LiteForth's flash pages |
+| 0x70000 | | Free |
+
+The V5F's PMP entry 0 covers everything below its slot (section 8). It
+does nothing at all on a board that has never been updated
 (no record and no package waiting), so such a board boots as before.
 Otherwise it opens the card (WCH's polling SD driver) and runs
 `upd_boot`, then wakes the V5F. When LiteForth starts, the V5F sets
@@ -314,13 +327,22 @@ Otherwise it opens the card (WCH's polling SD driver) and runs
 For development, and until the rest exists:
 
 - A blank record takes the V5F image in flash as installed, version 0,
-  its whole 128 KB slot (`adopt_blank`), so the first update has
+  its whole 112 KB slot (`adopt_blank`), so the first update has
   something to back up and roll back to. `lfbackup.bin` must hold at
-  least 33 blocks (132 KB).
+  least 29 blocks (116 KB).
 - No working V5F image: recovery (section 7), on the USB terminal.
-- The board's key comes from the V5F's board record, or from the UID below
-  `SECURITY_LEVEL` 2, and the root key and product from
-  `V5F/User/sealed_root.h`, as on the V5F.
+- Only stage 1 holds the board's private key: K_board (section 4) at
+  `SECURITY_LEVEL` 2, from the UID below it. The root key and product come
+  from `V5F/User/sealed_root.h`, which both projects build with. The V5F
+  checks a package for `-2 ymodem` without the key
+  (`sealed_verify_package`: signature, certificate, product, that this
+  board is a recipient, every block's hash), and stage 1 does the rest.
+  Forth's `enroll` asks stage 1 for the public key through the shared
+  block (`enroll`, `board_pub`).
+- At level 2 a board with no record makes one, and so its key, with
+  `enroll` in recovery (section 7). From then on it starts only an image
+  that stage 1 installed, so a new board goes: lock it down, `enroll` in
+  recovery, its line into `boards.csv`, a package over `-2 ymodem`.
 
 ## 7. Recovery
 
@@ -345,7 +367,7 @@ off meanwhile (`binary`).
 
 When a terminal opens the port, stage 1 says why it's in recovery and
 prompts with `recovery ok>`, so kwai paces its lines as usual. It takes
-three commands:
+these commands:
 
 - `-2 ymodem`, which is what kwai's `~x FILE -2` types. The package comes
   by YMODEM (`src/ymrecv.c`, a small receiver tested by
@@ -355,6 +377,11 @@ three commands:
   worth keeping) and resets the chip, so the new image starts on trial as
   usual. A refusal is reported and leaves the board in recovery.
 - `reset`, to try again, for example with the card back in.
+- `enroll`, which prints the board's `boards.csv` line. At
+  `SECURITY_LEVEL` 2, on a board with no record, it first makes the
+  record, with a new device token from the RNG and so the board's key
+  (section 4); after that the line never changes until the record is
+  erased.
 - `adopt`, at `SECURITY_LEVEL` 0 and 1 only (`Common/security.h`; it
   also
   turns on `adopt_blank`). It takes the image in flash as it is
@@ -362,9 +389,9 @@ three commands:
   the record.
 
 With no `lfstage.bin`, or no card at all, the package goes into RAM
-instead: 36 blocks (144 KB) of the V3F's spare RAM, enough for the
+instead: 32 blocks (128 KB) of the V3F's spare RAM, enough for the
 largest V5F package, which `upd_boot` then reads as it would read
-`lfstage.bin`. An app package (about 390 KB) doesn't fit: it needs
+`lfstage.bin`. An app package (about 375 KB) doesn't fit: it needs
 `lfstage.bin`, and the receiver refuses it otherwise. That isn't the block-by-block install planned above, since
 a package's hash table comes after its content, so no block could be
 checked as it arrives. A reset part way through an install from RAM loses
@@ -419,7 +446,7 @@ At every boot, before anything else, stage 1 reads the option bytes as
 - read protection is on (`RDPRT`);
 - the V3F's own sectors, below the V5F slot, are write-protected;
 - every sector above them is writable: the V5F slot, LiteForth's flash
-  pages, the record sectors and the board record, which updates and
+  pages and the record sectors, which updates and
   LiteForth write;
 - the boot ROM's USB and USART downloads are off (`USBFSDL`, `USARTDL`).
 
@@ -534,7 +561,7 @@ token.
   USBFS and the RNG, but every other bus master is outside it and open to
   `!`. The ECDC, for one, copies memory to memory from any address Forth
   writes to its `SRC_ADDR` and `DST_ADDR`, so Forth at level 0 can read
-  the device token, stage 1 and the board record, and write ITCM, where
+  the device token, stage 1 and the board's key, and write ITCM, where
   machine mode's code runs (the board's key at level 0 comes from its
   UID anyway). SDMMC, ETH, LTDC, GPHA, DVP, SerDes, HSADC, UHSIF and the
   USB controllers are the same. Only the allowlist at levels 1 and 2
@@ -542,49 +569,45 @@ token.
   untrusted Forth needs level 1 or 2; level 0 is for bringing up hardware
   on a bench board.
 
-- **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
-  at 0x10000, LiteForth's pages at 0x30000, the board record at 0x70000,
-  stage 1's records at 0x72000 and 0x74000): the start-up code calls
-  `pmp_lock` just before its `mret`, which sets four NAPOT entries:
+- **What's set today** (`V5F/User/pmp.c`, with today's layout,
+  section 6: stage 1's records at 0x10000 and 0x12000, the V5F at
+  0x14000, LiteForth's pages at 0x30000): the start-up code calls
+  `pmp_lock` just before its `mret`, which sets these entries:
 
   | # | Region | User | Machine | Locked |
   |---|---|---|---|---|
-  | 0 | TOR, 0x00000000-0x0800FFFF: the whole low window, and the V3F's image (stage 0 and 1) in the high window | none | none | yes |
-  | 1 | 0x08070000-0x08077FFF: the board record, stage 1's records | none | all | no |
+  | 0 | TOR, 0x00000000-0x08013FFF: the whole low window, and in the high window the V3F's image (stage 0 and 1) and stage 1's records (the device token and the board's key) | none | none | yes |
+  | 1 | off: free (it covered the V5F's board record and stage 1's records until 21 October 2026) | | | |
   | 2 | 0x40020000-0x40023FFF: DMA1, DMA2, DMAMUX, RCC, the flash controller, CRC, USBFS, RNG | read | all | no |
   | 3 | all memory | RWX | RWX | yes |
 
-  Entry 0 (20 October 2026) is one TOR entry from address 0 up to the
-  V5F's slot in the high window, 0x08010000: the code flash's whole low
-  window (the V3F's image, the V5F's own, LiteForth's pages and the
-  records all appear there too) and the V3F's image in the high window.
-  So the V5F, machine mode included, can't read stage 0 or stage 1 at all.
-  What it still sees of the code flash is its own image and LiteForth's
-  pages, through the high window, and the records under entry 1. The V5F
+  Entry 0 (20 October 2026; the records under it since 21 October) is
+  one TOR entry from address 0 up to the V5F's slot in the high window,
+  0x08014000: the code flash's whole low window (the V3F's image, the
+  records, the V5F's own image and LiteForth's pages all appear there
+  too) and, in the high window, the V3F's image and stage 1's records.
+  So the V5F, machine mode included, can't read stage 0, stage 1, the
+  device token or the board's key at all. What it still sees of the code
+  flash is its own image and LiteForth's pages, through the high window.
+  The V5F
   runs from the low window only in its start-up code, before `pmp_lock`,
   so nothing may run that code again with the entry locked: Ctrl+X x3,
   which used to restart the V5F alone (an HSEM interrupt jumping to
   `handle_reset`), now resets the chip (`Common/cdc_bridge.c`), and the
   V5F only ever starts from a reset.
 
-  There are four entries, so the device token's sectors share entry 1
-  with the board record, unlocked: user mode (all of LiteForth) can't
-  reach them, the trap handlers can. `flash.c` and `board.c` reach the
-  flash controller and the board record through an `ecall` service in
-  machine mode (`Ecall_U_Mode_Handler`, pmp.c): program a LiteForth flash
-  page, write or read the board record, each address and buffer checked.
-  A service never writes where user mode points it unless the buffer
-  lies in DTCM's .data or .bss (`guard_buffer_ok`): the handler's frames
-  share user mode's stack, so a pointer just below the caller's sp could
-  overwrite machine mode's return address. The board record's services
-  take no pointers at all (a mailbox in `board.c`), and Guarded DMA
-  checks its buffers that way. The board's private key never reaches user
-  mode: `board_serve` (`V5F/User/board.c`), behind the same `ecall`,
-  checks the record, makes and writes the key for `enroll`, and computes
-  X25519 with it, so user mode gets only the public key, the minimums and
-  each package's shared secret (`sealed_board.x25519`, which
-  `sealed.c` calls instead of using `private_key`). `pmp_report` prints the entries at each
-  start (`V5F PMP: ...`).
+  `flash.c` reaches the flash controller through an `ecall` service in
+  machine mode (`Ecall_U_Mode_Handler`, pmp.c) that programs a LiteForth
+  flash page, its address and buffer checked. A service never writes
+  where user mode points it unless the buffer lies in DTCM's .data or
+  .bss (`guard_buffer_ok`): the handler's frames share user mode's stack,
+  so a pointer just below the caller's sp could overwrite machine mode's
+  return address. Guarded DMA checks its buffers that way. The V5F holds
+  no key: until 21 October 2026 its machine mode kept the board's
+  private key in a record of its own (`board_serve`, behind the same
+  `ecall`, with entry 1 over it); now stage 1 holds it (section 6).
+  Entry 1 is free, for fencing the V3F's RAM next. `pmp_report` prints
+  the entries at each start (`V5F PMP: ...`).
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
 

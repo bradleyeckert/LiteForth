@@ -93,6 +93,7 @@ extern "C" {
 #define CDC_RECOVER_MAGIC   0x2EC0BE27u     /* recover: the next boot goes into stage 1's recovery */
 #define CDC_NOSTART_MAGIC   0x4E530000u     /* nostart: this | the boots in a row the V5F didn't start */
 #define CDC_CTRLX_RESET_MAGIC 0xC7A1B007u   /* ctrlx_reset: this boot came from Ctrl+X x3 */
+#define CDC_REVISION_MAGIC  0x5E7E4510u     /* rev_magic: revision holds this boot's version */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -127,6 +128,11 @@ typedef struct {
                                                Ctrl+X x3 makes; the next boot's cdc_shared_init
                                                takes it and clears it. Last, so the fields the
                                                V5F reads don't move */
+    volatile uint32_t revision;             /* V3F: the installed V5F image's version, from stage
+                                               1's record (the package's --revision; 0 before any
+                                               package), for Forth's `revision` */
+    volatile uint32_t rev_magic;            /* V3F: CDC_REVISION_MAGIC once stage 1 has set
+                                               revision at this boot; cdc_shared_init clears it */
 } cdc_shared_t;
 
 #define CDC_SHARED  ((cdc_shared_t *)CDC_SHARED_ADDR)

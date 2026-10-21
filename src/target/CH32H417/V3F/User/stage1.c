@@ -346,6 +346,14 @@ static void nostart_set(uint32_t n) {
 /* Whether to start the V5F after stage 1's own work. An update that's
    under way (or just started) has its own trial count, so the boots its
    image doesn't start don't count here. */
+/* Tells the V5F the installed image's version (Forth's `revision`) */
+static void publish_revision(uint32_t version) {
+    CDC_SHARED->revision = version;
+    CDC_FENCE();
+    CDC_SHARED->rev_magic = CDC_REVISION_MAGIC;
+    CDC_FENCE();
+}
+
 static int start_or_not(int updating) {
     if (locked_out) {
         return enter_recovery("security level 2: this board isn't locked down, so the V5F won't start");
@@ -400,6 +408,7 @@ int stage1_boot(void) {
     }
     int waiting = (CDC_SHARED->update == CDC_UPDATE_MAGIC);
     int r = upd_record_load(&io, &rec);
+    publish_revision(r == 0 ? rec.v5f_version : 0);
     if (r == 1 && !waiting) {
         return start_or_not(waiting);       /* never updated: boot as before */
     }
@@ -416,6 +425,7 @@ int stage1_boot(void) {
     card_open();                            /* a record exists, or a package waits */
     int result = upd_boot(&io, &keys, waiting, &rec, msg, sizeof msg);
     crypto_wipe(&keys, sizeof keys);
+    publish_revision(rec.v5f_version);      /* as it is now: installed, or rolled back */
     CDC_SHARED->update = 0;                 /* the package has been dealt with */
     CDC_FENCE();
     if (result < 0) {

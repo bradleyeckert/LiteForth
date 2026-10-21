@@ -440,6 +440,15 @@ static int dir(void) {
     return blk_dir(dirLine, NULL);
 }
 
+/* REVISION  ( -- u )  The installed firmware's version: the update
+   package's --revision (lfRevision in lftime.c) */
+static int revision(void) {
+    uint32_t rev;
+    int ior = lfRevision(&rev);
+    if (!ior) vmPush(rev);
+    return ior;
+}
+
 /* SAVE-PAGES  ( -- )  Writes LiteForth's flash pages, 0 to RAM_PAGE-1, into
    lfpages.bin from its block 0 on, for an app update package
    (blk_pages_write, doc/admin/firmware-updates.md section 5). A page must

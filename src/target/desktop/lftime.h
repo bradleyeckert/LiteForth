@@ -99,6 +99,18 @@ int lfStandby(void);
  */
 int lfReboot(void);
 
+/**
+ * The installed firmware's version: on the CH32H417, the V5F image's
+ * version in stage 1's record (an update package's --revision; 0 before
+ * any package installed), which stage 1 publishes in the shared block at
+ * every start (`revision` and `rev_magic` in cdc_shared.h). On the
+ * desktop there are no packages: 0.
+ * @param rev Receives it.
+ * @return 0, or ERR_UNSUPPORTED_OPERATION if stage 1 didn't publish one
+ * (a V3F image from before it did).
+ */
+int lfRevision(uint32_t *rev);
+
 #ifdef __cplusplus
 }
 #endif

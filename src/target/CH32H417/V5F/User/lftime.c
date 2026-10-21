@@ -277,3 +277,13 @@ int lfReboot(void) {
     NVIC_SystemReset();
     return 0;
 }
+
+int lfRevision(uint32_t *rev) {
+    cdc_shared_t *sh = CDC_SHARED;
+    if (sh->rev_magic != CDC_REVISION_MAGIC) {
+        *rev = 0;
+        return ERR_UNSUPPORTED_OPERATION;
+    }
+    *rev = sh->revision;
+    return 0;
+}

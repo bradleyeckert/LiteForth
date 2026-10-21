@@ -38,8 +38,8 @@ from sender import packet, header, packets, EOT, ACK, NAK, CAN, C  # noqa: E402
 
 UID = '0102030405060708'
 PRODUCT = 0x4C46
-SLOT = 0x20000
-V5F_ADDR = 0x10000
+SLOT = 0x1C000                          # V3F/User/stage1_layout.h
+V5F_ADDR = 0x14000
 FLASH_SIZE = 0x100000
 ERASED = bytes.fromhex('39E339E3') * (FLASH_SIZE // 4)    # 0xE339E339, little-endian
 LOCKED_OBR = '%X' % (0x2 | (0x01 << 2))  # read protection on, downloads off
@@ -488,7 +488,7 @@ def s_refusals():
     b = Board('no-backup', card='nobackup')
     b.stage('v1')
     line = b.boot_until(r'refused|installed')
-    check(line and 'lfbackup.bin needs 33 blocks' in line, f'no backup: refused ({line})')
+    check(line and f'lfbackup.bin needs {1 + SLOT // 4096} blocks' in line, f'no backup: refused ({line})')
 
 
 def s_recovery_card():
@@ -620,6 +620,81 @@ def s_recovery_commands():
     check(line and 'recovery mode' in line, f'commands: still in recovery ({line})')
 
 
+def to_recovery(b, **kw):
+    """Into recovery on request: Ctrl+X x3 while a start is stuck, twice.
+    Returns the run, at the recovery prompt."""
+    for _ in range(2):
+        r = b.boot(v5f='stuck', **kw)
+        r.wait_debug(r'V5F stuck')
+        r.send(b'\x18\x18\x18')
+        r.wait_exit()
+        r.stop()
+    r = b.boot(v5f='stuck', **kw)
+    r.wait_usb('recovery ok> ')
+    return r
+
+
+def csv_line(text):
+    m = re.search(r'([0-9a-f]{16},[0-9a-f]{64})', text)
+    return m.group(1) if m else None
+
+
+def s_enroll():
+    """`enroll` in recovery prints the board's boards.csv line. Below level
+    2 it's the UID key's, as `sealblocks.py board-key --insecure` makes it.
+    At level 2 the first one makes the board's key (a new security record,
+    from the RNG), later ones print the same line, and the board then
+    starts only an installed image."""
+    b = Board('enroll')
+    r = to_recovery(b)
+    r.send('enroll\n')
+    r.wait_usb('recovery ok> ')
+    usb = bytes(r.usb_text).decode('latin-1')
+    with open(os.path.join(WORK, 'boards.csv')) as f:
+        want = ','.join(f.read().split(',')[:2])
+    check(csv_line(usb) == want, f'enroll: the UID key\'s line ({csv_line(usb)})')
+    check('key comes from the UID' in usb, 'enroll: says the key is the UID\'s')
+    r.stop()
+
+    b = Board('enroll-strict')
+    locked = dict(strict=True, obr=LOCKED_OBR, wpr=LOCKED_WPR)
+    r = to_recovery(b, **locked)
+    r.send('enroll\n')
+    r.wait_usb('recovery ok> ')
+    first = bytes(r.usb_text).decode('latin-1')
+    r.send('enroll\n')
+    r.wait_usb('recovery ok> ')
+    again = bytes(r.usb_text).decode('latin-1')[len(first):]
+    check('new key made' in first and csv_line(first), 'enroll strict: makes a key')
+    check(csv_line(first) != want, 'enroll strict: not the UID key')
+    check(csv_line(again) == csv_line(first) and 'new key made' not in again,
+          'enroll strict: the same line again')
+    r.send('reset\n')
+    r.wait_exit()
+    r.stop()
+    r = b.boot(**locked)
+    line = r.wait_debug(r'recovery mode|LiteForth starting')
+    check(line and 'recovery mode' in line, f'enroll strict: then only an installed image ({line})')
+    r.wait_usb('recovery ok> ')
+    # a package made for that line installs: stage 1 opens it with the key
+    # it made (the device token's); the V5F never has it
+    csv = os.path.join(b.dir, 'strict.csv')
+    with open(csv, 'w') as f:
+        f.write(csv_line(first) + ',strict\n')
+    pkg = os.path.join(b.dir, 'strict.lfu')
+    cwd = os.getcwd()
+    os.chdir(WORK)
+    try:
+        tool('package', 'v1.bin', pkg, '--component', 'v5f', '--release', 'rel.key',
+             '--boards', csv, '--revision', 1)
+    finally:
+        os.chdir(cwd)
+    check(r.ymodem(pkg), 'enroll strict: package sent')
+    got = r.wait_debug(r'installed|refused|unwrap|stopped')
+    check(got and 'installed' in got, f'enroll strict: the package opens with the board\'s key ({got})')
+    r.stop()
+
+
 def s_lockdown():
     """The lock-down check, and security level 2 (no V5F on an open board)."""
     b = Board('lockdown')
@@ -728,7 +803,7 @@ def s_power_cuts(stride):
     print(f'power cuts: {tried} tried, {new} new, {old} old')
 
 
-SCENARIOS = [s_fresh, s_install, s_rollback, s_rollback_unattended, s_nostart, s_reboot,
+SCENARIOS = [s_enroll, s_fresh, s_install, s_rollback, s_rollback_unattended, s_nostart, s_reboot,
              s_refusals, s_recovery_card,
              s_recovery_ram_and_ctrl_x, s_recovery_commands, s_lockdown, s_lockdown_command]
 

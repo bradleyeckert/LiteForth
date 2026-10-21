@@ -162,7 +162,7 @@ static void test_allowed(void) {
     CHECK(!allowed(0x40020808, 1), "DMAMUX CFGR8_11, a byte");
     CHECK(!allowed(0x40022000, 4), "FLASH");
     CHECK(!allowed(0x40023C00, 4), "RNG");
-    CHECK(!allowed(0x08070000, 4), "the board record");
+    CHECK(!allowed(0x08070000, 4), "the code flash");
     CHECK(!allowed(0x200C1000, 4), "DTCM");
     CHECK(!allowed(0, 4), "address 0");
     /* misaligned, or a size that isn't one */
@@ -194,7 +194,7 @@ static void test_buffer(void) {
     CHECK(!guard_buffer_ok(xlo - 4, xhi - xlo + 8, lo, hi, xlo, xhi), "covers the DMA buffer");
     CHECK(!guard_buffer_ok(0x40020000, 512, lo, hi, xlo, xhi), "DMA registers");
     CHECK(!guard_buffer_ok(0x40000000, 4096, lo, hi, xlo, xhi), "the I/O page");
-    CHECK(!guard_buffer_ok(0x08070000, 512, lo, hi, xlo, xhi), "the board record");
+    CHECK(!guard_buffer_ok(0x08070000, 512, lo, hi, xlo, xhi), "the code flash");
     CHECK(!guard_buffer_ok(0x200A0000, 512, lo, hi, xlo, xhi), "ITCM code");
     CHECK(!guard_buffer_ok(lo, 0xFFFFFFFCu, lo, hi, xlo, xhi), "huge n");
     CHECK(!guard_buffer_ok(0xFFFFFF00u, 0x200, 0, 0xFFFFFFFFu, 0, 0), "wraps around");

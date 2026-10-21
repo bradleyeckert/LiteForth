@@ -180,6 +180,14 @@ int upd_mark_broken(const upd_io *io, char *msg, int len);
 int upd_confirm(const upd_io *io);
 
 /**
+ * The board's X25519 private key at SECURITY_LEVEL 2, one of the device
+ * token's keys (section 4): BLAKE2s(key=token, person "LFboard"). So it's
+ * made with the record (from the RNG), lives under the boot stages'
+ * protection with it, and changes only if the record is erased.
+ */
+void upd_board_key(const upd_record *r, uint8_t key[32]);
+
+/**
  * Reads the record: the valid copy with the higher seq.
  * Returns 0, or 1 if neither copy is valid (blank), or an error code.
  */

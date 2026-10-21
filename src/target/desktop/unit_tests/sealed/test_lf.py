@@ -95,8 +95,8 @@ def stage_tests(c, sums):
     got = install('fw.lfu', 'fw.lfu', *board, block=-2)
     expect('stage: staged', f'staged in lfstage.bin, {n} blocks, read back and checked' in got,
            got)
-    expect('stage: checked', 'package: V5F image, 10240 bytes, version 3: signature, every '
-           'block and the image hash check out; waiting for stage 1' in got, got)
+    expect('stage: checked', 'package: V5F image, 10240 bytes, version 3: signature, '
+           'recipient and blocks check out; waiting for stage 1' in got, got)
     with open('lfstage.bin', 'rb') as f:
         st = f.read()
     expect('stage: written exactly', st[:len(pk)] == pk and st[len(pk):] == bytes(8 * BLOCK -
@@ -115,6 +115,18 @@ def stage_tests(c, sums):
         got = install('fw.lfu', 'fw.lfu', '-k', 'space.fb4', '-K', lfb, block=-2)
         expect('stage refused: ' + why, 'staged in lfstage.bin' in got and why in got
                and "stage 1 won't install it" in got, got)
+    # made for this board's UID but another key (the board enrolled again
+    # since): the V5F can't tell without the key; stage 1 refuses it
+    tool('board-key', 'a2.key', '--uid', '0102030405060708')
+    with open('a2.key') as f:
+        a2 = sb.json.load(f)
+    with open('boards_a2.csv', 'w') as f:
+        f.write(f'{a2["uid"]},{a2["public"]},a2\n')
+    tool('package', 'fw.bin', 'fwa2.lfu', '--component', 'v5f', '--release', 'rel1.key',
+         '--boards', 'boards_a2.csv', '--revision', 3)
+    got = install('fwa2.lfu', 'fwa2.lfu', *board, block=-2)
+    expect("stage: another key for this UID passes (stage 1's to refuse)",
+           'check out; waiting for stage 1' in got, got)
     got = install('fw.lfu', 'fw.lfu', '-k', 'space.fb4', '-K', 'newer.lfb', block=-2)
     expect("stage: the board's minimum is stage 1's to check", 'check out; waiting for '
            'stage 1' in got, got)

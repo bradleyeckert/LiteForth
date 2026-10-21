@@ -205,8 +205,9 @@ int blk_stage_read(uint32_t blk, uint32_t *dest);
 int blk_stage_write(uint32_t blk, const uint32_t *src);
 
 /**
- * Checks the package in lfstage.bin as stage 1 will (sealed_check_package,
- * with the board's keys: on the desktop, `-K`). msg receives the result.
+ * Checks the package in lfstage.bin as the board's V5F does, without the
+ * private key (sealed_verify_package, with the board's UID, root key and
+ * product: on the desktop, `-K`). msg receives the result.
  * Returns 0 or the error from the check (ERR_BLK_PARSE_FAIL without -K).
  */
 int blk_stage_check(sealed_package *pkg, char *msg, int len);

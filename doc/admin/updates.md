@@ -56,40 +56,52 @@ private key there. The tool is `scripts/admin/sealblocks.py` (it needs
    Serial numbers count up when a release key is replaced.
 4. **The firmware's `sealed_root.h`.** `sealblocks.py root-header root.pub
    --product 0x4C46 -o src/target/CH32H417/V5F/User/sealed_root.h` writes the
-   header the V5F build reads (section 6). Git ignores it, since it belongs
+   header both cores' builds read (section 6). Git ignores it, since it belongs
    to your application, not to LiteForth.
-5. **Build the V5F firmware clean.** After adding or changing
+5. **Build both projects clean.** After adding or changing
    `sealed_root.h`, use *Project > Clean* before building: MounRiver doesn't
    notice a header that didn't exist at the last build, and an incremental
-   build keeps the old `board.o` (the board then says `no root key built in`).
+   build keeps the old `board.o` or `stage1.o` (the board then says `no
+   root key built in`).
 6. **Download with Clear CodeFlash off** (`"clearcodeflash": false` in
    `LiteForth_V5F.wvproj`, as the repository has it). With it on, or with
    *Erase All*, a download erases the board's key along with everything
-   else, and the board must be enrolled again (section 3).
+   else, and the board must be enrolled again (section 3). A MounRiver
+   download (`Merge.Bin`) also rewrites stage 1's record sectors, so on a
+   level 2 board use wlink with the two `.bin` files at their addresses,
+   or better, packages.
 
 ## 3. Enrolling each board, once
 
-On each board, type `enroll`:
+A product board (`SECURITY_LEVEL` 2) makes its key in stage 1's recovery
+console, once it's locked down: Ctrl+X three times, twice, to get there
+(or it's there already, with no V5F image installed), then `enroll`:
 
 ```
-ok>enroll
-enroll: new key made. boards.csv line:
+recovery ok> enroll
+enroll: new key made (a new security record and device token)
+enroll: boards.csv line:
 69a90e647f9cf6a9,0129f3d8f018b205a74f0bd9bc7cec8debc4e815a7bfda37768baf7cd5803166
 ```
 
-The board made an X25519 key pair from its random number generator and
-kept the private half in flash (the 8K sector at `0x08070000`); it never
-leaves the board. The line is its unique ID and public key. Add it to
-`boards.csv` with a name of your choosing:
+Stage 1 made its security record, with a new device token from the
+random number generator, and the board's X25519 key is one of the
+token's keys. It stays in the flash sectors below the V5F's slot, which
+only stage 1 reaches; it never leaves the board. From then on the board
+starts only a V5F image that stage 1 installed, so its first package
+comes over `-2 ymodem` in the same console. `enroll` in Forth prints the
+same line (Forth asks stage 1 for it). The line is the board's unique ID
+and public key. Add it to `boards.csv` with a name of your choosing:
 
 ```
 69a90e647f9cf6a9,0129f3d8f018b205a74f0bd9bc7cec8debc4e815a7bfda37768baf7cd5803166,nano1
 ```
 
 A board built below `SECURITY_LEVEL` 2 (section 6) prints the same line
-every time, since its key comes from its UID. That key is for development
-only: it's no secret, and a level 2 build never uses it, so a board moved
-to level 2 runs `enroll` again and gets a new line.
+every time, in Forth or in recovery, since its key comes from its UID.
+That key is for development only: it's no secret, and a level 2 build
+never uses it, so a board moved to level 2 runs `enroll` again and gets a
+new line.
 
 Treat `boards.csv` like code, with reviewed commits: whoever can add a line
 decides which boards can install your releases. Running `enroll` again only
@@ -201,15 +213,16 @@ adds to the one below:
 | | Core | 0 | 1 | 2 |
 |---|---|---|---|---|
 | Forth reaches the peripherals | V5F | all | the allowlist | the allowlist |
-| The board's key (`enroll`) | both | from the UID | from the UID | from the RNG |
+| The board's key (`enroll`) | V3F | from the UID | from the UID | from the RNG (the device token's) |
 | A board that isn't locked down | V3F | a warning | a warning | no V5F: recovery, `reset` only |
 | Stage 1's `adopt` | V3F | yes | yes | no |
 | Flash pages written by | both | Forth | Forth | packages only |
 | Forth starts with | V5F | `root` | `root` | `root`; later a limited security wordlist |
 
-Both cores work out the board's key, the V5F in `board.c` (`enroll`,
-checking a staged package) and the V3F's stage 1 in `keys_get`
-(installing it), so build both projects at the same level.
+Only the V3F's stage 1 holds the board's key (`keys_get`); the V5F
+checks a staged package without it and asks stage 1 for the public key
+for `enroll`. Both cores read the level, so build both projects at the
+same level.
 
 - **0, development:** the regular Forth from a plain `lfblocks.fb4`, and
   every peripheral register.
@@ -218,8 +231,9 @@ checking a staged package) and the V3F's stage 1 in `keys_get`
   the like, but not the flash controller, DMA, SDIO, the ECDC, the RNG,
   RCC/PWR writes or USB. Anything else reads as an invalid address (-9),
   and a write to a read-only one is write-protected (-20).
-- **2, a product:** the key from the RNG, kept in the board's flash
-  record; only packages write LiteForth's flash pages (`open-flash` and
+- **2, a product:** the key from the RNG, one of the device token's
+  keys, made with stage 1's record by `enroll` in recovery (section 3);
+  then only an image stage 1 installed starts; only packages write LiteForth's flash pages (`open-flash` and
   `save-pages` refuse), and stage 1 checks them at every boot; no
   `adopt`; and the V5F starts only on a locked board.
 
@@ -237,15 +251,16 @@ The old flags `SEALED_ONLY`, `INSECURE`, `STRICT_RDP`,
 `STAGE1_DEVELOPMENT` and `DEVELOPER_MODE` are gone; defining one (in
 `sealed_root.h` too) stops the build.
 
-### The V5F firmware: `V5F/User/sealed_root.h`
+### Both cores: `V5F/User/sealed_root.h`
 
 Your application's file, beside `board.c`, written by
-`sealblocks.py root-header` or copied from `sealed_root.example.h`. Git
-ignores it. Clean the project after changing it (section 2).
+`sealblocks.py root-header` or copied from `sealed_root.example.h`; the
+V3F's stage 1 includes it from there too. Git ignores it. Clean both
+projects after changing it (section 2).
 
 | Setting | Meaning |
 |---|---|
-| `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the V5F can't check packages (`no root key built in`). |
+| `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the board can't check or install packages (`no root key built in`). |
 | `SEALED_PRODUCT` | The 32-bit product ID that release keys and packages must name. |
 
 ### The MounRiver projects
@@ -281,6 +296,6 @@ same way.
 - Below level 2 the board's key follows from its UID, which any code on
   the board, or anyone who has seen `enroll`'s output, can read. It's for
   development only.
-- The V5F holds the board's key, in machine mode behind the PMP, to check
-  staged packages ([encrypted-blocks.md](encrypted-blocks.md) section 9);
-  stage 1 is to hold it instead.
+- `-2 ymodem` can't tell a package made for a board's old key (it was
+  enrolled again since): only stage 1 holds the key, and refuses it
+  ([encrypted-blocks.md](encrypted-blocks.md) section 9).

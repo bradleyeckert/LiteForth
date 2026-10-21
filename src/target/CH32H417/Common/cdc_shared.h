@@ -94,6 +94,9 @@ extern "C" {
 #define CDC_NOSTART_MAGIC   0x4E530000u     /* nostart: this | the boots in a row the V5F didn't start */
 #define CDC_CTRLX_RESET_MAGIC 0xC7A1B007u   /* ctrlx_reset: this boot came from Ctrl+X x3 */
 #define CDC_REVISION_MAGIC  0x5E7E4510u     /* rev_magic: revision holds this boot's version */
+#define CDC_ENROLL_ASK      0xE4A011A5u     /* enroll: the V5F asks for the board's public key */
+#define CDC_ENROLL_DONE     0xE4A011D0u     /* enroll: board_pub holds it */
+#define CDC_ENROLL_NONE     0xE4A0110Eu     /* enroll: the board has no key yet (level 2, no record) */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -133,6 +136,10 @@ typedef struct {
                                                package), for Forth's `revision` */
     volatile uint32_t rev_magic;            /* V3F: CDC_REVISION_MAGIC once stage 1 has set
                                                revision at this boot; cdc_shared_init clears it */
+    volatile uint32_t enroll;               /* V5F: CDC_ENROLL_ASK (Forth's `enroll`); stage1_poll
+                                               answers CDC_ENROLL_DONE, with board_pub, or
+                                               CDC_ENROLL_NONE. The private key stays in the V3F */
+    volatile uint8_t board_pub[32];         /* V3F: the board's X25519 public key, for enroll */
 } cdc_shared_t;
 
 #define CDC_SHARED  ((cdc_shared_t *)CDC_SHARED_ADDR)

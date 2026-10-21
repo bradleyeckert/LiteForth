@@ -5,70 +5,34 @@
 #include "ecdc.h"                   /* lfAPI_ecdcTest, for api0.c */
 
 /*
- * What this board keeps for firmware update packages (doc/admin/encrypted-blocks.md):
- * its X25519 key and the two minimums, in a record in the 8 KB flash
- * sector right after LiteForth's flash pages (0x08070000), and the root
- * public key and product ID, which the application's build supplies in
- * sealed_root.h (see sealed_root.example.h). Without sealed_root.h the
- * board can't check packages (`-2 ymodem`).
+ * What the V5F knows about this board, for firmware update packages
+ * (doc/admin/encrypted-blocks.md): its UID, and the root public key and
+ * product ID, which the application's build supplies in sealed_root.h
+ * (see sealed_root.example.h). Not its private key: only stage 1 on the
+ * V3F holds that (V3F/User/stage1.c), in its security record, which the
+ * V5F's PMP entry 0 keeps the V5F out of. So `-2 ymodem` checks a package
+ * without the key (sealed_verify_package), and stage 1 checks the rest.
  */
 
 /**
- * Fills b with what the board holds: its UID (ESIG UNIID1 and UNIID2, as
- * they lie in memory), its public key and the x25519 hook that reaches
- * its private key in machine mode (b->private_key stays zero), the root
- * key and product ID from sealed_root.h, and its minimums. msg receives the reason if it can't.
- * Returns 0, or ERR_UNSUPPORTED_OPERATION if there is no root key built
- * in or the board hasn't been enrolled (below SECURITY_LEVEL 2 a board needs no
- * record: its key comes from the UID).
+ * Fills b with the board's UID (ESIG UNIID1 and UNIID2, as they lie in
+ * memory), the root key and product ID from sealed_root.h; no private key
+ * and no minimums (stage 1 has those). msg receives the reason if it can't.
+ * Returns 0, or ERR_UNSUPPORTED_OPERATION if no root key is built in.
  */
 int board_get(sealed_board *b, char *msg, int len);
 
 /**
  * Forth word `enroll`  ( -- )
- * Makes the board's X25519 key pair from the RNG (from the UID in an
- * levels 0 and 1) and stores the private key in the flash record, unless
- * it has one already; then prints the
- * board's line for boards.csv: UID and public key, in hex. Run once per
- * board at provisioning. The key never leaves the board.
- * Returns 0, ERR_FLASH_WRITE_SECTOR if the record can't be written, or
- * ERR_UNSUPPORTED_OPERATION if the RNG fails its checks.
+ * Prints the board's line for boards.csv: UID and X25519 public key, in
+ * hex, which it asks stage 1 for through the shared block (enroll,
+ * board_pub in cdc_shared.h). Below SECURITY_LEVEL 2 the key comes from
+ * the UID. At level 2 it comes from stage 1's record; a board without one
+ * makes it in recovery (Ctrl+X x3 twice, then enroll), so here it only
+ * says so.
+ * Returns 0, or ERR_UNSUPPORTED_OPERATION if there's no key yet or stage 1
+ * doesn't answer.
  */
 int lfAPI_enroll(void);
-
-/* What board_serve tells user mode: never the private key */
-typedef struct {
-    uint32_t valid;                 /* the record is there and checks */
-    uint32_t has_key;               /* the board has a key (always below level 2) */
-    uint32_t made;                  /* BOARD_SVC_ENROLL made it just now */
-    uint32_t min_revision;
-    uint32_t min_serial;
-    uint8_t public_key[32];         /* X25519, if has_key */
-} board_info;
-
-/* board_serve's services (pmp.c's ecall passes these numbers on). They
-   take no pointers: the data goes through a mailbox in board.c, which
-   board.c's user-mode callers fill and empty. */
-enum {
-    BOARD_SVC_INFO = 16,            /* out: a board_info */
-    BOARD_SVC_ENROLL,               /* out: a board_info; makes and writes the
-                                       key if there's no valid record */
-    BOARD_SVC_X25519,               /* in: their public key; out: the shared
-                                       secret (32 bytes each) */
-    BOARD_SVC_LAST = BOARD_SVC_X25519
-};
-
-/**
- * MACHINE MODE ONLY: called by pmp.c's ecall handler for services
- * BOARD_SVC_INFO to BOARD_SVC_LAST. Holds everything that needs the
- * private key: reads and checks the record (which user mode can't reach),
- * makes the key (from the RNG, or the UID below level 2) and writes the
- * record, and computes X25519 with it. a and b are ignored: it reads and
- * writes only board.c's mailbox, never memory user mode points it at.
- * Wipes the key and the record from its stack before returning.
- * @return 0, ERR_UNSUPPORTED_OPERATION (no key, or the RNG failed its
- * checks), or ERR_FLASH_WRITE_SECTOR.
- */
-int board_serve(uint32_t n, uint32_t a, uint32_t b);
 
 #endif /* BOARD_H */

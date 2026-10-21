@@ -124,7 +124,8 @@ Implements `serial_io.h` (the same interface as
 
 Build both projects, then download from the **V5F** project. Its download
 is `obj/Merge.Bin`: the V3F's image (at 0) merged with the V5F's (at
-`0x10000`), so it programs both cores. The V3F project's download erases
+`0x14000`, after stage 1's two record sectors), so it programs both
+cores. With wlink, the V5F's `.bin` goes at `0x08014000`. The V3F project's download erases
 the whole chip and writes only the V3F image, which leaves the V5F with
 nothing to run.
 
@@ -202,22 +203,29 @@ cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
 256K DTCM). Other geometries work too, as long as a page is a whole number
 of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 
-**The board's key record: `0x08070000`.** The 8K sector after LiteForth's
-flash holds the board's record for firmware update packages (`V5F/User/board.c`,
-[doc/admin/encrypted-blocks.md](../../../doc/admin/encrypted-blocks.md)): its X25519
-private key, made by `enroll`, and the lowest revision and release key
-serial it takes. It lies inside the 480K of single-flash mode. A download
-keeps it (below), but *Erase All* wipes it, so the board then needs
-`enroll` again (a new key, so a new line in `boards.csv` and packages
-made again).
+**Stage 1's records and the board's key: `0x08010000`.** The two 8K
+sectors after the V3F's image hold stage 1's security record
+(`V3F/User/stage1_layout.h`, [doc/admin/firmware-updates.md](../../../doc/admin/firmware-updates.md)):
+the device token, the installed image's MAC and version, and, at
+`SECURITY_LEVEL` 2, the board's X25519 key for update packages, which is
+one of the token's keys. Only stage 1 reads them: the V5F's PMP entry 0
+covers everything below its slot. `enroll` prints the board's
+`boards.csv` line; at level 2 a board without a record makes it with
+`enroll` in stage 1's recovery console (Ctrl+X three times, twice). A
+download that covers only the images keeps the records, but *Erase All*
+wipes them, so the board then needs `enroll` again (a new key, so a new
+line in `boards.csv` and packages made again). Below level 2 the key
+comes from the UID and survives anything.
 
 **Block files are plain.** Sealed block files are retired: a product's
 Forth comes in an app package (flash pages, installed by stage 1), so
 `lfblocks.fb4` is plain at every level, and a sealed one (or a package)
 on the card offers no blocks. `-2 ymodem` checks a package with the
-board's record and the root key in `V5F/User/sealed_root.h`, which the
+board's UID and the root key in `V5F/User/sealed_root.h`, which the
 application's build supplies (copy `sealed_root.example.h`, or
-`sealblocks.py root-header`; git ignores it;
+`sealblocks.py root-header`; git ignores it), as far as it can without
+the private key; stage 1 checks the rest (stage 1 builds with the same
+header;
 [doc/admin/updates.md](../../../doc/admin/updates.md) covers the process).
 
 **Security level.** `SECURITY_LEVEL` in `Common/security.h` (0, 1 or 2;
@@ -226,16 +234,16 @@ cores. 0, the repository's setting, is development: the regular Forth
 from a plain `lfblocks.fb4`, every peripheral register, the board's key
 from its UID, and stage 1's `adopt`. 1 is the same with the product's
 I/O: Forth reaches only the peripherals in `V5F/User/io_allow.h`. 2 is a
-product: the key from the RNG (`enroll` again, and a
-new `boards.csv` line), no `adopt`, and no V5F on a board that isn't
+product: the key from the RNG (the device token's, made by `enroll` in
+recovery, and a new `boards.csv` line), no `adopt`, and no V5F on a board that isn't
 locked down: it stays in recovery, and the debugger can still reprogram
 it.
 
 After adding or changing `sealed_root.h`, clean the V5F project before
-building: `board.c` finds it with `__has_include`, and MounRiver's
-dependency lists don't notice a header that didn't exist at the last
-build, so an incremental build keeps the old `board.o` (the board then
-says `no root key built in`).
+building, and the V3F project too: `board.c` and `stage1.c` find it with
+`__has_include`, and MounRiver's dependency lists don't notice a header
+that didn't exist at the last build, so an incremental build keeps the
+old object (the board then says `no root key built in`).
 
 **Peripheral registers in page 5.** `VM_IO_PAGE` = 5 in `options.h` maps
 the peripheral block at `0x40000000` (`IO_BASE`, through UHSIF, `0x38400`
@@ -250,10 +258,14 @@ write-1-to-clear flags.
 **Downloading keeps it.** The V5F project downloads `Merge.Bin` (both
 cores' code, which ends below `0x08030000`) with Clear CodeFlash off
 (`"clearcodeflash": false` in `LiteForth_V5F.wvproj`), so only the sectors
-the image covers are erased: LiteForth's flash pages and the key record
-survive a download, and neither `1 load` nor `enroll` is needed after it.
-*Erase All* in MounRiver's download dialog (or Clear CodeFlash turned back
-on) wipes both.
+the image covers are erased: LiteForth's flash pages survive a download,
+and `1 load` isn't needed after it. `Merge.Bin` runs from 0 to the end of
+the V5F's image, so it covers stage 1's record sectors too, and stage 1
+starts afresh after it (below level 2 it adopts the new V5F image as
+version 0, and the key, from the UID, doesn't change). wlink with the two
+`.bin` files at their addresses leaves the records alone. *Erase All* in
+MounRiver's download dialog (or Clear CodeFlash turned back on) wipes
+everything.
 
 ### Blocks: `V5F/User/blocks.c`
 

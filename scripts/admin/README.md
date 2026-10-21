@@ -117,7 +117,7 @@ again if it failed before writing anything; each retry is in the report.
 `run`:
 1. Refuses a board that's read- or write-protected already, since wlink's
    flash would unprotect it, and so wipe it or clear its write protection.
-2. Flashes both images with wlink (a `.bin` at 0x08000000 and 0x08010000,
+2. Flashes both images with wlink (a `.bin` at 0x08000000 and 0x08014000,
    or `--v3f-address`, `--v5f-address`; a `.hex` or `.elf` carries its
    own), without erasing anything else, reads the start of each back, and
    resets the chip.

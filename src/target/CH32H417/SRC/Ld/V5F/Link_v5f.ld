@@ -9,13 +9,15 @@ MEMORY
 {
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
-	FLASH (rx) : ORIGIN = 0x00010000, LENGTH = 128K                    /* zero_wait flah ,and loaded into RAM_CODE for running */
+	FLASH (rx) : ORIGIN = 0x00014000, LENGTH = 112K                    /* zero_wait flah ,and loaded into RAM_CODE for running */
+	/* LiteForth: the V5F's slot, after the V3F's image and stage 1's records
+	   (V3F/User/stage1_layout.h: UPD_V5F_ADDR, UPD_V5F_SLOT) */
 	RAM_CODE (xrw) : ORIGIN = 0x200A0000, LENGTH = 128K                /*ITCM RAM for running code*/
 	RAM (xrw) : ORIGIN = (0x200C0000+512+256), LENGTH = (256K-512-256) /*DTCM RAM for .data .bss section and other*/ 
 	RAM_LOAD (xrw) : ORIGIN = (0x200C0000+512), LENGTH = 256           /* RAM for .load section*/
 }
 
-/* LiteForth: 256K of flash right after the V5F image (0x00030000, read and
+/* LiteForth: 256K of flash right after the V5F's slot (0x00030000, read and
    programmed through its alias 0x08030000), used by V5F/User/flash.c.
    Nothing is linked here; the image must end below it. 0x08030000-0x0806FFFF
    lies within both the 480K (single) and 960K (dual) flash modes. */
@@ -23,6 +25,8 @@ __lf_flash_start = 0x08030000;
 __lf_flash_size  = 256K;
 ASSERT(ORIGIN(FLASH) + LENGTH(FLASH) <= __lf_flash_start - 0x08000000,
        "V5F FLASH region overlaps the LiteForth flash")
+ASSERT(ORIGIN(FLASH) == 0x00014000,
+       "the V5F's slot moved: change UPD_V5F_ADDR (stage1_layout.h) and V5F_SLOT_HIGH (pmp.c) too")
 
 SECTIONS
 {

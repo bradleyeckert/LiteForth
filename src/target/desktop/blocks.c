@@ -493,8 +493,10 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len) {
         snprintf(msg, len, "not checked: lf has no board file (-K)");
         return ERR_BLK_PARSE_FAIL;
     }
-    return sealed_check_package(blk_stage_space(), board, stage_block, (uint8_t *)buf,
-                                pkg, msg, len);
+    /* as the board's V5F does: without the private key, which only stage 1
+       holds (V3F/User/stage1.c) */
+    return sealed_verify_package(blk_stage_space(), board, stage_block, (uint8_t *)buf,
+                                 pkg, msg, len);
 }
 
 void blk_stage_ready(void) {

@@ -2144,3 +2144,97 @@ checks a package and stage 1 installs it, and a sealed block file is
 refused before anything is written. Not tested on the board: a sealed
 `lfblocks.fb4` already on the card at boot (it would give capacity 0);
 `unit_tests/sealed` covers that on the desktop.
+
+### B22. Stage 1's records under PMP entry 0; the board key in stage 1 (21 October 2026)
+
+**Board and firmware:** as in B21 (main board, level 0, B19's root key and
+release key), built in MounRiver from branch `records-under-entry0`
+(commit `3987d8f`) and flashed with wlink, the V5F at its new slot first
+(0x08014000), then the V3F (0x08000000):
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 63192 | `fb27c05e7a1ea938c20fa8c4440da095424461a6ca25f1fe3757ff5d927c442a` |
+| `LiteForth_V5F.bin` | 92276 | `ea1fd86053235c7bd494fd3c41a08368c0b3c1f29c98ca8184bb092e630718e0` |
+
+**Why:** stage 1's records move to 0x10000 and 0x12000 and the V5F's slot
+to 0x14000, so PMP entry 0 (locked, to 0x08014000) covers the records with
+stage 0 and 1, and entry 1 is free. Only stage 1 holds the board's key;
+the V5F checks `-2 ymodem` packages without it, and Forth's `enroll` asks
+stage 1 for the public key through the shared block.
+
+**Expected:** the PMP line shows entry 0 to 0x08014000 and entry 1 off;
+the board starts a fresh record (the old ones at 0x72000 are ignored) and
+adopts the V5F; `enroll`, in Forth and in recovery, prints the board's
+UID-key line; a V5F package checked by the keyless V5F installs.
+
+**Run.** Between the two flashes the old V3F ran once, still reading its
+old records, and woke the V5F at 0x10000, where its image was half
+overwritten (`V5F crumbs: reset by LOCKUP software` at the next boot):
+expected, since the V3F and V5F must change together. Then the new
+build's start (debug port, from the last of several boots cut short by
+the flashes):
+
+```
+V3F: starting the V5F
+...
+V5F PMP: cfg0 9F190088, addr 02005000 00000000 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash
+```
+
+`v14.lfu` was packaged from this V5F build with this branch's
+`sealblocks.py` (`--component v5f --revision 14`), sent with
+`~x v14.lfu -2` (the V5F's keyless check passed it; kwai's lines weren't
+kept), then `reboot`:
+
+```
+V3F update: version 14 installed, on trial
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 20; the previous run left 1984 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F190088, addr 02005000 00000000 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 21 2026 13:10:43, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash
+V3F update: version 14 confirmed
+V3F: USB configured
+```
+
+Forth's `enroll` (after a Ctrl+X safe start), then `revision`:
+
+```
+enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>reboot
+...
+revision .
+14 ok>
+```
+
+Recovery (Ctrl+X x3 twice):
+
+```
+LiteForth stage 1: recovery mode. The V5F stays off:
+Ctrl+X x3 twice: recovery on request (or the V5F got stuck before LiteForth)
+In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.
+enroll: this board's line for boards.csv (at security level 2 it makes the board's key).
+adopt: take the V5F image in flash as it is (security levels 0 and 1 only).
+reset: start again.
+recovery ok> enroll
+enroll: security level below 2: the key comes from the UID, not the RNG
+enroll: boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+recovery ok> reset
+...
+revision .
+14 ok>
+```
+
+**Result:** pass. Entry 0 now covers stage 1's records and entry 1 is
+free; stage 1 opened a package made for the board's `boards.csv` line
+with the key only it holds, after the V5F's keyless check; `enroll`
+prints the same line from Forth and from recovery. Level 2 (a key made by
+`enroll` in recovery, then only installed images) was tested on the
+simulated board (`stage1sim` `s_enroll`), not on this board.

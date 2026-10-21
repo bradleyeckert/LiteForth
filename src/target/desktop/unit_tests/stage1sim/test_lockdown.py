@@ -200,7 +200,7 @@ def main():
             'lockdown.py: not LOCK, not locked', text)
     log = rig.log()
     check(any(l.startswith('flash -R --address 0x8000000') for l in log)
-            and any(l.startswith('flash -R --address 0x8010000') for l in log)
+            and any(l.startswith('flash -R --address 0x8014000') for l in log)
             and not any(w in l for l in log for w in ('erase', 'protect', '-e ')),
             'lockdown.py: both images flashed, no erase or protect', log)
     rig.close()

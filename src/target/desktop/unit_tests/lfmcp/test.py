@@ -139,10 +139,10 @@ for obr, wpr, why in (("000003FE", "FFFFFFFF", "read protection is on"),
           and log[0].startswith("dump 0x4002201c 8 -o "), (text, log))
 with open("ob.txt", "w") as f:
     f.write("000003FC FFFFFFFF")
-text, err = tool("wlink", command="flash", path=os.path.abspath("fw.bin"), address="0x08010000")
+text, err = tool("wlink", command="flash", path=os.path.abspath("fw.bin"), address="0x08014000")
 log = wlink_log()
 check("wlink flash", not err and "not protected" in text and len(log) == 3
-      and log[1] == "flash --address 0x8010000 " + os.path.abspath("fw.bin") and log[2] == "resume"
+      and log[1] == "flash --address 0x8014000 " + os.path.abspath("fw.bin") and log[2] == "resume"
       and not any("-e" in l.split() or "--erase" in l for l in log), (text, log))
 text, err = tool("wlink", command="flash", path="nosuch.bin")
 check("wlink flash: no such file", err and wlink_log() == [], text)

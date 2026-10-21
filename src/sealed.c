@@ -26,6 +26,8 @@ static ctr_key key;
 static uint8_t nonce[8];
 static uint32_t content_end;                    /* C, or 0: nothing mounted */
 static uint32_t tables;                         /* T */
+static int keyless;                             /* mounted without the key: blocks
+                                                   are checked, not decrypted */
 static sealed_read_fn read_raw;
 
 static uint32_t get16(const uint8_t *p) {
@@ -65,6 +67,7 @@ void sealed_unmount(void) {
     ctr_wipe(&key);
     crypto_wipe(nonce, sizeof nonce);
     content_end = tables = 0;
+    keyless = 0;
     table_index = UINT32_MAX;
     read_raw = NULL;
 }
@@ -73,8 +76,10 @@ uint32_t sealed_blocks(void) {
     return content_end;
 }
 
-int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
-                         sealed_read_fn read, char *msg, int len, sealed_package *pkg) {
+/* sealed_mount_package, or without unwrap the same checks up to finding
+   this board among the recipients, with no key (sealed_verify_package) */
+static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
+                 sealed_read_fn read, char *msg, int len, sealed_package *pkg, int unwrap) {
     sealed_unmount();
     memcpy(header, b0, SEALED_BLOCK_BYTES);
     const uint8_t *h = header;
@@ -159,18 +164,14 @@ int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_b
     if (entry == NULL) {
         return fail(msg, len, "this board isn't one of its recipients");
     }
+    if (!unwrap) {
+        keyless = 1;
+        goto mounted;
+    }
     uint8_t shared[32], board_pub[32], kek[16], cek[16], check[8], salt[8];
     static const uint8_t zero[32];
-    if (board->x25519) {                        /* the key is held elsewhere */
-        if (board->x25519(shared, h + 40) != 0) {
-            crypto_wipe(shared, sizeof shared);
-            return fail(msg, len, "the board's key isn't there");
-        }
-        memcpy(board_pub, board->public_key, 32);
-    } else {
-        crypto_x25519(shared, board->private_key, h + 40);
-        crypto_x25519_public_key(board_pub, board->private_key);
-    }
+    crypto_x25519(shared, board->private_key, h + 40);
+    crypto_x25519_public_key(board_pub, board->private_key);
     if (crypto_verify32(shared, zero) == 0) {
         crypto_wipe(shared, sizeof shared);
         return fail(msg, len, "bad ephemeral key");
@@ -196,6 +197,7 @@ int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_b
         return fail(msg, len, "the content key doesn't unwrap (CEK check)");
     }
 
+mounted:
     memcpy(nonce, h + 32, 8);
     content_end = c;
     tables = t;
@@ -207,14 +209,24 @@ int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_b
     return 0;
 }
 
-int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
+int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
+                         sealed_read_fn read, char *msg, int len, sealed_package *pkg) {
+    return mount(b0, file_blocks, board, read, msg, len, pkg, 1);
+}
+
+static const char *component_name(uint32_t c) {
+    return c == SEALED_V5F ? "V5F" : c == SEALED_V5F_APP ? "V5F and app" : "stage 1";
+}
+
+/* sealed_check_package, or without the key sealed_verify_package */
+static int check_package(uint32_t file_blocks, const sealed_board *board,
                          sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
-                         char *msg, int len) {
+                         char *msg, int len, int unwrap) {
     sealed_board b = *board;
     b.min_revision = 0;                 /* stage 1 checks its own minimum */
     int err = read(0, buf);
     if (!err) {
-        err = sealed_mount_package(buf, file_blocks, &b, read, msg, len, pkg);
+        err = mount(buf, file_blocks, &b, read, msg, len, pkg, unwrap);
     }
     crypto_wipe(&b, sizeof b);
     if (err) {
@@ -233,6 +245,9 @@ int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
             snprintf(msg, len, "block %lu of the package fails its hash", (unsigned long)n);
             break;
         }
+        if (!unwrap) {
+            continue;                   /* still encrypted: nothing to hash */
+        }
         uint32_t at = (n - 1) * SEALED_BLOCK_BYTES;
         uint32_t take = pkg->length - at < SEALED_BLOCK_BYTES ? pkg->length - at
                                                               : SEALED_BLOCK_BYTES;
@@ -240,18 +255,32 @@ int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
     }
     b2s_final(&S, h);
     sealed_unmount();
-    if (!err && memcmp(h, pkg->image_hash, 32) != 0) {
+    if (!err && unwrap && memcmp(h, pkg->image_hash, 32) != 0) {
         snprintf(msg, len, "the image doesn't match its hash");
         err = ERR_BLOCK_READ_ERROR;
     }
     if (!err) {
-        snprintf(msg, len, "%s image, %lu bytes, version %lu: signature, every block "
-                 "and the image hash check out",
-                 pkg->component == SEALED_V5F ? "V5F"
-                 : pkg->component == SEALED_V5F_APP ? "V5F and app" : "stage 1",
+        snprintf(msg, len, unwrap
+                 ? "%s image, %lu bytes, version %lu: signature, every block "
+                   "and the image hash check out"
+                 : "%s image, %lu bytes, version %lu: signature, recipient and "
+                   "blocks check out",          /* stage 1 checks the rest */
+                 component_name(pkg->component),
                  (unsigned long)pkg->length, (unsigned long)pkg->version);
     }
     return err;
+}
+
+int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
+                         sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
+                         char *msg, int len) {
+    return check_package(file_blocks, board, read, buf, pkg, msg, len, 1);
+}
+
+int sealed_verify_package(uint32_t file_blocks, const sealed_board *board,
+                          sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
+                          char *msg, int len) {
+    return check_package(file_blocks, board, read, buf, pkg, msg, len, 0);
 }
 
 int sealed_open_block(uint32_t n, uint8_t *buf) {
@@ -282,6 +311,9 @@ int sealed_open_block(uint32_t n, uint8_t *buf) {
     if (crypto_verify16(hash, table + ENTRY * (n % PER_TABLE)) != 0) {
         memset(buf, 0, SEALED_BLOCK_BYTES);
         return ERR_BLOCK_READ_ERROR;
+    }
+    if (keyless) {
+        return 0;                               /* checked; it stays encrypted */
     }
     if (ctr_crypt_block(&key, nonce, n, buf, SEALED_BLOCK_BYTES) != 0) {
         memset(buf, 0, SEALED_BLOCK_BYTES);     /* the engine failed partway */

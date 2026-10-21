@@ -9,14 +9,15 @@
  * `mret`s into `main` with MPP = 0), where the PMP CSRs can't be reached.
  *
  *   #  region                     user   machine  locked
- *   0  0x00000000..0x0800FFFF     none   none     yes  TOR: all of the code
+ *   0  0x00000000..0x08013FFF     none   none     yes  TOR: all of the code
  *                                                      flash's low window, and
- *                                                      the V3F's image (stage
- *                                                      0 and 1) in the high
- *                                                      window
- *   1  0x08070000..0x08077FFF     none   all      no   the board record, and
- *                                                      stage 1's records A and
- *                                                      B (the device token)
+ *                                                      in the high window the
+ *                                                      V3F's image (stage 0
+ *                                                      and 1) and stage 1's
+ *                                                      records A and B (the
+ *                                                      device token, and the
+ *                                                      board's key)
+ *   1  off                                             free
  *   2  0x40020000..0x40023FFF     R      all      no   DMA1, DMA2, DMAMUX,
  *                                                      RCC, the flash
  *                                                      controller, CRC, USBFS
@@ -25,16 +26,15 @@
  *
  * A locked entry binds machine mode too, and only a reset clears it. An
  * unlocked one binds only user mode, so the machine-mode services below
- * can still program flash and reach the board record. They're reached by
+ * can still program flash. They're reached by
  * `ecall` (Ecall_U_Mode_Handler) and check every address they're given.
  * A service never writes to memory user mode points it at unless
  * guard_buffer_ok allows it (.data and .bss, not the stack): the handler's
  * own frames are on user mode's stack, just below the caller's sp, so such
- * a write could change where machine mode returns to. board.c's services
- * use a mailbox instead; gdma.c checks with guard_buffer_ok. Services:
- * programming LiteForth's flash pages here (it only reads its source,
- * which must lie in DTCM), board.c's board_serve, which keeps the board's
- * private key in machine mode, and Guarded DMA (gdma.c). The V5F reads
+ * a write could change where machine mode returns to; gdma.c checks with
+ * guard_buffer_ok. Services: programming LiteForth's flash pages here (it
+ * only reads its source, which must lie in DTCM), and Guarded DMA
+ * (gdma.c). The V5F holds no key: stage 1 does. The V5F reads
  * the code flash's low window only in its start-up code, at a cold start,
  * before the lock; it's never restarted without a chip reset (Ctrl+X x3
  * resets the chip, Common/cdc_bridge.c), so that code never runs again
@@ -55,8 +55,7 @@
  *     guard_store_allowed says it's one of theirs, and carries on after
  *     it;
  *   - the flash controller: only through the flash service below;
- *   - USBFS (the V3F's) and the RNG (board.c's key, in machine mode): not
- *     at all. Any other store there faults: to Forth with ior -127
+ *   - USBFS (the V3F's) and the RNG: not at all. Any other store there faults: to Forth with ior -127
  *     (ERR_BUS_FAULT) if it came from Forth, else it resets the chip.
  */
 
@@ -75,8 +74,8 @@ void pmp_lock(void);
  */
 void pmp_report(void);
 
-/* Services 8 to 15 are Guarded DMA's (gdma_serve, GDMA_SVC_*), 16 and up
-   board.c's (board_serve, BOARD_SVC_*) */
+/* Services 8 to 15 are Guarded DMA's (gdma_serve, GDMA_SVC_*). 16 to 18
+   were board.c's, which held the board's key before stage 1 did. */
 enum { PMP_SVC_FLASH_PROGRAM = 1 };
 
 /**

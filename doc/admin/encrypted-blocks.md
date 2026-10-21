@@ -199,23 +199,30 @@ BLAKE2s and compares it with its entry (a mismatch is a read error, -33),
 and decrypts it in place with the counter for block n. The caller checks
 the decrypted image against the image hash in block 0.
 
-Stage 1 does this when it installs a package (`src/update.c`). Before
-that, `-2 ymodem` on the V5F does the same checks on the staged package
-(`sealed_check_package`, minus the board's minimum version, which is
-stage 1's), so a package the board can't use is refused at the terminal.
+Stage 1 does this when it installs a package (`src/update.c`). Only
+stage 1 holds the board's private key, so before that, `-2 ymodem` on the
+V5F checks the staged package without it (`sealed_verify_package`):
+steps 1 to 5 up to finding the board's UID among the recipients, then
+every block's hash, but no unwrapping and no image hash. So a package for
+another board, a product, a root or a replaced release key, or a damaged
+one, is refused at the terminal; one made for this board's old key (it
+was enrolled again since) passes there, and stage 1 refuses it.
 
 ### On the CH32H417
 
-- **The board's record** is the 8 KB flash sector at `0x08070000`, after
-  LiteForth's flash pages (`V5F/User/board.c`): the X25519 private key and
-  the two minimums, with a BLAKE2s check value. Erased flash reads
-  `0xE339E339` on this chip, so only a record with the right magic and
-  check counts.
-- **`enroll ( -- )`** makes the key from the RNG (64 words, each checked
+- **The board's key** is stage 1's (V3F/User/stage1.c): at
+  `SECURITY_LEVEL` 2 one of the device token's keys,
+  `BLAKE2s(key=token, person="LFboard")` (`upd_board_key`), so it's made
+  with stage 1's security record, from the RNG (64 words, each checked
   for data ready, seed and clock errors and repeats, hashed together with
-  BLAKE2s), stores it, and prints the board's line for `boards.csv`. A
-  board that already has a key just prints its line. The desktop's
-  `enroll` prints the line from its `-K` board file.
+  BLAKE2s), and kept with it in the sectors below the V5F's slot, which
+  the V5F's PMP entry 0 keeps it out of. Below level 2 it's BLAKE2s of
+  the UID. The minimums are in the record too.
+- **`enroll`** prints the board's line for `boards.csv`: in stage 1's
+  recovery console, which at level 2 first makes the record (and so the
+  key) if there's none, and in Forth, which asks stage 1 for the public
+  key through the shared block. The desktop's `enroll` prints the line
+  from its `-K` board file.
 - **The root key and product ID** come from `V5F/User/sealed_root.h`,
   which the application supplies, since LiteForth is a platform and each
   product has its own root. `sealblocks.py root-header ROOT.pub --product P
@@ -226,11 +233,11 @@ stage 1's), so a package the board can't use is refused at the terminal.
 
 | Part | Source |
 |---|---|
-| Opening and reading | `src/sealed.c`: `sealed_mount_package` checks block 0 and unwraps the CEK; `sealed_open_block` checks and decrypts each block as it's read; `sealed_check_package` does both for a whole package. Stage 1 (`src/update.c`) and the targets' `blocks.c` (`-2 ymodem`) call them |
+| Opening and reading | `src/sealed.c`: `sealed_mount_package` checks block 0 and unwraps the CEK; `sealed_open_block` checks and decrypts each block as it's read; `sealed_check_package` does both for a whole package, and `sealed_verify_package` all it can without the key. Stage 1 (`src/update.c`) calls the first three, the targets' `blocks.c` (`-2 ymodem`) the last |
 | BLAKE2s | `src/blake2s.c`, from [bradleyeckert/blake2s](https://github.com/bradleyeckert/blake2s), with `b2s_init` for salt and personalization |
 | X25519, Ed25519 check (with SHA-512) | `src/monocypher.c`, `src/monocypher-ed25519.c`: [Monocypher](https://monocypher.org) 4.0.2 (CC0 or BSD-2, `src/monocypher-LICENCE.md`), with one cast added for MSVC |
 | AES-128 / SM4 CTR | `src/ctr.c` in software; on the CH32H417 the ECDC engine (`V5F/User/ecdc.c`, through `ctr_hw_crypt`), checked once against software |
-| Protected storage for the board key and minimums | The security sector of [security-plan.md](security-plan.md) 5.1; a board file on the desktop (`lf -K`) |
+| Protected storage for the board key and minimums | Stage 1's security record ([firmware-updates.md](firmware-updates.md) sections 3 and 4); a board file on the desktop (`lf -K`) |
 
 Built for RV32IMAC at `-Os` and linked with unused code dropped, all of
 it takes about 22 KB of code, with software AES and SM4. Its RAM is
@@ -366,10 +373,9 @@ BLAKE2s, which this format doesn't do (a format version 2 could).
 
 ## 9. Known holes, for later
 
-- **The V5F holds the board key** today (`V5F/User/board.c`, in machine
-  mode behind the PMP), only so that `-2 ymodem` can check a package
-  before stage 1 does. Stage 1 is to hold it instead, so the V5F needs
-  no key and its PMP entry for the record is free.
+- **A package for a board's old key** passes `-2 ymodem` (the V5F has
+  no key to try it with) and is refused only by stage 1, whose refusal
+  shows on the debug port.
 - **Below `SECURITY_LEVEL` 2** ([updates.md](updates.md) section 6) a
   board derives its key from its UID, so anyone who knows the UID can open
   packages made for it. It's for development boards whose flash gets

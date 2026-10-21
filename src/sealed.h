@@ -45,18 +45,11 @@ static inline const char *sealed_not_blocks(const uint8_t *b0) {
    the lowest version and release key serial it takes */
 typedef struct {
     uint8_t uid[8];                 /* ESIG_UNIID1, UNIID2, as in memory */
-    uint8_t private_key[32];        /* X25519 */
+    uint8_t private_key[32];        /* X25519; not needed by sealed_verify_package */
     uint8_t root[32];               /* Ed25519 public key */
     uint32_t product;
     uint32_t min_revision;
     uint32_t min_serial;
-    /* If x25519 is set, it holds the private key, and private_key can stay
-       zero: sealed.c calls it for the shared secret with a file's ephemeral
-       public key (returning 0, or nonzero if it can't), and takes the
-       board's public key from public_key. The CH32H417's V5F sets it, so
-       its key stays in machine mode (V5F/User/board.c). */
-    int (*x25519)(uint8_t shared[32], const uint8_t their_public[32]);
-    uint8_t public_key[32];         /* X25519, with x25519 */
 } sealed_board;
 
 /* A firmware update package's description (doc/admin/firmware-updates.md
@@ -107,6 +100,19 @@ int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_b
 int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
                          sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
                          char *msg, int len);
+
+/**
+ * sealed_check_package without the board's private key, for a core that
+ * doesn't hold it (the CH32H417's V5F, for `-2 ymodem`): every check up
+ * to finding board->uid among the recipients, then every content block
+ * against its hash, but no unwrapping and so no image hash. A package for
+ * this board's old key (enrolled again since) passes here; stage 1
+ * refuses it. Unmounts it afterwards.
+ * Returns 0, ERR_BLK_PARSE_FAIL, ERR_BLOCK_READ_ERROR, or read's error.
+ */
+int sealed_verify_package(uint32_t file_blocks, const sealed_board *board,
+                          sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
+                          char *msg, int len);
 
 /**
  * Forgets the mounted file and erases its key.

@@ -1584,3 +1584,89 @@ The second read it back through the service.
 **Result:** pass. The public key matches B14 (INFO), the record is
 written and then found (ENROLL), and the sealed file mounts and decrypts
 (X25519): all three services work through the mailbox.
+
+### B17. Card writes through Guarded DMA, and a brown-out (20 October 2026)
+
+**Board and firmware:** as in B16 (the same V5F image,
+`a649b1e1435978d03cd8609dee2db38362e9ef04b95f117b3a672456f56b72d6`), but
+with a plain block file on the card: `plain.fb4` renamed to
+`lfblocks.fb4` (block 0 `LITEFORTHBLK`, 121 blocks, writable), and the
+dictionary loaded with `1 load`. Blocks 60-99 were blank (spaces).
+
+**Why:** B15 and B16 covered reads only; the card then held a sealed
+file. This checks writes through Guarded DMA: a single block, and 8
+blocks (64 sectors) in one `write-block`, which `blocks.c` moves as two
+32-sector `CMD25`s, each copied into machine mode's buffer and burned
+after.
+
+**Expected:** each write's blocks read back as written, on both sides of
+the split and at the ends; no reset.
+
+**Run 1, LCD module plugged in.** Blocks 1-8 (text) were read into flash
+page 3's RAM cache at 0x180000 (opened, never closed: no flash write) and
+written to blocks 60-67 (0x3C) in one `write-block`; read back into
+0x182000, both chunks matched. Blank blocks 70-77 written over 60-67 the
+same way read back blank. The third 8-block write reset the chip; no
+`V5F fault:` line, and the next boot's debug port said:
+
+```
+V5F crumbs: reset by software power, boot 1; the previous run left 919 crumbs
+```
+
+Power-down with the software flag, and no fault: the brown-out of
+[ch32h417-notes.md](../ch32h417-notes.md) (The nanoCH32H417 board), not
+an exception in machine mode, which would have printed its `mcause` and
+`mepc` first. The LCD module's backlight runs from the same 3.3 V.
+
+**Run 2, LCD module unplugged,** after a `wlink reset`, on the cli port
+(each `block-status .` line until it printed 0 is shortened to `...`):
+
+```
+> hex 180000 open-flash
+> 180000 1 8 read-block
+...
+> 180000 3C 8 write-block
+...
+> 182000 3C 8 read-block
+...
+> t{ 180000 @ 180200 @ 1803FF @ -> 182000 @ 182200 @ 1823FF @ }t
+ok>
+  (and the same for each of the 8 blocks: start, middle, last cell)
+> t{ 181C00 @ 181E00 @ 181FFF @ -> 183C00 @ 183E00 @ 183FFF @ }t
+ok>
+> t{ 1 -> 2 }t
+Error: ior=-106 assertion - wrong results
+> hex
+> 180000 44 1 write-block
+...
+> 182000 44 1 read-block
+...
+> t{ 180000 @ 180010 @ 180200 @ 1803FF @ -> 182000 @ 182010 @ 182200 @ 1823FF @ }t
+ok>
+```
+
+(`t{ 1 -> 2 }t` shows that a mismatch does report.) Then the same
+8-block write three more times, and a final check with the read-back
+area cleared first, so a stale copy couldn't pass:
+
+```
+> 182000 46 8 read-block
+...
+> 183000 @ . 183C10 @ .
+4:0:202020H 4:0:202020H ok>
+> 182000 3C 8 read-block
+...
+> 183000 @ . 183C10 @ .
+D:5:C2028H 6:4:2F3031H ok>
+> t{ 180000 @ 180C00 @ 180FFF @ 181000 @ 181C10 @ 181FFF @ -> 182000 @ 182C00 @ 182FFF @ 183000 @ 183C10 @ 183FFF @ }t
+ok>
+```
+
+Blocks 60-68 were then written blank again from 70-77 (8 blocks, then
+1) and read back blank.
+
+**Result:** pass, with the LCD module unplugged: five 8-block writes and
+a single-block write through Guarded DMA, each read back right across
+the 32-sector split, and no reset. With it plugged in, one 8-block write
+in three browned the board out; that's the board's 3.3 V supply, not the
+firmware.

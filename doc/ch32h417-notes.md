@@ -305,6 +305,14 @@ V5F fault: mcause 00000004 mepc 200AC954 mtval 200C0589 ra 200AC91E sp 200FFCD0 
   current peaks while they read. When feeding 3.3 V to a microSD slot, give
   the card a supply that can take them: a regulator with headroom, and bulk
   plus local decoupling capacitance right at the slot.
+- **Card writes brown it out with the LCD module plugged in.** With the
+  LCD module (whose backlight runs from the same 3.3 V) plugged in, one
+  8-block write in three to a card that reads fine reset the chip: no
+  fault, and the next start reported `reset by software power` (PORRSTF
+  and SFTRSTF). Unplugged, many writes ran without one (board test B17).
+  The board's LDO has little headroom for the V5F at 400 MHz, a card
+  writing and the backlight at once: dim or switch the backlight, or
+  supply it separately, if the card is written while the LCD is in use.
 
 ## Debugging through the WCH-LinkE
 

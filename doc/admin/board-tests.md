@@ -1843,3 +1843,128 @@ and machine mode's flash and record services still work with it locked;
 Ctrl+X x3 resets the chip into a safe boot; Ctrl+X x3 twice in a row
 reaches recovery on a healthy board, and only as the first input after
 the reset.
+
+### B19. An app package: the V5F image with LiteForth's flash pages (21 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down (OBR `000003FC`, WPR `FFFFFFFF`), `SECURITY_LEVEL` 0, the
+plain block file of B17 on the card, with `lfpages.bin` (262144 bytes)
+added. Built in MounRiver from branch `app-packages` (commit `17ca2a0`)
+with a new root key: the test keys of B10 and B11 were gone, so the
+administrator (the developer, for this bench board) made a root key, a
+release key (serial 1, product 0x4C46) and `sealed_root.h`
+(`sealblocks.py root-key`, `release-key`, `root-header`), and both
+projects were cleaned and rebuilt. The board's key comes from its UID at
+level 0, so its `boards.csv` line didn't change.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62496 | `47d3d2974e1d5fa3b220e647478a03c1dc5def54c9bfba17e9a481b146cf7b90` |
+| `LiteForth_V5F.bin` | 94364 | `2d004da332b659ef635259270f5adb6cecadfeaa14aafe58646dd5d8cb19f485` |
+
+**Why:** with sealed block files on their way out, a Forth application
+reaches a product in an update package: component 3, the V5F `.bin`
+padded to its slot, then all of LiteForth's flash pages
+([firmware-updates.md](firmware-updates.md) section 5). This checks the
+developer's half (`save-pages`), the administrator's (`sealblocks.py
+package --component app`), and stage 1 installing it, at level 0, where a
+developer may still change the pages afterwards.
+
+**Expected:** `save-pages` fills `lfpages.bin`; the package checks out on
+the V5F as it's staged; stage 1 installs it and LiteForth's start
+confirms it; a word that was in flash but not in the saved pages is gone
+afterwards; a word saved after the install survives a reboot (level 0
+doesn't check the pages).
+
+**Run.** Before the root change, with the first build of the branch:
+`1 load` (the new word moved the tools' API indices, so the dictionary in
+flash had to be compiled again), then `save-pages`, then a marker word
+saved into flash with the same steps `core.f` ends with:
+
+```
+> save-pages
+ok>
+> 0 open-flash
+> : zzmark 4242 . ;
+> _text here 32 bit  1 !
+> save-wids save-idata
+> _udata
+> close-flash
+> zzmark
+4242 ok>
+```
+
+`zzmark` survived a `reboot`, and the rebuild for the new root (which
+doesn't touch the flash pages). Then, on the administrator's PC, with the
+new build's `LiteForth_V5F.bin` and `lfpages.bin` copied off the card:
+
+```
+> py sealblocks.py package LiteForth_V5F.bin app.lfu --component app --pages lfpages.bin --release release1.key --boards boards.csv --revision 10
+app.lfu: app image, 393216 bytes in 96 block(s), version 10, 1 board(s), AES
+```
+
+and on the cli port, with kwai:
+
+```
+ok>~x app.lfu -2
+...
+ymodem: app.lfu: staged in lfstage.bin, 98 blocks, read back and checked
+ymodem: package: V5F and app image, 393216 bytes, version 10: signature, every block and the image hash check out; waiting for stage 1 to install it
+```
+
+**The first attempt didn't install.** After `reboot` LiteForth came back
+with `zzmark` still there, and stage 1 had said nothing. Both copies of
+the security record read erased through wlink, so no record had been
+made: stage 1 never saw the package flag (with a flag and no record, it
+makes one before anything else, even to refuse a package). Not
+explained; most likely the shared SRAM lost the flag in a power dip (the
+board is powered through the WCH-LinkE, whose cable was unplugged and
+plugged back around then). Nothing was installed, and the package stayed
+in `lfstage.bin`.
+
+**Second attempt:** staged again; the flag read `5A9E0F11`
+(`CDC_UPDATE_MAGIC`) at 0x2017801C through wlink; `wlink reset`. The
+debug port:
+
+```
+V3F update: version 10 installed, on trial
+V3F: starting the V5F
+...
+V5F: LiteForth starting, booting from flash
+V3F update: version 10 confirmed
+V3F: USB configured
+```
+
+and the cli port:
+
+```
+> zzmark
+zzmark ?
+ok>
+> 1 2 + .
+3 ok>
+```
+
+Then a word saved after the install, as `zzmark` was (`: zzdev 777 . ;`),
+and `reboot`: `zzdev` gave 777, and the debug port showed a normal start
+with no rollback, so at level 0 the boot check left the changed pages
+alone.
+
+**Third attempt** (does `reboot` itself lose the flag?): staged again,
+then `reboot`, without reading the flag first:
+
+```
+V3F update refused: lfbackup.bin needs 97 blocks
+V3F: starting the V5F
+```
+
+So `reboot` delivers the flag. The refusal is by design: the installed
+image is now the slot and the pages (393216 bytes), so its backup needs
+1 + 96 blocks, more than this card's `lfbackup.bin` holds. Stage 1
+refused before touching anything, and `zzdev` was still there.
+
+**Result:** pass. `save-pages`, `sealblocks.py package --component app`
+and stage 1 install an app package end to end; the pages come from the
+package; level 0 leaves them editable. To note: after an app package
+`lfbackup.bin` must hold the pages too (397312 bytes for today's layout),
+and stage 1 reports a refused or lost package only on the debug port.

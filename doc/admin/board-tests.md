@@ -1968,3 +1968,74 @@ and stage 1 install an app package end to end; the pages come from the
 package; level 0 leaves them editable. To note: after an app package
 `lfbackup.bin` must hold the pages too (397312 bytes for today's layout),
 and stage 1 reports a refused or lost package only on the debug port.
+
+### B20. `revision`, and a debugger's V5F adopted at level 0 (21 October 2026)
+
+**Board and firmware:** as in B19 (main board, level 0, B19's root key and
+release key), built in MounRiver from branch `revision-word` (commit
+`9cba9f0`) and flashed with wlink:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62772 | `350fa72fbb2994ecfc12a67c284256b2cf8fc130566dc3906ad72c03c4d3d78a` |
+| `LiteForth_V5F.bin` | 94492 | `485f1383eef72c395d569d563c59dfbba135ccc71351cf1fab13a541b1450a54` |
+
+**Why:** `revision ( -- u )` gives Forth the installed firmware's
+version, which stage 1 publishes in the shared block at every start
+(`revision`, `rev_magic` in `cdc_shared.h`). And at levels 0 and 1 a V5F
+the debugger reprogrammed is now adopted, not rolled back: flashing an
+earlier build of this branch over B19's app package had found the
+opposite, the board quietly running the backup's version 0 with the
+debugger's image gone (`revision ?`), since stage 1 checks the installed
+image's MAC at every boot and had a backup to restore.
+
+**Expected:** after the flash the debugger's V5F runs (adopted as
+version 0) and `revision` gives 0; a V5F package with `--revision 11`
+installs, and `revision` then gives 11.
+
+**Run.** After the flash, a safe start (Ctrl+X x3), then on the cli port:
+
+```
+> decimal
+> 1 load
+...
+> revision .
+0 ok>
+```
+
+The V5F running was the debugger's (`revision` exists only in this
+build), adopted as version 0. The debug port's adopt line for that boot
+wasn't captured. Then, on the administrator's PC and in kwai:
+
+```
+> py sealblocks.py package LiteForth_V5F.bin v11.lfu --component v5f --release release1.key --boards boards.csv --revision 11
+v11.lfu: v5f image, 94492 bytes in 24 block(s), version 11, 1 board(s), AES
+
+ok>~x v11.lfu -2
+...
+ymodem: package: V5F image, 94492 bytes, version 11: signature, every block and the image hash check out; waiting for stage 1 to install it
+```
+
+then the board's reset button. The debug port:
+
+```
+V3F update: version 11 installed, on trial
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 13; the previous run left 2059 crumbs
+...
+V5F: LiteForth starting, booting from flash
+V3F update: version 11 confirmed
+V3F: USB configured
+```
+
+and kwai:
+
+```
+revision .
+11 ok>
+```
+
+**Result:** pass. `revision` reports the installed version (0 for an
+adopted debugger image, 11 after the package); a debugger-flashed V5F
+runs at level 0 instead of being replaced; and the package flag survives
+a reset by the pin, as it does `reboot`.

@@ -21,6 +21,7 @@ src/target/desktop/unit_tests/update/work/
 src/target/desktop/unit_tests/ymrecv/drv
 src/target/desktop/unit_tests/stage1sim/work/
 src/target/desktop/unit_tests/stage1sim/reports/
+src/target/desktop/unit_tests/blocksim/work/
 hil-report-*.md
 lockdown-report-*.md
 src/target/desktop/unit_tests/serial_io/test_serial_io

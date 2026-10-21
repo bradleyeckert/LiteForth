@@ -280,14 +280,14 @@ def cmd_run(a):
         release(wl, True)               # a clean start, not halted, if the probe can
         say()
         say('## The level 2 build on an open board')
-        line = dbg.wait(r'recovery mode|LiteForth starting', start, 15)
+        line = dbg.wait(r'V3F: recovery mode|LiteForth starting', start, 15)
         if not line:
             say('No start on the debug port after the reset: the probe left the V3F halted.')
             print('\nTurn the board off and on (unplug the WCH-LinkE and the board\'s USB, '
                   'wait, plug them in), then press Enter.')
             input()
             say('Power turned off and on.')
-            line = dbg.wait(r'recovery mode|LiteForth starting', start, 60)
+            line = dbg.wait(r'V3F: recovery mode|LiteForth starting', start, 60)
         if not line or 'recovery' not in line:
             debug_log(dbg, start, 'Debug port')
             raise Fail('stage 1 didn\'t stay in recovery: not a level 2 build, or it didn\'t '
@@ -321,13 +321,13 @@ def cmd_run(a):
         raise Fail(f'the option bytes weren\'t programmed as they should be ({line})')
     say()
     say('## The board after')
-    booted = dbg.wait(r'LiteForth starting|recovery mode', start, 40)
+    booted = dbg.wait(r'LiteForth starting|V3F: recovery mode', start, 40)
     if booted and any('V3F security: not locked down' in l for l in dbg.since(start)):
         debug_log(dbg, start, 'Debug port')
         say('The option bytes didn\'t load at that reset.')
         print('\nTurn the board\'s power off, wait a few seconds, and turn it on again.')
         start = dbg.mark()
-        booted = dbg.wait(r'LiteForth starting|recovery mode', start, 180)
+        booted = dbg.wait(r'LiteForth starting|V3F: recovery mode', start, 180)
     debug_log(dbg, start, 'Debug port')
     lines = dbg.since(start)
     if any('V3F security: not locked down' in l for l in lines):

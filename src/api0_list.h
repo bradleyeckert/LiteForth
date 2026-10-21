@@ -101,7 +101,8 @@
     X(API_ENROLL,           lfAPI_enroll)       \
     X(API_REBOOT,           reboot)             \
     X(API_DIR,              dir)                \
-    X(API_SAVE_PAGES,       savePages)
+    X(API_SAVE_PAGES,       savePages)          \
+    X(API_REVISION,         revision)
 
 #if (FAT_FORTH & 1)
 #define API0_TOOLS_LIST(X)                      \

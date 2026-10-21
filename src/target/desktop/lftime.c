@@ -127,3 +127,8 @@ int lfReboot(void) {
     lfReset();                          // doesn't return
     return 0;
 }
+
+int lfRevision(uint32_t *rev) {
+    *rev = 0;                           /* no stage 1, no packages */
+    return 0;
+}

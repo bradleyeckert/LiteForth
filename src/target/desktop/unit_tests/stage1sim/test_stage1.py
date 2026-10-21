@@ -346,7 +346,16 @@ class Board:
 
 
 def until_started(board, **kw):
-    return board.boot_until(r'V5F: LiteForth starting|resetting the chip|recovery mode', **kw)
+    """Boots until LiteForth starts (or the chip resets, or recovery), then
+    presses reset. If this boot left an image on trial, waits for stage 1
+    to confirm it first: stopped before that, the image would stay on
+    trial, and stage 1 ignores a package staged during a trial."""
+    r = board.boot(**kw)
+    line = r.wait_debug(r'V5F: LiteForth starting|resetting the chip|recovery mode')
+    if line and 'LiteForth' in line and any('on trial' in l for l in r.debug):
+        r.wait_debug(r'confirmed', timeout=5)
+    r.stop()
+    return line
 
 
 # ---------------------------------------------------------------------------
@@ -366,14 +375,21 @@ def s_fresh():
 def s_install():
     """B3: a package installs, starts on trial, and LiteForth confirms it."""
     b = Board('install')
+    r = b.boot()                            # before any package: revision 0
+    check(r.wait_debug(r'SIM: (no )?revision') == 'SIM: revision 0', 'install: revision 0 at first')
+    r.stop()
     b.stage('v1')
     r = b.boot()
     check(r.wait_debug(r'version 1 installed, on trial') is not None, 'install: installed')
+    check(r.wait_debug(r'SIM: (no )?revision') == 'SIM: revision 1', 'install: revision 1 on trial')
     check(r.wait_debug(r'version 1 confirmed') is not None, 'install: confirmed')
     r.stop()
     check(b.has('v1'), 'install: v1 in flash')
     line = until_started(b)
     check(line and 'LiteForth' in line, 'install: the next boot starts LiteForth')
+    r = b.boot()
+    check(r.wait_debug(r'SIM: (no )?revision') == 'SIM: revision 1', 'install: revision 1 after')
+    r.stop()
 
 
 def s_rollback():

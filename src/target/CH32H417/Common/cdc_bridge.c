@@ -87,6 +87,7 @@ void cdc_shared_init(void) {
        v5f_safe_restart makes. v5f_starts only ever counts up. */
     ctrl_x_armed = (sh->ctrlx_reset == CDC_CTRLX_RESET_MAGIC);
     sh->ctrlx_reset = 0;
+    sh->rev_magic = 0;                  /* stage 1 sets revision again */
     CDC_FENCE();
     sh->magic = CDC_SHARED_MAGIC;
     CDC_FENCE();

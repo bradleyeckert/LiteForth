@@ -323,6 +323,13 @@ static void v5f_liteforth(void) {
     if (safe) {
         sh->safe_boot = 0;
     }
+    /* What Forth's `revision` gives; before the start line, which tests
+       stop at, so the confirm below isn't delayed */
+    if (sh->rev_magic == CDC_REVISION_MAGIC) {
+        fprintf(stderr, "SIM: revision %lu\r\n", (unsigned long)sh->revision);
+    } else {
+        fprintf(stderr, "SIM: no revision\r\n");
+    }
     fprintf(stderr, "V5F: LiteForth starting%s\r\n", safe ? ", safe boot (app not started)" : "");
     if (sh->update != CDC_UPDATE_MAGIC) {
         sh->update = CDC_CONFIRM_MAGIC;

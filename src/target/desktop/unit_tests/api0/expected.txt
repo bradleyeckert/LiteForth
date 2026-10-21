@@ -72,18 +72,19 @@
  71 API_REBOOT           reboot
  72 API_DIR              dir
  73 API_SAVE_PAGES       savePages
- 74 API_ENDTEST          lfAPI_endTest
- 75 API_DOTEST           lfAPI_doTest
- 76 API_BEGINTEST        lfAPI_beginTest
- 77 API_HEX              lfAPI_hex
- 78 API_DECIMAL          lfAPI_decimal
- 79 API_DOTPAGE          lfAPI_dotPage
- 80 API_DOTPAGES         lfAPI_dotPages
- 81 API_DUMP             lfAPI_dump
- 82 API_DUMPI            lfAPI_dumpIns
- 83 API_DASM             lfAPI_dasm
- 84 API_DOTS             lfAPI_dotEss
- 85 API_DOT              lfAPI_dot
- 86 API_SEE              lfAPI_see
- 87 API_ECDC_TEST        lfAPI_ecdcTest
-count 88
+ 74 API_REVISION         revision
+ 75 API_ENDTEST          lfAPI_endTest
+ 76 API_DOTEST           lfAPI_doTest
+ 77 API_BEGINTEST        lfAPI_beginTest
+ 78 API_HEX              lfAPI_hex
+ 79 API_DECIMAL          lfAPI_decimal
+ 80 API_DOTPAGE          lfAPI_dotPage
+ 81 API_DOTPAGES         lfAPI_dotPages
+ 82 API_DUMP             lfAPI_dump
+ 83 API_DUMPI            lfAPI_dumpIns
+ 84 API_DASM             lfAPI_dasm
+ 85 API_DOTS             lfAPI_dotEss
+ 86 API_DOT              lfAPI_dot
+ 87 API_SEE              lfAPI_see
+ 88 API_ECDC_TEST        lfAPI_ecdcTest
+count 89

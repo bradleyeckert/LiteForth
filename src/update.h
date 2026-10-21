@@ -61,8 +61,13 @@ typedef struct {
     uint32_t backup_blocks;
     int (*random)(uint8_t *out, int len);               /* the RNG, checked */
     uint32_t hw_rev;                                    /* this board's */
-    int adopt_blank;    /* development: a blank record takes the V5F image
-                           already in flash (all of its slot) as installed */
+    int adopt_blank;    /* development (SECURITY_LEVEL 0 and 1): a blank
+                           record takes the V5F image already in flash (all
+                           of its slot) as installed, and so does a record
+                           whose image fails its check (the debugger
+                           reprogrammed it): adopted as version 0, ending
+                           any trial, instead of rolled back or sent to
+                           recovery, so developers can re-flash at will */
     int check_pages;    /* the flash pages are part of the installed image:
                            every installed image is the whole UPD_APP_SPAN
                            (backed up, restored and MACed), and the boot

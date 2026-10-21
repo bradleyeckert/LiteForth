@@ -11,7 +11,7 @@
  *   Block files                 V5F     any       any       sealed only
  *   The board's key (`enroll`)  both    UID       UID       RNG
  *   Board not locked down       V3F     warning   warning   no V5F
- *   Stage 1's `adopt`           V3F     yes       yes       no
+ *   Stage 1's `adopt` [3]       V3F     yes       yes       no
  *   Flash pages written by      both    Forth     Forth     packages only [2]
  *   Forth starts with           V5F     root      root      root [1]
  *
@@ -44,6 +44,11 @@
  *
  * [1] Level 2 is to start Forth with a limited security wordlist instead
  *     of root. Not yet: it starts with root, as the others do.
+ * [3] SEC_ADOPT (upd_io.adopt_blank): recovery's `adopt`, a blank record
+ *     taking the V5F image in flash, and a V5F image the debugger
+ *     reprogrammed, which fails its MAC, adopted as version 0 at the next
+ *     start instead of rolled back or sent to recovery. So at 0 and 1
+ *     developers re-flash at will; at 2 stage 1 enforces the check.
  * [2] SEC_LOCKED_PAGES. At 0 and 1, close-flash writes LiteForth's flash
  *     pages and save-pages copies them to lfpages.bin, for an app package
  *     (sealblocks.py package --component app); stage 1's boot check covers

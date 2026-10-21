@@ -439,8 +439,8 @@ int stage1_boot(void) {
                  "type reset to carry on", result);
         return enter_recovery(msg);
     }
-    if (waiting || busy || result != UPD_START) {
-        printf("V3F %s\r\n", msg);
+    if (waiting || busy || result != UPD_START || strcmp(msg, "update: nothing to do") != 0) {
+        printf("V3F %s\r\n", msg);    /* anything it did: an install, a rollback, an adopt */
     }
     if (result == UPD_START) {
         return start_or_not(waiting || busy || rec.state != UPD_IDLE);

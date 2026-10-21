@@ -284,6 +284,13 @@ These rules came out of writing it:
   image, so stage 1 goes to recovery. `adopt_blank`, for development
   only, takes whatever is in the V5F slot as installed instead, and
   `upd_adopt` does the same later, from recovery.
+- At `SECURITY_LEVEL` 0 and 1, `adopt_blank` also covers an image that
+  fails its check: the debugger reprogrammed the V5F. Stage 1 adopts it as
+  version 0 (ending a trial, keeping the backup) and starts it, instead of
+  restoring the backup or going to recovery, so developers can re-flash at
+  will and only level 2 enforces the check. It says so on the debug port
+  (`update: the V5F image changed (the debugger?); adopted as version 0`),
+  as it now reports anything a boot did, a rollback included.
 
 Power cuts: every phase records its progress in the security sector before
 it starts. Phase D resumes from the block it reached, since `lfstage.bin`

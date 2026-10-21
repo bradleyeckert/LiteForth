@@ -193,6 +193,17 @@ static int boot(int waiting) {
     return upd_boot(&io, &keys, waiting, &rec, msg, sizeof msg);
 }
 
+/* One boot as a production stage 1 (SECURITY_LEVEL 2) has it: no
+   adopt_blank, so a changed image is rolled back or sent to recovery, not
+   adopted */
+static int boot_production(int waiting) {
+    int adopt = io.adopt_blank;
+    io.adopt_blank = 0;
+    int r = boot(waiting);
+    io.adopt_blank = adopt;
+    return r;
+}
+
 static int is_image(const uint8_t *img, long len) {
     return memcmp(flash + UPD_V5F_ADDR, img, (size_t)len) == 0;
 }
@@ -234,7 +245,7 @@ static void test_install_and_confirm(void) {
     CHECK(is_image(new_img, new_len), "v1 refused: image unchanged");
 
     flash[UPD_V5F_ADDR + 5000] ^= 1;    /* changed in flash; the backup is below 2 */
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN, "changed image, old backup: %d %s",
           r, msg);
 }
@@ -259,7 +270,7 @@ static void test_rollback(void) {
     boot(1);
     CHECK(upd_confirm(&io) == 0, "new0 confirmed");
     flash[UPD_V5F_ADDR + 7] ^= 0x10;
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_image(old_img, old_len),
           "changed image restored from the backup: %d %s", r, msg);
 }
@@ -376,6 +387,37 @@ static void test_power_cuts(void) {
     CHECK(back == total, "every cut resumed the rollback (%d of %ld)", back, total);
 }
 
+/* Development (adopt_blank, SECURITY_LEVEL 0 and 1): an image the
+   debugger changed is adopted as version 0, not restored or sent to
+   recovery, so developers can re-flash at will */
+static void test_debugger_adopt(void) {
+    adopt();
+    put_package("new.lfu");
+    int r = boot(1);
+    CHECK(r == UPD_START && upd_confirm(&io) == 0, "debugger: v2 installed and confirmed");
+    uint32_t backup_len = rec.backup_length;
+    flash[UPD_V5F_ADDR + 1234] ^= 0x55;  /* the debugger writes a new V5F */
+    uint8_t mark = flash[UPD_V5F_ADDR + 1234];
+    r = boot(0);
+    CHECK(r == UPD_START && strstr(msg, "adopted as version 0") != NULL,
+          "debugger: a changed image adopted: %d %s", r, msg);
+    CHECK(rec.v5f_version == 0 && rec.state == UPD_IDLE && flash[UPD_V5F_ADDR + 1234] == mark,
+          "debugger: version 0, the debugger's image kept, not restored");
+    CHECK(rec.backup_length == backup_len, "debugger: the backup on the card kept");
+    r = boot(0);
+    CHECK(r == UPD_START && strcmp(msg, "update: nothing to do") == 0,
+          "debugger: the next boot has nothing to do: %s", msg);
+
+    adopt();                            /* changed during a trial: the trial ends */
+    put_package("new0.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && rec.state == UPD_TRIAL, "debugger: on trial");
+    flash[UPD_V5F_ADDR + 77] ^= 1;
+    r = boot(0);
+    CHECK(r == UPD_START && rec.state == UPD_IDLE && rec.v5f_version == 0
+          && strstr(msg, "adopted"), "debugger: adopted during a trial: %s", msg);
+}
+
 /* ------------------------------------------------------------------------
  * App packages: the V5F slot and LiteForth's flash pages
  */
@@ -403,7 +445,7 @@ static void test_app_development(void) {
     r = boot(0);
     CHECK(r == UPD_START && rec.result == UPD_R_INSTALLED, "app: a changed page is fine: %s", msg);
     flash[UPD_V5F_ADDR + 99] ^= 1;      /* the V5F image itself still counts */
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && rec.v5f_version == 0,
           "app: a changed slot rolls back: %d %s", r, msg);
 
@@ -429,7 +471,7 @@ static void test_app_locked(void) {
           "locked: the old span backed up, pages and all");
     CHECK(upd_confirm(&io) == 0, "locked: confirm");
     flash[PAGE_BYTE] ^= 0x40;           /* a page changed behind stage 1's back */
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_region(before),
           "locked: a changed page is caught and the old span restored: %d %s", r, msg);
 
@@ -439,7 +481,7 @@ static void test_app_locked(void) {
     CHECK(r == UPD_START && rec.v5f_length == UPD_APP_SPAN, "locked: V5F-only: %d %s", r, msg);
     CHECK(upd_confirm(&io) == 0, "locked: confirm V5F-only");
     flash[PAGE_BYTE] ^= 0x40;
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK, "locked: pages checked after a "
           "V5F-only package too: %s", msg);
 
@@ -448,7 +490,7 @@ static void test_app_locked(void) {
     io.check_pages = 0;
     adopt();
     io.check_pages = 1;
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN,
           "locked: a slot-only record goes to recovery: %d %s", r, msg);
 
@@ -562,7 +604,7 @@ static void test_recovery(void) {
 
     adopt();                            /* the debugger's image, adopted */
     flash[UPD_V5F_ADDR + 3] ^= 1;
-    r = boot(0);
+    r = boot_production(0);
     CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN, "reprogrammed: recovery (%s)", msg);
     CHECK(upd_adopt(&io, msg, sizeof msg) == 0 && strstr(msg, "adopted"), "adopt: %s", msg);
     r = boot(0);
@@ -639,6 +681,7 @@ int main(void) {
     test_recovery();
     test_record_copies();
     test_power_cuts();
+    test_debugger_adopt();
     test_app_development();
     test_app_locked();
 

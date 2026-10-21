@@ -650,6 +650,22 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
     if (crypto_verify32(mac, r->v5f_mac) == 0) {
         return UPD_START;
     }
+    if (io->adopt_blank) {              /* development: the debugger's image, adopted */
+        r->state = UPD_IDLE;            /* (a trial too: the debugger replaced it) */
+        r->progress = 0;
+        r->v5f_version = 0;
+        r->v5f_length = installed_length(io, UPD_V5F_SLOT);
+        r->result = UPD_R_NONE;
+        err = installed_mac(io, r, r->v5f_mac);
+        if (!err) {
+            err = record_store(io, r);
+        }
+        if (err) {
+            return err;
+        }
+        snprintf(msg, len, "update: the V5F image changed (the debugger?); adopted as version 0");
+        return UPD_START;
+    }
     if (r->state == UPD_IDLE && r->backup_length) {     /* changed: restore the backup */
         r->state = UPD_ROLLING_BACK;
         r->progress = 0;

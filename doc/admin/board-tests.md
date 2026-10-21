@@ -1526,3 +1526,61 @@ through the emulation; Forth's stores to DMA and the RNG come back as
 set (`cfg0 9F191898`, `addr` `100087FF`: 16 KB from 0x40020000, user R).
 `1 load` and `close-flash` still work. **Not covered:** card writes
 through Guarded DMA (needs a plain block file).
+
+### B16. The board record's services through a mailbox (20 October 2026)
+
+**Board and firmware:** as in B15 (main board, UID `69a90e647f9cf6a9`,
+not locked down, `SECURITY_LEVEL` 0, sealed `lfblocks.fb4` on the card),
+with the V5F built in MounRiver from branch `mmode-buffers` (commit
+`5022a8f`) and flashed with wlink (94168 bytes at 0x08010000). The V3F
+as in B12.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62248 | `52f524d38e6dcb40c454c4204488a66d711b866a51bdb7cf8cd9c5c87dcc1525` (as in B12) |
+| `LiteForth_V5F.bin` | 94168 | `a649b1e1435978d03cd8609dee2db38362e9ef04b95f117b3a672456f56b72d6` |
+
+**Why:** `board_serve` wrote its results (a `board_info`, the X25519
+shared secret) where user mode pointed it, checked only to lie in DTCM,
+which includes the stack below the caller, where the ecall handler's own
+frames are. Its services now read and write only a mailbox in `board.c`,
+and the user-mode wrappers copy in and out. This checks all three
+services: INFO and ENROLL (`enroll`), and X25519 (mounting the sealed
+file).
+
+**Expected:** `enroll` prints the same `boards.csv` line as in B14; a
+second `enroll` finds the record and makes no key; the sealed file
+mounts (capacity 121) and its blocks read as plain text.
+
+**Run,** on the cli port, straight after the flash:
+
+```
+ok>学如不及, 犹恐失之
+> enroll
+enroll: new key made. (security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+> enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+> capacity .
+121 ok>
+> hex 1 block 20 dump
+200030: 694C2028 6F466574 20687472 656D6F68  ( LiteForth home
+200034: 72637320 206E6565 5F5F5F5F 5F5F5F5F   screen ________
+200038: 5F5F5F5F 5F5F5F5F 5F5F5F5F 5F5F5F5F  ________________
+20003C: 5F5F5F5F 5F5F5F5F 5F5F5F5F 205F5F5F  _______________ 
+200040: 312F3031 36322F37 454E4220 20202920  10/17/26 BNE )  
+...
+ok>
+```
+
+The first `enroll` found no valid record (one wasn't there before this
+run; B14's had been written by the build then) and wrote one; at this
+security level the key comes from the UID, so it's B14's key either way.
+The second read it back through the service.
+
+**Result:** pass. The public key matches B14 (INFO), the record is
+written and then found (ENROLL), and the sealed file mounts and decrypts
+(X25519): all three services work through the mailbox.

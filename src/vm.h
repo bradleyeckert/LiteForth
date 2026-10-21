@@ -142,6 +142,11 @@ int vmRunning(void);
  */
 int vmTrapArmed(void);
 
+/* vmTrapArmed as data: nonzero inside vmRun. For a trap handler that must
+   call nothing outside itself (the CH32H417's V5F runs its handlers from
+   flash, V5F/User/mmode.h). */
+extern void *volatile vm_trap_armed;
+
 /**
  * @brief Ends the innermost vmRun with `ior`, for a CPU exception during
  * it (the CH32H417's HardFault_Handler, through trap_resume in

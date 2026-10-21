@@ -93,6 +93,25 @@ static int user_buffer_ok(uint32_t p, uint32_t n) {
                            x, x + GDMA_BUF_BYTES);
 }
 
+/* memcpy without calling it: this file runs in machine mode, from flash,
+   and must call nothing user mode can write (mmode.h). Volatile, so the
+   compiler doesn't turn the loop back into a memcpy call. */
+static void copy(void *dest, const void *src, uint32_t bytes) {
+    volatile uint8_t *d = dest;
+    const volatile uint8_t *s = src;
+    if ((((uintptr_t)d | (uintptr_t)s | bytes) & 3u) == 0) {
+        volatile uint32_t *dw = (volatile uint32_t *)d;
+        const volatile uint32_t *sw = (const volatile uint32_t *)s;
+        for (uint32_t i = 0; i < bytes / 4; i++) {
+            dw[i] = sw[i];
+        }
+        return;
+    }
+    for (uint32_t i = 0; i < bytes; i++) {
+        d[i] = s[i];
+    }
+}
+
 static int size_ok(uint32_t bytes) {
     return bytes >= 4 && bytes <= GDMA_BUF_BYTES && (bytes & 3u) == 0;
 }
@@ -137,7 +156,7 @@ static int serve_start(uint32_t a, uint32_t src, uint32_t bytes) {
         return ERR_INVALID_ADDRESS;     /* a read's is checked again at the end */
     }
     if (dir == GDMA_TO_PERIPH) {
-        memcpy(dma_buf, (const void *)src, bytes);
+        copy(dma_buf, (const void *)src, bytes);
     }
     /* DMA1's clock as well as DMA2's: DMAMUX needs it (blocks.c had both) */
     RCC->HBPCENR |= RCC_HBPeriph_DMA1 | RCC_HBPeriph_DMA2;
@@ -175,7 +194,7 @@ static int serve_finish(uint32_t ch, uint32_t dest, uint32_t bytes) {
             err = ERR_BUS_FAULT;
         } else {
             k->chan->CFGR = k->chan->CFGR & ~(uint32_t)DMA_CFGR1_EN;
-            memcpy((void *)dest, dma_buf, bytes);
+            copy((void *)dest, dma_buf, bytes);
         }
     }
     burn(k);

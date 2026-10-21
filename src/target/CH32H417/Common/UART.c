@@ -542,6 +542,8 @@ void UART_DataRx_Deal( void )
  *
  * @return  none
  */
+#ifndef Core_V5F    /* LiteForth: the V5F never takes this interrupt, and its
+                        machine mode runs only code in flash (V5F/User/mmode.h) */
 void TIM2_IRQHandler( void )
 {
     /* Test IO */
@@ -555,3 +557,4 @@ void TIM2_IRQHandler( void )
     /* clear status */
     TIM2->INTFR = (uint16_t)~TIM_IT_Update;
 }
+#endif

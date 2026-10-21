@@ -133,6 +133,8 @@ void USBFS_Device_Init( FunctionalState sta )
  *
  * @return  none
  */
+#ifndef Core_V5F    /* LiteForth: the V5F never takes this interrupt, and its
+                        machine mode runs only code in flash (V5F/User/mmode.h) */
 void USBFS_IRQHandler( void )
 {
     uint8_t  intflag, intst, errflag;
@@ -676,6 +678,7 @@ void USBFS_IRQHandler( void )
         USBFSD->INT_FG = intflag;
     }
 }
+#endif
 
 /*********************************************************************
  * @fn      USBFS_Send_Resume

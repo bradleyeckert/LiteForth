@@ -86,7 +86,10 @@ static void fault_hex(const char *name, uint32_t x)
 
 static volatile int32_t trap_ior;       /* for trap_resume */
 
-static void __attribute__((noreturn, used)) trap_resume(void)
+/* Runs in user mode, after the handler's mret: ordinary code, in ITCM
+   with the rest of LiteForth (.usertext, Link_v5f.ld), not in flash with
+   this file's handlers */
+static void __attribute__((noreturn, used, section(".usertext.trap_resume"))) trap_resume(void)
 {
   vmTrap(trap_ior);
 }
@@ -157,7 +160,7 @@ void hardfault_c(uint32_t *regs)
   }
   uint32_t ra = regs[1], sp = regs[2];
   int32_t ior = trap_to_ior(mcause);
-  int forth = ior && vmTrapArmed() && !other_irq_active();
+  int forth = ior && vm_trap_armed && !other_irq_active();
   crumb_log_t *c = CRUMBS;              /* a crumb by hand: no calls in here */
   if (c->magic == CRUMB_MAGIC) {
     crumb_t *e = &c->e[c->next % CRUMB_COUNT];

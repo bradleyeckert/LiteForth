@@ -29,8 +29,14 @@ CC=${RISCV_PREFIX:-riscv-none-elf-}gcc
 LC=$(echo "$CORE" | tr A-Z a-z)
 mkdir -p "$OUT/obj"
 
-# The projects' settings: rv32imac + B (XW left out), ilp32, -Os, ...
-ARCH="-march=rv32imac_zba_zbb_zbc_zbs_zicsr_zifencei -mabi=ilp32 -msmall-data-limit=8 -msave-restore"
+# The projects' settings: rv32imac + B (XW left out), ilp32, -Os, ... The
+# V5F's leaves out -msave-restore: its __riscv_save_N helpers live in ITCM,
+# which machine mode's code in flash mustn't call (V5F/User/mmode.h)
+case "$CORE" in
+    V3F) SAVE=-msave-restore ;;
+    V5F) SAVE=-mno-save-restore ;;
+esac
+ARCH="-march=rv32imac_zba_zbb_zbc_zbs_zicsr_zifencei -mabi=ilp32 -msmall-data-limit=8 $SAVE"
 CFLAGS="$ARCH -Os -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-common
         -Wunused -Wuninitialized -std=$STD -DCore_$CORE"
 INC="-I$T/SRC/Startup -I$T/$CORE/User -I$T/SRC/Debug -I$T/SRC/Core -I$T/SRC/Peripheral/inc -I$T/Common"
@@ -69,6 +75,10 @@ fi
 ${RISCV_PREFIX:-riscv-none-elf-}size -A "$OUT/$CORE.elf" | grep -E '^\.[a-z]' || true
 if [ "$BAD" -ne 0 ]; then
     echo "ch32build.sh: $CORE: warnings above" >&2
+    exit 1
+fi
+if [ "$CORE" = V5F ] && ! python3 "$ROOT/scripts/mmodecheck.py" "$OUT/$CORE.elf"; then
+    echo "ch32build.sh: V5F: machine mode calls code user mode can write" >&2
     exit 1
 fi
 echo "ch32build.sh: $CORE builds and links"

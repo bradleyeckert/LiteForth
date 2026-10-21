@@ -9,10 +9,16 @@ MEMORY
 {
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
-	FLASH (rx) : ORIGIN = 0x00014000, LENGTH = 112K                    /* zero_wait flah ,and loaded into RAM_CODE for running */
+	FLASH (rx) : ORIGIN = 0x00014000, LENGTH = 104K                    /* zero_wait flah ,and loaded into RAM_CODE for running */
 	/* LiteForth: the V5F's slot, after the V3F's image and stage 1's records
-	   (V3F/User/stage1_layout.h: UPD_V5F_ADDR, UPD_V5F_SLOT) */
-	RAM_CODE (xrw) : ORIGIN = 0x200A0000, LENGTH = 128K                /*ITCM RAM for running code*/
+	   (V3F/User/stage1_layout.h: UPD_V5F_ADDR, UPD_V5F_SLOT): this image's first
+	   104K, then 8K of machine mode's code (mmode.h), run in place from the
+	   high window, where user mode can't write it */
+	MMODE (rx) : ORIGIN = 0x0802E000, LENGTH = 8K
+	MMODE_LMA (rx) : ORIGIN = 0x0002E000, LENGTH = 8K
+	RAM_CODE (xrw) : ORIGIN = 0x200A0000, LENGTH = 124K                /*ITCM RAM for running code*/
+	/* LiteForth: WCH's flash routines, copied in from flash before each use (mmode.h) */
+	RAMFUNC (xrw) : ORIGIN = 0x200BF000, LENGTH = 4K
 	RAM (xrw) : ORIGIN = (0x200C0000+512+256), LENGTH = (256K-512-256) /*DTCM RAM for .data .bss section and other*/ 
 	RAM_LOAD (xrw) : ORIGIN = (0x200C0000+512), LENGTH = 256           /* RAM for .load section*/
 }
@@ -25,11 +31,37 @@ __lf_flash_start = 0x08030000;
 __lf_flash_size  = 256K;
 ASSERT(ORIGIN(FLASH) + LENGTH(FLASH) <= __lf_flash_start - 0x08000000,
        "V5F FLASH region overlaps the LiteForth flash")
+ASSERT(ORIGIN(MMODE_LMA) + 0x08000000 == ORIGIN(MMODE), "the machine-mode code's two addresses")
+ASSERT(ORIGIN(FLASH) + LENGTH(FLASH) == ORIGIN(MMODE_LMA), "the machine-mode code ends the slot")
 ASSERT(ORIGIN(FLASH) == 0x00014000,
        "the V5F's slot moved: change UPD_V5F_ADDR (stage1_layout.h) and V5F_SLOT_HIGH (pmp.c) too")
 
 SECTIONS
 {
+	/* LiteForth: machine mode's code, in flash (mmode.h). First, so these
+	   input sections are taken before .highcode's wildcards. */
+	.mmode :
+	{
+		_mmode_start = .;
+		KEEP(*(.vector))
+		KEEP(*(.text.vector_handler))
+		*(.mmode .mmode.*)
+		*ch32h417_it*.o(.text .text.* .rodata .rodata.*)
+		*guard*.o(.text .text.* .rodata .rodata.*)
+		*gdma*.o(.text .text.* .rodata .rodata.*)
+		. = ALIGN(4);
+		_mmode_end = .;
+	} >MMODE AT>MMODE_LMA
+
+	.ramfunc :
+	{
+		_ramfunc_vma = .;
+		*ch32h417_flash*.o(.text .text.* .rodata .rodata.*)
+		. = ALIGN(4);
+		_ramfunc_end = .;
+	} >RAMFUNC AT>MMODE_LMA
+	_ramfunc_lma = LOADADDR(.ramfunc) + 0x08000000;
+
 	.init :
 	{
 		_sinit = .;
@@ -68,6 +100,7 @@ SECTIONS
 		KEEP(*(SORT_NONE(.vector_handler)))
 		*(.text)
 		*(.text.*)
+		*(.usertext .usertext.*)
 		*(.rodata)
 		*(.rodata*)
         *(.sdata2.*)

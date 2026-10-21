@@ -1817,6 +1817,26 @@ It booted (`1 2 + .` gives 3, capacity 121), and Ctrl+X x3 reset the chip
 into a safe boot. (The V5F is 40 bytes bigger than the probe's: the
 probe's early return let the compiler drop the rest of `lfRtcSet`.)
 
+**A LOCKUP after each flash, and not from this change.** The boot after
+flashing these images reported the run before as `reset by LOCKUP
+software`. Checked:
+
+- every wlink flash did it, of the V3F's sectors or of the V5F's alone,
+  with the same image again;
+- a plain `wlink reset` didn't (`reset by software`), and neither did the
+  board running on its own (the trail before each ended cleanly, at
+  `QUIT` or a terminal line);
+- **`main`'s V5F (B16's image, `a649b1e1...`, the old entry 0 over just
+  0x70000) flashed twice: the second boot also said `reset by LOCKUP
+  software, boot 19`.**
+
+So wlink's flash cycle (its reattach and the WCH-Link's flash loader,
+closed firmware) does it to a running V5F whatever its PMP. Nothing in
+the V5F's machine mode reaches the locked range: its handlers, its
+vector table and WCH's default handler (`.text.vector_handler`) are all
+in ITCM. The chip resets straight after, so nothing is lost; noted in
+[ch32h417-notes.md](../ch32h417-notes.md).
+
 **Result:** pass. Entry 0 is set and locked; neither the low window nor
 stage 0 and 1 in the high window can be read from the V5F's user mode,
 and machine mode's flash and record services still work with it locked;

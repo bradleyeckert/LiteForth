@@ -337,7 +337,12 @@ Seen on 20 October 2026 (board test B15), through `wlink` and
   So don't probe while using the console; if the console stops taking
   input after probing, reset the chip.
 - **`wlink flash` resets the chip** when it's done, and stage 1 starts
-  the new V5F image as usual.
+  the new V5F image as usual. The next start reports the run before it as
+  `reset by LOCKUP software`, every time, with any image (B18, including
+  one from before PMP entry 0 covered the low window): something in the
+  probe's flash cycle locks the running V5F up before the reset. A plain
+  `wlink reset` doesn't. So after a flash, a LOCKUP says nothing about
+  the firmware; at any other time it does.
 
 ## What matched the documents
 

@@ -1576,8 +1576,8 @@ ok>
 ok>
 ```
 
-The first `enroll` found no valid record (one wasn't there before this
-run; B14's had been written by the build then) and wrote one; at this
+The first `enroll` found no valid record and wrote one. B14 had written
+one; why it was gone before this run wasn't looked into. At this
 security level the key comes from the UID, so it's B14's key either way.
 The second read it back through the service.
 

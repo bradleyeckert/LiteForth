@@ -24,7 +24,11 @@
  *   LFinsec1), so `enroll` prints the same line every time, a download
  *   that erases the flash loses nothing, and `sealblocks.py board-key
  *   --insecure` makes the boards.csv line without the board. Anyone who
- *   knows the UID can read what is sealed for it.
+ *   knows the UID can read what is sealed for it. And Forth can program
+ *   the bus masters the PMP doesn't fence (the ECDC, SDMMC, ETH, LTDC, the
+ *   USB controllers...), which reach all memory: the device token, stage
+ *   1, machine-mode code. Never for a board that runs untrusted Forth
+ *   (doc/admin/firmware-updates.md section 8).
  * 1, development with the product's I/O: as 0, but Forth reaches only the
  *   peripherals in V5F/User/io_allow.h: GPIO, timers, serial ports and the
  *   like, not the flash controller, DMA, SDIO, the ECDC, the RNG, RCC/PWR

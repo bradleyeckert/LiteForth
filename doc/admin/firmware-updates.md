@@ -482,11 +482,25 @@ token.
   and the buffer burned after every transfer. RCC and CRC share the
   block and user mode writes them, so `HardFault_Handler` does those
   stores for it (`guard.c` decodes them); stores to the DMA registers,
-  the flash controller, USBFS or the RNG fault (-127 to Forth). This
-  also stops `READ-BLOCK` at level 0 aiming the card's DMA into the I/O
-  page. Not covered: the ECDC (a bus master with its own addresses,
-  outside the block, still programmed by `ecdc.c`), and machine-mode
-  code in ITCM, which user mode can still write (no entry left).
+  the flash controller, USBFS or the RNG fault (-127 to Forth).
+  (`READ-BLOCK` never could aim the card's DMA into the I/O page:
+  `blockCells` in `api0.c` refuses it.) Not covered: the ECDC (a bus
+  master with its own addresses, outside the block, still programmed by
+  `ecdc.c`), and machine-mode code in ITCM, which user mode can still
+  write (no entry left).
+- **`SECURITY_LEVEL` 0 is for development only.** At level 0 Forth's I/O
+  page maps every peripheral register, and the PMP can't fence them all:
+  entry 2 stops Forth writing DMA1, DMA2, DMAMUX, the flash controller,
+  USBFS and the RNG, but every other bus master is outside it and open to
+  `!`. The ECDC, for one, copies memory to memory from any address Forth
+  writes to its `SRC_ADDR` and `DST_ADDR`, so Forth at level 0 can read
+  the device token, stage 1 and the board record, and write ITCM, where
+  machine mode's code runs (the board's key at level 0 comes from its
+  UID anyway). SDMMC, ETH, LTDC, GPHA, DVP, SerDes, HSADC, UHSIF and the
+  USB controllers are the same. Only the allowlist at levels 1 and 2
+  (`io_allow.h`, above) keeps Forth away from them. So a board that runs
+  untrusted Forth needs level 1 or 2; level 0 is for bringing up hardware
+  on a bench board.
 
 - **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
   at 0x10000, LiteForth's pages at 0x30000, the board record at 0x70000,

@@ -29,11 +29,10 @@ void cdc_shared_init(void);
  * host has left a packet unread for CDC_TX_TIMEOUT, so the V5F never waits
  * forever for space in the tx ring.
  *
- * Three consecutive Ctrl+X bytes from the host restart the V5F so that it
- * boots without starting the app (see cdc_shared.h). That takes up to
- * CDC_RESTART_WAIT_MS, after which the V3F resets the whole chip if the
- * V5F hasn't started again. Three more while that safe start still hasn't
- * reached LiteForth reset the chip into stage 1's recovery.
+ * Three consecutive Ctrl+X bytes from the host reset the chip so that the
+ * V5F boots without starting the app (see cdc_shared.h). Three more while
+ * that safe start still hasn't reached LiteForth reset the chip into stage
+ * 1's recovery.
  *
  * When the V5F asks for standby (CDC_SHARED->standby, set by lfStandby),
  * it detaches USB and puts the V3F in deep sleep instead, and doesn't

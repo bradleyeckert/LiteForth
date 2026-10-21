@@ -1670,3 +1670,176 @@ a single-block write through Guarded DMA, each read back right across
 the 32-sector split, and no reset. With it plugged in, one 8-block write
 in three browned the board out; that's the board's 3.3 V supply, not the
 firmware.
+
+### B18. PMP entry 0 over the V3F's flash, locked; Ctrl+X x3 as a chip reset (20 October 2026)
+
+**Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
+locked down (OBR `000003FC`, WPR `FFFFFFFF`), `SECURITY_LEVEL` 0, the
+plain block file of B17 on the card. Built in MounRiver from branch
+`pmp-entry0-probe`: `pmp-entry0` plus one test line at the top of
+`lfRtcSet` (`V5F/User/lftime.c`), so `n rtc!` reads the word at `n` from
+user mode and gives ok or -127. The probe branch is never merged.
+
+```c
+(void)*(volatile uint32_t *)(uintptr_t)seconds; return 0;   /* PROBE: delete this line */
+```
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` (run 1, commit `20c1503`) | 62188 | `0bcd7c864403d1c7e4d0b2ca149a3c879656f75c9dcb4a246bbac70ed3665ea8` |
+| `LiteForth_V3F.bin` (run 2, commit `0bff77e`) | 62296 | `ccf84da10641a70328c8b41dd9cbf3e9c3735c48b600844745f743d646b32693` |
+| `LiteForth_V5F.bin` (both runs, with the probe) | 94016 | `4bd9ebcf77d026d2d0696ebe2cb0c8fbd29ed16b0165771ed4749a4f0aca50c6` |
+
+**Why:** PMP entry 0 now covers everything below 0x08010000 as one locked
+TOR entry: the code flash's whole low window, and the V3F's image (stage 0
+and 1) in the high window, closed to the V5F's machine mode as well as its
+user mode. The V5F's start-up code runs from the low window, so the V5F
+must never run it again once the entry is locked: Ctrl+X x3, which
+restarted the V5F alone (an HSEM interrupt jumping to `handle_reset`),
+now resets the chip. With that, LiteForth clears `safe_boot` before USB is
+configured again, so run 2 adds a mark for the reset Ctrl+X makes: Ctrl+X
+x3 as the first input after it goes to recovery, healthy V5F or not.
+
+**Expected:** the boot line shows `cfg0 9F191888` with entry 0 `02004000`,
+locked; reads below 0x08010000 and of the records give -127, reads of the
+V5F's image and LiteForth's pages work; Ctrl+X x3 resets the chip into a
+safe boot; card, `enroll` and `1 load` (machine mode's flash service, with
+entry 0 locked) work. Run 2: Ctrl+X x3 twice in a row reaches recovery,
+and with a line typed in between it doesn't.
+
+**Run 1** (V3F and V5F flashed with wlink), on the cli port:
+
+```
+> hex
+> 8010000 rtc!
+ok>
+> hex
+> 8030000 rtc!
+ok>
+> hex
+> 0 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+> hex
+> 8000000 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+> hex
+> 800FFFC rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+> hex
+> 7FFFC rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+> hex
+> 8070000 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+> 1 2 + .
+3 ok>
+```
+
+Ctrl+X x3 (lfmcp's `forth_restart`): the port went, came back, and
+
+```
+Safe boot (Ctrl+X x3): the app is not running. `cold` starts it.
+[幸运狐] v0.02
+ok>
+```
+
+and the debug port:
+
+```
+Ctrl+X x3: resetting the chip; the V5F starts in safe mode
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 8; the previous run left 63 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F191888, addr 02004000 0201CFFF 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 20 2026 19:58:22, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash, safe boot (app not started)
+V3F: USB configured
+```
+
+LiteForth (and so the clearing of `safe_boot`) comes before USB is
+configured: a second Ctrl+X x3 couldn't reach recovery on a healthy V5F,
+which four tries confirmed (each was another safe boot). Then:
+
+```
+> capacity .
+121 ok>
+> enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+> hex 1 block 10 dump
+200030: 694C2028 6F466574 20687472 656D6F68  ( LiteForth home
+...
+> decimal
+> 1 load
+value test: 11 10
+Dictionary loaded and committed to flash memory.
+...
+ok>
+```
+
+(A first `1 load` with `BASE` left in hex failed in screen 7, `se ?`: its
+`\` uses `128`. Not a fault; the second, in decimal, is the run.)
+
+**Run 2** (the V3F with the Ctrl+X mark flashed, the V5F as in run 1):
+Ctrl+X x3, then `1 2 + .` typed, then Ctrl+X x3: two safe boots, no
+recovery. Then, with nothing typed since that reset, Ctrl+X x3:
+
+```
+LiteForth stage 1: recovery mode. The V5F stays off:
+Ctrl+X x3 twice: the V5F got stuck before LiteForth started
+In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.
+adopt: take the V5F image in flash as it is (security levels 0 and 1 only).
+reset: start again.
+recovery ok> reset
+[幸运狐] v0.02
+ok>学如不及, 犹恐失之
+> hex 8000000 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+> hex 8030000 rtc!
+ok>
+```
+
+(The recovery line's reason was then made neutral, "recovery on
+request (or the V5F got stuck before LiteForth)", in `stage1.c`.)
+
+**Then, without the probe:** both images built from `pmp-entry0`
+(commit `fc22e10`) and flashed:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62316 | `9d9e5bd38bbf02458802517e9c0ca0e05e53062fb4675afbc887e642160c0ce3` |
+| `LiteForth_V5F.bin` | 94056 | `955fe7d32c819105bd480e97c3cbafd15db75e4eebb8f926a7023cfd5a43f493` |
+
+It booted (`1 2 + .` gives 3, capacity 121), and Ctrl+X x3 reset the chip
+into a safe boot. (The V5F is 40 bytes bigger than the probe's: the
+probe's early return let the compiler drop the rest of `lfRtcSet`.)
+
+**A LOCKUP after each flash, and not from this change.** The boot after
+flashing these images reported the run before as `reset by LOCKUP
+software`. Checked:
+
+- every wlink flash did it, of the V3F's sectors or of the V5F's alone,
+  with the same image again;
+- a plain `wlink reset` didn't (`reset by software`), and neither did the
+  board running on its own (the trail before each ended cleanly, at
+  `QUIT` or a terminal line);
+- **`main`'s V5F (B16's image, `a649b1e1...`, the old entry 0 over just
+  0x70000) flashed twice: the second boot also said `reset by LOCKUP
+  software, boot 19`.**
+
+So wlink's flash cycle (its reattach and the WCH-Link's flash loader,
+closed firmware) does it to a running V5F whatever its PMP. Nothing in
+the V5F's machine mode reaches the locked range: its handlers, its
+vector table and WCH's default handler (`.text.vector_handler`) are all
+in ITCM. The chip resets straight after, so nothing is lost; noted in
+[ch32h417-notes.md](../ch32h417-notes.md).
+
+**Result:** pass. Entry 0 is set and locked; neither the low window nor
+stage 0 and 1 in the high window can be read from the V5F's user mode,
+and machine mode's flash and record services still work with it locked;
+Ctrl+X x3 resets the chip into a safe boot; Ctrl+X x3 twice in a row
+reaches recovery on a healthy board, and only as the first input after
+the reset.

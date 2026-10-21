@@ -313,7 +313,7 @@ static int security_check(void) {
  * Stage 1
  */
 static int recovering;                  /* stage1_boot said STAGE1_RECOVERY */
-static int forced;                      /* by Ctrl+X x3 twice: the V5F got stuck */
+static int forced;                      /* by Ctrl+X x3 twice: on request, or the V5F got stuck */
 static int locked_out;                  /* level 2 and not locked down */
 static char why_recovery[220];
 
@@ -350,7 +350,7 @@ static int start_or_not(int updating) {
         return enter_recovery("security level 2: this board isn't locked down, so the V5F won't start");
     }
     if (forced) {
-        return enter_recovery("Ctrl+X x3 twice: the V5F got stuck before LiteForth started");
+        return enter_recovery("Ctrl+X x3 twice: recovery on request (or the V5F got stuck before LiteForth)");
     }
     if (updating) {
         nostart_set(0);

@@ -127,8 +127,8 @@ block of source, and `hi` prints a Chinese proverb (kwai shows CJK text).
   mode it was last set to, so a board that worked before can still
   surprise you after someone else used it.
 - **The app misbehaves at boot:** press Ctrl+X three times in a row (kwai:
-  `~r`). The board restarts without starting the app; `cold` starts it
-  again.
+  `~r`). The chip resets and LiteForth starts without starting the app
+  (the USB port goes and comes back); `cold` starts it again.
 - **No `ok>`:** check that the terminal raises DTR, and look at the debug
   port. Downloading from the V3F project instead of the V5F one leaves
   the USB port dead; download from the V5F project again.

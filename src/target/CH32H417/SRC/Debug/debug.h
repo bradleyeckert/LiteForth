@@ -41,7 +41,7 @@
 
 /* LiteForth: _write holds this hardware semaphore while it sends a string,
    so the two cores' strings don't mix on the shared UART. HSEM0 wakes the
-   V3F at boot and HSEM1 restarts the V5F (Common/cdc_shared.h). */
+   V3F at boot (Common/cdc_shared.h). */
 #ifndef DEBUG_HSEM
 #define DEBUG_HSEM  2
 #endif

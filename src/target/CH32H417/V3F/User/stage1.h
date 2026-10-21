@@ -24,9 +24,9 @@
  *   no card) the package goes into RAM and installs from there. Also
  *   `reset`, and below level 2 `adopt` (upd_adopt: the image in
  *   flash as it is, for a V5F reprogrammed by the debugger).
- * - Recovery on request: Ctrl+X x3 restarts the V5F without the app; if
- *   it's still stuck before LiteForth when Ctrl+X x3 comes again, the V3F
- *   resets the chip into recovery (`recover` in cdc_shared.h). A package
+ * - Recovery on request: Ctrl+X x3 resets the chip, the V5F starting
+ *   without the app; if it's still stuck before LiteForth when Ctrl+X x3
+ *   comes again, the V3F resets the chip into recovery (`recover` in cdc_shared.h). A package
  *   sent then replaces the stuck image (upd_mark_broken first, so it
  *   needs no backup); `reset` just tries the V5F again.
  * - A V5F that doesn't start at all (stage1_wait_v5f) makes the V3F reset

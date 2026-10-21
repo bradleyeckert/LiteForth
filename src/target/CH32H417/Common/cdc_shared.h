@@ -36,16 +36,23 @@
  * Escape hatch: three consecutive Ctrl+X (0x18) bytes from the host make
  * the V3F restart the V5F in safe-boot mode, so a runaway app can always be
  * stopped from the terminal. The V3F sets safe_boot to CDC_SAFE_BOOT_MAGIC
- * and signals HSEM CDC_RESTART_HSEM; the V5F's HSEM interrupt restarts it
- * from its reset entry, and serial_open counts the start in v5f_starts.
- * If that count doesn't change within CDC_RESTART_WAIT_MS, the V3F resets
- * the whole chip. safe_boot lives here, outside both cores' .bss, so a
- * restart doesn't clear it; the V5F clears it once it has seen it, after
+ * and resets the whole chip, so the V5F only ever starts from a reset:
+ * its PMP is set once, at its cold start, and nothing in machine mode
+ * runs its start-up code again (V5F/User/pmp.c: entry 0, locked, keeps
+ * even machine mode out of the code flash's low window, where that code
+ * is). USB restarts too: the host sees the port go and come back.
+ * serial_open counts each start in v5f_starts. safe_boot lives here,
+ * outside both cores' .bss, so the reset doesn't clear it (cdc_shared_init
+ * leaves it alone); the V5F clears it once it has seen it, after
  * its memory setup (the card). If Ctrl+X x3 comes again while safe_boot is
  * still set, that safe start never got that far: the V5F is stuck in its
  * C code, so the V3F sets recover to CDC_RECOVER_MAGIC and resets the
  * chip, and stage 1 starts in recovery (V3F/User/stage1.c) instead of
- * starting the V5F.
+ * starting the V5F. So does Ctrl+X x3 as the first input after a Ctrl+X
+ * reset, stuck or not: the V3F marks that reset (ctrlx_reset), and any
+ * other byte from the host disarms it. So "Ctrl+X x3, then Ctrl+X x3 again"
+ * always reaches recovery, however soon LiteForth is back (it clears
+ * safe_boot before USB is even configured again).
  *
  * File transfers: while `ymodem` receives a file, the bytes from the host
  * are data and may hold three 0x18 in a row, so the V5F sets binary to
@@ -75,11 +82,9 @@ extern "C" {
 #define CDC_SHARED_MAGIC    0x43444331u     /* "CDC1": rings initialized */
 #define CDC_RING_SIZE       4096u           /* bytes per ring, power of 2 */
 #define CDC_SAFE_BOOT_MAGIC 0x5AFEB007u     /* safe_boot: skip the app's autorun */
-#define CDC_RESTART_HSEM    1               /* HSEM_ID1: V3F -> V5F restart request */
                                             /* (HSEM0 wakes the V3F at boot; HSEM2 guards the
                                                debug UART, DEBUG_HSEM in SRC/Debug/debug.h) */
-#define CDC_RESTART_WAIT_MS 500             /* then the V3F resets the chip */
-#define CDC_CTRL_X          0x18            /* three in a row restart the V5F */
+#define CDC_CTRL_X          0x18            /* three in a row reset the chip, the V5F safe */
 #define CDC_STANDBY_MAGIC   0x5133B00Bu     /* standby: the V5F asks the V3F to sleep */
 #define CDC_RTC_WAKE_MAGIC  0xA1A4A4E0u     /* rtc_wake: the RTC alarm caused this reset */
 #define CDC_BINARY_MAGIC    0xB1A4DA7Au     /* binary: host bytes are data, no Ctrl+X escape */
@@ -87,6 +92,7 @@ extern "C" {
 #define CDC_CONFIRM_MAGIC   0xC0F1A3EDu     /* update: the V5F started LiteForth (ends a trial) */
 #define CDC_RECOVER_MAGIC   0x2EC0BE27u     /* recover: the next boot goes into stage 1's recovery */
 #define CDC_NOSTART_MAGIC   0x4E530000u     /* nostart: this | the boots in a row the V5F didn't start */
+#define CDC_CTRLX_RESET_MAGIC 0xC7A1B007u   /* ctrlx_reset: this boot came from Ctrl+X x3 */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -117,6 +123,10 @@ typedef struct {
                                                counts as 0. Survives the reset */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
+    volatile uint32_t ctrlx_reset;          /* V3F: CDC_CTRLX_RESET_MAGIC across the reset that
+                                               Ctrl+X x3 makes; the next boot's cdc_shared_init
+                                               takes it and clears it. Last, so the fields the
+                                               V5F reads don't move */
 } cdc_shared_t;
 
 #define CDC_SHARED  ((cdc_shared_t *)CDC_SHARED_ADDR)

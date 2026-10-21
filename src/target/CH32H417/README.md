@@ -170,8 +170,8 @@ silence the V3F. `USART_Printf_Init` leaves USART1 alone once it's enabled,
 so the second core, or a restarted V5F, doesn't reconfigure it under a
 character in flight; the first core's baud rate (9600) wins.
 
-HSEM use: HSEM0 wakes the V3F at boot, HSEM1 restarts the V5F (Ctrl+X),
-HSEM2 guards the debug UART.
+HSEM use: HSEM0 wakes the V3F at boot, HSEM2 guards the debug UART.
+(HSEM1 restarted the V5F for Ctrl+X until that became a chip reset.)
 
 ## LiteForth flash and blocks (V5F)
 
@@ -459,11 +459,18 @@ the V5F boots it. Remember that a MounRiver download erases it (see
 
 ### Escape hatch: Ctrl+X three times
 
-Pressing **Ctrl+X three times in a row** restarts the V5F in safe mode:
-it boots the saved dictionary but doesn't start the app, and the
-terminal says so (`Safe boot (Ctrl+X x3): the app is not running.`);
-`cold` starts the app. So an app that misbehaves at boot can always be stopped and
-fixed. USB stays up, and the terminal stays connected.
+Pressing **Ctrl+X three times in a row** resets the chip with the V5F in
+safe mode: it boots the saved dictionary but doesn't start the app, and
+the terminal says so (`Safe boot (Ctrl+X x3): the app is not running.`);
+`cold` starts the app. So an app that misbehaves at boot can always be
+stopped and fixed. USB restarts with the chip, so the terminal loses the
+port for a moment and must reconnect (kwai does it by itself).
+
+It's a whole-chip reset, not a restart of the V5F alone, because of the
+PMP (`V5F/User/pmp.c`): entry 0, locked, keeps the V5F, machine mode
+included, out of the code flash below its slot in the high window and out
+of the whole low window, where its own start-up code runs. So the V5F
+can only start from a reset, before the PMP is set.
 
 How it works:
 
@@ -474,23 +481,23 @@ How it works:
    (`serial_binary`) and the V3F doesn't count them: the file may hold any
    bytes.
 2. On the third, the V3F sets `safe_boot` in the shared memory to
-   `CDC_SAFE_BOOT_MAGIC` and takes and releases HSEM1.
-3. The V5F's `HSEM_Handler` (`V5F/User/main.c`) jumps to its reset entry,
-   `handle_reset`, which reruns its startup code and `main`. That startup
-   code doesn't touch the clocks or anything the V3F uses. LiteForth never
-   disables interrupts, so a runaway Forth app can't block this.
+   `CDC_SAFE_BOOT_MAGIC` and resets the chip (`NVIC_SystemReset`).
+   `safe_boot` is in the shared SRAM, which keeps its contents through a
+   system reset, and `cdc_shared_init` leaves it alone.
+3. Stage 1 starts the V5F as at any reset.
 4. `main` sees `safe_boot`, clears it and sets `SYS_OPTION_NO_AUTORUN`
    (`-o 256` on the desktop), so `lfQuit` boots without starting the app.
-   `serial_open` drops the input that was waiting and counts the start in
-   `v5f_starts`. A later `bye` boots normally again.
-5. If `v5f_starts` hasn't changed after 500 ms (`CDC_RESTART_WAIT_MS`),
-   the V3F resets the whole chip. Then USB drops and the terminal must
-   reconnect; `safe_boot` is kept in the shared SRAM, so the V5F still
-   comes up in safe mode, provided the SRAM keeps its contents through a
-   system reset.
+   `serial_open` counts the start in `v5f_starts`. A later `bye` boots
+   normally again.
+5. Ctrl+X x3 again resets the chip into stage 1's recovery instead, if
+   it's the first input since the Ctrl+X reset (the V3F marks that reset
+   in `ctrlx_reset`; any other byte disarms it), or while `safe_boot` is
+   still set (the safe start never reached LiteForth: the V5F is stuck in
+   its C code). So Ctrl+X x3 twice in a row always reaches recovery. Wait
+   for the port to come back before the second one.
 
-The V3F's USART1 shows `Ctrl+X x3: restarting the V5F in safe mode`,
-then `V5F restarted` or `V5F didn't restart: resetting the chip`.
+The V3F's USART1 shows `Ctrl+X x3: resetting the chip; the V5F starts in
+safe mode`.
 
 It can't help if the V5F stopped reading input long enough for 4K of
 typing to pile up in the rx ring: the USB link then holds the PC back and

@@ -118,39 +118,8 @@ static int lfMapMemory(uint32_t** flash)
     return 0;
 }
 
-/*********************************************************************
- * Restart on request from the V3F (Ctrl+X x3, see cdc_shared.h)
- *
- * The V3F releases HSEM CDC_RESTART_HSEM; this interrupt clears what is
- * pending and jumps to the V5F's reset entry, which reruns its startup
- * code (stack, code copy to ITCM, .data/.bss, core CSRs) and main. Its
- * closing mret also ends this interrupt. The startup code doesn't touch
- * the clocks or anything the V3F uses, so USB keeps running. LiteForth
- * never disables interrupts, so a runaway Forth app can't block this. If
- * it doesn't work, the V3F resets the whole chip.
- */
-extern void handle_reset(void);         /* SRC/Startup/startup_ch32h417_v5f.S */
-
-void HSEM_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
-
-void HSEM_Handler(void)
-{
-    uint32_t pending = HSEM->ISM;
-    HSEM->ISR = pending;                /* clear all, so nothing fires again */
-    if (pending & (1u << CDC_RESTART_HSEM)) {
-        __asm__ volatile ("la t0, handle_reset\n\tjr t0");
-    }
-}
-
-/* Lets the V3F restart the V5F. Equal priority with SysTick1, so neither
-   interrupt nests inside the other. */
-static void lfRestartListen(void)
-{
-    HSEM_ClearITPendingBit((HSEM_ID_TypeDef)CDC_RESTART_HSEM);
-    HSEM_ITConfig((HSEM_ID_TypeDef)CDC_RESTART_HSEM, ENABLE);
-    NVIC_SetPriority(HSEM_IRQn, 0);
-    NVIC_EnableIRQ(HSEM_IRQn);
-}
+/* (Ctrl+X x3 on the terminal resets the chip, from the V3F: the V5F
+   never restarts itself. See cdc_shared.h.) */
 
 /* Runs LiteForth on the USB CDC terminal. Never returns: `bye` restarts it. */
 static void LiteForth(void)
@@ -229,7 +198,6 @@ int main(void)
         printf("V5F: RTC failed (BDCTLR %lX, RTC_CTLRL %X)\r\n",
                (unsigned long)RCC->BDCTLR, (unsigned)RTC->CTLRL);
     }
-    lfRestartListen();                  /* Ctrl+X x3 on the terminal restarts us */
     LiteForth();
 
 #elif (Run_Core == Run_Core_V3F)

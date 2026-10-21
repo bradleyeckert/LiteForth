@@ -406,10 +406,11 @@ def h_rollback(rig, a):
 
 
 def h_recovery(rig, a):
-    """Ctrl+X x3, then Ctrl+X x3 again while the V5F restarts: the chip
-    resets into recovery. GOOD.lfu sent to stage 1 itself is installed
-    (the image marked as not working first, so no backup), on trial, and
-    confirmed."""
+    """Ctrl+X x3, which resets the chip with the V5F in safe mode, then
+    Ctrl+X x3 again as the first input once the port is back: the chip
+    resets into recovery (cdc_bridge.c's ctrl_x_armed), healthy V5F or not. GOOD.lfu sent to stage
+    1 itself is installed (the image marked as not working first, so no
+    backup), on trial, and confirmed."""
     start = rig.debug.mark()
     if not check(rig.usb.open(), 'cli port open'):
         return
@@ -419,7 +420,11 @@ def h_recovery(rig, a):
     entered = None
     for attempt in range(3):
         rig.usb.write(b'\x18\x18\x18')
-        if not rig.debug.wait(r'restarting the V5F in safe mode', start, 5):
+        if not rig.debug.wait(r'resetting the chip; the V5F starts in safe mode', start, 5):
+            continue
+        after = rig.debug.mark()
+        rig.usb.close()                 # the chip resets: USB goes, then comes back
+        if not rig.debug.wait(r'USB configured', after, 15) or not rig.usb.open():
             continue
         rig.usb.write(b'\x18\x18\x18')
         entered = rig.debug.wait(r'resetting into recovery', start, 5)

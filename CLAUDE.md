@@ -61,8 +61,17 @@ make clean      # leaves the tracked bin/*.bin images alone
   logged in `doc/admin/board-tests.md`, as evidence for a cybersecurity document:
   firmware build and hashes, packages' sha256, steps, expected, and the
   board's output word for word. Add an entry for every such run.
-- CI (`.github/workflows/c-cpp.yml`) runs `make` and `make test`, but only on
-  pushes and PRs to `main`, so work on other branches is untested until a PR.
+- CI (`.github/workflows/c-cpp.yml`) runs `make` and `make test`, and in a
+  second job builds the CH32H417's V3F and V5F images with
+  `scripts/ch32build.sh`, but only on pushes and PRs to `main`, so work on
+  other branches is untested until a PR.
+- `scripts/ch32build.sh V3F|V5F` builds a core's image with xPack's
+  upstream `riscv-none-elf-gcc` (`RISCV_PREFIX` to point at it), the
+  MounRiver project's settings but without WCH's XW opcodes, and fails on
+  errors, warnings other than WCH's interrupt attribute (which upstream GCC
+  ignores, so the handlers are wrong: the images aren't for flashing), or
+  `.bss` running into the stack. Run it before a change to the CH32H417's
+  code goes to the board; MounRiver builds the images to flash.
 
 ## Running lf by hand
 

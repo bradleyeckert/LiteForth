@@ -34,3 +34,36 @@ jobs:
         status=$?
         tail -n 60 test.log | python3 -c 'import sys; t = sys.stdin.read(); print("::error title=make test failed::" + t.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
         exit $status
+
+  # The CH32H417's V3F and V5F images, built with upstream GCC: not the
+  # images to flash (no XW opcodes, WCH's interrupt attribute ignored; see
+  # scripts/ch32build.sh), but it catches what doesn't compile, new
+  # warnings, and an image whose RAM no longer fits, before the board does.
+  ch32-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      XPACK: xpack-riscv-none-elf-gcc-14.2.0-3
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+
+    - name: Cache the RISC-V toolchain
+      id: toolchain
+      uses: actions/cache@v4
+      with:
+        path: ~/${{ env.XPACK }}
+        key: ${{ env.XPACK }}-linux-x64
+
+    - name: Fetch the RISC-V toolchain (xPack riscv-none-elf-gcc 14.2.0-3)
+      if: steps.toolchain.outputs.cache-hit != 'true'
+      run: |
+        curl -sSfL -o /tmp/gcc.tgz https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v14.2.0-3/${XPACK}-linux-x64.tar.gz
+        tar xzf /tmp/gcc.tgz -C ~
+
+    - name: Build the V3F and V5F images
+      run: |
+        export RISCV_PREFIX=~/${XPACK}/bin/riscv-none-elf-
+        scripts/ch32build.sh V3F
+        scripts/ch32build.sh V5F

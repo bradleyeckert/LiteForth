@@ -9,6 +9,7 @@
 #include "gdma.h"                       /* gdma_serve */
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
+#include "cdc_shared.h"                 /* CDC_SHARED_ADDR, outside entry 1 */
 #include "../../../../errcodes.h"
 
 /* pmpcfg bytes: L (locked), A = TOR or NAPOT, X W R */
@@ -45,12 +46,20 @@ _Static_assert(PMP_SVC_FLASH_PROGRAM < GDMA_SVC_START, "the services' numbers do
    Ctrl+X x3 resets the chip (Common/cdc_bridge.c). */
 #define V5F_SLOT_HIGH   0x08014000u     /* Link_v5f.ld's FLASH (it checks), in the high window */
 #define PMP_ADDR0   (V5F_SLOT_HIGH >> 2)
-#define PMP_ADDR1   0u                          /* entry 1: off, free */
+/* Entry 1, NAPOT, locked: the V3F's RAM (Link_v3f.ld keeps all of it, code,
+   data and stack, in these 256K), where stage 1 runs with the board's key
+   and the device token. Neither mode of the V5F may touch it. The shared
+   block, above it, stays open. */
+#define V3F_RAM         0x20100000u
+#define V3F_RAM_SIZE    0x40000u
+_Static_assert(V3F_RAM % V3F_RAM_SIZE == 0, "a NAPOT region is aligned to its size");
+_Static_assert(CDC_SHARED_ADDR >= V3F_RAM + V3F_RAM_SIZE, "the shared block is outside entry 1");
+#define PMP_ADDR1   NAPOT(V3F_RAM, V3F_RAM_SIZE)
 #define PMP_ADDR2   NAPOT(GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE)
 #define PMP_ADDR3   0x1FFFFFFFu                 /* NAPOT: 4 GB from 0, all of memory */
 /* (0xFFFFFFFF reads back as 0x3FFFFFFF: the core doesn't keep pmpaddr's
    top two bits, address bits 33:32. Both still cover everything.) */
-#define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | 0u << 8 | \
+#define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | (PMP_L | PMP_NAPOT) << 8 | \
                      (PMP_NAPOT | PMP_R) << 16 | (PMP_L | PMP_NAPOT | PMP_RWX) << 24)
 
 static uint32_t got_cfg, got_addr[4];   /* read back after the lock */

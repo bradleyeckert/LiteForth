@@ -107,9 +107,12 @@ static upd_io io;                           /* filled in by stage1_boot */
 /* Recovery with no lfstage.bin (or no card): the package goes into RAM
    instead, as many blocks as the largest V5F package needs, and is
    installed from there. A reset part way through loses it, so recovery
-   asks for it again. */
+   asks for it again. It lies outside the V3F's own RAM, which the V5F's
+   PMP fences (Link_v3f.ld's RAM_STAGE): it's used only in recovery, with
+   the V5F off, and stage 1 checks every block it reads from it. */
 #define RAM_STAGE_BLOCKS    (2u + UPD_V5F_SLOT / UPD_BLOCK + 2u)
-static uint8_t ram_stage[RAM_STAGE_BLOCKS * UPD_BLOCK] __attribute__((aligned(32)));
+static uint8_t ram_stage[RAM_STAGE_BLOCKS * UPD_BLOCK]
+    __attribute__((section(".ram_stage"), aligned(32)));
 static int use_ram;
 
 static int s_read(uint32_t blk, uint8_t *buf) {

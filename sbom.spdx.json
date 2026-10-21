@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/2e479348900705dedd7b9a6d38325999",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/04f8a1d9d00b39a466a0b31675996f7b",
   "creationInfo": {
-    "created": "2026-10-21T20:40:39Z",
+    "created": "2026-10-21T20:50:23Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
@@ -232,7 +232,7 @@
       ],
       "filesAnalyzed": true,
       "packageVerificationCode": {
-        "packageVerificationCodeValue": "11b580fe641f52db5b34b19c223fb72834287395"
+        "packageVerificationCodeValue": "b955325ff734bf30577e52b8ea564f110224f454"
       },
       "licenseInfoFromFiles": [
         "NOASSERTION"
@@ -761,11 +761,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3ec6affcef43b29c33bdb4365cf9fcdddbde7cee"
+          "checksumValue": "ce58d73e34e30f08b4fb14a24cf0488e215f0faa"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "dca62724d46e9ecc1bdcc727d55bc12a42e0a046cacdd89ce89188ee9e139087"
+          "checksumValue": "1825166b72a825a1fb657d836f0bfaee74edc0767fe895e1d90337f9b4c8e0b6"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",

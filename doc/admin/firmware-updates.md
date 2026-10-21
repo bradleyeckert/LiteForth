@@ -554,7 +554,7 @@ token.
   `blockCells` in `api0.c` refuses it.) Not covered: the ECDC (a bus
   master with its own addresses, outside the block, still programmed by
   `ecdc.c`), and machine-mode code in ITCM, which user mode can still
-  write (no entry left).
+  write (no entry left: entry 1 fences the V3F's RAM instead, below).
 - **`SECURITY_LEVEL` 0 is for development only.** At level 0 Forth's I/O
   page maps every peripheral register, and the PMP can't fence them all:
   entry 2 stops Forth writing DMA1, DMA2, DMAMUX, the flash controller,
@@ -577,7 +577,7 @@ token.
   | # | Region | User | Machine | Locked |
   |---|---|---|---|---|
   | 0 | TOR, 0x00000000-0x08013FFF: the whole low window, and in the high window the V3F's image (stage 0 and 1) and stage 1's records (the device token and the board's key) | none | none | yes |
-  | 1 | off: free (it covered the V5F's board record and stage 1's records until 21 October 2026) | | | |
+  | 1 | 0x20100000-0x2013FFFF: the V3F's RAM (stage 1's code, data and stack) | none | none | yes |
   | 2 | 0x40020000-0x40023FFF: DMA1, DMA2, DMAMUX, RCC, the flash controller, CRC, USBFS, RNG | read | all | no |
   | 3 | all memory | RWX | RWX | yes |
 
@@ -606,8 +606,26 @@ token.
   no key: until 21 October 2026 its machine mode kept the board's
   private key in a record of its own (`board_serve`, behind the same
   `ecall`, with entry 1 over it); now stage 1 holds it (section 6).
-  Entry 1 is free, for fencing the V3F's RAM next. `pmp_report` prints
-  the entries at each start (`V5F PMP: ...`).
+  `pmp_report` prints the entries at each start (`V5F PMP: ...`).
+
+  Entry 1 (21 October 2026) is a locked NAPOT entry over the 256 KB from
+  0x20100000, where `Link_v3f.ld` now keeps all of the V3F's RAM: stage
+  1's code (RAM_CODE), its data, heap and stack, and so the device token,
+  the board's key while stage 1 uses it, and every return address. The
+  V5F, machine mode included, can't read or write it. The shared block
+  (0x20178000, 32 KB: the USB rings, the flags, the crumbs) lies above it
+  and stays open to both; 0x20140000-0x20177FFF is unused. So a bug in
+  the V5F's C code can't write stage 1's code or stack directly.
+
+  What's left, with no entry to spare: user mode can still write ITCM,
+  where the V5F's machine-mode code (its trap handlers and services) runs
+  along with everything else. Code that gets to run in user mode could
+  patch a handler, take machine mode, and from there program a DMA
+  channel, which the PMP doesn't bind, to reach the V3F's RAM after all.
+  It needs arbitrary code running on the V5F first: Forth reaches only
+  its VM pages and the allowlisted registers. Closing it means machine
+  mode not running from writable memory (its code in flash, say) or a
+  core with more entries.
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
 

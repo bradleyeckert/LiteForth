@@ -17,7 +17,10 @@
  *                                                      records A and B (the
  *                                                      device token, and the
  *                                                      board's key)
- *   1  off                                             free
+ *   1  0x20100000..0x2013FFFF     none   none     yes  the V3F's RAM: stage 1's
+ *                                                      code, data and stack
+ *                                                      (the shared block, from
+ *                                                      0x20178000, stays open)
  *   2  0x40020000..0x40023FFF     R      all      no   DMA1, DMA2, DMAMUX,
  *                                                      RCC, the flash
  *                                                      controller, CRC, USBFS

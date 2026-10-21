@@ -1805,6 +1805,18 @@ ok>
 (The recovery line's reason was then made neutral, "recovery on
 request (or the V5F got stuck before LiteForth)", in `stage1.c`.)
 
+**Then, without the probe:** both images built from `pmp-entry0`
+(commit `fc22e10`) and flashed:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62316 | `9d9e5bd38bbf02458802517e9c0ca0e05e53062fb4675afbc887e642160c0ce3` |
+| `LiteForth_V5F.bin` | 94056 | `955fe7d32c819105bd480e97c3cbafd15db75e4eebb8f926a7023cfd5a43f493` |
+
+It booted (`1 2 + .` gives 3, capacity 121), and Ctrl+X x3 reset the chip
+into a safe boot. (The V5F is 40 bytes bigger than the probe's: the
+probe's early return let the compiler drop the rest of `lfRtcSet`.)
+
 **Result:** pass. Entry 0 is set and locked; neither the low window nor
 stage 0 and 1 in the high window can be read from the V5F's user mode,
 and machine mode's flash and record services still work with it locked;

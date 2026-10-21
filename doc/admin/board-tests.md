@@ -2238,3 +2238,64 @@ with the key only it holds, after the V5F's keyless check; `enroll`
 prints the same line from Forth and from recovery. Level 2 (a key made by
 `enroll` in recovery, then only installed images) was tested on the
 simulated board (`stage1sim` `s_enroll`), not on this board.
+
+### B23. PMP entry 1 fences the V3F's RAM (21 October 2026)
+
+**Board and firmware:** as in B22 (main board, level 0), built in
+MounRiver from branch `fence-probe` (commit `4130c50`): branch
+`fence-v3f-sram` (commit `aff28d5`) plus one line, never to be merged,
+that makes `rtc!` read the address it's given, from user mode. Flashed
+with wlink, the V5F at 0x08014000, then the V3F at 0x08000000:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 63192 | `168b381dbaa5ba570736d6ff2f35ea38d2e845d374b1074ae09f441df00e2a38` |
+| `LiteForth_V5F.bin` | 92252 | `0ea677fcf368065d28814ed53d2163e0cb5fbc34a7daecafe50bffa1266301d8` |
+
+**Why:** `Link_v3f.ld` keeps all of the V3F's RAM (code, data, heap,
+stack) in 0x20100000-0x2013FFFF, and the V5F's entry 1, a locked NAPOT
+entry, gives neither of its modes any access there. Recovery's RAM
+staging moved to 0x20140000, outside it; the shared block at 0x20178000
+stays open.
+
+**Expected:** the PMP line shows entry 1 as NAPOT 0x20100000/256K,
+locked; the V3F runs as before (USB, `enroll` through the shared block);
+reads of 0x20100000 and 0x2013FFFC fault (-127), reads of 0x20140000 and
+0x20178000 don't.
+
+**Run.** Debug port at the start:
+
+```
+V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+```
+
+On the cli port (through lfmcp):
+
+```
+> revision .
+0 ok>
+> enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+> hex
+ok>
+> 20178000 rtc!
+ok>
+> 20140000 rtc!
+ok>
+> 2013FFFC rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+> 20100000 rtc!
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+```
+
+**Result:** pass. The V5F can't read the V3F's RAM, from either end of
+the fenced 256K; the shared block and the space above the fence are
+still reachable, and the V3F runs from its smaller RAM (the debugger's
+V5F adopted as version 0, `enroll` answered). Not tested on the board:
+recovery's RAM staging at its new address (`stage1sim`
+`s_recovery_ram_and_ctrl_x` covers it), and the ITCM route documented in
+firmware-updates.md section 8.

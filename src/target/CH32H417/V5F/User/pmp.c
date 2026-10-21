@@ -10,6 +10,7 @@
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
 #include "cdc_shared.h"                 /* CDC_SHARED_ADDR, outside entry 1 */
+#include "mmode.h"                      /* MMODE: machine mode's code, in flash */
 #include "../../../../errcodes.h"
 
 /* pmpcfg bytes: L (locked), A = TOR or NAPOT, X W R */
@@ -115,7 +116,7 @@ static volatile struct {
     int32_t ior;
 } svc;
 
-int pmp_in_dtcm(uint32_t p, uint32_t n)
+MMODE int pmp_in_dtcm(uint32_t p, uint32_t n)
 {
     return p >= DTCM_BASE && p < DTCM_END && n <= DTCM_END - p;
 }
@@ -124,7 +125,43 @@ int pmp_in_dtcm(uint32_t p, uint32_t n)
    locks the core up (ch32h417-notes.md). Every address is checked first,
    and the only flash it touches is LiteForth's pages, which machine mode
    reaches. */
-static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
+extern char _ramfunc_vma[], _ramfunc_end[], _ramfunc_lma[];  /* Link_v5f.ld */
+
+/* Interrupts off, then WCH's flash routines copied into ITCM (RAMFUNC)
+   from flash: they can't run from flash while it's programmed, and what
+   user mode may have written there must never run. Returns mstatus.MIE. */
+MMODE static uint32_t flash_ram_begin(void)
+{
+    uint32_t m;
+    __asm volatile ("csrrci %0, mstatus, 8" : "=r"(m));
+    volatile uint32_t *d = (volatile uint32_t *)_ramfunc_vma;
+    const volatile uint32_t *s = (const volatile uint32_t *)_ramfunc_lma;
+    uint32_t n = (uint32_t)(_ramfunc_end - _ramfunc_vma) / 4;
+    for (uint32_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    __asm volatile ("fence.i" ::: "memory");
+    return m & 8u;
+}
+
+MMODE static void flash_ram_end(uint32_t mie)
+{
+    if (mie) {
+        __asm volatile ("csrsi mstatus, 8");
+    }
+}
+
+/* memcmp, in flash: machine mode calls nothing in ITCM */
+MMODE static int same(const volatile uint32_t *a, const volatile uint32_t *b, uint32_t words)
+{
+    uint32_t diff = 0;
+    for (uint32_t i = 0; i < words; i++) {
+        diff |= a[i] ^ b[i];
+    }
+    return diff == 0;
+}
+
+MMODE static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
 {
     uint32_t start = (uint32_t)__lf_flash_start;
     uint32_t size = (uint32_t)__lf_flash_size;
@@ -136,9 +173,11 @@ static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
             || !pmp_in_dtcm(b, PAGE_BYTES) || (b & 3u)) {
             return ERR_INVALID_ADDRESS;
         }
-        if (FLASH_ROM_ERASE(a, PAGE_BYTES) != FLASH_COMPLETE
-            || FLASH_ROM_WRITE(a, (uint32_t *)b, PAGE_BYTES) != FLASH_COMPLETE
-            || memcmp((const void *)a, (const void *)b, PAGE_BYTES) != 0) {
+        uint32_t mie = flash_ram_begin();
+        int bad = FLASH_ROM_ERASE(a, PAGE_BYTES) != FLASH_COMPLETE
+                  || FLASH_ROM_WRITE(a, (uint32_t *)b, PAGE_BYTES) != FLASH_COMPLETE;
+        flash_ram_end(mie);
+        if (bad || !same((const uint32_t *)a, (const uint32_t *)b, PAGE_BYTES / 4)) {
             return ERR_FLASH_WRITE_SECTOR;
         }
         return 0;
@@ -150,7 +189,7 @@ static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
 }
 
 void Ecall_U_Mode_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
-void Ecall_U_Mode_Handler(void)
+MMODE void Ecall_U_Mode_Handler(void)
 {
     uint32_t pc;
     __asm volatile ("csrr %0, mepc" : "=r"(pc));

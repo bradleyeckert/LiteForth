@@ -37,7 +37,8 @@
  * a write could change where machine mode returns to; gdma.c checks with
  * guard_buffer_ok. Services: programming LiteForth's flash pages here (it
  * only reads its source, which must lie in DTCM), and Guarded DMA
- * (gdma.c). The V5F holds no key: stage 1 does. The V5F reads
+ * (gdma.c). The V5F holds no key: stage 1 does. All of this runs from
+ * flash, where user mode can't write it (mmode.h). The V5F reads
  * the code flash's low window only in its start-up code, at a cold start,
  * before the lock; it's never restarted without a chip reset (Ctrl+X x3
  * resets the chip, Common/cdc_bridge.c), so that code never runs again

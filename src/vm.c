@@ -493,6 +493,7 @@ byee:
  * a stepped app to its yeet handler.
  */
 static int running;                     // vmRun calls under way (vmRunning)
+void *volatile vm_trap_armed;           // vmTrapArmed, as data (vm.h)
 
 int vmRunning(void) {
     return running;
@@ -535,6 +536,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
     jmp_buf *outer = trap_jump;
     running = depth + 1;
     trap_jump = &here;
+    vm_trap_armed = trap_jump;
     if (setjmp(here) == 0) {
         ior = vmExec(once, inst, (uint32_t)address);
     } else {                            // a CPU exception (vmTrap): the VM
@@ -549,6 +551,7 @@ int32_t vmRun(int once, uint32_t inst, int32_t address) {
         lf_vm.PC = pc;                  // a word call: the app's PC back
     }
     trap_jump = outer;
+    vm_trap_armed = trap_jump;
     running = depth;
     return ior;
 }

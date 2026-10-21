@@ -553,8 +553,8 @@ token.
   (`READ-BLOCK` never could aim the card's DMA into the I/O page:
   `blockCells` in `api0.c` refuses it.) Not covered: the ECDC (a bus
   master with its own addresses, outside the block, still programmed by
-  `ecdc.c`), and machine-mode code in ITCM, which user mode can still
-  write (no entry left: entry 1 fences the V3F's RAM instead, below).
+  `ecdc.c`), and machine mode's data in DTCM, which user mode can still
+  write (its code is in flash: below).
 - **`SECURITY_LEVEL` 0 is for development only.** At level 0 Forth's I/O
   page maps every peripheral register, and the PMP can't fence them all:
   entry 2 stops Forth writing DMA1, DMA2, DMAMUX, the flash controller,
@@ -617,15 +617,34 @@ token.
   and stays open to both; 0x20140000-0x20177FFF is unused. So a bug in
   the V5F's C code can't write stage 1's code or stack directly.
 
-  What's left, with no entry to spare: user mode can still write ITCM,
-  where the V5F's machine-mode code (its trap handlers and services) runs
-  along with everything else. Code that gets to run in user mode could
-  patch a handler, take machine mode, and from there program a DMA
-  channel, which the PMP doesn't bind, to reach the V3F's RAM after all.
-  It needs arbitrary code running on the V5F first: Forth reaches only
-  its VM pages and the allowlisted registers. Closing it means machine
-  mode not running from writable memory (its code in flash, say) or a
-  core with more entries.
+- **Machine mode's code runs from flash** (21 October 2026). User mode
+  can write ITCM, where the rest of the V5F's code runs, so machine
+  mode's code isn't there: the vector table, the trap and interrupt
+  handlers (`ch32h417_it.c`, `guard.c`, the `ecall` handler and its
+  services in `pmp.c`, Guarded DMA in `gdma.c`, the 1 ms tick) are in the
+  last 8 KB of the V5F's slot (`.mmode`, `V5F/User/mmode.h`), run in
+  place from the code flash's high window, 0x0802E000. Nothing there
+  calls anything else: no `memcpy` or `memcmp` (local loops), no
+  `vmTrapArmed` (a flag it reads), and the V5F is built without
+  `-msave-restore`, whose `__riscv_save_N` helpers would be in ITCM.
+  `scripts/mmodecheck.py` checks every build for that (`ch32build.sh`,
+  so CI): any direct call or jump out of machine mode's code, and any
+  vector table entry outside it, fails the build. WCH's flash routines
+  are the exception: the chip locks up if they run from the flash they
+  program, so they're kept in flash and copied into the top 4 KB of ITCM
+  by machine mode (`flash_ram_begin`, `pmp.c`), with interrupts off,
+  just before each erase and write; anything user mode left there is
+  overwritten before it could run. The V3F-only handlers in `Common/`
+  (`TIM2_IRQHandler`, `USBFS_IRQHandler`) are left out of the V5F's build.
+  Running from flash is slow (about 240 times slower than ITCM, measured
+  on the board), which doesn't matter for this little code: an `ecall`
+  takes about 12 us, a page erase and write about 1.2 ms.
+
+  Still open: machine mode's data and stack are in DTCM, which user mode
+  can write (the handlers run on user mode's stack; Guarded DMA's buffer
+  and state, the `ecall` block). And whether user mode can reach the
+  interrupt controller (PFIC, 0xE000E000: its VTF registers give an
+  interrupt a handler address of their own) hasn't been checked.
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
 

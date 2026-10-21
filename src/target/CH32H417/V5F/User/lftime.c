@@ -12,6 +12,7 @@
  */
 #include "ch32h417.h"
 #include "lftime.h"
+#include "mmode.h"                  /* MMODE: SysTick1_Handler runs from flash */
 
 extern uint32_t HCLKClock;              /* set by SystemAndCoreClockUpdate */
 
@@ -23,7 +24,7 @@ static uint32_t cycles_per_ms;
 
 void SysTick1_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
 
-void SysTick1_Handler(void) {
+MMODE void SysTick1_Handler(void) {
     if (SysTick0->ISR & TICK_FLAG) {
         SysTick0->ISR &= ~TICK_FLAG;
         ms_count++;

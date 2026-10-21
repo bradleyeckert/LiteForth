@@ -505,8 +505,13 @@ token.
   reach them, the trap handlers can. `flash.c` and `board.c` reach the
   flash controller and the board record through an `ecall` service in
   machine mode (`Ecall_U_Mode_Handler`, pmp.c): program a LiteForth flash
-  page, write or read the board record, each address and buffer checked
-  (buffers in DTCM only). The board's private key never reaches user
+  page, write or read the board record, each address and buffer checked.
+  A service never writes where user mode points it unless the buffer
+  lies in DTCM's .data or .bss (`guard_buffer_ok`): the handler's frames
+  share user mode's stack, so a pointer just below the caller's sp could
+  overwrite machine mode's return address. The board record's services
+  take no pointers at all (a mailbox in `board.c`), and Guarded DMA
+  checks its buffers that way. The board's private key never reaches user
   mode: `board_serve` (`V5F/User/board.c`), behind the same `ecall`,
   checks the record, makes and writes the key for `enroll`, and computes
   X25519 with it, so user mode gets only the public key, the minimums and

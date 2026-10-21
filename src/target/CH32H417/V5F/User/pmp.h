@@ -23,10 +23,16 @@
  * A locked entry binds machine mode too, and only a reset clears it. An
  * unlocked one binds only user mode, so the machine-mode services below
  * can still program flash and reach the board record. They're reached by
- * `ecall` (Ecall_U_Mode_Handler) and check every address they're given:
- * programming LiteForth's flash pages here, and board.c's board_serve,
- * which keeps the board's private key in machine mode; buffers in DTCM. The V5F reads the code flash's low window only in its start-up
- * copy, before the lock.
+ * `ecall` (Ecall_U_Mode_Handler) and check every address they're given.
+ * A service never writes to memory user mode points it at unless
+ * guard_buffer_ok allows it (.data and .bss, not the stack): the handler's
+ * own frames are on user mode's stack, just below the caller's sp, so such
+ * a write could change where machine mode returns to. board.c's services
+ * use a mailbox instead; gdma.c checks with guard_buffer_ok. Services:
+ * programming LiteForth's flash pages here (it only reads its source,
+ * which must lie in DTCM), board.c's board_serve, which keeps the board's
+ * private key in machine mode, and Guarded DMA (gdma.c). The V5F reads
+ * the code flash's low window only in its start-up copy, before the lock.
  *
  * Entry 2 is about DMA: a DMA controller isn't bound by the PMP and can
  * read or write any memory, so user mode mustn't program one. DMA1, DMA2

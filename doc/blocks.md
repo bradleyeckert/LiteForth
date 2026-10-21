@@ -107,27 +107,24 @@ goes into the space the block file already has (on a card, the size of
 blocks and fit; blocks after it are left as they were. One file per batch.
 
 1. Block 0 arrives first and is checked before anything is written. It must
-   start with `LITEFORTH`; a sealed file must be one this board would mount
-   ([encrypted-blocks.md](admin/encrypted-blocks.md): signature, product,
-   revision, a recipient), so a file the board can't open never replaces
-   one it can.
+   start with `LITEFORTH` and not be sealed: a firmware update package
+   (`LITEFORTHF`, for `-2 ymodem`) or a sealed block file (`LITEFORTHS`,
+   retired: a product's Forth comes in an app package now) is refused.
 2. Block 0 on the card becomes a plain block 0 that says the install
    hasn't finished, and the other blocks are written as they arrive. The
    real block 0 goes in last. A transfer cut short leaves a plain block
    file whose block 0 says so: send the file again.
 3. When the batch ends, the whole file is read back and compared with what
-   came (BLAKE2s), the block file is mounted again, which sets `capacity`,
-   and every content block of a sealed file is read to check its hash.
+   came (BLAKE2s), and the block file is mounted again, which sets
+   `capacity`.
 
 ```
-ymodem: lfblocks.fb4: installed, 122 blocks, read back and checked; capacity now 121
-ymodem: sealed file, revision 2: all 120 content blocks pass their hashes
+ymodem: lfblocks.fb4: installed, 121 blocks, read back and checked; capacity now 121
 ```
 
 Then `1 load` as usual. The block buffers are emptied first, so unsaved
 changes are lost. Refusals write nothing and give -124 (a bad block 0 or
-size) or -92 (too big); a sealed file whose blocks fail their hashes is
-already written, since its hash tables come last, and gives -33. On the
+size) or -92 (too big). On the
 desktop, `lf` takes it into the block file named by `-k` (a card image
 too), if that file starts with `LITEFORTH`.
 

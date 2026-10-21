@@ -44,7 +44,7 @@ uint32_t g_block_capacity;              /* api0.c on the board */
 SD_CardInfo SDCardInfo;
 
 int board_get(sealed_board *b, char *msg, int len) {
-    memset(b, 0, sizeof *b);            /* no root key: no sealed files */
+    memset(b, 0, sizeof *b);            /* no root key: no packages checked */
     snprintf(msg, len, "blocksim: no root key");
     return ERR_UNSUPPORTED_OPERATION;
 }

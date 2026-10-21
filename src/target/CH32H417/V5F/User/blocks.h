@@ -32,8 +32,8 @@
  * its block 0 starts with BLK_SIGNATURE, all its blocks can be read and
  * written: the capacity is the file's ValidDataLength / 4096. If not, the
  * capacity is 1: block 0 can be read, to see what's there, and nothing
- * can be written. A sealed file is mounted read-only (sealed.c); with
- * SECURITY_LEVEL 2 (Common/security.h), a plain one offers no blocks. With no card, no exFAT volume or no lfblocks.fb4, the
+ * can be written. A sealed block 0 (a firmware update package, or a
+ * retired sealed block file: sealed_not_blocks) offers no blocks. With no card, no exFAT volume or no lfblocks.fb4, the
  * capacity is 0. What was found goes to the debug UART (USART1).
  * filename: ignored.
  * capacity: if not NULL, receives the number of blocks.
@@ -147,7 +147,7 @@ uint32_t blk_space(void);
 
 /**
  * Reads length blocks (1 to BLK_MAX_LENGTH) of the space from block blk
- * into dest as they are on the device (no decryption), and waits.
+ * into dest as they are on the device, and waits.
  * Returns 0, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS past blk_space, or
  * another negative error code.
  */
@@ -155,7 +155,7 @@ int blk_raw_read(uint32_t blk, uint32_t *dest, int length);
 
 /**
  * Writes length blocks (1 to BLK_MAX_LENGTH) from src into the space from
- * block blk as they are, whatever the signature or a sealed file says,
+ * block blk as they are, whatever block 0 says,
  * and waits. Only for installing an image; blk_remount afterwards.
  * Returns 0, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS past blk_space, or
  * another negative error code.
@@ -163,14 +163,10 @@ int blk_raw_read(uint32_t blk, uint32_t *dest, int length);
 int blk_raw_write(uint32_t blk, const uint32_t *src, int length);
 
 /**
- * Checks block 0 of an image of `blocks` blocks before it's installed: a
- * plain one (BLK_SIGNATURE, not SEALED_MAGIC) passes unless sealed_root.h
- * at SECURITY_LEVEL 2; a sealed one must
- * be one this board would mount (board_get, sealed_mount: certificate, signature,
- * product, revision, release key serial, a recipient), so a file the
- * board can't use never replaces one it can. A firmware update package
- * (PACKAGE_MAGIC) is refused. Unmounts a mounted sealed
- * file: call blk_remount afterwards. msg receives the reason it fails.
+ * Checks block 0 of an image of `blocks` blocks before it's installed: it
+ * must start with BLK_SIGNATURE and not be sealed (sealed_not_blocks: a
+ * firmware update package, or a retired sealed block file). msg receives
+ * what it is, or why it's refused.
  * Returns 0, or ERR_BLK_PARSE_FAIL.
  */
 int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
@@ -206,8 +202,7 @@ int blk_stage_write(uint32_t blk, const uint32_t *src);
 
 /**
  * Checks the package in lfstage.bin as stage 1 will (sealed_check_package,
- * with board_get's keys). Unmounts a mounted sealed block file: call
- * blk_remount afterwards. msg receives the result.
+ * with board_get's keys). msg receives the result.
  * Returns 0 or the error from the check.
  */
 int blk_stage_check(sealed_package *pkg, char *msg, int len);

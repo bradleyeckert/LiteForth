@@ -28,12 +28,9 @@
  * volume holding lfblocks.fb4), the blocks are in that file, as the
  * CH32H417 finds them on its microSD card; else only block 0 is offered,
  * read-only. On Windows, the card's own file works as a plain block file:
- * `lf -k F:\lfblocks.fb4`. Either kind may hold a sealed file (block 0
- * starts with SEALED_MAGIC): then, with the board set by blk_set_board,
- * it's mounted read-only (sealed.c), its content blocks checked and
- * decrypted as they're read; without a board, or if the board refuses it,
- * the capacity is 0. A board file with `sealed-only 1` refuses plain
- * files too (capacity 0). A line on stderr says which.
+ * `lf -k F:\lfblocks.fb4`. A file whose block 0 is sealed (a firmware
+ * update package, or a retired sealed block file: sealed_not_blocks)
+ * offers capacity 0 and is never written; a line on stderr says so.
  * filename: the block file, or NULL or "" for BLOCKFILENAME.
  * capacity: if not NULL, receives the number of blocks (1 or 0 for a file
  * without the signature).
@@ -43,10 +40,9 @@
 int blk_init(char *filename, uint32_t *capacity);
 
 /**
- * Sets what the simulated board holds for sealed block files (lf -K):
- * its key, the root public key, product and minimums. Call before
- * blk_init; board must stay valid. NULL: no board, so sealed files can't
- * be read.
+ * Sets what the simulated board holds (lf -K): its key, the root public
+ * key, product and minimums, for blk_stage_check. Board must stay valid.
+ * NULL: no board, so packages can't be checked.
  */
 void blk_set_board(const sealed_board *board);
 
@@ -148,14 +144,14 @@ int blk_write_fence(uint32_t lba, int count);
 /**
  * The blocks an installed image may fill: on a card, lfblocks.fb4's
  * ValidDataLength / 4096, whatever is in it; for a block file, its
- * blocks if block 0 starts with BLK_SIGNATURE (a sealed file does too),
+ * blocks if block 0 starts with BLK_SIGNATURE (a sealed one does too),
  * else 0, so that a file that isn't LiteForth's is never written.
  */
 uint32_t blk_space(void);
 
 /**
  * Reads length blocks (1 to BLK_MAX_LENGTH) of the space from block blk
- * into dest as they are on the device (no decryption), and waits.
+ * into dest as they are on the device, and waits.
  * Returns 0, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS past blk_space, or
  * another negative error code.
  */
@@ -163,7 +159,7 @@ int blk_raw_read(uint32_t blk, uint32_t *dest, int length);
 
 /**
  * Writes length blocks (1 to BLK_MAX_LENGTH) from src into the space from
- * block blk as they are, whatever the signature or a sealed file says,
+ * block blk as they are, whatever block 0 says,
  * and waits. Only for installing an image; blk_remount afterwards.
  * Returns 0, ERR_INVALID_NUMERIC, ERR_BLK_BOUNDS past blk_space, or
  * another negative error code.
@@ -171,14 +167,10 @@ int blk_raw_read(uint32_t blk, uint32_t *dest, int length);
 int blk_raw_write(uint32_t blk, const uint32_t *src, int length);
 
 /**
- * Checks block 0 of an image of `blocks` blocks before it's installed: a
- * plain one (BLK_SIGNATURE, not SEALED_MAGIC) passes unless the board is
- * sealed-only; a sealed one must
- * be one this board would mount (sealed_mount: certificate, signature,
- * product, revision, release key serial, a recipient), so a file the
- * board can't use never replaces one it can. A firmware update package
- * (PACKAGE_MAGIC) is refused. Unmounts a mounted sealed
- * file: call blk_remount afterwards. msg receives the reason it fails.
+ * Checks block 0 of an image of `blocks` blocks before it's installed: it
+ * must start with BLK_SIGNATURE and not be sealed (sealed_not_blocks: a
+ * firmware update package, or a retired sealed block file). msg receives
+ * what it is, or why it's refused.
  * Returns 0, or ERR_BLK_PARSE_FAIL.
  */
 int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
@@ -214,8 +206,7 @@ int blk_stage_write(uint32_t blk, const uint32_t *src);
 
 /**
  * Checks the package in lfstage.bin as stage 1 will (sealed_check_package,
- * with the board's keys: on the desktop, `-K`). Unmounts a mounted sealed
- * block file: call blk_remount afterwards. msg receives the result.
+ * with the board's keys: on the desktop, `-K`). msg receives the result.
  * Returns 0 or the error from the check (ERR_BLK_PARSE_FAIL without -K).
  */
 int blk_stage_check(sealed_package *pkg, char *msg, int len);

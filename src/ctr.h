@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 /*
- * AES-128 and SM4 in software, and CTR mode as sealed block files use it
+ * AES-128 and SM4 in software, and CTR mode as firmware update packages use it
  * (doc/admin/encrypted-blocks.md): the 16-byte counter block for the first 16
  * bytes of block n is an 8-byte nonce followed by n * 256 as a 64-bit
  * big-endian number, counting up by one for each 16 bytes. On the

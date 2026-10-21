@@ -203,22 +203,22 @@ cache comes from the memory pool (`POOL_CAPACITY` = 96K, in the V5F's
 of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 
 **The board's key record: `0x08070000`.** The 8K sector after LiteForth's
-flash holds the board's record for sealed block files (`V5F/User/board.c`,
+flash holds the board's record for firmware update packages (`V5F/User/board.c`,
 [doc/admin/encrypted-blocks.md](../../../doc/admin/encrypted-blocks.md)): its X25519
 private key, made by `enroll`, and the lowest revision and release key
 serial it takes. It lies inside the 480K of single-flash mode. A download
 keeps it (below), but *Erase All* wipes it, so the board then needs
-`enroll` again (a new key, so a new line in `boards.csv` and files sealed
-again).
+`enroll` again (a new key, so a new line in `boards.csv` and packages
+made again).
 
-**Sealed block files.** If `lfblocks.fb4` on the card is sealed, `blk_init`
-mounts it with the board's record and the root key in
-`V5F/User/sealed_root.h`, which the application's build supplies (copy
-`sealed_root.example.h`, or `sealblocks.py root-header`; git ignores it).
-At `SECURITY_LEVEL` 2 the board takes only sealed files: a plain
-`lfblocks.fb4` offers no blocks and `-1 ymodem` refuses plain files
-([doc/admin/updates.md](../../../doc/admin/updates.md) covers the whole process and
-these options).
+**Block files are plain.** Sealed block files are retired: a product's
+Forth comes in an app package (flash pages, installed by stage 1), so
+`lfblocks.fb4` is plain at every level, and a sealed one (or a package)
+on the card offers no blocks. `-2 ymodem` checks a package with the
+board's record and the root key in `V5F/User/sealed_root.h`, which the
+application's build supplies (copy `sealed_root.example.h`, or
+`sealblocks.py root-header`; git ignores it;
+[doc/admin/updates.md](../../../doc/admin/updates.md) covers the process).
 
 **Security level.** `SECURITY_LEVEL` in `Common/security.h` (0, 1 or 2;
 or `-DSECURITY_LEVEL=n` in both projects) sets the security of both
@@ -226,7 +226,7 @@ cores. 0, the repository's setting, is development: the regular Forth
 from a plain `lfblocks.fb4`, every peripheral register, the board's key
 from its UID, and stage 1's `adopt`. 1 is the same with the product's
 I/O: Forth reaches only the peripherals in `V5F/User/io_allow.h`. 2 is a
-product: sealed files only, the key from the RNG (`enroll` again, and a
+product: the key from the RNG (`enroll` again, and a
 new `boards.csv` line), no `adopt`, and no V5F on a board that isn't
 locked down: it stays in recovery, and the debugger can still reprogram
 it.
@@ -236,10 +236,6 @@ building: `board.c` finds it with `__has_include`, and MounRiver's
 dependency lists don't notice a header that didn't exist at the last
 build, so an incremental build keeps the old `board.o` (the board then
 says `no root key built in`).
-The debug UART then says, for example,
-`V5F blocks: sealed file, revision 5, release key 1, AES-128, 121 blocks (checked in 31 ms)`,
-or why it refused the file. Its blocks are checked and decrypted in
-`blk_status` as each read finishes.
 
 **Peripheral registers in page 5.** `VM_IO_PAGE` = 5 in `options.h` maps
 the peripheral block at `0x40000000` (`IO_BASE`, through UHSIF, `0x38400`

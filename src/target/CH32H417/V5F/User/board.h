@@ -5,12 +5,12 @@
 #include "ecdc.h"                   /* lfAPI_ecdcTest, for api0.c */
 
 /*
- * What this board keeps for sealed block files (doc/admin/encrypted-blocks.md):
+ * What this board keeps for firmware update packages (doc/admin/encrypted-blocks.md):
  * its X25519 key and the two minimums, in a record in the 8 KB flash
  * sector right after LiteForth's flash pages (0x08070000), and the root
  * public key and product ID, which the application's build supplies in
  * sealed_root.h (see sealed_root.example.h). Without sealed_root.h the
- * board reads no sealed files.
+ * board can't check packages (`-2 ymodem`).
  */
 
 /**
@@ -18,8 +18,6 @@
  * they lie in memory), its public key and the x25519 hook that reaches
  * its private key in machine mode (b->private_key stays zero), the root
  * key and product ID from sealed_root.h, and its minimums. msg receives the reason if it can't.
- * b->sealed_only is 1 at SECURITY_LEVEL 2 (Common/security.h), else 0,
- * set even when it fails.
  * Returns 0, or ERR_UNSUPPORTED_OPERATION if there is no root key built
  * in or the board hasn't been enrolled (below SECURITY_LEVEL 2 a board needs no
  * record: its key comes from the UID).

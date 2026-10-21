@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     int baudrate = 115200;
     char* flash_name = NULL;            // NULL: FLASHFILENAME
     char* blocks_name = NULL;           // NULL: BLOCKFILENAME
-    char* board_name = NULL;            // -K: a board file for sealed blocks
+    char* board_name = NULL;            // -K: a board file, for checking packages
     static sealed_board board;
 
     for (int i = 1; i < argc; i++) {

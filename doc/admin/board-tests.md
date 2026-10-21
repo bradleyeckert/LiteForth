@@ -2039,3 +2039,108 @@ revision .
 adopted debugger image, 11 after the package); a debugger-flashed V5F
 runs at level 0 instead of being replaced; and the package flag survives
 a reset by the pin, as it does `reboot`.
+
+### B21. Sealed block files retired (21 October 2026)
+
+**Board and firmware:** as in B20 (main board, level 0, B19's root key and
+release key), built in MounRiver from branch `no-sealed-blocks` (commit
+`d63e9a7`) and flashed with wlink (V3F at 0x08000000, V5F at 0x08010000):
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 62616 | `85a378cb9c5d036e26ba28c3d2148b2a5ca3fa6f49f93fbecba93c3d13ea3407` |
+| `LiteForth_V5F.bin` | 93116 | `f49b487e8765ea29090d40e866ebff6500affba2e993496ccdb0f921796fc9be` |
+
+**Why:** block files are plain at every level now; a product's Forth goes
+in an app package. A block 0 that starts with `LITEFORTHS` (a sealed
+block file) or `LITEFORTHF` (a package) gives no blocks, and `-1 ymodem`
+refuses both. The V5F still checks packages for `-2 ymodem` with its
+board key, through the trimmed `sealed.c`, which stage 1 shares.
+
+**Expected:** the plain `lfblocks.fb4` mounts as before; a `-2 ymodem`
+package checked by the new V5F installs; a sealed block file sent with
+`-1 ymodem` is refused with nothing written.
+
+**Run.** After the flash, on the cli port:
+
+```
+> revision .
+0 ok>
+> capacity .
+121 ok>
+> dir
+System Volume Information/
+lfblocks.fb4
+sealed.fb4
+lfstage.bin
+lfbackup.bin
+lfpages.bin
+ok>
+```
+
+A first package, `v12.lfu`, was made by mistake from B20's V5F
+(94492 bytes); it installed (`V3F update: version 12 installed, on
+trial` ... `version 12 confirmed`, `revision` 12), but the old V5F did
+the check. So today's V5F was flashed again with wlink (adopted as
+version 0) and packaged from the build folder:
+
+```
+> py sealblocks.py package ...\V5F\obj\LiteForth_V5F.bin v13.lfu --component v5f --release ..\lfkeys\release1.key --boards boards.csv --revision 13
+v13.lfu: v5f image, 93116 bytes in 23 block(s), version 13, 1 board(s), AES
+
+ok>~x D:\Brad\adminLF\test\v13.lfu -2
+...
+ymodem: v13.lfu: staged in lfstage.bin, 25 blocks, read back and checked
+ymodem: package: V5F image, 93116 bytes, version 13: signature, every block and the image hash check out; waiting for stage 1 to install it
+ok>reboot
+...
+revision .
+13 ok>
+```
+
+The debug port:
+
+```
+V3F update: version 13 installed, on trial
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 18; the previous run left 1881 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F191888, addr 02004000 0201CFFF 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 21 2026 12:00:49, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash
+V3F update: version 13 confirmed
+V3F: USB configured
+```
+
+Then the sealed block files. The old `sealed.fb4` (122 blocks) is larger
+than the card's `lfblocks.fb4`, so the size check refused it first:
+
+```
+ok>~x ..\mailbox\sealed\sealed.fb4 -1
+...
+ymodem: sealed.fb4: it's bigger than the block file's space; nothing written
+Error: ior=-92 Target block index exceeds allocated file capacity
+ok>capacity .
+121 ok>
+```
+
+So a 2-block file starting with `LITEFORTHS`, then zeros
+(`sealed2.fb4`, sha256 `35d24f9cf71dc8c95e8dd9068c3092c566971e93afbad145f9703e67fa632ebb`):
+
+```
+~x D:\Brad\adminLF\test\sealed2.fb4 -1
+ymodem: send the file(s) now (YMODEM)
+[kwai: sending D:\Brad\adminLF\test\sealed2.fb4: 8192 bytes]
+[kwai: 8/8]
+[kwai: sent D:\Brad\adminLF\test\sealed2.fb4]
+ymodem: sealed2.fb4: a sealed block file: no longer read (an app goes in an update package now); nothing written
+Error: ior=-124 Bad file in a YMODEM transfer
+ok>
+```
+
+**Result:** pass. The plain block file works as before, the new V5F
+checks a package and stage 1 installs it, and a sealed block file is
+refused before anything is written. Not tested on the board: a sealed
+`lfblocks.fb4` already on the card at boot (it would give capacity 0);
+`unit_tests/sealed` covers that on the desktop.

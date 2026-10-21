@@ -5,7 +5,7 @@
 
 /*
  * The desktop's stand-in for what a board keeps in protected flash and
- * firmware for sealed block files (doc/admin/encrypted-blocks.md): a text file,
+ * firmware for checking firmware update packages (doc/admin/encrypted-blocks.md): a text file,
  * given to lf with -K, that `sealblocks.py lf-board` writes. One setting
  * per line, `#` starts a comment:
  *
@@ -15,8 +15,6 @@
  *   product 0x4C46              the product ID (C number syntax)
  *   min-revision 0              optional, default 0
  *   min-serial 0                optional, default 0
- *   sealed-only 1               optional, default 0: as a CH32H417 built
- *                               at SECURITY_LEVEL 2, refuse plain block files
  */
 
 /**

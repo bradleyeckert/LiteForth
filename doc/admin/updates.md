@@ -1,22 +1,26 @@
 # Updating a board's blocks
 
-A LiteForth application lives in `lfblocks.fb4`, the block file on the
-board's microSD card: its Forth source, fonts and data. The firmware (the
-C code you build in MounRiver) changes rarely; the block file is what you
-update. This page covers both kinds of block file, how to set up a product
-so that it takes only files you have signed, how to send a new file to a
-board over its USB terminal, and the build options involved.
+A LiteForth application starts in `lfblocks.fb4`, the plain block file on
+the board's microSD card: its Forth source, fonts and data. `1 load`
+compiles it into LiteForth's flash pages. This page covers developing
+with block files, sending a new one to a board over its USB terminal, how
+to set up a product so that it takes only updates you have signed, and
+the build options involved.
 
-- **Plain** files are for development. Anyone can read and change them,
-  and the board can write to them (the editor, `ymodem`, `update`).
-- **Sealed** files are for products ([encrypted-blocks.md](encrypted-blocks.md)).
-  They are encrypted for a list of boards and signed by you. A board checks
-  every block it reads, and nothing on it can be changed: a new release
-  replaces the whole file.
+- **Block files** are plain: anyone can read and change them, and the
+  board can write to them (the editor, `ymodem`, `update`). Copy one onto
+  the card in a PC ([sdcard.md](../sdcard.md)), or send it over the
+  terminal with `-1 ymodem` (section 4), with the card left in the board.
+- **A product's release** is an **app package**
+  ([firmware-updates.md](firmware-updates.md) section 5): the V5F firmware
+  and LiteForth's flash pages, as a developer built them from block files,
+  encrypted for a list of boards and signed by you. Stage 1 installs it,
+  backs up what it replaces, and at `SECURITY_LEVEL` 2 checks the pages
+  at every boot.
 
-Either kind goes onto a board in one of two ways: copy it onto the card in
-a PC ([sdcard.md](../sdcard.md)), or send it over the terminal with
-`-1 ymodem`, below, with the card left in the board.
+Sealed block files (encrypted, signed `lfblocks.fb4`,
+[encrypted-blocks.md](encrypted-blocks.md)) were the first way to ship an
+application; they are retired, and a board refuses one.
 
 ## 1. Development
 
@@ -29,7 +33,7 @@ the card. While working:
 | A font or other binary | `~x cjk24.fnt 100` (`100 ymodem`): from byte 32 of block 100 |
 | One block, by hand | the block editor ([editor.md](../editor.md)) |
 | The whole file | `~x lfblocks.fb4 -1` (`-1 ymodem`, section 4) |
-| The C firmware | `~x update.lfu -2` (`-2 ymodem`): stages a package from `sealblocks.py package` in the card's `lfstage.bin` for stage 1 to install ([firmware-updates.md](firmware-updates.md)). At the next reset the V3F's stage 1 backs up the old V5F image to `lfbackup.bin`, installs the new one on trial, and the V5F confirms it when LiteForth starts. So far only the V5F image can be updated this way |
+| The C firmware, or firmware and flash pages | `~x update.lfu -2` (`-2 ymodem`): stages a package from `sealblocks.py package` in the card's `lfstage.bin` for stage 1 to install ([firmware-updates.md](firmware-updates.md)). At the next reset the V3F's stage 1 backs up what it replaces to `lfbackup.bin`, installs the new image on trial, and the V5F confirms it when LiteForth starts |
 
 Then `1 load` rebuilds the dictionary. [blocks.md](../blocks.md) has the
 details of each.
@@ -43,8 +47,8 @@ private key there. The tool is `scripts/admin/sealblocks.py` (it needs
 1. **The root key.** `sealblocks.py root-key root` makes `root.key`
    (private: stays offline) and `root.pub`. Every board built for the
    product trusts it, and it can't be changed without new firmware.
-2. **A product ID.** A 32-bit number for this product, so that files made
-   for one product don't open on another. LiteForth's own tests use
+2. **A product ID.** A 32-bit number for this product, so that packages
+   made for one product don't open on another. LiteForth's own tests use
    `0x4C46`.
 3. **A release key.** `sealblocks.py release-key root.key 1 release1.key
    --product 0x4C46` makes release key 1, certified by the root. This is the
@@ -53,8 +57,7 @@ private key there. The tool is `scripts/admin/sealblocks.py` (it needs
 4. **The firmware's `sealed_root.h`.** `sealblocks.py root-header root.pub
    --product 0x4C46 -o src/target/CH32H417/V5F/User/sealed_root.h` writes the
    header the V5F build reads (section 6). Git ignores it, since it belongs
-   to your application, not to LiteForth. Whether the board also takes
-   plain files is `SECURITY_LEVEL`'s business, not this header's.
+   to your application, not to LiteForth.
 5. **Build the V5F firmware clean.** After adding or changing
    `sealed_root.h`, use *Project > Clean* before building: MounRiver doesn't
    notice a header that didn't exist at the last build, and an incremental
@@ -89,58 +92,61 @@ only: it's no secret, and a level 2 build never uses it, so a board moved
 to level 2 runs `enroll` again and gets a new line.
 
 Treat `boards.csv` like code, with reviewed commits: whoever can add a line
-decides which boards can read your releases. Running `enroll` again only
+decides which boards can install your releases. Running `enroll` again only
 prints the line (without `new key made`). If it says `new key made` on a
 board that was enrolled before, its key was erased (an *Erase All*
 download), so its line in `boards.csv` must be replaced and the current
-release sealed again before that board can read it.
+release packaged again before that board can install it.
 
 ## 4. Making and installing a release
 
-1. **Build the plain file** as in development (`forth/build.bat`, or
-   `putblocks.py` and `putbin.py` into a copy of `bin/lfblocks.fb4`), and
-   test it on a development board.
-2. **Seal it** with the next revision number:
+1. **Build the application** as in development (`forth/build.bat`, or
+   `putblocks.py` and `putbin.py` into a copy of `bin/lfblocks.fb4`), on a
+   development board (`SECURITY_LEVEL` 0 or 1): `1 load`, cache its fonts,
+   and test it.
+2. **Save its flash pages:** `save-pages` copies them into `lfpages.bin`
+   on the card (made beforehand like `lfstage.bin`: 262144 bytes,
+   contiguous).
+3. **Package them** with the V5F build and the next version number:
 
    ```
-   sealblocks.py seal lfblocks.fb4 release.fb4 --release release1.key --boards boards.csv --revision 2
-   sealblocks.py check release.fb4 --root root.pub
+   sealblocks.py package LiteForth_V5F.bin app.lfu --component app --pages lfpages.bin --release release1.key --boards boards.csv --revision 2
+   sealblocks.py check app.lfu --root root.pub
    ```
 
    `check` verifies everything a board would, except the parts that need a
    board's private key. `--cipher sm4` uses SM4 instead of AES-128.
-3. **Install it.** In kwai, connected to the board: `~x release.fb4 -1`.
-   With another terminal program, type `-1 ymodem` and send the file by
-   YMODEM within a minute. kwai prints its progress and LiteForth reports
-   when it's done:
+4. **Install it.** In kwai, connected to the board: `~x app.lfu -2`, then
+   `reboot`. Stage 1 installs it at the reset
+   ([firmware-updates.md](firmware-updates.md) section 6 has the details,
+   the card files it needs, and what it prints).
 
-   ```
-   ok>~x release.fb4 -1
-   ymodem: send the file(s) now (YMODEM)
-   [kwai: sending release.fb4: 499712 bytes]
-   [kwai: 488/488]
-   [kwai: sent release.fb4]
-   ymodem: release.fb4: installed, 122 blocks, read back and checked; capacity now 121
-   ymodem: sealed file, revision 2: all 120 content blocks pass their hashes
-   ```
+### Sending a block file: `-1 ymodem`
 
-4. **`1 load`** builds the dictionary from it, and `cold` starts the
-   application.
+In kwai, connected to the board: `~x lfblocks.fb4 -1`. With another
+terminal program, type `-1 ymodem` and send the file by YMODEM within a
+minute. kwai prints its progress and LiteForth reports when it's done:
 
-Copying the file onto the card as `lfblocks.fb4` in a PC works too; the
-board checks it the same way when it starts.
+```
+ok>~x lfblocks.fb4 -1
+ymodem: send the file(s) now (YMODEM)
+[kwai: sending lfblocks.fb4: 495616 bytes]
+[kwai: 484/484]
+[kwai: sent lfblocks.fb4]
+ymodem: lfblocks.fb4: installed, 121 blocks, read back and checked; capacity now 121
+```
+
+Then `1 load` builds the dictionary from it. Copying the file onto the
+card as `lfblocks.fb4` in a PC works too.
 
 ### What `-1 ymodem` checks
 
-1. **Before writing anything**, block 0, which arrives first. A plain file
-   must start with `LITEFORTH` (and is refused at `SECURITY_LEVEL` 2).
-   A sealed file must be one this board would open: the release key's
-   certificate matches the built-in root key, block 0's signature matches
-   the release key, the product ID matches, the revision and release key
-   serial aren't below the board's minimums, and the board is one of the
-   recipients and can unwrap the content key. The file must also be whole
-   4 KB blocks and fit in the card's `lfblocks.fb4` (below). If any of this
-   fails, the old file stays as it was.
+1. **Before writing anything**, block 0, which arrives first. It must
+   start with `LITEFORTH` and not be sealed: a firmware update package
+   (`LITEFORTHF`) or a retired sealed block file (`LITEFORTHS`) is
+   refused. The file must also be whole 4 KB blocks and fit in the card's
+   `lfblocks.fb4` (below). If any of this fails, the old file stays as it
+   was.
 2. **While writing**, block 0 on the card says the install hasn't finished
    (a plain block 0 reading `LITEFORTH ( an install by -1 ymodem didn't
    finish: send the block file again )`), and the real block 0 goes in
@@ -148,16 +154,14 @@ board checks it the same way when it starts.
    half of one file and half of another: send the file again.
 3. **After the transfer**, the whole file is read back from the card and
    compared with what arrived (BLAKE2s), and the block file is mounted
-   again, which sets `capacity`. For a sealed file, every content block is
-   read and checked against its hash.
+   again, which sets `capacity`.
 
 The file goes into the space the card's `lfblocks.fb4` already has: the
 board can't make a file on the card longer. A smaller file leaves the
 blocks after it as they were. So when preparing a card, make its
-`lfblocks.fb4` larger than the releases it will get, with room for the
-sealed file's hash table blocks (one per 256 content blocks): add blank blocks to
-the plain file before copying it (`putblocks.py` extends a file it writes
-past the end of).
+`lfblocks.fb4` larger than the files it will get: add blank blocks to the
+file before copying it (`putblocks.py` extends a file it writes past the
+end of).
 
 ### When it refuses
 
@@ -168,37 +172,23 @@ Each refusal ends with `nothing written` and leaves the board's file alone.
 | `it's bigger than the block file's space` (-92) | The file is longer than the card's `lfblocks.fb4` | Copy a bigger `lfblocks.fb4` to the card once |
 | `a block file is a whole number of 4 KB blocks` (-124) | Not a block file, or truncated | Send the right file |
 | `block 0 doesn't start with LITEFORTH` (-124) | Not a block file | Send the right file |
-| `a plain block file, but this build takes only sealed files` (-124) | Plain file to a level 2 board | Seal it first |
-| `this board isn't one of its recipients` (-124) | The board's line wasn't in `boards.csv` when it was sealed | Add the board, seal again |
-| `the content key doesn't unwrap (CEK check)` (-124) | Sealed for this board's old key (it was enrolled again since) | Replace its line in `boards.csv`, seal again |
-| `this board has no key: run enroll` (-124) | The board isn't enrolled, or its key was erased | `enroll`, then as above |
-| `no root key built in` (-124) | The firmware was built without `sealed_root.h` | Section 2, steps 4 and 5 |
-| `made for another product` (-124) | Different product ID | Seal with this product's release key |
-| `the release key's certificate doesn't match the root key` (-124) | Signed under another root | Use this product's release key |
-| `an older revision than this board takes` (-124) | Below the board's lowest revision | Seal with a higher revision |
-| `the release key has been replaced` (-124) | Signed with a retired release key | Use the current one |
-| `a firmware update package, not a block file` (-124) | A `.lfu` made by `sealblocks.py package` | Packages are for firmware updates ([firmware-updates.md](firmware-updates.md)), not blocks |
+| `a firmware update package, not a block file` (-124) | A `.lfu` made by `sealblocks.py package` | Send it with `-2 ymodem` ([firmware-updates.md](firmware-updates.md)) |
+| `a sealed block file: no longer read` (-124) | A sealed `lfblocks.fb4` from before 2026-10-21 | Send the plain file; ship the application in an app package |
 | `the transfer stopped` (-123) | The connection broke or the sender cancelled | Send it again |
 
-Two more outcomes need a second look:
-
-- **`N of M content blocks fail their hashes` (-33):** the file was written
-  but some of its blocks don't match their hashes, so it was damaged after
-  sealing (the hash tables come last, so this can only be found once it's
-  written). Send a good copy.
-- **`what was read back differs from what came`:** the card didn't store
-  what was sent. Send it again; if it happens twice, suspect the card.
+One more outcome needs a second look: **`what was read back differs from
+what came`**: the card didn't store what was sent. Send it again; if it
+happens twice, suspect the card.
 
 ## 5. Replacing keys and rolling back
 
 - **A new release key** (a leaked one, or routine): make release key 2 with
-  `release-key root.key 2 ...`, and seal with it from then on.
+  `release-key root.key 2 ...`, and package with it from then on.
 - **A board leaving the product:** leave its line out of `boards.csv`. It
-  keeps what it could already read, not anything newer.
-- **Not yet done (step 5 of [encrypted-blocks.md](encrypted-blocks.md)):**
-  the board's lowest revision and lowest release key serial are stored but
-  never raised, so today a board will take an older release, and a file
-  signed with a retired release key, if they were made for it.
+  keeps what it could already install, not anything newer.
+- **Rolling back** is stage 1's: it keeps a backup of what it replaced,
+  and the lowest version and release key serial a board takes are in its
+  record ([firmware-updates.md](firmware-updates.md) sections 4 and 6).
 
 ## 6. Build options
 
@@ -211,15 +201,15 @@ adds to the one below:
 | | Core | 0 | 1 | 2 |
 |---|---|---|---|---|
 | Forth reaches the peripherals | V5F | all | the allowlist | the allowlist |
-| Block files | V5F | plain or sealed | plain or sealed | sealed only |
 | The board's key (`enroll`) | both | from the UID | from the UID | from the RNG |
 | A board that isn't locked down | V3F | a warning | a warning | no V5F: recovery, `reset` only |
 | Stage 1's `adopt` | V3F | yes | yes | no |
+| Flash pages written by | both | Forth | Forth | packages only |
 | Forth starts with | V5F | `root` | `root` | `root`; later a limited security wordlist |
 
 Both cores work out the board's key, the V5F in `board.c` (`enroll`,
-sealed block files) and the V3F's stage 1 in `keys_get` (packages), so
-build both projects at the same level.
+checking a staged package) and the V3F's stage 1 in `keys_get`
+(installing it), so build both projects at the same level.
 
 - **0, development:** the regular Forth from a plain `lfblocks.fb4`, and
   every peripheral register.
@@ -228,21 +218,20 @@ build both projects at the same level.
   the like, but not the flash controller, DMA, SDIO, the ECDC, the RNG,
   RCC/PWR writes or USB. Anything else reads as an invalid address (-9),
   and a write to a read-only one is write-protected (-20).
-- **2, a product:** only sealed files (a plain `lfblocks.fb4` offers no
-  blocks, the debug UART says why, and `-1 ymodem` refuses plain files;
-  a sealed file can still be installed over one), the key from the RNG,
-  kept in the board's flash record, and the V5F starts only on a locked
-  board.
+- **2, a product:** the key from the RNG, kept in the board's flash
+  record; only packages write LiteForth's flash pages (`open-flash` and
+  `save-pages` refuse), and stage 1 checks them at every boot; no
+  `adopt`; and the V5F starts only on a locked board.
 
 The UID key at levels 0 and 1 is BLAKE2s of the board's unique ID
 (personalization `LFinsec1`), so `enroll` prints the same line every time,
-the board needs no flash record to open sealed files, and a download that
+the board needs no flash record to open packages, and a download that
 erases the flash loses nothing. `sealblocks.py board-key OUT --uid UID
 --insecure` gives the same key, and so the boards.csv line, without the
-board. It's no secret: anyone who knows the UID can read what's sealed for
-it. A level 2 build never uses it, so moving a board to level 2 means
-`enroll` (a new key), a new line in `boards.csv`, and sealing its files
-again.
+board. It's no secret: anyone who knows the UID can open packages made
+for it. A level 2 build never uses it, so moving a board to level 2 means
+`enroll` (a new key), a new line in `boards.csv`, and packaging its
+releases again.
 
 The old flags `SEALED_ONLY`, `INSECURE`, `STRICT_RDP`,
 `STAGE1_DEVELOPMENT` and `DEVELOPER_MODE` are gone; defining one (in
@@ -256,8 +245,8 @@ ignores it. Clean the project after changing it (section 2).
 
 | Setting | Meaning |
 |---|---|
-| `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the board reads no sealed files (`no root key built in`) but still takes plain ones. |
-| `SEALED_PRODUCT` | The 32-bit product ID that release keys and sealed files must name. |
+| `SEALED_ROOT_KEY` | The root's Ed25519 public key, 32 bytes. Without `sealed_root.h` the V5F can't check packages (`no root key built in`). |
+| `SEALED_PRODUCT` | The 32-bit product ID that release keys and packages must name. |
 
 ### The MounRiver projects
 
@@ -276,23 +265,22 @@ Set them in `options.h` or on the compiler's command line.
 
 ### The desktop `lf`
 
-`lf -K board.lfb` plays a board: the file holds what a board keeps
-(`sealblocks.py lf-board`, format in `src/target/desktop/board.h`). Its
-`sealed-only 1` setting (`lf-board --sealed-only`) acts like a
-`SECURITY_LEVEL` 2 build, so you can try a product's behavior before building
-it. Without `-K`, `lf` takes only plain files. `-k` names the block file
-or a card image, which `-1 ymodem` installs into the same way.
+`lf -K board.lfb` plays a board for `-2 ymodem`, which then checks a
+staged package as the board would: the file holds what a board keeps
+(`sealblocks.py lf-board`, format in `src/target/desktop/board.h`). `-k`
+names the block file or a card image, which `-1 ymodem` installs into the
+same way.
 
 ## 7. Known limits
 
-- Anyone at the terminal of a board below `SECURITY_LEVEL` 2 (a
-  development build) can install a plain file. That gives away nothing sealed, but it can replace the
-  application.
-- An install cut short leaves the board without its application until the
-  file is sent again; there's only one copy on the card. On a level 2
-  board the unfinished file offers no blocks, but `-1 ymodem` still works.
+- Anyone at the Forth console can install a block file and `1 load` it,
+  and below `SECURITY_LEVEL` 2 rewrite the flash pages. A secure login to
+  keep users out of the console is planned.
+- An install cut short leaves the board without its block file until the
+  file is sent again; there's only one copy on the card.
 - Below level 2 the board's key follows from its UID, which any code on
   the board, or anyone who has seen `enroll`'s output, can read. It's for
   development only.
-- Code running on the board can read its key and the content key
-  ([encrypted-blocks.md](encrypted-blocks.md) section 9).
+- The V5F holds the board's key, in machine mode behind the PMP, to check
+  staged packages ([encrypted-blocks.md](encrypted-blocks.md) section 9);
+  stage 1 is to hold it instead.

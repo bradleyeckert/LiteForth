@@ -2299,3 +2299,88 @@ V5F adopted as version 0, `enroll` answered). Not tested on the board:
 recovery's RAM staging at its new address (`stage1sim`
 `s_recovery_ram_and_ctrl_x` covers it), and the ITCM route documented in
 firmware-updates.md section 8.
+
+### B24. Machine mode's code runs from flash (21 October 2026)
+
+**Board and firmware:** as in B23 (main board, level 0), built in
+MounRiver (clean, since the V5F's compiler options changed) from branch
+`mmode-in-flash` (commit `059f83a`) and flashed with wlink, the V5F at
+0x08014000, then the V3F at 0x08000000:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 63192 | `e097a6843a763e82ab6fb112c021cf9e845673fea0eb4a0cdb36801e07f66709` |
+| `LiteForth_V5F.bin` | 110632 | `9439242bc241eb32b34982993e090b401a64f9c6fa4e9dc0f2a5b8e0f96d0d66` |
+
+**Why:** user mode can write ITCM, where the V5F's code runs, so its
+machine-mode code moved to flash (`.mmode`, 0x0802E000, run in place):
+the vector table and every handler. WCH's flash routines are copied into
+ITCM's top 4 KB, with interrupts off, before each erase or write.
+`mmodecheck.py` (run by `ch32build.sh`) found no call out of that code
+and all 149 vectors inside it.
+
+**Before this,** a test build (branch `xip-test`, not merged) answered
+the questions: the V5F runs code from the high window (about 240 times
+slower than from ITCM: a loop took 3.66 s from flash against 15 ms from
+ITCM); traps and interrupts through a vector table in flash work (an
+`ecall` round trip about 12 us); and WCH's `FLASH_ROM_ERASE`/`WRITE`
+run from flash locked the chip up while programming 0x08070000 (the
+WCH-LinkE couldn't attach either; the board needed a power cycle), but
+copied into ITCM with interrupts off they erased, programmed and checked
+0x08070000 and 0x08080000 (1.2 ms each), and `1 load` wrote all four
+LiteForth pages. (The pages were blank before that test by accident: a
+MounRiver download from the V3F project erases the whole chip.)
+
+**Expected:** LiteForth starts and boots its dictionary; `enroll` and
+block reads work; flash pages are written (`close-flash`, `1 load`); a
+store to DMA1 from Forth faults to -127 through the handler in flash,
+and a store to RCC is emulated by it.
+
+**Run** (the cli port, through lfmcp):
+
+```
+[幸运狐] v0.02
+ok>学如不及, 犹恐失之
+> revision .
+0 ok>
+> enroll
+(security level below 2: the key comes from the UID, not the RNG) boards.csv line:
+69a90e647f9cf6a9,8bbde9b22c25fec0601398df2e45a8837e50ac374208ea9279b5a316a9c0d403
+ok>
+> 1 block drop
+ok>
+> 1 load
+value test: 11 10
+Dictionary loaded and committed to flash memory.
+...
+```
+
+Then a word added to the pages and `save-wids save-idata close-flash`
+(not a valid way to extend the boot image: the next boot's app failed,
+-103, which showed the pages had been rewritten), `1 load` again, and
+`reboot`:
+
+```
+[幸运狐] v0.02
+ok>学如不及, 犹恐失之
+> 2 3 + .
+5 ok>
+> hex 0 288000 !
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+> hex 288400 @ .
+3336983H ok>
+> 288400 @ 288400 !
+ok>
+> 288400 @ .
+3336983H ok>
+```
+
+(A line after an error is read in decimal: QUIT resets the base, so
+`288400` alone then gave -9.)
+
+**Result:** pass. The board runs with every trap and interrupt handled
+by code in flash, writes its flash pages through the routines copied in
+for each write, and boots from them. Not tested: whether user mode can
+reach the PFIC (its VTF registers), and machine mode's data in DTCM,
+which user mode can still write (firmware-updates.md section 8).

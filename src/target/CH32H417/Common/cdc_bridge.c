@@ -72,6 +72,10 @@ _Static_assert(sizeof(cdc_shared_t) <= 32 * 1024, "cdc_shared_t must fit in RAM_
                              NVIC_DisableIRQ(USBFS_IRQn); } while (0)
 #define USB_IRQ_ON()    NVIC_EnableIRQ(USBFS_IRQn)
 
+static uint8_t ctrl_x_armed;            /* this boot came from Ctrl+X x3, and the host has
+                                           sent nothing else since: another Ctrl+X x3 means
+                                           recovery */
+
 void cdc_shared_init(void) {
     cdc_shared_t *sh = CDC_SHARED;
     sh->rx.head = sh->rx.tail = 0;
@@ -81,6 +85,8 @@ void cdc_shared_init(void) {
     sh->binary = 0;                     /* the Ctrl+X escape is on */
     /* safe_boot is left alone: it must survive the chip reset that
        v5f_safe_restart makes. v5f_starts only ever counts up. */
+    ctrl_x_armed = (sh->ctrlx_reset == CDC_CTRLX_RESET_MAGIC);
+    sh->ctrlx_reset = 0;
     CDC_FENCE();
     sh->magic = CDC_SHARED_MAGIC;
     CDC_FENCE();
@@ -113,10 +119,12 @@ static void slot_release(void) {
 static uint8_t ctrl_x_run;              /* consecutive Ctrl+X bytes seen */
 
 /* Counts consecutive Ctrl+X. Returns 1 on the third. Not during a file
-   transfer (binary set by the V5F), whose data may hold any bytes. */
+   transfer (binary set by the V5F), whose data may hold any bytes. Any
+   other byte disarms ctrl_x_armed. */
 static int ctrl_x_seen(uint8_t b) {
     if (b != CDC_CTRL_X || CDC_SHARED->binary == CDC_BINARY_MAGIC) {
         ctrl_x_run = 0;
+        ctrl_x_armed = 0;
         return 0;
     }
     if (++ctrl_x_run < 3) return 0;
@@ -135,14 +143,16 @@ static void debug_uart_drain(void) {
    machine mode with its PMP already locked, would need the code flash's
    low window, which PMP entry 0 closes to it for good (V5F/User/pmp.c).
    If the last safe start hasn't cleared safe_boot yet (the V5F got stuck
-   before LiteForth), resets into stage 1's recovery instead (`recover` in
+   before LiteForth), or this is the first input since a Ctrl+X reset
+   (ctrl_x_armed), resets into stage 1's recovery instead (`recover` in
    cdc_shared.h). */
 static void v5f_safe_restart(void) {
     cdc_shared_t *sh = CDC_SHARED;
 
     ctrl_x_run = 0;                     /* the V5F drops the input around it */
-    if (sh->safe_boot == CDC_SAFE_BOOT_MAGIC) { /* the last safe start never got going */
-        printf("Ctrl+X x3 again: the V5F is stuck; resetting into recovery\r\n");
+    if (sh->safe_boot == CDC_SAFE_BOOT_MAGIC || ctrl_x_armed) {
+        printf("Ctrl+X x3 again: %s; resetting into recovery\r\n",
+               sh->safe_boot == CDC_SAFE_BOOT_MAGIC ? "the V5F is stuck" : "asked for");
         sh->recover = CDC_RECOVER_MAGIC;
         CDC_FENCE();
         debug_uart_drain();
@@ -150,6 +160,7 @@ static void v5f_safe_restart(void) {
     }
     printf("Ctrl+X x3: resetting the chip; the V5F starts in safe mode\r\n");
     sh->safe_boot = CDC_SAFE_BOOT_MAGIC;
+    sh->ctrlx_reset = CDC_CTRLX_RESET_MAGIC;
     CDC_FENCE();
     debug_uart_drain();
     NVIC_SystemReset();

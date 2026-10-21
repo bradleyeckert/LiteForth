@@ -17,6 +17,7 @@
  */
 
 #define CRUMB_ADDR      (CDC_SHARED_ADDR + 0x4000u)
+_Static_assert(sizeof(cdc_shared_t) <= 0x4000u, "the shared block ends before the crumbs");
 #define CRUMB_MAGIC     0xC2C2B0B0u
 #define CRUMB_COUNT     128u            /* a ring of the last 128 */
 

@@ -489,9 +489,12 @@ How it works:
    (`-o 256` on the desktop), so `lfQuit` boots without starting the app.
    `serial_open` counts the start in `v5f_starts`. A later `bye` boots
    normally again.
-5. Ctrl+X x3 again while `safe_boot` is still set (the safe start never
-   reached LiteForth: the V5F is stuck in its C code) resets the chip into
-   stage 1's recovery instead.
+5. Ctrl+X x3 again resets the chip into stage 1's recovery instead, if
+   it's the first input since the Ctrl+X reset (the V3F marks that reset
+   in `ctrlx_reset`; any other byte disarms it), or while `safe_boot` is
+   still set (the safe start never reached LiteForth: the V5F is stuck in
+   its C code). So Ctrl+X x3 twice in a row always reaches recovery. Wait
+   for the port to come back before the second one.
 
 The V3F's USART1 shows `Ctrl+X x3: resetting the chip; the V5F starts in
 safe mode`.

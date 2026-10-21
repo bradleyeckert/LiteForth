@@ -48,7 +48,11 @@
  * still set, that safe start never got that far: the V5F is stuck in its
  * C code, so the V3F sets recover to CDC_RECOVER_MAGIC and resets the
  * chip, and stage 1 starts in recovery (V3F/User/stage1.c) instead of
- * starting the V5F.
+ * starting the V5F. So does Ctrl+X x3 as the first input after a Ctrl+X
+ * reset, stuck or not: the V3F marks that reset (ctrlx_reset), and any
+ * other byte from the host disarms it. So "Ctrl+X x3, then Ctrl+X x3 again"
+ * always reaches recovery, however soon LiteForth is back (it clears
+ * safe_boot before USB is even configured again).
  *
  * File transfers: while `ymodem` receives a file, the bytes from the host
  * are data and may hold three 0x18 in a row, so the V5F sets binary to
@@ -88,6 +92,7 @@ extern "C" {
 #define CDC_CONFIRM_MAGIC   0xC0F1A3EDu     /* update: the V5F started LiteForth (ends a trial) */
 #define CDC_RECOVER_MAGIC   0x2EC0BE27u     /* recover: the next boot goes into stage 1's recovery */
 #define CDC_NOSTART_MAGIC   0x4E530000u     /* nostart: this | the boots in a row the V5F didn't start */
+#define CDC_CTRLX_RESET_MAGIC 0xC7A1B007u   /* ctrlx_reset: this boot came from Ctrl+X x3 */
 
 typedef struct {
     volatile uint32_t head;                 /* next byte to write (producer) */
@@ -118,6 +123,10 @@ typedef struct {
                                                counts as 0. Survives the reset */
     cdc_ring_t rx;                          /* host -> V5F: V3F produces */
     cdc_ring_t tx;                          /* V5F -> host: V5F produces */
+    volatile uint32_t ctrlx_reset;          /* V3F: CDC_CTRLX_RESET_MAGIC across the reset that
+                                               Ctrl+X x3 makes; the next boot's cdc_shared_init
+                                               takes it and clears it. Last, so the fields the
+                                               V5F reads don't move */
 } cdc_shared_t;
 
 #define CDC_SHARED  ((cdc_shared_t *)CDC_SHARED_ADDR)

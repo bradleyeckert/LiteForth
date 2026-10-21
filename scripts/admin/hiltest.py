@@ -407,8 +407,8 @@ def h_rollback(rig, a):
 
 def h_recovery(rig, a):
     """Ctrl+X x3, which resets the chip with the V5F in safe mode, then
-    Ctrl+X x3 again as soon as the port is back, while that safe start is
-    still setting up: the chip resets into recovery. GOOD.lfu sent to stage
+    Ctrl+X x3 again as the first input once the port is back: the chip
+    resets into recovery (cdc_bridge.c's ctrl_x_armed), healthy V5F or not. GOOD.lfu sent to stage
     1 itself is installed (the image marked as not working first, so no
     backup), on trial, and confirmed."""
     start = rig.debug.mark()

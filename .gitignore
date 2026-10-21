@@ -13,6 +13,7 @@ src/target/desktop/unit_tests/flash/lfflash.bin
 src/target/desktop/unit_tests/memalloc/test_memalloc
 src/target/desktop/unit_tests/blake2s/test_blake2s
 src/target/desktop/unit_tests/ctr/test_ctr
+src/target/desktop/unit_tests/guard/test_guard
 src/target/desktop/unit_tests/ioguard/test_ioguard
 src/target/desktop/unit_tests/traps/test_traps
 src/target/desktop/unit_tests/update/test_update

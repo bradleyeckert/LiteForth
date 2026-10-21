@@ -472,7 +472,21 @@ token.
   alternative: stage 1 starts the V5F at a small shim in stage 0 that sets
   the entries and then jumps to the image. **Verify** that the V5F can run
   code from the V3F's flash.
---**The Fix:** Use PMP to deny DMA access in User Mode. Implement a Guarded Mode API.
+- **Guarded DMA** (`V5F/User/gdma.c`, 20 October 2026): entry 2 now
+  covers the whole 16 KB block, read-only to user mode, so user mode
+  can't program DMA1, DMA2 or DMAMUX. DMA goes through an `ecall`
+  service: a fixed channel table (the SD card's DMA2 channel 1), one
+  16 KB buffer in DTCM that is the only memory a channel ever points at,
+  user buffers checked on every call (DTCM .data/.bss only, never the
+  stack, the peripherals or code), and the channel, its DMAMUX request
+  and the buffer burned after every transfer. RCC and CRC share the
+  block and user mode writes them, so `HardFault_Handler` does those
+  stores for it (`guard.c` decodes them); stores to the DMA registers,
+  the flash controller, USBFS or the RNG fault (-127 to Forth). This
+  also stops `READ-BLOCK` at level 0 aiming the card's DMA into the I/O
+  page. Not covered: the ECDC (a bus master with its own addresses,
+  outside the block, still programmed by `ecdc.c`), and machine-mode
+  code in ITCM, which user mode can still write (no entry left).
 
 - **What's set today** (`V5F/User/pmp.c`, with today's layout: the V5F
   at 0x10000, LiteForth's pages at 0x30000, the board record at 0x70000,
@@ -483,7 +497,7 @@ token.
   |---|---|---|---|---|
   | 0 | 0x00070000-0x00077FFF, the low window over the records | none | none | yes |
   | 1 | 0x08070000-0x08077FFF: the board record, stage 1's records | none | all | no |
-  | 2 | 0x40022000-0x40022FFF: the flash controller | none | all | no |
+  | 2 | 0x40020000-0x40023FFF: DMA1, DMA2, DMAMUX, RCC, the flash controller, CRC, USBFS, RNG | read | all | no |
   | 3 | all memory | RWX | RWX | yes |
 
   There are four entries, so the device token's sectors share entry 1

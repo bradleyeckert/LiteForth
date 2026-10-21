@@ -48,13 +48,15 @@ typedef struct {
     uint8_t public_key[32];         /* X25519, if has_key */
 } board_info;
 
-/* board_serve's services (pmp.c's ecall passes these numbers on) */
+/* board_serve's services (pmp.c's ecall passes these numbers on). They
+   take no pointers: the data goes through a mailbox in board.c, which
+   board.c's user-mode callers fill and empty. */
 enum {
-    BOARD_SVC_INFO = 16,            /* a: board_info */
-    BOARD_SVC_ENROLL,               /* a: board_info; makes and writes the key
-                                       if there's no valid record */
-    BOARD_SVC_X25519,               /* a: their public key (32 bytes), b: the
-                                       shared secret (32 bytes) */
+    BOARD_SVC_INFO = 16,            /* out: a board_info */
+    BOARD_SVC_ENROLL,               /* out: a board_info; makes and writes the
+                                       key if there's no valid record */
+    BOARD_SVC_X25519,               /* in: their public key; out: the shared
+                                       secret (32 bytes each) */
     BOARD_SVC_LAST = BOARD_SVC_X25519
 };
 
@@ -63,10 +65,11 @@ enum {
  * BOARD_SVC_INFO to BOARD_SVC_LAST. Holds everything that needs the
  * private key: reads and checks the record (which user mode can't reach),
  * makes the key (from the RNG, or the UID below level 2) and writes the
- * record, and computes X25519 with it. Buffers (a, b) must lie in DTCM.
+ * record, and computes X25519 with it. a and b are ignored: it reads and
+ * writes only board.c's mailbox, never memory user mode points it at.
  * Wipes the key and the record from its stack before returning.
- * @return 0, ERR_INVALID_ADDRESS, ERR_UNSUPPORTED_OPERATION (no key, or
- * the RNG failed its checks), or ERR_FLASH_WRITE_SECTOR.
+ * @return 0, ERR_UNSUPPORTED_OPERATION (no key, or the RNG failed its
+ * checks), or ERR_FLASH_WRITE_SECTOR.
  */
 int board_serve(uint32_t n, uint32_t a, uint32_t b);
 

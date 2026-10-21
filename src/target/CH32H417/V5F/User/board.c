@@ -214,22 +214,33 @@ static int serve_x25519(uint8_t shared[32], const uint8_t their_public[32]) {
     return have ? 0 : ERR_UNSUPPORTED_OPERATION;
 }
 
+/* The services' mailbox. Machine mode reads and writes only this, never a
+   buffer user mode points it at: the ecall handler's frames are on user
+   mode's stack, so a pointer just below the caller's sp would have it
+   overwrite its own return address. The user-mode wrappers below copy in
+   and out, and wipe it. */
+static union {
+    board_info info;
+    struct {
+        uint8_t their[32];              /* in: their public key */
+        uint8_t shared[32];             /* out: the shared secret */
+    } x;
+} mail;
+
 int board_serve(uint32_t n, uint32_t a, uint32_t b) {
+    (void)a;
+    (void)b;
     switch (n) {
-    case BOARD_SVC_INFO:                /* a = board_info */
+    case BOARD_SVC_INFO:
+        return serve_info(&mail.info);
     case BOARD_SVC_ENROLL:
-        if (!pmp_in_dtcm(a, sizeof(board_info)) || (a & 3u)) {
-            return ERR_INVALID_ADDRESS;
-        }
-        return n == BOARD_SVC_INFO ? serve_info((board_info *)a)
-                                   : serve_enroll((board_info *)a);
-    case BOARD_SVC_X25519: {            /* a = their public key, b = shared */
+        return serve_enroll(&mail.info);
+    case BOARD_SVC_X25519: {
         uint8_t their[32];
-        if (!pmp_in_dtcm(a, 32) || !pmp_in_dtcm(b, 32)) {
-            return ERR_INVALID_ADDRESS;
-        }
-        memcpy(their, (const void *)a, 32);
-        return serve_x25519((uint8_t *)b, their);
+        memcpy(their, mail.x.their, 32);
+        int ior = serve_x25519(mail.x.shared, their);
+        crypto_wipe(their, sizeof their);
+        return ior;
     }
     default:
         return ERR_UNSUPPORTED_OPERATION;
@@ -237,6 +248,15 @@ int board_serve(uint32_t n, uint32_t a, uint32_t b) {
 }
 
 /* ---- User mode --------------------------------------------------------- */
+
+/* Calls BOARD_SVC_INFO or BOARD_SVC_ENROLL; *info gets the mailbox's */
+static int info_service(uint32_t n, board_info *info) {
+    memset(&mail, 0, sizeof mail);
+    int ior = pmp_call(n, 0, 0);
+    *info = mail.info;
+    crypto_wipe(&mail, sizeof mail);
+    return ior;
+}
 
 static void uid(uint8_t out[8]) {
     memcpy(out, (const void *)UID_ADDR, 8);
@@ -255,7 +275,12 @@ static void put_hex(const uint8_t *p, int n) {
 #ifdef SEALED_ROOT_KEY
 /* sealed_board.x25519: the shared secret from machine mode */
 static int x25519_service(uint8_t shared[32], const uint8_t their_public[32]) {
-    return pmp_call(BOARD_SVC_X25519, (uint32_t)their_public, (uint32_t)shared);
+    memset(&mail, 0, sizeof mail);
+    memcpy(mail.x.their, their_public, 32);
+    int ior = pmp_call(BOARD_SVC_X25519, 0, 0);
+    memcpy(shared, mail.x.shared, 32);
+    crypto_wipe(&mail, sizeof mail);
+    return ior;
 }
 #endif
 
@@ -268,7 +293,7 @@ int board_get(sealed_board *b, char *msg, int len) {
 #else
     static const uint8_t root[32] = SEALED_ROOT_KEY;
     board_info info;
-    if (pmp_call(BOARD_SVC_INFO, (uint32_t)&info, 0) != 0 || !info.has_key) {
+    if (info_service(BOARD_SVC_INFO, &info) != 0 || !info.has_key) {
         snprintf(msg, len, "this board has no key: run enroll");
         return ERR_UNSUPPORTED_OPERATION;
     }
@@ -286,7 +311,7 @@ int board_get(sealed_board *b, char *msg, int len) {
 int lfAPI_enroll(void) {
     board_info info;
     uint8_t id[8];
-    int ior = pmp_call(BOARD_SVC_ENROLL, (uint32_t)&info, 0);
+    int ior = info_service(BOARD_SVC_ENROLL, &info);
     if (ior == ERR_UNSUPPORTED_OPERATION) {
         lf_puts("enroll: the RNG failed its checks; no key made");
         lfCR();

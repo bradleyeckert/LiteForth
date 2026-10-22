@@ -18,6 +18,8 @@ directory given (default work/), with scripts/admin/sealblocks.py:
     app.lfu         new.bin and pages.bin (component app), version 4
     app.bin         what app.lfu puts in flash: new.bin padded to the slot, then the pages
     appshort.lfu    an app package with too few pages (stage 1 refuses it)
+    app5.lfu        v3.bin and pages5.bin (component app), version 5
+    app5.bin        what app5.lfu puts in flash
 """
 import contextlib
 import io
@@ -98,6 +100,14 @@ def main():
            '--pages', 'pages.bin', '--slot', slot]
     tool('package', 'new.bin', 'app.lfu', *app, '--revision', 4)
     tool('package', 'new.bin', 'appshort.lfu', *app, '--pages-len', 192 * 1024, '--revision', 4)
+    pages5 = image(pages_len, 13)
+    with open('pages5.bin', 'wb') as f:
+        f.write(pages5)
+    with open('app5.bin', 'wb') as f:
+        f.write(images['v3.bin'] + b'\xff' * (slot - len(images['v3.bin'])) + pages5)
+    app5 = ['--component', 'app', '--release', 'rel.key', '--boards', 'boards.csv',
+            '--pages', 'pages5.bin', '--slot', slot]
+    tool('package', 'v3.bin', 'app5.lfu', *app5, '--revision', 5)
 
 
 if __name__ == '__main__':

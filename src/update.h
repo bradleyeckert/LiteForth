@@ -42,6 +42,9 @@
 #ifndef UPD_PAGES_LEN
 #define UPD_PAGES_LEN       (256u * 1024u)  /* LiteForth's flash pages, right after the slot */
 #endif
+#ifndef UPD_HEADER
+#define UPD_HEADER          0x0A000u    /* the installed image's package block 0, one sector */
+#endif
 #define UPD_APP_SPAN        (UPD_V5F_SLOT + UPD_PAGES_LEN)  /* a SEALED_V5F_APP image */
 #ifndef UPD_TRIAL_BOOTS
 #define UPD_TRIAL_BOOTS     3u          /* boots on trial before a rollback */
@@ -75,6 +78,15 @@ typedef struct {
                            the V5F can't write them). Else the MAC covers
                            the V5F slot only, so a developer can still
                            change the pages after an app package */
+    int check_signature;/* the boot check also needs the release key's
+                           signature (SECURITY_LEVEL 2, with check_pages):
+                           the installed package's block 0 is kept at
+                           UPD_HEADER (and in the backup), and every boot
+                           checks it with the root key and the image against
+                           its hash, so a changed image fails even if the
+                           token, and so the MAC key, leaked. Only app
+                           packages (SEALED_V5F_APP) install, since the
+                           signature must cover the pages too */
 } upd_io;
 
 /* The state of an update, in the record */
@@ -137,7 +149,8 @@ enum {
  * Stage 1 at every boot: reads the record (making the token and a new
  * record if both copies are blank), carries on with any update under way
  * or starts one if package_waiting says lfstage.bin holds a package,
- * then checks the V5F image against its MAC. keys holds the root key,
+ * then checks the V5F image against its MAC (and with check_signature
+ * against the signed block 0 kept at UPD_HEADER). keys holds the root key,
  * the product, this board's UID and X25519 private key (min_revision and
  * min_serial are taken from the record). rec receives the record as it
  * ends up; msg one line saying what happened.

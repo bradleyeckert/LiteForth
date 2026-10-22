@@ -192,6 +192,12 @@ is refused.
    KEK, unwrap the CEK and check it against the CEK check.
 6. Keep the CEK and nonce in RAM, never in flash.
 
+`sealed_check_signed` does steps 1 to 4 alone, without the file or the
+recipients, for stage 1's boot check at `SECURITY_LEVEL` 2, which keeps
+the installed package's block 0 and checks the image in flash against its
+image hash at every boot ([firmware-updates.md](firmware-updates.md)
+section 1).
+
 Then `sealed_open_block` checks each content block n as it's read: it
 reads the table block that covers n (`C + n / 256`), checking its hash
 against block 0 unless it's the one it read last, hashes block n with

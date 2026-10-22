@@ -50,7 +50,8 @@ static int in_range(uint32_t addr, uint32_t len) {
     uint32_t end = addr + len;
     return (addr >= UPD_V5F_ADDR && end <= UPD_V5F_ADDR + UPD_APP_SPAN && end > addr)
         || (addr >= UPD_RECORD_A && end <= UPD_RECORD_A + UPD_SECTOR)
-        || (addr >= UPD_RECORD_B && end <= UPD_RECORD_B + UPD_SECTOR);
+        || (addr >= UPD_RECORD_B && end <= UPD_RECORD_B + UPD_SECTOR)
+        || (addr >= UPD_HEADER && end <= UPD_HEADER + UPD_SECTOR);
 }
 
 static int f_read(uint32_t addr, void *buf, uint32_t len) {
@@ -269,6 +270,7 @@ static void io_init(void) {
     io.hw_rev = 0;
     io.adopt_blank = SEC_ADOPT;             /* see stage1.h */
     io.check_pages = SEC_LOCKED_PAGES;      /* the flash pages are part of the image */
+    io.check_signature = SEC_SIGNED_BOOT;   /* and the release key signed them */
 }
 
 /* ------------------------------------------------------------------------

@@ -76,8 +76,12 @@ uint32_t sealed_blocks(void) {
     return content_end;
 }
 
-/* sealed_mount_package, or without unwrap the same checks up to finding
-   this board among the recipients, with no key (sealed_verify_package) */
+enum { KEYLESS, UNWRAP, SIGNED_ONLY };
+
+/* sealed_mount_package (UNWRAP); KEYLESS, the same checks up to finding
+   this board among the recipients, with no key (sealed_verify_package);
+   SIGNED_ONLY, only up to the signature and version, mounting nothing
+   (sealed_check_signed) */
 static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
                  sealed_read_fn read, char *msg, int len, sealed_package *pkg, int unwrap) {
     sealed_unmount();
@@ -151,6 +155,12 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
     if (rev < board->min_revision) {
         return fail(msg, len, "an older revision than this board takes");
     }
+    if (unwrap == SIGNED_ONLY) {
+        sealed_unmount();
+        snprintf(msg, len, "revision %lu, release key %lu: signed",
+                 (unsigned long)rev, (unsigned long)get32(h + 80));
+        return 0;
+    }
 
     /* this board's content key */
     const uint8_t *entry = NULL;
@@ -164,7 +174,7 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
     if (entry == NULL) {
         return fail(msg, len, "this board isn't one of its recipients");
     }
-    if (!unwrap) {
+    if (unwrap == KEYLESS) {
         keyless = 1;
         goto mounted;
     }
@@ -211,7 +221,12 @@ mounted:
 
 int sealed_mount_package(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
                          sealed_read_fn read, char *msg, int len, sealed_package *pkg) {
-    return mount(b0, file_blocks, board, read, msg, len, pkg, 1);
+    return mount(b0, file_blocks, board, read, msg, len, pkg, UNWRAP);
+}
+
+int sealed_check_signed(const uint8_t *b0, const sealed_board *board,
+                        sealed_package *pkg, char *msg, int len) {
+    return mount(b0, UINT32_MAX, board, NULL, msg, len, pkg, SIGNED_ONLY);
 }
 
 static const char *component_name(uint32_t c) {
@@ -274,13 +289,13 @@ static int check_package(uint32_t file_blocks, const sealed_board *board,
 int sealed_check_package(uint32_t file_blocks, const sealed_board *board,
                          sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
                          char *msg, int len) {
-    return check_package(file_blocks, board, read, buf, pkg, msg, len, 1);
+    return check_package(file_blocks, board, read, buf, pkg, msg, len, UNWRAP);
 }
 
 int sealed_verify_package(uint32_t file_blocks, const sealed_board *board,
                           sealed_read_fn read, uint8_t *buf, sealed_package *pkg,
                           char *msg, int len) {
-    return check_package(file_blocks, board, read, buf, pkg, msg, len, 0);
+    return check_package(file_blocks, board, read, buf, pkg, msg, len, KEYLESS);
 }
 
 int sealed_open_block(uint32_t n, uint8_t *buf) {

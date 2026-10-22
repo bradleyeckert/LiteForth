@@ -9,6 +9,7 @@
  * must end up running the old image or the new one, exactly, and never
  * anything else. */
 #include <setjmp.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -157,7 +158,7 @@ static int rng(uint8_t *out, int len) {
 
 static upd_io io = {
     f_read, f_erase, f_write, s_read, STAGE_BLOCKS, b_read, b_write, BACKUP_BLOCKS,
-    rng, 1, 1, 0,
+    rng, 1, 1, 0, 0,
 };
 
 /* ------------------------------------------------------------------------
@@ -539,6 +540,194 @@ static void test_app_locked(void) {
     io.check_pages = 0;
 }
 
+/* ------------------------------------------------------------------------
+ * SECURITY_LEVEL 2 with check_signature: the boot check needs the release
+ * key's signature, kept with the image at UPD_HEADER
+ */
+static uint8_t *app5_img;               /* what app5.lfu puts in flash */
+static long app5_len;
+
+static void b2s_person(blake2s_state *S, const uint8_t *key, int klen, const char *person) {
+    uint8_t p[8] = {0};
+    memcpy(p, person, strlen(person));
+    b2s_init(S, 32, key, klen, NULL, p);
+}
+
+/* What someone who has read the token can do: a record whose MAC matches
+   the image in flash now, as version `version`, stored as the newest copy.
+   (update.c's image_mac and record_hash, repeated here.) */
+static void forge_record(uint32_t version) {
+    upd_record r;
+    blake2s_state S;
+    uint8_t k[32], vl[8];
+    CHECK(upd_record_load(&io, &r) == 0, "forge: a record to start from");
+    b2s_person(&S, r.token, 32, "LFimage");
+    b2s_final(&S, k);
+    b2s_person(&S, k, 32, "LFimgmac");
+    for (int i = 0; i < 4; i++) {
+        vl[i] = (uint8_t)(version >> (8 * i));
+        vl[4 + i] = (uint8_t)(UPD_APP_SPAN >> (8 * i));
+    }
+    b2s_puts(&S, vl, 8);
+    b2s_puts(&S, flash + UPD_V5F_ADDR, UPD_APP_SPAN);
+    b2s_final(&S, r.v5f_mac);
+    r.v5f_version = version;
+    r.v5f_length = UPD_APP_SPAN;
+    r.state = UPD_IDLE;
+    r.progress = 0;
+    r.seq++;
+    b2s_person(&S, NULL, 0, "LFrecord");
+    b2s_puts(&S, (const uint8_t *)&r, (int)offsetof(upd_record, hash));
+    b2s_final(&S, r.hash);
+    memcpy(flash + ((r.seq & 1) ? UPD_RECORD_B : UPD_RECORD_A), &r, sizeof r);
+}
+
+static int header_is(const char *package) {
+    long len;
+    uint8_t *p = load(package, &len);
+    int same = memcmp(flash + UPD_HEADER, p, UPD_BLOCK) == 0;
+    free(p);
+    return same;
+}
+
+/* A production board: no adopt, the pages and the signature checked;
+   app.lfu installed from recovery (a blank record) and confirmed */
+static void signed_board(void) {
+    io.check_pages = 1;
+    io.check_signature = 1;
+    io.adopt_blank = 0;
+    fresh();
+    put_package("app.lfu");
+    int r = boot(1);
+    CHECK(r == UPD_START && is_region(app_img) && rec.state == UPD_TRIAL && header_is("app.lfu"),
+          "signed: app installed from recovery, its block 0 kept: %d %s", r, msg);
+    CHECK(upd_confirm(&io) == 0 && boot(0) == UPD_START && rec.result == UPD_R_INSTALLED,
+          "signed: confirmed: %s", msg);
+}
+
+static void test_signed(void) {
+    static uint8_t flash0[FLASH_SIZE], backup0[sizeof backup];
+    signed_board();
+
+    put_package("new0.lfu");            /* the pages wouldn't be signed */
+    int r = boot(1);
+    CHECK(r == UPD_START && rec.result == UPD_R_REFUSED && strstr(msg, "only app packages")
+          && is_region(app_img), "signed: a V5F-only package refused: %s", msg);
+
+    /* the token leaked: a changed image with a matching MAC still fails */
+    signed_board();
+    flash[PAGE_BYTE] ^= 0x40;
+    forge_record(4);
+    io.check_signature = 0;
+    r = boot(0);
+    CHECK(r == UPD_START, "unsigned check: the forged MAC passes (%s)", msg);
+    io.check_signature = 1;
+    r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN,
+          "signed: a changed page with a forged MAC goes to recovery: %d %s", r, msg);
+    signed_board();
+    flash[UPD_V5F_ADDR + 100] ^= 1;     /* the V5F's code */
+    forge_record(4);
+    CHECK(boot(0) == UPD_RECOVERY, "signed: changed code with a forged MAC: %s", msg);
+
+    /* the kept block 0 changed, or another package's */
+    signed_board();
+    flash[UPD_HEADER + 200] ^= 1;
+    CHECK(boot(0) == UPD_RECOVERY, "signed: a changed block 0: %s", msg);
+    signed_board();
+    long len;
+    uint8_t *b5 = load("app5.lfu", &len);
+    memcpy(flash + UPD_HEADER, b5, UPD_BLOCK);
+    CHECK(boot(0) == UPD_RECOVERY, "signed: another package's block 0: %s", msg);
+    signed_board();                     /* that package's image and block 0, an old version */
+    memcpy(flash + UPD_V5F_ADDR, app5_img, UPD_APP_SPAN);
+    memcpy(flash + UPD_HEADER, b5, UPD_BLOCK);
+    forge_record(5);
+    CHECK(boot(0) == UPD_START, "signed: another genuine release starts (%s)", msg);
+    free(b5);
+
+    /* an update backs up the block 0 with the image; a failed trial restores both */
+    signed_board();
+    put_package("app5.lfu");
+    r = boot(1);
+    CHECK(r == UPD_START && is_region(app5_img) && header_is("app5.lfu")
+          && rec.v5f_version == 5, "signed: app5 installed: %d %s", r, msg);
+    memcpy(flash0, flash, sizeof flash);
+    memcpy(backup0, backup, sizeof backup);
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_region(app_img)
+          && header_is("app.lfu"), "signed: rolled back with its block 0: %d %s", r, msg);
+    /* a changed image restored from the backup, block 0 and all */
+    flash[PAGE_BYTE] ^= 0x40;
+    r = boot(0);
+    CHECK(r == UPD_START && rec.result == UPD_R_ROLLED_BACK && is_region(app_img)
+          && header_is("app.lfu"), "signed: a changed image restored: %d %s", r, msg);
+
+    /* a backup made without the signature check isn't trusted */
+    io.check_signature = 0;
+    signed_board();
+    io.check_signature = 0;
+    put_package("app5.lfu");
+    boot(1);
+    io.check_signature = 1;
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN,
+          "signed: a backup without its block 0 isn't restored: %d %s", r, msg);
+
+    /* power cuts through an install over a signed image */
+    signed_board();
+    put_package("app5.lfu");
+    long start = steps;
+    boot(1);
+    long total = steps - start, done = 0;
+    for (long k = 0; k < total; k++) {
+        signed_board();
+        put_package("app5.lfu");
+        cut_at = steps + k;
+        boot(1);
+        int boots = 0;
+        do {
+            r = boot(1);
+        } while (r < 0 && ++boots < 3);
+        if (r == UPD_START && is_region(app5_img) && header_is("app5.lfu")
+            && rec.v5f_version == 5) {
+            done++;
+        } else {
+            fail("signed install cut at step %ld of %ld: %d, %s", k, total, r, msg);
+        }
+    }
+    CHECK(done == total, "signed: every cut resumed the install (%ld of %ld)", done, total);
+
+    /* and through the rollback */
+    memcpy(flash, flash0, sizeof flash);
+    memcpy(backup, backup0, sizeof backup);
+    for (unsigned i = 0; i < UPD_TRIAL_BOOTS; i++) boot(0);
+    memcpy(flash0, flash, sizeof flash);
+    start = steps;
+    boot(0);
+    total = steps - start;
+    CHECK(rec.result == UPD_R_ROLLED_BACK, "signed rollback reference run: %s", msg);
+    done = 0;
+    for (long k = 0; k < total; k++) {
+        memcpy(flash, flash0, sizeof flash);
+        memcpy(backup, backup0, sizeof backup);
+        cut_at = steps + k;
+        boot(0);
+        r = boot(0);
+        if (r == UPD_START && is_region(app_img) && header_is("app.lfu")
+            && rec.result == UPD_R_ROLLED_BACK) {
+            done++;
+        } else {
+            fail("signed rollback cut at step %ld of %ld: %d, %s", k, total, r, msg);
+        }
+    }
+    CHECK(done == total, "signed: every cut resumed the rollback (%ld of %ld)", done, total);
+
+    io.check_pages = 0;
+    io.check_signature = 0;
+    io.adopt_blank = 1;
+}
+
 /* The package replaced while an install was cut short. (Cut during the
    backup instead, the update simply starts over, with whatever package is
    there then: that's right, since nothing has been programmed yet.) */
@@ -681,6 +870,7 @@ int main(void) {
     new_img = load("new.bin", &new_len);
     v3_img = load("v3.bin", &v3_len);
     app_img = load("app.bin", &app_len);
+    app5_img = load("app5.bin", &app5_len);
     long n;
     uint8_t *root = load("root.pub.bin", &n), *board = load("board.bin", &n);
     memcpy(keys.root, root, 32);
@@ -702,6 +892,7 @@ int main(void) {
     test_debugger_adopt();
     test_app_development();
     test_app_locked();
+    test_signed();
 
     test_board_key();
 

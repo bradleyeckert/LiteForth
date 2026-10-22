@@ -15,8 +15,9 @@ the build options involved.
   ([firmware-updates.md](firmware-updates.md) section 5): the V5F firmware
   and LiteForth's flash pages, as a developer built them from block files,
   encrypted for a list of boards and signed by you. Stage 1 installs it,
-  backs up what it replaces, and at `SECURITY_LEVEL` 2 checks the pages
-  at every boot.
+  backs up what it replaces, and at `SECURITY_LEVEL` 2 checks the
+  firmware and the pages against your signature at every boot. A level 2
+  board takes only app packages.
 
 Sealed block files (encrypted, signed `lfblocks.fb4`,
 [encrypted-blocks.md](encrypted-blocks.md)) were the first way to ship an
@@ -234,8 +235,9 @@ same level.
 - **2, a product:** the key from the RNG, one of the device token's
   keys, made with stage 1's record by `enroll` in recovery (section 3);
   then only an image stage 1 installed starts; only packages write LiteForth's flash pages (`open-flash` and
-  `save-pages` refuse), and stage 1 checks them at every boot; no
-  `adopt`; and the V5F starts only on a locked board.
+  `save-pages` refuse), and stage 1 checks them at every boot, with the
+  firmware, against the package's signature (so only app packages
+  install); no `adopt`; and the V5F starts only on a locked board.
 
 The UID key at levels 0 and 1 is BLAKE2s of the board's unique ID
 (personalization `LFinsec1`), so `enroll` prints the same line every time,

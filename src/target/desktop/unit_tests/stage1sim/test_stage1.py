@@ -40,6 +40,7 @@ UID = '0102030405060708'
 PRODUCT = 0x4C46
 SLOT = 0x1C000                          # V3F/User/stage1_layout.h
 V5F_ADDR = 0x14000
+PAGES_LEN = 0x40000                     # LiteForth's flash pages, after the slot
 FLASH_SIZE = 0x100000
 ERASED = bytes.fromhex('39E339E3') * (FLASH_SIZE // 4)    # 0xE339E339, little-endian
 LOCKED_OBR = '%X' % (0x2 | (0x01 << 2))  # read protection on, downloads off
@@ -685,14 +686,39 @@ def s_enroll():
     cwd = os.getcwd()
     os.chdir(WORK)
     try:
-        tool('package', 'v1.bin', pkg, '--component', 'v5f', '--release', 'rel.key',
+        # level 2 takes only app packages: the slot and the flash pages, all signed
+        with open('pages.bin', 'wb') as f:
+            f.write(bytes((i * 13 + (i >> 9)) & 255 for i in range(PAGES_LEN)))
+        tool('package', 'v1.bin', pkg, '--component', 'app', '--pages', 'pages.bin',
+             '--release', 'rel.key', '--boards', csv, '--revision', 1)
+        tool('package', 'v1.bin', pkg + '.v5f', '--component', 'v5f', '--release', 'rel.key',
              '--boards', csv, '--revision', 1)
     finally:
         os.chdir(cwd)
-    check(r.ymodem(pkg), 'enroll strict: package sent')
-    got = r.wait_debug(r'installed|refused|unwrap|stopped')
-    check(got and 'installed' in got, f'enroll strict: the package opens with the board\'s key ({got})')
+    check(r.ymodem(pkg + '.v5f'), 'enroll strict: V5F-only package sent')
+    got = r.wait_debug(r'V3F update refused|V3F update: version')
+    check(got and 'only app packages' in got, f'strict: a V5F-only package refused ({got})')
     r.stop()
+    r = b.boot(**locked)
+    r.wait_usb('recovery ok> ')
+    check(r.ymodem(pkg), 'enroll strict: package sent')
+    got = r.wait_debug(r'V3F update refused|V3F update: version|unwrap|stopped')
+    check(got and 'version 1 installed' in got,
+          f'enroll strict: the package opens with the board\'s key ({got})')
+    r.stop()
+    line = until_started(b, **locked)
+    check(line and 'LiteForth' in line, f'strict: the signed image starts ({line})')
+    # a changed flash page, as if the token had leaked and the MAC were forged:
+    # the signature check alone would catch it; here both do
+    with open(os.path.join(b.dir, 'flash.bin'), 'r+b') as f:
+        f.seek(V5F_ADDR + 0x1C000 + 5000)
+        x = f.read(1)
+        f.seek(-1, 1)
+        f.write(bytes([x[0] ^ 0x20]))
+    r = b.boot(**locked)
+    line = r.wait_debug(r'recovery mode|LiteForth starting')
+    r.stop()
+    check(line and 'recovery mode' in line, f'strict: a changed page never starts ({line})')
 
 
 def s_lockdown():

@@ -9,7 +9,10 @@
  * flash layout. So for now:
  *
  * - It does nothing at all on a board that has never been updated: no
- *   security record and no package waiting. Then the V3F boots as before.
+ *   security record and no package waiting. Then the V3F boots as before,
+ *   below SECURITY_LEVEL 2; at 2 (SEC_SIGNED_BOOT) that's recovery, as
+ *   is a record it can't read or a board with no key yet, since only an
+ *   image that passes the check may start.
  * - Below SECURITY_LEVEL 2 (SEC_ADOPT), a blank record takes the
  *   V5F image in flash (its whole 128 KB slot) as installed, version 0
  *   (upd_io.adopt_blank), so that it can be backed up and rolled back to,

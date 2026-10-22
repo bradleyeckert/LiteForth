@@ -328,8 +328,8 @@ static int enter_recovery(const char *why) {
     recovering = 1;
     CDC_SHARED->binary = CDC_BINARY_MAGIC;  /* no Ctrl+X restart: there's no V5F */
     CDC_FENCE();
-    printf("V3F: recovery mode: the V5F stays off%s\r\n",
-           locked_out ? "" : "; waiting for a package over USB");
+    printf("V3F: recovery mode: the V5F stays off%s (%s)\r\n",
+           locked_out ? "" : "; waiting for a package over USB", why);
     return STAGE1_RECOVERY;
 }
 
@@ -375,6 +375,17 @@ static int start_or_not(int updating) {
     return STAGE1_START;
 }
 
+/* No image check could be made (no record, or no key). Below level 2 the
+   V5F starts as before; at level 2 (SEC_SIGNED_BOOT) only an image that
+   passes the check starts, so it's recovery: else erasing the record
+   sectors would start anything in the slot unchecked. */
+static int unchecked(const char *why, int waiting) {
+    if (SEC_SIGNED_BOOT && !locked_out) {
+        return enter_recovery(why);
+    }
+    return start_or_not(waiting);
+}
+
 void stage1_wait_v5f(void) {
     for (uint32_t ms = 0; STAGE1_V5F_START_MS == 0 || ms < STAGE1_V5F_START_MS; ms++) {
         if (HSEM_GetFlagStatus(HSEM_ID0) == SET) {
@@ -410,17 +421,17 @@ int stage1_boot(void) {
     int waiting = (CDC_SHARED->update == CDC_UPDATE_MAGIC);
     int r = upd_record_load(&io, &rec);
     publish_revision(r == 0 ? rec.v5f_version : 0);
-    if (r == 1 && !waiting) {
-        return start_or_not(waiting);       /* never updated: boot as before */
+    if (r == 1 && !waiting) {               /* never updated */
+        return unchecked("no V5F image installed: type enroll, then send an app package", waiting);
     }
     if (r < 0) {
         printf("V3F update: can't read the security record (%d)\r\n", r);
-        return start_or_not(waiting);
+        return unchecked("can't read the security record", waiting);
     }
     if (keys_get(&keys, r == 0 ? &rec : NULL, &why) != 0) {
         printf("V3F update: %s; nothing done\r\n", why);
         CDC_SHARED->update = 0;
-        return start_or_not(waiting);
+        return unchecked(why, waiting);
     }
     int busy = (r == 0 && rec.state != UPD_IDLE);
     card_open();                            /* a record exists, or a package waits */

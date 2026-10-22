@@ -234,7 +234,8 @@ same level.
   and a write to a read-only one is write-protected (-20).
 - **2, a product:** the key from the RNG, one of the device token's
   keys, made with stage 1's record by `enroll` in recovery (section 3);
-  then only an image stage 1 installed starts; only packages write LiteForth's flash pages (`open-flash` and
+  only an image stage 1 installed starts (until then, or if the record
+  is ever erased, the board stays in recovery); only packages write LiteForth's flash pages (`open-flash` and
   `save-pages` refuse), and stage 1 checks them at every boot, with the
   firmware, against the package's signature (so only app packages
   install); no `adopt`; and the V5F starts only on a locked board.

@@ -742,8 +742,12 @@ def s_lockdown():
     check(r.expect_byte({CAN}, 5) == CAN, 'strict: a package refused')
     r.stop()
     check(not any('LiteForth starting' in l for l in r.debug), 'strict: the V5F never starts')
-    line = b.boot_until(r'LiteForth starting|recovery', strict=True, obr=LOCKED_OBR, wpr=LOCKED_WPR)
-    check(line and 'LiteForth' in line, 'strict: a locked board starts')
+    r = b.boot(strict=True, obr=LOCKED_OBR, wpr=LOCKED_WPR)
+    line = r.wait_debug(r'LiteForth starting|recovery mode')
+    r.stop()
+    check(line and 'recovery mode' in line and 'no V5F image installed' in line
+          and not any('not locked down' in l for l in r.debug),
+          f'strict: a locked board with no record stays in recovery, unchecked images never start ({line})')
 
 
 def s_lockdown_command():
@@ -767,7 +771,9 @@ def s_lockdown_command():
     check(line and 'RDPR 00FF USER 3E01 WRPR0 0000: ok' in line,
           f'lockdown yes: option bytes as the check wants ({line})')
     r = b.boot(strict=True)
-    check(r.wait_debug(r'LiteForth starting') is not None, 'locked: the V5F starts')
+    line = r.wait_debug(r'LiteForth starting|recovery mode')
+    check(line and 'no V5F image installed' in line,
+          f'locked: no lock-down warning, recovery until an image is installed ({line})')
     r.stop()
     check(not any('not locked down' in l for l in r.debug), 'locked: no warning')
     b2 = Board('lockdown-level0')       # level 0: recovery by Ctrl+X x3 twice

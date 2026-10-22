@@ -354,7 +354,12 @@ the V5F, with today's flash map (`stage1_layout.h`):
 
 The V5F's PMP entry 0 covers everything below its slot (section 8). It
 does nothing at all on a board that has never been updated
-(no record and no package waiting), so such a board boots as before.
+(no record and no package waiting), so such a board boots as before,
+below level 2. At level 2 it goes to recovery instead, and so does a board
+whose record can't be read or that has no key yet: there the V5F starts
+only after the boot check passes, so erasing the record sectors doesn't
+start whatever is in the slot. A freshly locked level 2 board therefore
+waits in recovery for `enroll` and its first app package.
 Otherwise it opens the card (WCH's polling SD driver) and runs
 `upd_boot`, then wakes the V5F. When LiteForth starts, the V5F sets
 `update` in the shared block to `CDC_CONFIRM_MAGIC`, and the V3F's USB loop

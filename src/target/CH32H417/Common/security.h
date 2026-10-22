@@ -38,8 +38,9 @@
  *   write to a read-only one is write-protected (-20).
  * 2, a product: as 1, and the board's key is one of the device token's,
  *   so it comes from the RNG with stage 1's record (`enroll` once in
- *   recovery, at provisioning; then only an image stage 1 installed
- *   starts), stage 1 has no `adopt`, and a board that isn't
+ *   recovery, at provisioning), only an image stage 1 installed and
+ *   checks starts (with no record, before `enroll` or after the record
+ *   sectors were erased, the V5F stays off), stage 1 has no `adopt`, and a board that isn't
  *   locked down (read protection, write protection, the boot ROM's
  *   downloads) doesn't start the V5F: it stays in recovery, which takes
  *   only `reset`, and the debugger can still reprogram it.

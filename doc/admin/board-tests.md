@@ -2494,8 +2494,7 @@ V3F: USB configured
 **Result:** pass. On a locked level 2 board, stage 1 started the V5F
 only once an app package signed by the release key had been installed.
 After that it checked the signature and the image hash over the slot
-and pages at every boot, and passed each time; boot wasn't noticeably
-slower. Not tested on the board:
+and pages at every boot, and passed each time. Not tested on the board:
 - A changed image or page. The debugger can't write a locked board, so
   `unit_tests/update` and `stage1sim` cover it, including a record
   forged with a valid MAC.

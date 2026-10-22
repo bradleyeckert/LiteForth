@@ -25,8 +25,9 @@ start; lock reads the probe's view only at the end.
 run:
  1. Refuses a board that's read- or write-protected already: wlink's flash
     would unprotect it first, which wipes it or clears its write protection.
- 2. Flashes V3F (default at 0x08000000) and V5F (default at 0x08014000)
-    with wlink, without erasing anything else, reads the start of each back
+ 2. Flashes V5F (default at 0x08014000), then V3F (default at 0x08000000)
+    with wlink (the V3F last: the probe often can't attach once a level 2
+    stage 1 runs in recovery), without erasing anything else, reads the start of each back
     to check it, and resets the chip. A .hex or .elf carries its addresses.
  3. On the debug port, the level 2 build's stage 1 says the board isn't
     locked down and stays in recovery; on the cli port, its recovery
@@ -272,8 +273,10 @@ def cmd_run(a):
     debug_seen.update(port=dbg, start=dbg.mark())
     start = dbg.mark()
     if a.cmd == 'run':
-        flash(wl, a.v3f, a.v3f_address, v3f_bin)
+        # the V5F first: once the V3F's level 2 stage 1 runs (in recovery, the
+        # board still open), the probe often can't attach again (0x55)
         flash(wl, a.v5f, a.v5f_address, v5f_bin)
+        flash(wl, a.v3f, a.v3f_address, v3f_bin)
         if v3f_bin:
             verify(wl, a.v3f, a.v3f_address)
         if v5f_bin:

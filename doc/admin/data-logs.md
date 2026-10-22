@@ -57,8 +57,15 @@ When it opens a file, the V5F:
    refuses an all-zero shared secret.
 4. Computes `master = BLAKE2s(es || E || S, key=k_auth, person="LFlogkey")`.
 5. Derives `k_enc` (16 bytes, AES-128), `nonce` (8 bytes) and `k_hdr`
-   (32 bytes) from `master` with BLAKE2s, personalizations `LFlogenc`,
-   `LFlognon` and `LFloghdr`.
+   (32 bytes) from `master`: BLAKE2s of nothing, keyed with `master`,
+   with that digest size and personalizations `LFlogenc`, `LFlognon` and
+   `LFloghdr`.
+
+Every BLAKE2s here is plain BLAKE2s (RFC 7693, as Python's
+`hashlib.blake2s`) with a key and an 8-byte personalization, the digest
+32 bytes unless said otherwise. `src/datalog.c` and
+`scripts/admin/lflog.py` are the two implementations, and
+`unit_tests/datalog` checks that they agree.
 6. Wipes `e`, `es`, `k_auth` and `master`.
 
 Stage 1 takes `S` from the V5F rather than holding its own copy. For any
@@ -99,10 +106,10 @@ rest of block 0 is zeros:
 | 12 | 4 | Server key ID |
 | 16 | 8 | `file_id`: random, so blocks from an earlier log are told apart |
 | 24 | 32 | `E` |
-| 56 | 32 | Identity, encrypted by XOR with `BLAKE2s(k_id, person="LFlogidx")`: the UID (8 bytes), the RTC time at the start (8), the firmware version (4), the security level (1), reserved |
+| 56 | 32 | Identity, encrypted by XOR with `BLAKE2s("", key=k_id, person="LFlogidx")`: the UID (8 bytes), the RTC time at the start (8, little-endian seconds), the firmware version (4), the security level (1), 11 zeros |
 | 88 | 40 | Reserved, 0 |
 | 128 | 1024 | Application header, encrypted with AES-128-CTR under `k_enc` (counters `nonce \|\| i`, i = 0 to 63, which no record uses): the CODEC settings, sample rate, channel map, and whatever else the application adds later. Unused bytes are 0 |
-| 1152 | 16 | Header tag: `BLAKE2s(bytes 0-1151, key=k_hdr, size 16)` |
+| 1152 | 16 | Header tag: `BLAKE2s(bytes 0-1151, key=k_hdr, person="LFloghtg", size 16)` |
 
 **Blocks 1 on, the records.** Each 32 KB block is one record, 256 units
 of 128 bytes: a header unit split between the record's two ends, and 255
@@ -345,11 +352,14 @@ never overwritten.
 A PC tool (`scripts/admin/lflog.py`, with `cryptography`, like
 `sealblocks.py`):
 
-- `open LOG --server-key s.key --boards boards.csv`: checks the header,
-  names the board, then checks and decrypts every record, writing the
-  payload out. It reports gaps, bad tags, and whether the log was closed.
-- `server-key`: makes `s`/`S` and the key ID, and adds `S` to
-  `sealed_root.h` (`root-header`).
+- `open LOG --server-key s.key --boards boards.csv -o OUT`: checks the
+  header, names the board, then checks and decrypts every record, writing
+  the sample blocks to OUT (and the application header with
+  `--app-header FILE`). It reports bad frames and tags, and whether the
+  log was closed.
+- `server-key OUT --key-id N`: makes `s`/`S` (OUT.key, OUT.pub).
+- `header OUT.pub`: writes `log_server.h`, `S` and the key ID for the
+  board's build.
 
 The server keeps every `s` it has ever used, by key ID, for old logs.
 
@@ -357,14 +367,15 @@ The server keeps every `s` it has ever used, by key ID, for old logs.
 
 | Part | Where |
 |---|---|
-| Log format and key derivation, shared by board and tests | `src/datalog.c/.h`, plain C, through callbacks like `update.c` |
+| Log format and key derivation, shared by board and tests | `src/datalog.c/.h`, plain C (done) |
+| Making, closing and recovering log files | `src/logfile.c/.h`, on `exfat_create` and `exfat_trim` (done) |
 | `k_auth` service | Stage 1 (`stage1_poll`), a request in the shared block like `enroll` |
-| exFAT making, closing and recovery | `src/exfat.c` (writing the entry set and bitmap), the first file-system writes in C |
+| exFAT making and trimming | `src/exfat.c`: `exfat_create`, `exfat_trim` (done) |
 | Forth words | `log-open ( c-addr u -- ior )`, `log-close`, `log-recover`, and the application header |
 | I2S capture | A machine-mode service to start and stop the I2S DMA channels into the pool (section 4), and the I2S/SAI and CODEC setup |
 | The pool in general-purpose SRAM | `Link_v5f.ld` and `memalloc.c` (the pool at 0x20140000, 224 KB), Guarded DMA allowing it, the 4 KB static buffers taken from the pool instead (section 4) |
-| PC tool | `scripts/admin/lflog.py` |
-| Tests | `unit_tests/datalog`: round trips with `lflog.py`, every tamper (byte, reorder, a record from another file, a forged header), power cuts at every write including during the close, and recovery on `mkexfat.py` images |
+| PC tool | `scripts/admin/lflog.py` (done) |
+| Tests | `unit_tests/datalog` (done): round trips with `lflog.py`, the bitmap checked independently, every tamper (a byte, a reorder, a record from another file, one framed to fit, the identity, the application header, the wrong board), and power cuts every 5 sector writes through making, writing and closing, with recovery on `mkexfat.py` images |
 
 ## 9. To decide
 

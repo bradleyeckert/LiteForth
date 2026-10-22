@@ -585,7 +585,8 @@ token.
   can't program DMA1, DMA2 or DMAMUX. DMA goes through an `ecall`
   service: a fixed channel table (the SD card's DMA2 channel 1), one
   16 KB buffer in DTCM that is the only memory a channel ever points at,
-  user buffers checked on every call (DTCM .data/.bss only, never the
+  user buffers checked on every call (DTCM .data/.bss, or since
+  22 October 2026 the memory pool in general-purpose SRAM; never the
   stack, the peripherals or code), and the channel, its DMAMUX request
   and the buffer burned after every transfer. RCC and CRC share the
   block and user mode writes them, so `HardFault_Handler` does those
@@ -641,7 +642,8 @@ token.
   machine mode (`Ecall_U_Mode_Handler`, pmp.c) that programs a LiteForth
   flash page, its address and buffer checked. A service never writes
   where user mode points it unless the buffer lies in DTCM's .data or
-  .bss (`guard_buffer_ok`): the handler's frames share user mode's stack,
+  .bss, or in the pool (`guard_buffer_ok`; the pool, in general-purpose
+  SRAM at 0x20140000, holds nothing of machine mode): the handler's frames share user mode's stack,
   so a pointer just below the caller's sp could overwrite machine mode's
   return address. Guarded DMA checks its buffers that way. The V5F holds
   no key: until 21 October 2026 its machine mode kept the board's

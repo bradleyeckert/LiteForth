@@ -116,9 +116,13 @@ static volatile struct {
     int32_t ior;
 } svc;
 
-MMODE int pmp_in_dtcm(uint32_t p, uint32_t n)
+extern char _pool_start[], _pool_end[];     /* Link_v5f.ld */
+
+MMODE int pmp_in_ram(uint32_t p, uint32_t n)
 {
-    return p >= DTCM_BASE && p < DTCM_END && n <= DTCM_END - p;
+    uint32_t lo = (uint32_t)_pool_start, hi = (uint32_t)_pool_end;
+    return (p >= DTCM_BASE && p < DTCM_END && n <= DTCM_END - p)
+        || (p >= lo && p < hi && n <= hi - p);
 }
 
 /* In machine mode. Nothing here may fault: a fault in a trap handler
@@ -170,7 +174,7 @@ MMODE static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
             return ERR_WRITE_PROTECTED;   /* only update packages write them */
         }
         if (a < start || a - start >= size || (a - start) % PAGE_BYTES
-            || !pmp_in_dtcm(b, PAGE_BYTES) || (b & 3u)) {
+            || !pmp_in_ram(b, PAGE_BYTES) || (b & 3u)) {
             return ERR_INVALID_ADDRESS;
         }
         uint32_t mie = flash_ram_begin();

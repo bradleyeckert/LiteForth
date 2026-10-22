@@ -13,7 +13,9 @@
 /* 32-byte aligned: the RAM page is the first allocation, and its block
    buffers (F_BLOCKBUFS, forth.h) are aligned for the CH32H417's ECDC
    engine, which then decrypts them in place (V5F/User/ecdc.c) */
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(POOL_SECTION)              /* the CH32H417's V5F: general-purpose SRAM (options.h) */
+static uint32_t pool[POOL_CAPACITY] __attribute__((aligned(32), section(POOL_SECTION)));
+#elif defined(__GNUC__) || defined(__clang__)
 static uint32_t pool[POOL_CAPACITY] __attribute__((aligned(32)));
 #elif defined(_MSC_VER)
 static __declspec(align(32)) uint32_t pool[POOL_CAPACITY];

@@ -36,6 +36,7 @@
 #include "v5f_crumbs.h"                /* reset debugging trail */
 #include "cdc_shared.h"                /* update: a package waits for stage 1 */
 #include "gdma.h"                       /* Guarded DMA: the card's channel */
+#include "../../../../memalloc.h"     /* pool_alloc: buffers needed now and then */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
 
 extern uint32_t g_block_capacity;       /* api0.c: what `capacity` shows */
@@ -512,13 +513,19 @@ static int card_read(uint32_t sector, uint8_t *buf) {
 }
 
 /* If block 0 of the block file is sealed (sealed_not_blocks), offers
-   nothing and never writes it. Install space (map.space) is kept. */
+   nothing and never writes it. Install space (map.space) is kept. Block 0
+   is read into a buffer from the pool; with none to be had, the block file
+   is offered read-only and empty, as if it were sealed. */
 static void check_not_blocks(void) {
-    static uint32_t b0[BLK_SIZE_BYTES / 4];
-    if (map.blocks == 0 || blk_raw_read(0, b0, 1) != 0) {
+    if (map.blocks == 0) {
         return;
     }
-    const char *why = sealed_not_blocks((const uint8_t *)b0);
+    uint32_t *b0 = pool_alloc(BLK_SIZE_BYTES / 4);
+    const char *why = "no memory to check block 0: no blocks offered";
+    if (b0 != NULL) {
+        why = blk_raw_read(0, b0, 1) == 0 ? sealed_not_blocks((const uint8_t *)b0) : NULL;
+        pool_free(b0);
+    }
     if (why) {
         writable = 0;
         limit = 0;
@@ -719,17 +726,23 @@ static int stage_block(uint32_t blk, uint8_t *buf) {
 }
 
 int blk_stage_check(sealed_package *pkg, char *msg, int len) {
-    static uint32_t buf[BLK_SIZE_BYTES / 4] __attribute__((aligned(32)));
     sealed_board board;
     int err = board_get(&board, msg, len);
     if (err) {
         memset(&board, 0, sizeof board);
         return err;
     }
+    uint32_t *buf = pool_alloc(BLK_SIZE_BYTES / 4);     /* 32-byte aligned */
+    if (buf == NULL) {
+        memset(&board, 0, sizeof board);
+        snprintf(msg, len, "no memory left to check the package");
+        return ERR_ALLOCATE_FAILED;
+    }
     err = sealed_verify_package(stage_blocks, &board, stage_block, (uint8_t *)buf,
                                 pkg, msg, len);
     memset(&board, 0, sizeof board);
-    return err;
+    int free_err = pool_free(buf);
+    return err ? err : free_err;
 }
 
 void blk_stage_ready(void) {

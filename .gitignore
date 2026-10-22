@@ -23,6 +23,7 @@ src/target/desktop/unit_tests/stage1sim/work/
 src/target/desktop/unit_tests/stage1sim/reports/
 src/target/desktop/unit_tests/blocksim/work/
 src/target/desktop/unit_tests/datalog/dltest
+src/target/desktop/unit_tests/datalog/dltest_hw
 src/target/desktop/unit_tests/datalog/work/
 hil-report-*.md
 lockdown-report-*.md

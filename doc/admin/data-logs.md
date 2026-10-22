@@ -96,8 +96,10 @@ The board makes the file under the name it's given (section 6): 4 GB long
 is a run of 32 KB blocks: 131072 of them, 64 sectors each, so a block
 starts at sector `first + 64 n`.
 
-**Block 0, the header.** Its first three sectors carry the following; the
-rest of block 0 is zeros:
+**Block 0, the header.** Its first three sectors carry the following, its
+last 16 bytes end it as a record ends (`n` = 0, `file_id`, `LFLE`), so a
+block 0 the power cut short isn't taken for a header, and the rest of it
+is zeros:
 
 | Offset | Size | Contents |
 |---|---|---|
@@ -273,11 +275,14 @@ DTCM. Whatever the RAM, choose cards by their worst write latency for
 ## 5. After a power cut
 
 `log-recover` (run at start-up, before a new log opens) walks the root
-directory for files with DataLength 4 GB and ValidDataLength 0, whose
-block 0 starts with `LFLOG001`. A closed log never looks like that. For
-each one:
+directory for files with DataLength 4 GB and ValidDataLength 0, which a
+closed log never has. For each one:
 
-1. Read block 0's first sector; check `LFLOG001`; take `file_id`.
+1. Read block 0's first sector; check `LFLOG001`; take `file_id`; check
+   block 0's end (its last sector: `n` = 0, `file_id`, `LFLE`). Without a
+   whole header, the power went before or while block 0 was written: a
+   file whose first sector is clear (`log_make` clears it) or starts with
+   `LFLOG001` is deleted, and anything else is left alone.
 2. Block n is written if its first sector holds `LFLB`, `file_id` and `n`,
    and its last sector holds `n`, `file_id` and `LFLE`. Since blocks are
    written in order, binary search finds the last written block in about
@@ -287,6 +292,10 @@ each one:
 3. Close the file after that block (section 6). No key is needed, and
    none is available: the file keys died with the power.
 
+On the board, an encryption that fails (the ECDC engine timing out
+partway) wipes the record, never written, and the next one takes its
+number, so the log has no gap and no plaintext reaches the card.
+
 The server sees the file ends without the last-record flag and reports
 "ended without a close". That can't be told apart from someone cutting
 the tail off the file, so the server should treat an unclosed log's end
@@ -295,6 +304,11 @@ as unproven, but every record before it is still checked by its tag.
 A block that is torn in its middle sectors (both frame sectors written,
 one in between not) passes the board's scan but fails its tag at the
 server, which then reports where the damage is.
+
+A log on clusters where a deleted log was can't bring the old one back:
+the first sector of every new file is cleared before its entry set is
+written, so a cut before the new block 0 leaves a clear sector, not the
+old header.
 
 ## 6. Closing the file in exFAT
 
@@ -326,12 +340,17 @@ claims it.
    of bitmap. Scanning a whole card's bitmap is 64 KB at most on a 64 GB
    card, and 512 KB on a 1 TB one.
 2. **Allocate:** set the run's bits in the bitmap.
-3. **The entry set:** three free consecutive entries in the root
-   directory (a name of up to 15 characters), all in one sector: the
+3. **Clear the file's first sector**, so nothing an earlier file left
+   there passes for this log's header (section 5).
+4. **The entry set:** three free consecutive entries in the root
+   directory (a name of up to 15 characters), all in one sector. If that
+   sector is past the end-of-directory entry (type 0, where every reader
+   stops), the type 0 entries before it become unused ones (type 05)
+   first, or the new file would be invisible. Then the
    stream entry with DataLength 4 GB, ValidDataLength 0, FirstCluster,
    AllocationPossible and NoFatChain; the file entry with the RTC's
    timestamps; NameHash and SetChecksum.
-4. **Block 0** (section 3), then the records.
+5. **Block 0** (section 3), then the records.
 
 That's reading the bitmap and writing a few sectors, nothing that touches
 the 4 GB itself (ValidDataLength 0 means the PC reads zeros past what was
@@ -340,7 +359,7 @@ second, even on a large card, so files are made on the board, not
 pre-made on the PC. If measuring shows otherwise, the PC can pre-make
 them and `log-open` takes an existing one. A cut during making leaves at
 worst bits set that no file owns, the same lost space as in closing: the
-bitmap goes first, the entry set second. A root directory with no free
+bitmap goes first, the entry set last. A root directory with no free
 entries in one sector would need another cluster and the FAT; the first
 version refuses with a clear message instead.
 
@@ -356,7 +375,12 @@ A PC tool (`scripts/admin/lflog.py`, with `cryptography`, like
   header, names the board, then checks and decrypts every record, writing
   the sample blocks to OUT (and the application header with
   `--app-header FILE`). It reports bad frames and tags, and whether the
-  log was closed.
+  log was closed. A file that wasn't trimmed (copied off the card before
+  the board's recovery) gets one note for the blocks past its last
+  record, not a problem for each. It warns when the board's key in
+  `boards.csv` is a development key, made from the UID (levels 0 and 1),
+  since anyone who knows the UID could have written that log. It reads a
+  block at a time, so a 4 GB file is no trouble.
 - `server-key OUT --key-id N`: makes `s`/`S` (OUT.key, OUT.pub).
 - `header OUT.pub`: writes `log_server.h`, `S` and the key ID for the
   board's build.

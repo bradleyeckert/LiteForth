@@ -659,7 +659,10 @@ int exfat_create(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
     fat_cached = 0;
     dir_cursor d;
     dir_open(&d, read, vol, vol->root);
-    uint32_t sector = 0, index = 0, run = 0;
+    /* The first end-of-directory entry (type 0) marks the end for every
+       reader: if the set goes in a later sector than that, the type 0
+       entries before it are changed to unused ones (0x05) first */
+    uint32_t sector = 0, index = 0, run = 0, end_sector = 0, end_index = 0;
     for (;;) {
         uint32_t at;
         const uint8_t *e = dir_entry(&d, &err, &at);
@@ -668,6 +671,10 @@ int exfat_create(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
         }
         if (d.index == 0) {
             run = 0;                            /* a set doesn't cross sectors here */
+        }
+        if (e[0] == T_END && end_sector == 0) {
+            end_sector = at;
+            end_index = d.index;
         }
         if (e[0] & T_INUSE) {
             run = 0;
@@ -691,6 +698,30 @@ int exfat_create(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
     err = bitmap_mark(read, write, start, first, (uint32_t)n64, 1);
     if (err) {
         return err;
+    }
+    /* the file's first sector cleared, so what an earlier file left there is
+       never taken for this one's (data-logs.md section 5) */
+    memset(w_buf, 0, sizeof w_buf);
+    err = write(exfat_cluster_sector(vol, first), (const uint8_t *)w_buf);
+    if (err) {
+        return err;
+    }
+    if (end_sector && end_sector != sector) {   /* the end moves past the new set */
+        err = read(end_sector, (uint8_t *)dir_buf);
+        if (err) {
+            return err;
+        }
+        for (uint32_t i = end_index; i < ENTRIES_PER_SECTOR; i++) {
+            uint8_t *u = (uint8_t *)dir_buf + i * ENTRY_BYTES;
+            if (u[0] == T_END) {
+                memset(u, 0, ENTRY_BYTES);
+                u[0] = 0x05;                    /* unused, not the end */
+            }
+        }
+        err = write(end_sector, (const uint8_t *)dir_buf);
+        if (err) {
+            return err;
+        }
     }
 
     /* the entry set */
@@ -783,4 +814,38 @@ int exfat_trim(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
                            (uint32_t)(old_n - new_n), 0);
     }
     return 0;
+}
+
+int exfat_delete(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
+                 const exfat_file *file) {
+    if (!(file->flags & EXFAT_NOFATCHAIN) || file->first_cluster < 2) {
+        return ERR_DELETE_FILE_FAILED;
+    }
+    int err = read(file->entry_sector, (uint8_t *)dir_buf);
+    if (err) {
+        return err;
+    }
+    uint8_t *e = (uint8_t *)dir_buf + file->entry_offset;
+    int count = e[1];
+    if (e[0] != T_FILE || count < 2
+        || file->entry_offset + (uint32_t)(count + 1) * ENTRY_BYTES > EXFAT_SECTOR_BYTES
+        || le16(e + 2) != set_checksum(e, count)
+        || le32(e + ENTRY_BYTES + 20) != file->first_cluster
+        || le64(e + ENTRY_BYTES + 24) != file->length) {
+        return ERR_DELETE_FILE_FAILED;
+    }
+    for (int i = 0; i <= count; i++) {
+        e[i * ENTRY_BYTES] &= (uint8_t)~T_INUSE;    /* 85 -> 05, C0 -> 40, C1 -> 41 */
+    }
+    err = write(file->entry_sector, (const uint8_t *)dir_buf);
+    if (err) {
+        return err;
+    }
+    uint32_t cbytes_shift = 9u + vol->spc_shift;
+    uint64_t n = (file->length + (1ull << cbytes_shift) - 1) >> cbytes_shift;
+    uint32_t start = bitmap_start(read, vol);
+    if (start == 0) {
+        return ERR_BLK_PARSE_FAIL;
+    }
+    return bitmap_mark(read, write, start, file->first_cluster, (uint32_t)n, 0);
 }

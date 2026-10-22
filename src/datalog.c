@@ -114,7 +114,13 @@ int dl_open(dl_state *d, const uint8_t S[32], uint32_t key_id, uint8_t e[32],
     if (app_header) {
         memcpy(block0 + H_APP, app_header, DL_APP_HEADER);
     }
-    ctr_crypt_block(&d->key, d->nonce, 0, block0 + H_APP, DL_APP_HEADER);
+    /* its end, framed as a record's with n = 0: a torn block 0 isn't a log */
+    put32(block0 + R_END_N, 0);
+    memcpy(block0 + R_END_ID, file_id, 8);
+    memcpy(block0 + R_END_MAGIC, "LFLE", 4);
+    if (ctr_crypt_block(&d->key, d->nonce, 0, block0 + H_APP, DL_APP_HEADER) != 0) {
+        bad = 1;                            /* the engine failed: the header may be plain */
+    }
     kdf(k, 32, master, 32, "LFloghdr", NULL, 0, NULL, 0);
     kdf(block0 + H_TAG, 16, k, 32, "LFloghtg", block0, H_TAG, NULL, 0);
 
@@ -125,6 +131,11 @@ int dl_open(dl_state *d, const uint8_t S[32], uint32_t key_id, uint8_t e[32],
     crypto_wipe(master, sizeof master);
     crypto_wipe(k, sizeof k);
     crypto_wipe(pad, sizeof pad);
+    if (bad) {
+        crypto_wipe(block0, DL_RECORD);
+        dl_close(d);
+        return -1;
+    }
     return 0;
 }
 
@@ -142,7 +153,7 @@ uint32_t dl_record(dl_state *d, uint8_t *rec, uint32_t samples, int last) {
     if (samples > DL_SAMPLES || d->n == 0 || d->n >= 0x1FFFFFFFu) {
         return 0;
     }
-    uint32_t n = d->n++;
+    uint32_t n = d->n++;            /* back again if the encryption fails */
     memset(rec, 0, DL_PAYLOAD);
     memset(rec + DL_PAYLOAD + samples * DL_SAMPLE, 0, (DL_SAMPLES - samples) * DL_SAMPLE);
     memset(rec + R_TAG, 0, DL_RECORD - R_TAG);
@@ -161,7 +172,11 @@ uint32_t dl_record(dl_state *d, uint8_t *rec, uint32_t samples, int last) {
     uint32_t left = DL_SAMPLES * DL_SAMPLE;
     for (uint32_t j = 0; left; j++) {
         uint32_t take = left < 4096u ? left : 4096u;
-        ctr_crypt_block(&d->key, d->nonce, n * CTR_PER_RECORD + j, p, take);
+        if (ctr_crypt_block(&d->key, d->nonce, n * CTR_PER_RECORD + j, p, take) != 0) {
+            crypto_wipe(rec, DL_RECORD);    /* part plain, part not: never written */
+            d->n = n;                       /* the next record takes its number */
+            return 0;
+        }
         p += take;
         left -= take;
     }
@@ -177,7 +192,8 @@ void dl_close(dl_state *d) {
     crypto_wipe(d, sizeof *d);
 }
 
-/* Whether block k holds a record of the log file_id, by its frame */
+/* Whether block k holds a record of the log file_id, by its frame (block
+   0: the header, whose end is framed as a record's with n = 0) */
 static int written(dl_read_fn read, void *ctx, uint32_t k, const uint8_t id[8],
                    uint8_t *buf, int *err) {
     uint32_t spb = DL_RECORD / DL_SECTOR;
@@ -185,8 +201,9 @@ static int written(dl_read_fn read, void *ctx, uint32_t k, const uint8_t id[8],
     if (*err) {
         return 0;
     }
-    if (memcmp(buf + R_MAGIC, "LFLB", 4) != 0 || memcmp(buf + R_FILE_ID, id, 8) != 0
-        || get32(buf + R_N) != k) {
+    if (k == 0 ? memcmp(buf + H_MAGIC, DL_MAGIC, 8) != 0 || memcmp(buf + H_FILE_ID, id, 8) != 0
+               : memcmp(buf + R_MAGIC, "LFLB", 4) != 0 || memcmp(buf + R_FILE_ID, id, 8) != 0
+                 || get32(buf + R_N) != k) {
         return 0;
     }
     *err = read(ctx, k * spb + spb - 1, buf);
@@ -207,6 +224,9 @@ int32_t dl_find_end(dl_read_fn read, void *ctx, uint32_t blocks, uint8_t *buf) {
         return 0;
     }
     memcpy(id, buf + H_FILE_ID, 8);
+    if (!written(read, ctx, 0, id, buf, &err)) {
+        return err ? (err < 0 ? err : -1) : 0;  /* block 0 torn */
+    }
     /* blocks 1 .. lo-1 are written, hi and beyond aren't */
     uint32_t lo = 1, hi = blocks;
     while (lo < hi) {

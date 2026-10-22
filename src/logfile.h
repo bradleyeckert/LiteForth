@@ -28,17 +28,20 @@ int log_make(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
 int log_close(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
               exfat_file *file, uint32_t blocks, uint32_t timestamp);
 
-/* What log_recover found, for each log left open: its name, and the
-   blocks it holds (0 if block 0 isn't a log's: the file is then left as
-   it is) */
+/* What log_recover found, for each file it looked at: its name, the
+   blocks of the log it closed (0: deleted, or not a log and left alone),
+   and an error, or 0 */
 typedef void (*log_found_fn)(void *ctx, const char *name, uint32_t blocks, int err);
 
 /**
  * Closes every log a power cut left open: the root directory's files
  * `bytes` long (as log_make made them) with ValidDataLength 0 and
- * NoFatChain, whose block 0 is a log's. Finds each one's end by its
- * records' frames (dl_find_end), with no key, and trims it there. Calls
- * found (if not NULL) for each such file.
+ * NoFatChain. One whose block 0 is a whole log header: its end found by
+ * its records' frames (dl_find_end), with no key, and trimmed there. One
+ * whose first sector is clear or a torn header (the power went before or
+ * while block 0 was written): deleted. Anything else: left alone. Calls
+ * found (if not NULL) for each file looked at, with the blocks kept (0
+ * for a file deleted or left alone).
  * Returns the number of logs closed, or a negative error.
  */
 int log_recover(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,

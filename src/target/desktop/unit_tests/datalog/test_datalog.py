@@ -110,28 +110,46 @@ class Volume:
         if self.data[3:11] != b'EXFAT   ':
             start = struct.unpack_from('<I', self.data, 446 + 8)[0]
         b = start * 512
+        self.fat = start + struct.unpack_from('<I', self.data, b + 80)[0]
         self.heap = start + struct.unpack_from('<I', self.data, b + 88)[0]
         self.clusters = struct.unpack_from('<I', self.data, b + 92)[0]
         self.root = struct.unpack_from('<I', self.data, b + 96)[0]
-        self.spc = 1 << self.data[b + 109]
+        self.cluster_bytes = 512 << self.data[b + 109]
+        self.spc = self.cluster_bytes // 512
         self.files = {}
-        at = self.sector(self.root) * 512
-        while True:                     # the root fits its first cluster here
+        self.owned = set(self.chain(self.root))
+        for at in self.entries():         # up to the end-of-directory entry, as the spec says
             t = self.data[at]
-            if t == 0:
-                break
-            if t == 0x81:
-                self.bitmap = self.sector(struct.unpack_from('<I', self.data, at + 20)[0]) * 512
+            if t in (0x81, 0x82):         # the bitmap, the up-case table
+                first, length = struct.unpack_from('<IQ', self.data, at + 20)
+                self.owned.update(self.chain(first, length))
+                if t == 0x81:
+                    self.bitmap = self.sector(first) * 512
             if t == 0x85:
-                count = self.data[at + 1]
-                s = at + 32
-                n = self.data[s + 3]
+                st = at + 32
+                n = self.data[st + 3]
                 name = self.data[at + 66:at + 66 + 2 * n].decode('utf-16-le')
-                self.files[name] = (struct.unpack_from('<I', self.data, s + 20)[0],
-                                    struct.unpack_from('<Q', self.data, s + 24)[0],
-                                    struct.unpack_from('<Q', self.data, s + 8)[0])
-                at += 32 * count
-            at += 32
+                first = struct.unpack_from('<I', self.data, st + 20)[0]
+                length = struct.unpack_from('<Q', self.data, st + 24)[0]
+                valid = struct.unpack_from('<Q', self.data, st + 8)[0]
+                self.files[name] = (first, length, valid)
+                runs = (range(first, first + -(-length // self.cluster_bytes))
+                        if self.data[st + 1] & 2 else self.chain(first, length))
+                self.owned.update(runs)
+
+    def entries(self):
+        for c in self.chain(self.root):
+            for at in range(self.sector(c) * 512, self.sector(c) * 512 + self.cluster_bytes, 32):
+                if self.data[at] == 0:
+                    return
+                yield at
+
+    def chain(self, c, length=None):
+        out = []
+        while 2 <= c < 0xFFFFFFF7 and (length is None or len(out) * self.cluster_bytes < length):
+            out.append(c)
+            c = struct.unpack_from('<I', self.data, self.fat * 512 + 4 * c)[0]
+        return out
 
     def sector(self, c):
         return self.heap + (c - 2) * self.spc
@@ -139,6 +157,19 @@ class Volume:
     def used(self, c):
         i = c - 2
         return bool(self.data[self.bitmap + i // 8] & (1 << (i % 8)))
+
+    def unowned(self):
+        """Clusters marked used that nothing owns (space lost, never two owners)"""
+        return [c for c in range(2, self.clusters + 2) if self.used(c) and c not in self.owned]
+
+    def free_owned(self):
+        """Clusters a file owns but the bitmap says are free: that's the bad one"""
+        return [c for c in self.owned if not self.used(c)]
+
+    def contents(self, name):
+        first, length, _ = self.files[name]
+        at = self.sector(first) * 512
+        return bytes(self.data[at:at + length])
 
 
 def test_round_trip():
@@ -161,6 +192,8 @@ def test_round_trip():
     whole = BYTES // CLUSTER
     check(all(v.used(first + i) for i in range(used)), 'its clusters are marked used')
     check(not any(v.used(first + i) for i in range(used, whole)), 'the trimmed ones are free')
+    check(not v.unowned() and not v.free_owned(), 'the bitmap: every used cluster owned, '
+          'every owned one used')
 
     r = write(img, 'log1.bin', 3, 2, ok=(1,))
     check(r.returncode == 1, 'the same name again is refused', r.stdout + r.stderr)
@@ -222,7 +255,7 @@ def test_power_cuts():
     total = int(r.stdout.split()[0])
     plain = read('cut.bin.plain')
     outcomes = {}
-    for cut in list(range(0, total, 5)) + [total - 1]:
+    for cut in list(range(0, 80)) + list(range(80, total, 5)) + [total - 1]:
         img = os.path.join(WORK, 'cut.img')
         shutil.copy(base, img)
         r = write(img, 'cut.bin', 6, 9, cut=cut)
@@ -232,10 +265,15 @@ def test_power_cuts():
         rec = run([DLTEST, 'recover', img, str(BYTES)])
         length, valid = cat(img, 'cut.bin')
         v = Volume('cut.img')
-        if length is None:
+        check(not v.free_owned(), f'cut {cut}: no owned cluster is free in the bitmap')
+        if length is None:          # cut before the entry set, or a file deleted by recovery
+            check('cut.bin' not in rec.stdout or 'cut.bin 0 0' in rec.stdout,
+                  f'cut {cut}: deleted, not a log', rec.stdout)
             outcomes['no file'] = outcomes.get('no file', 0) + 1
-            continue                    # cut before the entry set: nothing to see
+            continue
         first = v.files['cut.bin'][0]
+        check(len(v.unowned()) <= BYTES // CLUSTER, f'cut {cut}: at most one file\'s '
+              f'clusters lost ({len(v.unowned())})')
         if valid == 0:                  # block 0 never written: recovery leaves it
             check('cut.bin 0' in rec.stdout and length == BYTES,
                   f'cut {cut}: a file with no log is left alone', rec.stdout)
@@ -261,6 +299,97 @@ def test_power_cuts():
     check(outcomes.get('recovered', 0) > 20, 'most cuts were recovered logs', str(outcomes))
 
 
+def test_many_logs():
+    """Twelve logs on one card: each one visible after the end-of-directory
+    entry moves past it (three entries a log), each opens, the bitmap exact"""
+    img = card('many.img')
+    for i in range(12):
+        r = write(img, f'm{i}.bin', 2, 100 + i)
+        check(r.returncode == 0, f'log m{i}', r.stdout + r.stderr)
+    v = Volume('many.img')
+    check(all(f'm{i}.bin' in v.files for i in range(12)), 'all twelve in the directory, '
+          'before its end', str(sorted(v.files)))
+    check(not v.unowned() and not v.free_owned(), 'the bitmap, exact', str(v.unowned()))
+    for i in range(12):
+        length, valid = cat(img, f'm{i}.bin')
+        code, out = lflog(f'm{i}.bin.log')
+        check(valid == 3 * RECORD and code == 0 and read('out.bin') == read(f'm{i}.bin.plain'),
+              f'm{i} opens', out)
+    r = write(img, 'm3.bin', 1, 1, ok=(1,))
+    check(r.returncode == 1, 'a name used far down the directory is still taken')
+
+
+def delete(path, name):
+    """What a PC does: the entry set unused, the bits cleared; the data stays"""
+    v = Volume(path)
+    first, length, _ = v.files[name]
+    for at in v.entries():
+        if v.data[at] == 0x85 and v.data[at + 66:at + 66 + 2 * len(name)] == name.encode('utf-16-le'):
+            for k in range(v.data[at + 1] + 1):
+                v.data[at + 32 * k] &= 0x7F
+    for c in range(first, first + -(-length // v.cluster_bytes)):
+        i = c - 2
+        v.data[v.bitmap + i // 8] &= ~(1 << (i % 8)) & 0xFF
+    with open(os.path.join(WORK, path), 'wb') as f:
+        f.write(v.data)
+
+
+def test_stale():
+    """A new log on a deleted one's clusters, cut before its block 0 is
+    whole: recovery never brings the old log back"""
+    base = card('stale.img')
+    write(base, 'old.bin', 10, 50)
+    delete('stale.img', 'old.bin')
+    for cut in range(0, 72):
+        img = os.path.join(WORK, 'st.img')
+        shutil.copy(base, img)
+        r = write(img, 'new.bin', 4, 51, cut=cut)
+        if r.returncode != 3:
+            continue
+        rec = run([DLTEST, 'recover', img, str(BYTES)])
+        length, valid = cat(img, 'new.bin')
+        if length is None:
+            continue
+        code, out = lflog('new.bin.log', out='st.out')
+        check(valid < RECORD or 'not a data log' in out or 'torn' in out or '10 records' not in out,
+              f'stale cut {cut}: the deleted log doesn\'t come back', out + rec.stdout)
+
+
+def test_lflog_edges():
+    with open(os.path.join(WORK, 'short.log'), 'wb') as f:
+        f.write(b'LFLOG001x')
+    code, out = lflog('short.log')
+    check(code == 1 and 'not a data log' in out, 'a short file is no log', out)
+    # a log copied off the card before recovery trimmed it: the whole 4 MB
+    img = card('untrim.img')
+    write(img, 'u.bin', 3, 60, close=False)
+    v = Volume('untrim.img')
+    with open(os.path.join(WORK, 'u.log'), 'wb') as f:
+        f.write(v.contents('u.bin'))
+    code, out = lflog('u.log', out='u.out')
+    check(code == 0 and 'wasn\'t trimmed' in out and 'not closed' in out
+          and out.count('problem') == 0 and read('u.out') == read('u.bin.plain'),
+          'an untrimmed file: one note, every record there', out)
+    # a board at level 0 or 1: its key comes from its UID
+    sys.path.insert(0, os.path.join(ROOT, 'scripts', 'admin'))
+    import sealblocks
+    from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+    dev = sealblocks.insecure_key(bytes.fromhex(UID))
+    shutil.copy(os.path.join(WORK, 'board.bin'), os.path.join(WORK, 'board.real'))
+    with open(os.path.join(WORK, 'board.bin'), 'wb') as f:
+        f.write(dev)
+    pub = X25519PrivateKey.from_private_bytes(dev).public_key().public_bytes_raw().hex()
+    with open(os.path.join(WORK, 'dev.csv'), 'w') as f:
+        f.write(f'{UID},{pub},dev\n')
+    img = card('dev.img')
+    write(img, 'd.bin', 2, 70)
+    cat(img, 'd.bin')
+    code, out = lflog('d.bin.log', boards='dev.csv')
+    check(code == 0 and 'WARNING' in out and 'development key' in out,
+          'a development board\'s log is flagged', out)
+    shutil.copy(os.path.join(WORK, 'board.real'), os.path.join(WORK, 'board.bin'))
+
+
 def main():
     try:
         import cryptography  # noqa: F401
@@ -273,6 +402,9 @@ def main():
     test_round_trip()
     test_tampering()
     test_power_cuts()
+    test_many_logs()
+    test_stale()
+    test_lflog_edges()
     if failures:
         print(f'datalog tests: {failures} of {checks} checks failed')
         return 1

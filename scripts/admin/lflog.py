@@ -76,8 +76,11 @@ class LogError(Exception):
 
 def keys_for(block0, s, S, boards):
     """The identity and the log's keys from block 0, or LogError"""
-    if block0[:8] != MAGIC:
-        raise LogError('not a data log (block 0 has no LFLOG001)')
+    if len(block0) < RECORD or block0[:8] != MAGIC:
+        raise LogError('not a data log (no whole block 0 starting LFLOG001)')
+    if (struct.unpack('<I', block0[-16:-12])[0] != 0 or block0[-12:-4] != block0[16:24]
+            or block0[-4:] != b'LFLE'):
+        raise LogError('block 0 is torn: the board never finished writing the header')
     if block0[8] != 1 or block0[9] != 1:
         raise LogError(f'unknown format {block0[8]} or cipher {block0[9]}')
     E = block0[24:56]
@@ -102,10 +105,12 @@ def keys_for(block0, s, S, boards):
         raise LogError(f'the header\'s tag doesn\'t match: not written by board {uid.hex()}, '
                        'or changed')
     start, firmware, level = struct.unpack('<QIB', ident[8:21])
+    dev = X25519PrivateKey.from_private_bytes(sb.insecure_key(uid)).public_key() \
+        .public_bytes_raw() == pub
     app = ctr(k_enc, nonce, 0, block0[H_APP:H_APP + APP_HEADER])
     return {'uid': uid, 'start': start, 'firmware': firmware, 'level': level,
             'key_id': struct.unpack('<I', block0[12:16])[0], 'file_id': block0[16:24],
-            'k_enc': k_enc, 'nonce': nonce, 'app': app}
+            'k_enc': k_enc, 'nonce': nonce, 'app': app, 'dev': dev}
 
 
 def open_record(rec, n, k):
@@ -132,45 +137,61 @@ def cmd_open(a):
     S = sb.hexbytes(key, 'public', 32, a.server_key)
     boards = {uid: pub for uid, pub in sb.read_boards(a.boards)}
     try:
-        with open(a.log, 'rb') as f:
-            data = f.read()
+        f = open(a.log, 'rb')
     except OSError as e:
         raise sb.SealError(str(e))
-    k = keys_for(data[:RECORD], s, S, boards)
-    if k['key_id'] != key.get('key_id', k['key_id']):
-        print(f'note: the log names server key {k["key_id"]}, this one is {key.get("key_id")}')
-    print(f'board {k["uid"].hex()}, started {k["start"]} (RTC seconds), firmware '
-          f'{k["firmware"]}, security level {k["level"]}')
-    out = open(a.out, 'wb') if a.out else None
-    if a.app_header:
-        with open(a.app_header, 'wb') as f:
-            f.write(k['app'])
-    n, total, closed, bad = 1, 0, False, 0
-    while (n + 1) * RECORD <= len(data):
-        rec = data[n * RECORD:(n + 1) * RECORD]
-        try:
-            samples, flags, plain = open_record(rec, n, k)
-        except LogError as e:
-            print(f'problem: {e}')
-            bad += 1
+    with f:
+        k = keys_for(f.read(RECORD), s, S, boards)
+        if k['key_id'] != key.get('key_id', k['key_id']):
+            print(f'note: the log names server key {k["key_id"]}, this one is '
+                  f'{key.get("key_id")}')
+        print(f'board {k["uid"].hex()}, started {k["start"]} (RTC seconds), firmware '
+              f'{k["firmware"]}, security level {k["level"]} (as the log says)')
+        if k['dev']:
+            print('WARNING: this board\'s key in boards.csv is a development key, made from '
+                  'its UID: anyone who knows the UID could have written this log')
+        if a.app_header:
+            with open(a.app_header, 'wb') as h:
+                h.write(k['app'])
+        out = open(a.out, 'wb') if a.out else None
+        n, last_good, total, closed = 1, 0, 0, False
+        problems = []                   # (block, is a frame problem, text)
+        while True:
+            rec = f.read(RECORD)
+            if not rec:
+                break
+            if len(rec) < RECORD:
+                problems.append((n, False, f'{len(rec)} bytes past the last whole block'))
+                break
+            try:
+                samples, flags, plain = open_record(rec, n, k)
+            except LogError as e:
+                problems.append((n, 'frame' in str(e), str(e)))
+                n += 1
+                continue
+            if closed:
+                problems.append((n, False, f'record {n} comes after the last one'))
+            if out:
+                out.write(plain)
+            total += samples
+            closed = closed or bool(flags & 1)
+            last_good = n
             n += 1
-            continue
-        if closed:
-            print(f'problem: record {n} comes after the last one')
-            bad += 1
         if out:
-            out.write(plain)
-        total += samples
-        closed = closed or bool(flags & 1)
-        n += 1
-    if len(data) % RECORD:
-        print(f'problem: {len(data) % RECORD} bytes past the last whole block')
-        bad += 1
-    if out:
-        out.close()
-    print(f'{n - 1} records, {total} sample blocks; '
+            out.close()
+    # Blocks past the last good record that aren't this log's at all: a file
+    # copied off the card before the board's recovery trimmed it, not damage
+    tail = [p for p in problems if p[0] > last_good]
+    untrimmed = not closed and tail and all(p[1] for p in tail)
+    shown = [p for p in problems if not (untrimmed and p[0] > last_good)]
+    for _, _, text in shown:
+        print(f'problem: {text}')
+    if untrimmed:
+        print(f'note: the file goes on {len(tail)} blocks past record {last_good}, holding no '
+              "record of this log: it wasn't trimmed (copied before the board's recovery?)")
+    print(f'{last_good} records, {total} sample blocks; '
           + ('closed' if closed else 'not closed: it ends at its last whole record, unproven'))
-    return 1 if bad else 0
+    return 1 if shown else 0
 
 
 def cmd_server_key(a):

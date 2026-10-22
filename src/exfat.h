@@ -100,11 +100,14 @@ typedef int (*exfat_write_fn)(uint32_t sector, const uint8_t *buf);
 /**
  * Makes a file `name` (1 to 15 printable ASCII characters, none of
  * them one of  " * / : < > ? \ |  ) in the root directory, `bytes` long (DataLength) with
- * ValidDataLength 0, on one run of free clusters, NoFatChain: so nothing
- * of the file's contents is written, and the FAT isn't touched. Its three
- * entries go in free entries of one sector of the root directory. Sets
- * the clusters' bits in the allocation bitmap first, then writes the entry
- * set, so a power cut between them leaves only clusters no file owns.
+ * ValidDataLength 0, on one run of free clusters, NoFatChain: the FAT
+ * isn't touched, and of the file's contents only its first sector is
+ * written (cleared, so nothing an earlier file left there passes for this
+ * one's). Its three entries go in free entries of one sector of the root
+ * directory; if that's past the end-of-directory entry, the end entries
+ * before it become unused ones (type 05). The bitmap's bits are set first,
+ * then the first sector cleared, then the directory written, so a power
+ * cut leaves at worst clusters no file owns.
  * `timestamp` is exFAT's (as DOS's: year - 1980, month, day, hours,
  * minutes, seconds / 2) for created and modified.
  * Returns 0 and fills in file, ERR_CREATE_FILE_FAILED if the name is bad
@@ -127,6 +130,17 @@ int exfat_create(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
  */
 int exfat_trim(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
                exfat_file *file, uint64_t bytes, uint32_t timestamp);
+
+/**
+ * Deletes file (as exfat_trim takes it: contiguous, NoFatChain, its entry
+ * set in one sector, unchanged since it was found): the entry set marked
+ * unused, then the file's clusters cleared in the bitmap. The contents
+ * stay on the card.
+ * Returns 0, ERR_DELETE_FILE_FAILED if the file isn't one this can delete,
+ * ERR_BLK_PARSE_FAIL, or read's or write's error.
+ */
+int exfat_delete(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
+                 const exfat_file *file);
 
 /**
  * The card sector where cluster c starts, or 0 if c isn't a cluster of

@@ -17,8 +17,13 @@ all: test
 dltest: $(UNITS) $(SRC)/datalog.h $(SRC)/logfile.h $(SRC)/exfat.h
 	$(CC) $(CFLAGS) $(UNITS) -o $@
 
-test: dltest
+# with a stand-in for the CH32H417's engine (ctr_hw_crypt), made to fail
+dltest_hw: $(UNITS) $(SRC)/datalog.h $(SRC)/logfile.h $(SRC)/exfat.h
+	$(CC) $(CFLAGS) -DCTR_HW $(UNITS) -o $@
+
+test: dltest dltest_hw
+	@./dltest_hw engine
 	@python3 test_datalog.py
 
 clean:
-	rm -rf dltest work __pycache__
+	rm -rf dltest dltest_hw work __pycache__

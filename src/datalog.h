@@ -66,7 +66,9 @@ int dl_board_auth(const uint8_t b[32], const uint8_t E[32], const uint8_t S[32],
  * server's public key S and auth's k_auth, and writes block 0 into block0
  * (DL_RECORD bytes, cleared first): file_id (8 random bytes), key_id, E,
  * the identity, app_header (DL_APP_HEADER bytes, or NULL for zeros), and
- * the header tag. Returns 0, or -1 if auth failed or S is unusable.
+ * the header tag, and block 0's end framed like a record's (n = 0).
+ * Returns 0, or -1 if auth failed, S is unusable, or the encryption
+ * failed (block0 is then wiped).
  */
 int dl_open(dl_state *d, const uint8_t S[32], uint32_t key_id, uint8_t e[32],
             const uint8_t file_id[8], const dl_identity *id, const uint8_t *app_header,
@@ -77,7 +79,9 @@ int dl_open(dl_state *d, const uint8_t S[32], uint32_t key_id, uint8_t e[32],
  * DL_PAYLOAD, `samples` of them, 0 to DL_SAMPLES; the rest is cleared):
  * the frame, the encryption, the tag. With last, flags it as the log's
  * last record. Returns the record's number (its block in the file), or 0
- * if samples is out of range or the log is used up.
+ * if samples is out of range, the log is used up, or the encryption
+ * failed (the CH32H417's engine): then rec is wiped, never to be written,
+ * and the next call makes the same record number.
  */
 uint32_t dl_record(dl_state *d, uint8_t *rec, uint32_t samples, int last);
 
@@ -95,8 +99,8 @@ typedef int (*dl_read_fn)(void *ctx, uint32_t s, uint8_t *buf);
  * by their frames at both ends), searching at most `blocks` blocks. Blocks
  * are written in order, so binary search finds the end. buf is a
  * DL_SECTOR-byte work buffer.
- * Returns the count (at least 1), 0 if block 0 isn't a log's, or a
- * negative error from read.
+ * Returns the count (at least 1), 0 if block 0 isn't a whole log header
+ * (not a log, or torn by the power cut), or a negative error from read.
  */
 int32_t dl_find_end(dl_read_fn read, void *ctx, uint32_t blocks, uint8_t *buf);
 

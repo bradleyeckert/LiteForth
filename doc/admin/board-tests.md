@@ -2384,3 +2384,120 @@ by code in flash, writes its flash pages through the routines copied in
 for each write, and boots from them. Not tested: whether user mode can
 reach the PFIC (its VTF registers), and machine mode's data in DTCM,
 which user mode can still write (firmware-updates.md section 8).
+
+### B25. Level 2: the boot check needs the release key's signature (22 October 2026)
+
+**Board and firmware:** the spare board, UID `e52116647f9c7a22`. Its read
+protection was removed (which erased it), then it was flashed with a
+`SECURITY_LEVEL` 2 build of branch `signed-boot` (PR #213) and locked
+down. The V3F was built from commit `4bea05a`, the V5F from `a765153`:
+that commit changed only the V3F and the tests.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 64864 | `3704b37a12418cca2e0ec5704589f5e8fa20251f0904c521b46da5716d8cd941` |
+| `LiteForth_V5F.bin` | 109496 | `39b50198b5d22402efb16b72fd17a1cefd92f1198b9d04adaa156f9c272a1bc8` |
+| `lfpages.bin` (pages from the main board's `save-pages`) | 262144 | `3a82a66f5ef091ca22d4a0854d1b3be04075f8a75eca50176c5b78855bc68bd3` |
+| `spare-app.lfu` (app package, version 1, for this board's key) | 385024 | `5854d7ebfcbdf8b5c3ecd86fa864389e852ab85a3c549e60c0aab4788e878ac0` |
+
+**Why:** at level 2, stage 1 now keeps the installed package's block 0
+(at 0x70000). At every boot it checks the root key's certificate, the
+release key's signature and the version minimums, then hashes the V5F
+slot and the flash pages against the image hash in that block 0. So a
+changed image doesn't start, even if the device token, the MAC key, had
+been read out.
+
+**A finding along the way:** the first lock-down of this board used a
+build from `a765153`. After the lock, that build started the V5F with
+no security record:
+
+```
+V3F: lockdown: option bytes now RDPR 00FF USER C03F WRPR0 FF00: ok
+V3F: starting the V5F
+V5F: LiteForth starting, flash is blank
+```
+
+That was stage 1's "never updated: boot as before". At level 2 it
+bypasses the signed check, since erasing the two record sectors would
+start whatever is in the slot. Commit `4bea05a` sends a level 2 board
+with no record, an unreadable record, or no key to recovery instead.
+`lockdown.py` takes that recovery, with no lock-down warning, as a
+locked start.
+
+**Flashing:** `lockdown.py run` twice failed to attach the WCH-LinkE
+(protocol error 0x55) once the level 2 stage 1 was running. The first
+time the V3F was flashed first; the second time the V5F was. So the
+images went in by MounRiver's download, and then `lockdown.py lock`
+locked the board without the probe.
+
+**Expected:** after the lock, recovery with no image installed. `enroll`
+makes the key, and the app package for it installs from recovery. The
+image starts, and starts again after every reset, so the signed check
+passes each time.
+
+**Run.** `lockdown.py lock` (the debug port, after `LOCK`):
+
+```
+V3F: lockdown: option bytes now RDPR 00FF USER C03F WRPR0 FF00: ok
+V3F lockdown: restarting (if the lock-down warning comes again, power it off and on)
+V3F: recovery mode: the V5F stays off; waiting for a package over USB (no V5F image installed: type enroll, then send an app package)
+V3F: built Oct 22 2026 03:45:11, GCC 12.2.0
+Stage 1 passed its check of OBR and WPR (no lock-down warning) and stays in recovery: no V5F image is installed yet, and level 2 starts only one it installed.
+```
+
+`wlink status` then showed `OBR 03FFFCFE, WPR FFFFFF00: read protection
+on, USB download off, USART download off, write protection as stage 1
+wants`. After a power cycle, `enroll` (cli port, through lfmcp):
+
+```
+recovery ok> enroll
+enroll: new key made (a new security record and device token)
+enroll: boards.csv line:
+e52116647f9c7a22,044974c7a23fe018fdb9f2182e9d71344c290ade351700d2057d83625b8a9104
+```
+
+The package, made and checked on the PC:
+
+```
+spare-app.lfu: app image, 376832 bytes in 92 block(s), version 1, 1 board(s), AES
+spare-app.lfu: ok. Product 0x4c46, revision 1, release key 1, AES, 92 content blocks, boards: e52116647f9c7a22
+```
+
+Installed from recovery (kwai):
+
+```
+recovery ok> ~x D:\Brad\adminLF\test\spare-app.lfu -2
+-2 ymodem
+[kwai: sent D:\Brad\adminLF\test\spare-app.lfu]
+ymodem: spare-app.lfu: 385024 bytes received
+update: version 1 installed, on trial
+recovery: installed; restarting to try it
+[kwai: COM6 is back]
+ok>revision .
+1 ok>
+```
+
+Then `reboot` three times, with `revision .` giving `1` each time. The
+debug port showed the same start after each reboot:
+
+```
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 3; the previous run left 90 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 22 2026 03:45:11, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash
+V3F: USB configured
+```
+
+**Result:** pass. On a locked level 2 board, stage 1 started the V5F
+only once an app package signed by the release key had been installed.
+After that it checked the signature and the image hash over the slot
+and pages at every boot, and passed each time; boot wasn't noticeably
+slower. Not tested on the board:
+- A changed image or page. The debugger can't write a locked board, so
+  `unit_tests/update` and `stage1sim` cover it, including a record
+  forged with a valid MAC.
+- The refusal of a V5F-only package.
+- The time the check adds, which wasn't measured.

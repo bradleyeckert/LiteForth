@@ -104,35 +104,62 @@ rest of block 0 is zeros:
 | 128 | 1024 | Application header, encrypted with AES-128-CTR under `k_enc` (counters `nonce \|\| i`, i = 0 to 63, which no record uses): the CODEC settings, sample rate, channel map, and whatever else the application adds later. Unused bytes are 0 |
 | 1152 | 16 | Header tag: `BLAKE2s(bytes 0-1151, key=k_hdr, size 16)` |
 
-**Blocks 1 on, the records.** Each 32 KB block is one record:
+**Blocks 1 on, the records.** Each 32 KB block is one record, 256 units
+of 128 bytes: a header unit split between the record's two ends, and 255
+sample blocks:
 
 | Offset | Size | Contents |
 |---|---|---|
 | 0 | 4 | `LFLB` |
 | 4 | 8 | `file_id` |
 | 12 | 4 | Sequence number `n` (the block's index) |
-| 16 | 4 | Payload bytes used, 0 to 32704 |
-| 20 | 4 | Flags: bit 0, the last record (a clean close) |
-| 24 | 8 | Reserved, 0 |
-| 32 | 32704 | Payload, encrypted |
-| 32736 | 16 | Tag |
+| 16 | 2 | Sample blocks used, 0 to 255 (255 except in the last record) |
+| 18 | 2 | Flags: bit 0, the last record (a clean close) |
+| 20 | 44 | Reserved, 0 |
+| 64 | 32640 | 255 sample blocks, encrypted |
+| 32704 | 16 | Tag |
+| 32720 | 32 | Reserved, 0 |
 | 32752 | 4 | `n` again |
 | 32756 | 8 | `file_id` again |
 | 32764 | 4 | `LFLE` |
 
-The payload is encrypted with AES-128-CTR under `k_enc`, the counter
-being `nonce || n * 2048 + i` for its 16-byte blocks `i` (n starts at 1,
-so the application header's counters are never reused). The ECDC
-engine does this. The tag is Poly1305 over bytes 0-31 and the ciphertext,
-keyed by the CTR keystream at counter `n * 2048 + 2046` and `+ 2047`.
-That gives a fresh one-time key per record, as ChaCha20-Poly1305 does, so
-no BLAKE2s runs per record.
+The sample blocks are encrypted with AES-128-CTR under `k_enc`, the
+counter being `nonce || n * 2048 + i` for their 16-byte blocks `i`
+(0 to 2039; n starts at 1, so the application header's counters are never
+reused). The ECDC engine does this. The tag is Poly1305 over bytes 0-63
+and the ciphertext, keyed by the CTR keystream at counter
+`n * 2048 + 2046` and `+ 2047`. That gives a fresh one-time key per
+record, as ChaCha20-Poly1305 does, so no BLAKE2s runs per record.
 
 The frame at both ends of a block (`n` and `file_id` in its first and
 last sectors) lets the board find the end of the log without any key
-(section 5). The payload's own format is the application's: 32704 bytes
-are 4088 stereo frames of two 32-bit slots, or 5450 frames packed to
-3 bytes a sample with 4 bytes over.
+(section 5).
+
+**A sample block** is 128 bytes, 20 stereo frames from one CODEC:
+
+| Offset | Size | Contents |
+|---|---|---|
+| 0 | 1 | CODEC ID: 0 or 1; 0xFE a dropout note (below) |
+| 1 | 3 | 0 |
+| 4 | 4 | Timestamp of the first frame, in microseconds (`lfGetTimeMicroSec`, wrapping every 71.6 minutes) |
+| 8 | 120 | 20 frames, left then right, each sample 24 bits little-endian, two's complement |
+
+The two CODECs may run at different rates, so their sample blocks are
+interleaved in the order they arrive. The server separates them by ID,
+and unwraps each CODEC's timestamps by their order: blocks come every
+267 us at 75 kSPS, so a wrap is obvious. The header's start time
+(identity, section 3) anchors them to the RTC.
+
+**A dropout note** (ID 0xFE) goes in when the logger had to drop
+samples because the slots were full (section 4). Its timestamp is when
+the logger noticed, bytes 8-11 and 12-15 are the sample blocks lost from
+CODEC 0 and CODEC 1 since the last note, and the rest is 0. So the user
+sees the dropouts and can lower the sample rate. The log's last record
+also carries the totals (section 4, closing).
+
+**Rates.** At 75 kSPS a CODEC makes 3750 sample blocks a second,
+480 KB/s. Two make 960 KB/s, about 29.4 records a second, 0.96 MB/s to
+the card, slightly over the 0.9 MB/s planned.
 
 ## 4. Writing
 
@@ -141,7 +168,8 @@ are 4088 stereo frames of two 32-bit slots, or 5450 frames packed to
 - **Records:** see the pipeline below. Writes go strictly in order, one
   at a time, so the log on the card is always a complete prefix plus at
   most one torn block.
-- **Closing:** the last record has flag bit 0 set. Then the file system
+- **Closing:** a final dropout note with the log's totals, then the last
+  record, with flag bit 0 set. Then the file system
   is updated as in section 6.
 - **Fence:** the logger writes only inside its file's extent and, when
   closing, the directory sector and the bitmap sectors. `blk_write_fence`
@@ -171,23 +199,24 @@ I2S RX --DMA--> CODEC ring --encrypt (ECDC), copy--> record slot --tag--> SD wri
    that it lies in the pool, and stops the channel when the log closes or
    anything aborts it. The pool is LIFO, so the ring must not be freed
    while the channel runs.
-2. **Encrypt into a record slot.** On each half-ring interrupt (or
-   polled), copy the new samples into the open slot's payload, packing
-   them if the application wants, and run AES-CTR over them in place on
-   the ECDC engine. The slots are 32-byte aligned, as the engine wants.
-   Then the copy is the only extra pass over the data, at about 1% of the
-   V5F.
-3. **Tag and frame.** When a slot's payload is full, Poly1305 over its
-   ciphertext, then the frame.
-4. **Write.** `blk_sector_write_imm` from the slot, 64 sectors; `blocks.c`
+2. **Pack into a record slot.** Whenever a CODEC's ring holds 20 new
+   frames (from the DMA's position, polled or on its half and full
+   interrupts), pack them into the open slot's next sample block: the ID,
+   the timestamp, and the 24-bit samples taken from I2S's 32-bit words.
+   The two CODECs' blocks go in as they come. That pass is the only extra
+   one over the data. If no slot is free, count the sample blocks lost and
+   put a dropout note in the next slot.
+3. **Encrypt.** When the slot has 255 sample blocks, run AES-CTR over
+   them in place on the ECDC engine. The slots are 32-byte aligned, as the
+   engine wants.
+4. **Tag and frame:** Poly1305 over its ciphertext, then the frame.
+5. **Write.** `blk_sector_write_imm` from the slot, 64 sectors; `blocks.c`
    sends them as two 32-sector commands through Guarded DMA's 16 KB
    buffer. `blk_status`, polled from the same loop, says when the card is
    done and the slot is free again.
 
-This may well be reworked once it runs: the copy in step 2 could go if
-the I2S DMA wrote straight into the slots' payload areas, and the bounce
-through Guarded DMA's buffer could go too, if the SDIO channel took the
-slots directly.
+This may well be reworked once it runs. The bounce through Guarded DMA's
+buffer could go, if the SDIO channel took the slots directly.
 
 ### How much RAM the slots get
 
@@ -213,23 +242,26 @@ RAM allows. The V5F's DTCM today (256 KB):
 | Free | about 6 KB |
 
 So today the pool leaves 80 KB for logging: two slots and a 16 KB ring,
-which is too little. Ways to make it bigger:
+which is too little. The plan:
 
-- **Move the 4 KB buffers into the pool**, allocated only while a package
-  or `ymodem` runs (they never run during logging): about +40 KB.
-- **Put the pool, or a second region for the slots, in the SRAM above
-  the V3F's fence** (0x20140000-0x20177FFF, 224 KB). The V5F can reach it
-  (PMP entry 3), and stage 1 uses it only in recovery, while the V5F is
-  off. Guarded DMA would have to take card buffers from it, and the VM's
-  RAM page would be slower there than in DTCM, so it suits the slots
-  better than the whole pool.
-- **Drop the flash page 0 shadow** (64 KB) if the VM can live with
-  reading page 0 from flash: to be measured.
+- **The pool moves to general-purpose SRAM:** the 224 KB at
+  0x20140000-0x20177FFF, above the V3F's fence. The V5F reaches it through
+  PMP entry 3. Stage 1 uses that RAM only in recovery, while the V5F is
+  off. Guarded DMA then takes card buffers from the pool as well as from
+  `.data` and `.bss`. Nothing of machine mode is there, so that's as safe.
+- **The 4 KB buffers move into the pool:** `ymodem`'s, the package
+  buffers in `sealed.c` and `blocks.c`, the ECDC check's. Each is taken
+  while its work runs and given back after, as `ymodem` already does with
+  its block buffer. None runs during logging.
+- **DTCM keeps** the flash page 0 shadow, Guarded DMA's buffer and the
+  stack, and has room left over.
 
-With the first two, the slots get about 270 KB: eight slots, about
-250 ms at 0.9 MB/s. Whatever the RAM, choose cards by their worst write
-latency for 32 KB writes at the target rate (a video speed class such as
-V30, or "high endurance" ones), and measure it.
+Then logging gets about 200 KB of the pool: six slots and the rings. That
+rides out about 170 ms of card stall at 0.96 MB/s. One thing to measure is
+how much slower the VM is with its RAM page in that SRAM rather than in
+DTCM. Whatever the RAM, choose cards by their worst write latency for
+32 KB writes at the target rate (a video speed class such as V30, or
+"high endurance" ones), and measure it.
 
 ## 5. After a power cut
 
@@ -330,17 +362,13 @@ The server keeps every `s` it has ever used, by key ID, for old logs.
 | exFAT making, closing and recovery | `src/exfat.c` (writing the entry set and bitmap), the first file-system writes in C |
 | Forth words | `log-open ( c-addr u -- ior )`, `log-close`, `log-recover`, and the application header |
 | I2S capture | A machine-mode service to start and stop the I2S DMA channels into the pool (section 4), and the I2S/SAI and CODEC setup |
-| More RAM for the pool | The 4 KB buffers moved into the pool; the slots in the SRAM above the V3F's fence, with Guarded DMA taking card buffers from there (section 4) |
+| The pool in general-purpose SRAM | `Link_v5f.ld` and `memalloc.c` (the pool at 0x20140000, 224 KB), Guarded DMA allowing it, the 4 KB static buffers taken from the pool instead (section 4) |
 | PC tool | `scripts/admin/lflog.py` |
 | Tests | `unit_tests/datalog`: round trips with `lflog.py`, every tamper (byte, reorder, a record from another file, a forged header), power cuts at every write including during the close, and recovery on `mkexfat.py` images |
 
 ## 9. To decide
 
-- **Where the slots live** (section 4): the pool grown in DTCM, the SRAM
-  above the V3F's fence, or both; and whether the flash page 0 shadow
-  stays.
-- **The CODEC data:** how many CODECs, the sample rate, and 32-bit slots
-  or packed 24-bit samples. These set the rate and so how many slots are
-  needed.
-- **The first version's flow** (section 4): with the copy into the slots
-  and the bounce through Guarded DMA's buffer, or straight to the slots.
+- **The first version's flow** (section 4): the bounce through Guarded
+  DMA's buffer stays until the rest runs.
+- **Measure:** the VM's speed with the pool in SRAM, the time to make a
+  file on a large card, and the cards' write stalls.

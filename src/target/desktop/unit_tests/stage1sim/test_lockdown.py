@@ -216,7 +216,7 @@ def main():
     check('(wlink flash failed, try 1:' in text,
           'lockdown.py run: a flash that didn\'t attach tried again', text)
     check('(wlink dump failed, try 1:' in text and 'trying again' in text, 'lockdown.py run: a failed attach tried again', text)
-    check('lockdown: option bytes now RDPR 00FF' in text and 'LiteForth starting' in text,
+    check('lockdown: option bytes now RDPR 00FF' in text and 'no V5F image installed' in text,
             'lockdown.py run: the report has both ports\' output', text)
     with open(os.path.join(rig.board.dir, 'flash.bin'), 'rb') as f:
         f.seek(t.V5F_ADDR)

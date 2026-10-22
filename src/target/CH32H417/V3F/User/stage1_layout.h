@@ -11,8 +11,9 @@
      0x12000   8 KB   copy B
      0x14000 112 KB   the V5F's slot (Link_v5f.ld's FLASH)
      0x30000 256 KB   LiteForth's flash pages
-     0x70000          free (the V5F's old board record and stage 1's old
-                      records were here)
+     0x70000   8 KB   the installed package's block 0, signed (level 2's
+                      boot check: src/update.c, UPD_HEADER)
+     0x72000          free
 
    Everything the V5F mustn't reach is below the V5F's slot, under its
    PMP entry 0 (V5F/User/pmp.c). */
@@ -22,6 +23,7 @@
 #define UPD_RECORD_B        0x12000u
 #define UPD_V5F_ADDR        0x14000u
 #define UPD_V5F_SLOT        0x1C000u
+#define UPD_HEADER          0x70000u        /* needs no protection: only its signature counts */
 
 #define UPD_PAGES_LEN       0x40000u        /* LiteForth's 4 x 64K flash pages (V5F/User/options.h) */
 #define STAGE1_FLASH_BASE   0x08000000u     /* the code flash, for reading and FLASH_ROM_* */
@@ -30,6 +32,7 @@
    flash pages, which Link_v5f.ld puts right after it (__lf_flash_start) */
 _Static_assert(UPD_V5F_ADDR + UPD_V5F_SLOT == 0x30000u, "the flash pages follow the V5F slot");
 _Static_assert(UPD_RECORD_B + UPD_SECTOR == UPD_V5F_ADDR, "the records are just below the V5F's slot");
+_Static_assert(UPD_HEADER >= UPD_V5F_ADDR + UPD_V5F_SLOT + UPD_PAGES_LEN, "the block 0 is past the pages");
 _Static_assert(UPD_V5F_ADDR % 1024u == 0, "NVIC_WakeUp_V5F takes a 1 KB aligned address");
 
 /* Write protection as a locked-down board has it (stage1.c's check; WPR has

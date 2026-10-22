@@ -115,6 +115,18 @@ int sealed_verify_package(uint32_t file_blocks, const sealed_board *board,
                           char *msg, int len);
 
 /**
+ * Checks a package's block 0 on its own, as stage 1 does at every boot
+ * with the copy it keeps of the installed image's (src/update.c): the
+ * fields, the release key's certificate (board->root), its serial
+ * (board->min_serial), the signature and the version (board->min_revision),
+ * and fills pkg, whose image_hash the caller compares with the image. No
+ * recipients, no key, nothing mounted (unmounts any package mounted).
+ * Returns 0 or ERR_BLK_PARSE_FAIL, msg saying why.
+ */
+int sealed_check_signed(const uint8_t *b0, const sealed_board *board,
+                        sealed_package *pkg, char *msg, int len);
+
+/**
  * Forgets the mounted file and erases its key.
  */
 void sealed_unmount(void);

@@ -66,18 +66,46 @@ on the V3F at 100 MHz; hashing a 64 KB slot with BLAKE2s adds about
 1. **Finish any update** (section 6): a package waiting, an install cut
    short, or a new version on trial.
 2. **Check the V5F image:** its MAC under the device token's image key
-   (section 4), against the value stored when it was installed. A mismatch
-   means the flash changed outside an install: don't start it; go to
-   recovery (section 7).
+   (section 4), against the value stored when it was installed, and at
+   `SECURITY_LEVEL` 2 its signature too (below). A mismatch
+   means the flash changed outside an install: don't start it; restore the
+   backup, or go to recovery (section 7).
 3. **Start the V5F**, which locks itself down (section 8) and runs
    LiteForth.
 4. **Run the USB bridge**, as today.
 
-The V5F image is checked by MAC, not signature, at boot: it was checked
-against its signature when it was installed, and the MAC only has to show
-that the flash hasn't changed since. That makes the token's image key
-something an attacker who can write flash must not be able to read
-(section 8).
+Below level 2 the V5F image is checked by MAC alone at boot: it was
+checked against its signature when it was installed, and the MAC only has
+to show that the flash hasn't changed since. That makes the token's image
+key something an attacker who can write flash must not be able to read
+(section 8), and the V5F's other bus masters (the ECDC, SDMMC, USB, ...)
+could read it if code that isn't ours ran there.
+
+**At level 2 the boot check needs the signature** (`upd_io.check_signature`,
+`SEC_SIGNED_BOOT`), so it doesn't rest on the token staying secret.
+Stage 1 keeps the installed package's block 0 in its own sector
+(0x70000, `UPD_HEADER`) and checks it at every boot with
+`sealed_check_signed` (`src/sealed.c`): the root key's certificate of the
+release key, the release key's signature over block 0, the product, the
+hardware revision, the version and release key serial against the
+record's minimums, and that it describes the installed version and
+length. Then it hashes the slot and the pages and compares the hash with
+block 0's. Only the root's private key and the release key (both off the
+board) can make a block 0 that passes, so the sector needs no protection:
+anything written there, or into the slot or pages, by anything but an
+install of a genuine package fails the check and never starts. Stage 1
+restores the backup, which keeps that block 0 too, or goes to recovery.
+
+What a leaked token still allows: writing the record, so an older genuine
+release could be made to start (rollback below the minimum version), or the
+board's key changed (it stops taking its packages). Neither runs code the
+release key didn't sign. Stage 1 itself is write-protected (section 8),
+and clearing that protection means removing read protection, which erases
+the flash, the token with it.
+
+Only app packages (component 3) install at level 2: a V5F-only package
+would leave the flash pages unsigned. Checking two Ed25519 signatures and
+hashing 368 KB adds to each boot (to be measured on the board).
 
 ## 2. Flash layout
 
@@ -244,7 +272,9 @@ system:
 - `lfstage.bin`: an update package, exactly as it came;
 - `lfbackup.bin`: the V5F image as it was before the last update; with
   the flash pages too, after an app package or at `SECURITY_LEVEL` 2
-  (`1 + 92` blocks for today's 112 KB slot and 256 KB of pages).
+  (`1 + 92` blocks for today's 112 KB slot and 256 KB of pages, and at
+  level 2 one more for the image's signed block 0: 94 blocks, 385024
+  bytes).
 
 | Phase | Runs in | Trusted? | Does |
 |---|---|---|---|
@@ -274,7 +304,12 @@ These rules came out of writing it:
 
 - A rollback never restores a backup older than the board's minimum: it
   records "broken" and goes to recovery instead.
-- Only an installed image that passes its MAC check is backed up. An image
+- At level 2 the installed package's block 0 goes with the image: stored
+  at `UPD_HEADER` after the install and checked there as the boot check
+  will check it (a failure rolls back), copied into the backup after the
+  image, and restored with it. A backup without it isn't trusted there.
+- Only an installed image that passes its MAC check (and at level 2 its
+  signature) is backed up. An image
   that changed in flash since its MAC was made mustn't get a backup that a
   rollback would then trust. Without a new backup, the one already on the
   card, if any, stays the one to roll back to.
@@ -314,11 +349,17 @@ the V5F, with today's flash map (`stage1_layout.h`):
 | 0x12000 | 8 KB | Security record, copy B |
 | 0x14000 | 112 KB | The V5F's slot |
 | 0x30000 | 256 KB | LiteForth's flash pages |
-| 0x70000 | | Free |
+| 0x70000 | 8 KB | The installed package's block 0, signed (level 2's boot check) |
+| 0x72000 | | Free |
 
 The V5F's PMP entry 0 covers everything below its slot (section 8). It
 does nothing at all on a board that has never been updated
-(no record and no package waiting), so such a board boots as before.
+(no record and no package waiting), so such a board boots as before,
+below level 2. At level 2 it goes to recovery instead, and so does a board
+whose record can't be read or that has no key yet: there the V5F starts
+only after the boot check passes, so erasing the record sectors doesn't
+start whatever is in the slot. A freshly locked level 2 board therefore
+waits in recovery for `enroll` and its first app package.
 Otherwise it opens the card (WCH's polling SD driver) and runs
 `upd_boot`, then wakes the V5F. When LiteForth starts, the V5F sets
 `update` in the shared block to `CDC_CONFIRM_MAGIC`, and the V3F's USB loop
@@ -762,6 +803,10 @@ RDP 0:
 - **Verify,** on the spare board only: that under RDP 2 nothing clears
   WRPR or rewrites the option bytes, and that USB and the card still work.
 - **Verify** the RNG on real parts before trusting the token to it.
+- **Decide** whether level 2 needs a rollback floor that a leaked token
+  can't lower (the minimum version is in the record, which stage 1 can
+  write and so, through a bus master, could anything that controls the
+  V5F). The signed boot check keeps out unsigned code either way.
 - **Decide:** the slot sizes; N trial boots; whether stage 1 is encrypted;
   `confirm` explicit or automatic; what stage 0 does when both slots fail
   (blink a code, print on the debug UART, or both).

@@ -210,6 +210,71 @@ static uint32_t installed_length(const upd_io *io, uint32_t pkg_length) {
 }
 
 /* ------------------------------------------------------------------------
+ * The installed package's block 0, at UPD_HEADER (check_signature)
+ */
+
+/* Stores b0 (4 KB, not chk) as the installed image's block 0 */
+static int header_store(const upd_io *io, const uint8_t *b0) {
+    int err = io->flash_erase(UPD_HEADER);
+    if (!err) {
+        err = io->flash_write(UPD_HEADER, b0, UPD_BLOCK);
+    }
+    if (!err) {
+        err = io->flash_read(UPD_HEADER, chk, UPD_BLOCK);
+    }
+    if (!err && memcmp(chk, b0, UPD_BLOCK) != 0) {
+        err = ERR_FLASH_WRITE_SECTOR;
+    }
+    return err;
+}
+
+/* Whether the block 0 at UPD_HEADER is signed by a release key the root
+   key certifies, for this product and board, no older than the record's
+   minimums, describes an app image of this version and length, and the
+   flash holds that image (its hash). Nothing here trusts the token or the
+   record beyond its minimums. Returns 1, 0, or a negative error code. */
+static int signed_ok(const upd_io *io, const sealed_board *keys, const upd_record *r,
+                     uint32_t version, uint32_t length) {
+    sealed_board b = *keys;
+    sealed_package pkg;
+    char why[100];
+    uint8_t h[32];
+    b.min_revision = r->min_v5f;
+    b.min_serial = r->min_serial;
+    int err = io->flash_read(UPD_HEADER, buf, UPD_BLOCK);
+    if (err) {
+        crypto_wipe(&b, sizeof b);
+        return err;
+    }
+    int bad = sealed_check_signed(buf, &b, &pkg, why, sizeof why) != 0;
+    crypto_wipe(&b, sizeof b);
+    if (bad || pkg.component != SEALED_V5F_APP || pkg.version != version
+        || pkg.length != length || (pkg.hw_rev && pkg.hw_rev != io->hw_rev)) {
+        return 0;
+    }
+    err = image_hash(io, UPD_V5F_ADDR, pkg.length, h);
+    if (err) {
+        return err;
+    }
+    return crypto_verify32(h, pkg.image_hash) == 0;
+}
+
+/* Whether the installed image passes the boot check: its MAC, and with
+   check_signature its signed block 0. Returns 1, 0, or a negative error
+   code. */
+static int installed_ok(const upd_io *io, const sealed_board *keys, const upd_record *r) {
+    uint8_t mac[32];
+    int err = installed_mac(io, r, mac);
+    if (err) {
+        return err;
+    }
+    if (crypto_verify32(mac, r->v5f_mac) != 0) {
+        return 0;
+    }
+    return io->check_signature ? signed_ok(io, keys, r, r->v5f_version, r->v5f_length) : 1;
+}
+
+/* ------------------------------------------------------------------------
  * The package in lfstage.bin
  */
 static const upd_io *current;           /* for stage_read, a sealed_read_fn */
@@ -244,6 +309,11 @@ static int mount_package(const upd_io *io, const sealed_board *keys, const upd_r
     if (pkg->hw_rev && pkg->hw_rev != io->hw_rev) {
         snprintf(msg, len, "update refused: made for hardware revision %lu",
                  (unsigned long)pkg->hw_rev);
+        return ERR_BLK_PARSE_FAIL;
+    }
+    if (io->check_signature && pkg->component != SEALED_V5F_APP) {
+        snprintf(msg, len, "update refused: this board takes only app packages (the V5F "
+                 "image and its flash pages, all signed)");
         return ERR_BLK_PARSE_FAIL;
     }
     if (pkg->component == SEALED_V5F && pkg->length > UPD_V5F_SLOT) {
@@ -285,8 +355,10 @@ static int mount_package(const upd_io *io, const sealed_board *keys, const upd_r
 
 /* ------------------------------------------------------------------------
  * The backup in lfbackup.bin: block 0 a header (magic, version, length,
- * nonce), then the image encrypted with K_encard; its MAC (K_maccard, over
- * every block as written) is kept in the record
+ * nonce, and 1 if the image's package block 0 follows it), then the image
+ * encrypted with K_encard, then (with check_signature) the image's package
+ * block 0 as it was at UPD_HEADER, in the clear like any package's; its MAC
+ * (K_maccard, over every block as written) is kept in the record
  */
 static void backup_keys(const upd_record *r, ctr_key *ck, uint8_t mk[32]) {
     uint8_t k[16];
@@ -296,8 +368,10 @@ static void backup_keys(const upd_record *r, ctr_key *ck, uint8_t mk[32]) {
     derive(mk, 32, r->token, "LFcardmac");
 }
 
-/* The MAC of the backup as it is on the card; reads it all */
-static int backup_mac(const upd_io *io, const upd_record *r, uint32_t length, uint8_t out[32]) {
+/* The MAC of the backup as it is on the card, an image of `length` bytes
+   and hb (0 or 1) header blocks after it; reads it all */
+static int backup_mac(const upd_io *io, const upd_record *r, uint32_t length, uint32_t hb,
+                      uint8_t out[32]) {
     ctr_key ck;
     uint8_t mk[32];
     blake2s_state S;
@@ -306,7 +380,7 @@ static int backup_mac(const upd_io *io, const upd_record *r, uint32_t length, ui
     b2s_start(&S, 32, mk, 32, "LFbackup");
     crypto_wipe(mk, sizeof mk);
     int err = 0;
-    for (uint32_t n = 0; n <= blocks_of(length) && !err; n++) {
+    for (uint32_t n = 0; n <= blocks_of(length) + hb && !err; n++) {
         err = io->backup_read(n, buf);
         if (!err) {
             b2s_puts(&S, buf, UPD_BLOCK);
@@ -320,6 +394,7 @@ static int backup_mac(const upd_io *io, const upd_record *r, uint32_t length, ui
 /* Copies the installed image to the card; sets the record's backup_* */
 static int make_backup(const upd_io *io, upd_record *r) {
     uint32_t length = r->v5f_length, blocks = blocks_of(length);
+    uint32_t hb = io->check_signature ? 1u : 0u;
     ctr_key ck;
     uint8_t mk[32], nonce[8];
     int err = io->random(nonce, sizeof nonce);
@@ -331,6 +406,7 @@ static int make_backup(const upd_io *io, upd_record *r) {
     put32(buf + 8, r->v5f_version);
     put32(buf + 12, length);
     memcpy(buf + 16, nonce, 8);
+    put32(buf + 24, hb);
     err = io->backup_write(0, buf);
     backup_keys(r, &ck, mk);
     crypto_wipe(mk, sizeof mk);
@@ -347,8 +423,14 @@ static int make_backup(const upd_io *io, upd_record *r) {
         }
     }
     ctr_wipe(&ck);
+    if (!err && hb) {                   /* the installed image's block 0 */
+        err = io->flash_read(UPD_HEADER, buf, UPD_BLOCK);
+        if (!err) {
+            err = io->backup_write(blocks + 1, buf);
+        }
+    }
     if (!err) {
-        err = backup_mac(io, r, length, r->backup_mac);     /* as read back */
+        err = backup_mac(io, r, length, hb, r->backup_mac);     /* as read back */
     }
     if (!err) {                         /* and the read back decrypts to the image */
         backup_keys(r, &ck, mk);
@@ -376,19 +458,24 @@ static int make_backup(const upd_io *io, upd_record *r) {
     return err;
 }
 
-/* Whether lfbackup.bin still holds what the record says; reads its nonce */
+/* Whether lfbackup.bin still holds what the record says; reads its nonce.
+   With check_signature it must hold the image's block 0 too. */
 static int backup_good(const upd_io *io, const upd_record *r, uint8_t nonce[8]) {
     uint8_t mac[32];
     if (r->backup_length == 0 || io->backup_read == NULL
         || (io->check_pages && r->backup_length != UPD_APP_SPAN)  /* would leave pages as they are */
-        || backup_mac(io, r, r->backup_length, mac) != 0
-        || crypto_verify32(mac, r->backup_mac) != 0
         || io->backup_read(0, buf) != 0
         || memcmp(buf, BACKUP_MAGIC, 8) != 0
         || get32(buf + 8) != r->backup_version || get32(buf + 12) != r->backup_length) {
         return 0;
     }
+    uint32_t hb = get32(buf + 24);
     memcpy(nonce, buf + 16, 8);
+    if (hb > 1 || (io->check_signature && hb != 1)
+        || backup_mac(io, r, r->backup_length, hb, mac) != 0
+        || crypto_verify32(mac, r->backup_mac) != 0) {
+        return 0;
+    }
     return 1;
 }
 
@@ -427,6 +514,12 @@ static int roll_back(const upd_io *io, upd_record *r, char *msg, int len) {
         }
     }
     ctr_wipe(&ck);
+    if (!err && io->check_signature) {  /* and its block 0, for the boot check */
+        err = io->backup_read(blocks + 1, buf);
+        if (!err) {
+            err = header_store(io, buf);
+        }
+    }
     if (err) {
         return err;
     }
@@ -443,7 +536,9 @@ static int roll_back(const upd_io *io, upd_record *r, char *msg, int len) {
     return record_store(io, r);
 }
 
-/* UPD_INSTALLING: programs the package from block r->progress on */
+/* UPD_INSTALLING: programs the package from block r->progress on, then
+   (check_signature) stores its block 0 at UPD_HEADER and checks the result
+   as the boot check will */
 static int install(const upd_io *io, const sealed_board *keys, upd_record *r,
                    char *msg, int len) {
     sealed_package pkg;
@@ -480,6 +575,16 @@ static int install(const upd_io *io, const sealed_board *keys, upd_record *r,
     }
     if (!err && memcmp(h, pkg.image_hash, 32) != 0) {
         err = ERR_BLOCK_READ_ERROR;
+    }
+    if (!err && io->check_signature) {
+        err = io->stage_read(0, buf);
+        if (!err) {
+            err = header_store(io, buf);
+        }
+        if (!err) {
+            int ok = signed_ok(io, keys, r, pkg.version, installed_length(io, pkg.length));
+            err = ok < 0 ? ok : ok ? 0 : ERR_BLOCK_READ_ERROR;
+        }
     }
     if (err == ERR_BLOCK_READ_ERROR) {  /* a block changed: back to the old image */
         r->state = UPD_ROLLING_BACK;
@@ -518,14 +623,12 @@ static int start_update(const upd_io *io, const sealed_board *keys, upd_record *
        if any, stays the one to roll back to. */
     int keep = 0;
     if (r->v5f_length) {
-        uint8_t mac[32];
-        err = installed_mac(io, r, mac);
-        if (err) {
-            return err;
+        keep = installed_ok(io, keys, r);
+        if (keep < 0) {
+            return keep;
         }
-        keep = crypto_verify32(mac, r->v5f_mac) == 0;
     }
-    uint32_t need = 1 + blocks_of(r->v5f_length);
+    uint32_t need = 1 + blocks_of(r->v5f_length) + (io->check_signature ? 1u : 0u);
     if (keep && (io->backup_write == NULL || io->backup_blocks < need)) {
         r->result = UPD_R_NO_BACKUP;
         snprintf(msg, len, "update refused: lfbackup.bin needs %lu blocks",
@@ -642,12 +745,11 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
         }
         return UPD_RECOVERY;
     }
-    uint8_t mac[32];
-    err = installed_mac(io, r, mac);
-    if (err) {
-        return err;
+    int ok = installed_ok(io, keys, r);
+    if (ok < 0) {
+        return ok;
     }
-    if (crypto_verify32(mac, r->v5f_mac) == 0) {
+    if (ok) {
         return UPD_START;
     }
     if (io->adopt_blank) {              /* development: the debugger's image, adopted */
@@ -676,8 +778,11 @@ int upd_boot(const upd_io *io, const sealed_board *keys, int package_waiting,
         if (err) {
             return err;
         }
-        err = installed_mac(io, r, mac);
-        if (!err && crypto_verify32(mac, r->v5f_mac) == 0 && r->result == UPD_R_ROLLED_BACK) {
+        ok = installed_ok(io, keys, r);
+        if (ok < 0) {
+            return ok;
+        }
+        if (ok && r->result == UPD_R_ROLLED_BACK) {
             return UPD_START;
         }
     }

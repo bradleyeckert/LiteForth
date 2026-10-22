@@ -25,17 +25,20 @@ start; lock reads the probe's view only at the end.
 run:
  1. Refuses a board that's read- or write-protected already: wlink's flash
     would unprotect it first, which wipes it or clears its write protection.
- 2. Flashes V3F (default at 0x08000000) and V5F (default at 0x08014000)
-    with wlink, without erasing anything else, reads the start of each back
+ 2. Flashes V5F (default at 0x08014000), then V3F (default at 0x08000000)
+    with wlink (the V3F last: the probe often can't attach once a level 2
+    stage 1 runs in recovery), without erasing anything else, reads the start of each back
     to check it, and resets the chip. A .hex or .elf carries its addresses.
  3. On the debug port, the level 2 build's stage 1 says the board isn't
     locked down and stays in recovery; on the cli port, its recovery
     console must offer `lockdown`, or this isn't a level 2 build.
  4. Asks you to type LOCK, then sends `lockdown yes`: stage 1 programs the
     option bytes, reads them back and resets the chip.
- 5. Waits for the board to start locked (LiteForth starting, no
-    "not locked down"); if the option bytes didn't load at that reset, asks
-    you to turn the power off and on. Then `wlink status` must say the
+ 5. Waits for the board to start locked, with no "not locked down": in
+    recovery saying no V5F image is installed (a level 2 board starts only
+    an image stage 1 installed and checked), or LiteForth starting if one
+    is; if the option bytes didn't load at that reset, asks you to turn
+    the power off and on. Then `wlink status` must say the
     flash is protected.
 The report (--report, default lockdown-report-DATE.md) has every step and
 both ports' output word for word, the images' sha256 and the UID, for
@@ -270,8 +273,10 @@ def cmd_run(a):
     debug_seen.update(port=dbg, start=dbg.mark())
     start = dbg.mark()
     if a.cmd == 'run':
-        flash(wl, a.v3f, a.v3f_address, v3f_bin)
+        # the V5F first: once the V3F's level 2 stage 1 runs (in recovery, the
+        # board still open), the probe often can't attach again (0x55)
         flash(wl, a.v5f, a.v5f_address, v5f_bin)
+        flash(wl, a.v3f, a.v3f_address, v3f_bin)
         if v3f_bin:
             verify(wl, a.v3f, a.v3f_address)
         if v5f_bin:
@@ -332,9 +337,15 @@ def cmd_run(a):
     lines = dbg.since(start)
     if any('V3F security: not locked down' in l for l in lines):
         raise Fail('the board still says it isn\'t locked down')
-    if not booted or 'LiteForth starting' not in booted:
-        raise Fail('LiteForth didn\'t start')
-    say('Stage 1 started the V5F with no lock-down warning: its check of OBR and WPR passed.')
+    if not booted:
+        raise Fail('stage 1 didn\'t start')
+    if 'LiteForth starting' in booted:
+        say('Stage 1 started the V5F with no lock-down warning: its check of OBR and WPR passed.')
+    elif any('no V5F image installed' in l for l in lines):
+        say('Stage 1 passed its check of OBR and WPR (no lock-down warning) and stays in '
+            'recovery: no V5F image is installed yet, and level 2 starts only one it installed.')
+    else:
+        raise Fail('stage 1 went to recovery for another reason')
     say()
     say('## The probe\'s view (last: it halts the V3F)')
     text, uid2, prot = status(wl)

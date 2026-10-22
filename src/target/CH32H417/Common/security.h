@@ -12,6 +12,7 @@
  *   Board not locked down       V3F     warning   warning   no V5F
  *   Stage 1's `adopt` [3]       V3F     yes       yes       no
  *   Flash pages written by      both    Forth     Forth     packages only [2]
+ *   Boot check of the image     V3F     MAC       MAC       MAC, signature [4]
  *   Forth starts with           V5F     root      root      root [1]
  *
  * Only stage 1 holds the board's key (V3F/User/stage1.c's keys_get), but
@@ -37,8 +38,9 @@
  *   write to a read-only one is write-protected (-20).
  * 2, a product: as 1, and the board's key is one of the device token's,
  *   so it comes from the RNG with stage 1's record (`enroll` once in
- *   recovery, at provisioning; then only an image stage 1 installed
- *   starts), stage 1 has no `adopt`, and a board that isn't
+ *   recovery, at provisioning), only an image stage 1 installed and
+ *   checks starts (with no record, before `enroll` or after the record
+ *   sectors were erased, the V5F stays off), stage 1 has no `adopt`, and a board that isn't
  *   locked down (read protection, write protection, the boot ROM's
  *   downloads) doesn't start the V5F: it stays in recovery, which takes
  *   only `reset`, and the debugger can still reprogram it.
@@ -56,6 +58,12 @@
  *     the V5F image only. At 2, open-flash, pmp.c's flash service and
  *     save-pages refuse: only a package writes the pages, and stage 1's
  *     check covers them with the image (src/update.c, upd_io.check_pages).
+ * [4] SEC_SIGNED_BOOT (upd_io.check_signature). At 2, stage 1 keeps the
+ *     installed package's block 0 (0x70000) and checks it at every boot:
+ *     the root key's certificate, the release key's signature and the
+ *     image's hash over the slot and the pages. So a changed image never
+ *     starts, even if the device token (the MAC key) were read out; only
+ *     app packages install, since the signature must cover the pages.
  *
  * Moving a board to level 2 changes its key: run `enroll`, put its new
  * line in boards.csv, and make its packages again.
@@ -78,6 +86,8 @@
 #define SEC_ADOPT           (SECURITY_LEVEL <= 1)   /* stage 1's `adopt` and adopt_blank */
 #define SEC_LOCKED_PAGES    (SECURITY_LEVEL >= 2)   /* LiteForth's flash pages: only packages
                                                        write them, and stage 1 checks them */
+#define SEC_SIGNED_BOOT     (SECURITY_LEVEL >= 2)   /* stage 1's boot check needs the
+                                                       release key's signature [4] */
 
 #endif /* SECURITY_H */
 

@@ -109,8 +109,9 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
 
 /* ------------------------------------------------------------------------
  * ctr.c's hardware path: checked once against software for each cipher.
- * A 32-byte aligned buf (the block buffers: memalloc.c aligns the pool and
- * forth.h the buffers in the RAM page) runs in place. Any other buf is
+ * A 32-byte aligned buf in DTCM runs in place. Any other buf (the block
+ * buffers too, now that the pool is in general-purpose SRAM, which the
+ * engine hasn't been tried on: a bad address once hung the board) is
  * copied into scratch, run in place there, and copied back only when the
  * whole run went through, so the engine never sees an unaligned buffer and
  * a failure leaves buf as it was for software to do. A failure in place
@@ -118,6 +119,10 @@ int ecdc_ctr(int cipher, const uint8_t key[16], const uint8_t counter[16],
  * off for that cipher from then on.
  */
 static int checked[3];                  /* by ctr cipher: 0 not yet, 1 good, -1 off */
+
+static int in_dtcm(uintptr_t p, size_t len) {
+    return p >= 0x200C0000u && p < 0x20100000u && len <= 0x20100000u - p;
+}
 static uint32_t scratch[MAX_UNITS * 4] ALIGNED;
 
 /* Runs 16 units through the engine and through software; 1 if they match */
@@ -158,7 +163,7 @@ int ctr_hw_crypt(const ctr_key *k, const uint8_t counter[16], uint8_t *buf, size
         return -1;
     }
     int cipher = (k->cipher == CTR_SM4) ? ECDC_SM4 : ECDC_AES;
-    if (((uintptr_t)buf & 31) == 0) {   /* no copy */
+    if (((uintptr_t)buf & 31) == 0 && in_dtcm((uintptr_t)buf, len)) {   /* no copy */
         if (ecdc_ctr(cipher, k->key, counter, buf, buf, (uint32_t)(len / 16)) == 0) {
             return 0;
         }

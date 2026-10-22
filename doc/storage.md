@@ -29,7 +29,7 @@ From the reference manual (CH32H417RM V1.8) and the current code:
 | | |
 |---|---|
 | SRAM | 896 KB: 128 KB ITCM and 256 KB DTCM tied to the V5F, and 512 KB general SRAM, zero-wait for both cores, which the manual suggests dividing in 128 KB units |
-| Today's split | V5F: code in ITCM, `.data`/`.bss`/stack (and LiteForth's 96 KB pool) in DTCM. V3F: all 512 KB general SRAM (64 KB code, about 416 KB data, 32 KB of shared CDC rings at 0x20178000) |
+| Today's split | V5F: code in ITCM, `.data`/`.bss`/stack in DTCM, LiteForth's 224 KB pool in general SRAM at 0x20140000. V3F: 256 KB of general SRAM (0x20100000-0x2013FFFF, fenced from the V5F by its PMP entry 1), and the 32 KB of shared CDC rings at 0x20178000 |
 | DMA | DMA1 and DMA2, 8 channels each. Any peripheral request can be routed to any channel (`CHANNELx_MUX`). Up to 65,535 transfers per run. DMA may read and write the TCMs (permission bits, on by default) |
 | SDIO | What the board uses now (nanoCH32H417: CLK PB11, CMD PB10, D0-D3 PE8-PE11). 1/4-bit, a 32-word FIFO filled by a general DMA channel. `blocks.c` runs WCH's `sdio.c` in polling mode, because its DMA mode would take DMA1 channel 1, which the V3F's UART uses |
 | SDMMC | A second controller: 1/4/8-bit, clock up to 200 MHz, UHS-I modes, eMMC, and its own double-buffered DMA. Different pins (**Verify** whether a production board can wire the card to it) |
@@ -120,19 +120,25 @@ so make the cluster size a multiple of the chunk size, or the reverse.
 
 ## 5. Where the buffer lives
 
-The pool today is a static array in DTCM: 96 KB (`POOL_CAPACITY`, 24,576
-cells), holding the RAM page, an `open-flash` page cache and the
-temporary headers. A 300-500 KB ring doesn't fit in DTCM at all, so:
+The pool was a static array in DTCM: 96 KB, holding the RAM page, an
+`open-flash` page cache and the temporary headers. A 300-500 KB ring
+doesn't fit in DTCM at all, so:
 
-1. **Give the V5F part of the 512 KB general SRAM.** The V3F runs the USB
-   CDC bridge and needs far less than 448 KB (**Verify** its real use).
-   Proposed split, in the manual's 128 KB units: the V3F keeps 128 KB
-   (code, data, and the 32 KB CDC rings, which move with it), and the V5F
-   gets 384 KB. Both linker scripts change together, and `cdc_shared.h`'s
-   address follows the rings.
-2. **Put the pool there.** The pool's array moves to a section in the V5F's
-   new 384 KB (`POOL_CAPACITY` up to about 96K cells). DTCM stays for the
-   V5F's own data and stack, which is where its speed matters.
+1. **The pool is in general SRAM** (22 October 2026): Link_v5f.ld's
+   `POOL`, 0x20140000-0x20177FFF, 224 KB (`POOL_CAPACITY` 57,344 cells),
+   above the V3F's fenced 256 KB and below the shared rings. Stage 1 uses
+   that RAM only in recovery (`RAM_STAGE`), while the V5F is off. Buffers
+   needed only now and then (`ymodem`'s, the package check's in
+   `sealed.c` and `blocks.c`) come from the pool too, so DTCM keeps only
+   the V5F's own data, the flash page 0 shadow and the stack. Guarded DMA
+   and the flash service take buffers from the pool. The ECDC engine runs
+   in place only on DTCM buffers, since it hasn't been tried on general
+   SRAM; pool buffers go through its DTCM scratch buffer.
+2. **For more,** the V3F's share could shrink: it runs the USB CDC bridge
+   and stage 1 and needs far less than 256 KB (**Verify** its real use).
+   In the manual's 128 KB units, the V3F could keep 128 KB, giving the
+   pool about 352 KB. PMP entry 1, both linker scripts and stage 1's RAM
+   staging change together.
 3. **Share the pool by its LIFO rule.** `pool_alloc` and `pool_free` work
    in strict reverse order, so:
    - `rec-start` allocates the ring last, and fails cleanly if it doesn't

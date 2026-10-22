@@ -21,7 +21,15 @@ MEMORY
 	RAMFUNC (xrw) : ORIGIN = 0x200BF000, LENGTH = 4K
 	RAM (xrw) : ORIGIN = (0x200C0000+512+256), LENGTH = (256K-512-256) /*DTCM RAM for .data .bss section and other*/ 
 	RAM_LOAD (xrw) : ORIGIN = (0x200C0000+512), LENGTH = 256           /* RAM for .load section*/
+	/* LiteForth: general-purpose SRAM for memalloc.c's pool (options.h [3]): above
+	   the V3F's RAM (0x20100000-0x2013FFFF, PMP entry 1) and below the shared block
+	   (0x20178000, Common/cdc_shared.h). Link_v3f.ld's RAM_STAGE is the same RAM,
+	   which stage 1 uses only in recovery, while the V5F is off. */
+	POOL (rw) : ORIGIN = 0x20140000, LENGTH = 0x38000
 }
+_pool_start = ORIGIN(POOL);             /* gdma.c and pmp.c take buffers from here too */
+_pool_end = ORIGIN(POOL) + LENGTH(POOL);
+ASSERT(_pool_end == 0x20178000, "the pool must end at the shared block (CDC_SHARED_ADDR)")
 
 /* LiteForth: 256K of flash right after the V5F's slot (0x00030000, read and
    programmed through its alias 0x08030000), used by V5F/User/flash.c.
@@ -239,6 +247,12 @@ SECTIONS
 
 	PROVIDE( _end = _ebss);
 	PROVIDE( end = . );
+
+	/* LiteForth: the pool (memalloc.c), not loaded and not cleared */
+	.pool (NOLOAD) :
+	{
+		*(.pool)
+	} >POOL
 
     .stack ORIGIN(RAM) + LENGTH(RAM) - __stack_size :
     {

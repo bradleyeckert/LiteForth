@@ -18,9 +18,45 @@
 #define SIG_AT          (SEALED_BLOCK_BYTES - 64)
 #define IMAGE_HASH_AT   (SIG_AT - 32)   /* a package's plaintext image hash */
 
-static uint8_t header[SEALED_BLOCK_BYTES];      /* the mounted block 0 */
-static uint32_t table_cells[SEALED_BLOCK_BYTES / 4];   /* cells: a DMA target */
-#define table ((uint8_t *)table_cells)          /* the last table block read */
+/* The mounted block 0, and the last table block read (cells: a DMA
+   target). With SEALED_POOL (the CH32H417's V5F, lf_sealed.c) they come
+   from memalloc.c's pool while a package is mounted, else they're static. */
+#ifdef SEALED_POOL
+#include "memalloc.h"
+static uint32_t *work;                  /* both, from the pool */
+static uint8_t *header;
+static uint32_t *table_cells;
+
+static int work_get(void) {
+    if (work == NULL) {
+        work = pool_alloc(2 * SEALED_BLOCK_BYTES / 4);
+        if (work == NULL) {
+            return -1;
+        }
+        header = (uint8_t *)work;
+        table_cells = work + SEALED_BLOCK_BYTES / 4;
+    }
+    return 0;
+}
+
+/* Gives them back, if nothing newer was taken from the pool since (else
+   they stay, to be used by the next mount) */
+static void work_put(void) {
+    if (work != NULL && pool_is_newest(work)) {
+        crypto_wipe(work, 2 * SEALED_BLOCK_BYTES);
+        pool_free(work);
+        work = NULL;
+        header = NULL;
+        table_cells = NULL;
+    }
+}
+#else
+static uint8_t header[SEALED_BLOCK_BYTES];
+static uint32_t table_cells[SEALED_BLOCK_BYTES / 4];
+static int work_get(void) { return 0; }
+static void work_put(void) { }
+#endif
+#define table ((uint8_t *)table_cells)
 static uint32_t table_index = UINT32_MAX;       /* which one, or none */
 static ctr_key key;
 static uint8_t nonce[8];
@@ -70,6 +106,7 @@ void sealed_unmount(void) {
     keyless = 0;
     table_index = UINT32_MAX;
     read_raw = NULL;
+    work_put();
 }
 
 uint32_t sealed_blocks(void) {
@@ -85,6 +122,10 @@ enum { KEYLESS, UNWRAP, SIGNED_ONLY };
 static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *board,
                  sealed_read_fn read, char *msg, int len, sealed_package *pkg, int unwrap) {
     sealed_unmount();
+    if (work_get() != 0) {
+        snprintf(msg, len, "sealed file refused: no memory left to check it");
+        return ERR_ALLOCATE_FAILED;
+    }
     memcpy(header, b0, SEALED_BLOCK_BYTES);
     const uint8_t *h = header;
     uint32_t end = IMAGE_HASH_AT;

@@ -25,6 +25,7 @@
 #include "blake2s.h"
 #include "sealed.h"
 #include "ymodem.h"
+#include "memalloc.h"
 
 #define SOH 0x01
 #define STX 0x02
@@ -354,8 +355,10 @@ typedef struct {
     blake2s_state hash;                 // of the bytes that came
 } inst_state;
 
-static uint32_t inst_b0[BLOCK_SIZE_CELLS];      // block 0, written last
-static uint32_t inst_buf[BLOCK_SIZE_CELLS];     // the block being filled
+// From the pool while ymodem runs (lfAPI_ymodem), like report and the
+// packet buffer: none of them is needed the rest of the time
+static uint32_t* inst_b0;               // block 0, written last
+static uint32_t* inst_buf;              // the block being filled
 
 // Writes or reads block blk of where the file goes
 static int instWrite(const inst_state* t, uint32_t blk, const uint32_t* buf) {
@@ -557,14 +560,15 @@ static int readPacket(int c, uint8_t* data, int* size) {
 
 /* The reports wait in a buffer until the batch ends: printed between files,
    a 'C' in them would look like the receiver's request to the sender. */
-static char report[1536];
+#define REPORT_BYTES 1536
+static char* report;                    // REPORT_BYTES, from the pool
 static int report_len;
 
 static void rPuts(const char* s) {
-    while (*s && (report_len < (int)sizeof(report) - 5)) report[report_len++] = *s++;
+    while (*s && (report_len < REPORT_BYTES - 5)) report[report_len++] = *s++;
     if (*s) {                           // full: say so once
-        memcpy(&report[sizeof(report) - 5], "...\n", 4);
-        report_len = (int)sizeof(report) - 1;
+        memcpy(&report[REPORT_BYTES - 5], "...\n", 4);
+        report_len = REPORT_BYTES - 1;
     }
 }
 
@@ -774,13 +778,33 @@ static int readHeader(uint64_t give_up, uint8_t* data, char* name, int64_t* leng
     }
 }
 
+#define PACKET_BYTES 1024
+// The buffers ymodem takes from the pool while it runs, in cells
+#define YMODEM_POOL_CELLS (2 * BLOCK_SIZE_CELLS + REPORT_BYTES / 4 + PACKET_BYTES / 4)
+
+static int ymodemRun(uint32_t first, uint8_t* data);
+
 int lfAPI_ymodem(void) {
-    static uint8_t data[1024];
+    uint32_t first = vmPop();
+    uint32_t* mem = pool_alloc(YMODEM_POOL_CELLS);
+    if (mem == NULL) return ERR_ALLOCATE_FAILED;    // a flash page open, or the pool used up
+    inst_b0 = mem;
+    inst_buf = mem + BLOCK_SIZE_CELLS;
+    report = (char*)(mem + 2 * BLOCK_SIZE_CELLS);
+    uint8_t* data = (uint8_t*)(mem + 2 * BLOCK_SIZE_CELLS + REPORT_BYTES / 4);
+    int result = ymodemRun(first, data);
+    memset(mem, 0, YMODEM_POOL_CELLS * 4);
+    inst_b0 = inst_buf = NULL;
+    report = NULL;
+    int free_res = pool_free(mem);
+    return result ? result : free_res;
+}
+
+static int ymodemRun(uint32_t first, uint8_t* data) {
     static src_state st;
     static bin_state bin;
     static inst_state inst;
     char name[64], inst_name[64] = "";
-    uint32_t first = vmPop();
     int stage = (first == YMODEM_STAGE);
     int install = (first == YMODEM_INSTALL) || stage;
     int binary = (first != 0) && !install;

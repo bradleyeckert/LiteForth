@@ -17,10 +17,13 @@ CFLAGS  = -Wall -Wextra -std=gnu99 -O1 -g -fno-pie -Wno-pointer-to-int-cast -Wno
           '-DCDC_FENCE()=__sync_synchronize()' -Ifake -I$(V5F) -I$(CH)/Common -I$(SRC)
 # Not PIE, so .data and .bss lie below 4 GB as uint32_t addresses; they're
 # what Link_v5f.ld calls _data_vma.._susrstack (gdma.c's buffer rule)
-LDFLAGS = -no-pie -Wl,--defsym=_data_vma=__data_start -Wl,--defsym=_susrstack=_end
+# _pool_start.._pool_end is the board's pool region; empty here, where pool.c
+# keeps the pool in .bss
+LDFLAGS = -no-pie -Wl,--defsym=_data_vma=__data_start -Wl,--defsym=_susrstack=_end \
+          -Wl,--defsym=_pool_start=0 -Wl,--defsym=_pool_end=0
 
 SEALED  = $(SRC)/sealed.c $(SRC)/ctr.c $(SRC)/blake2s.c $(SRC)/monocypher.c $(SRC)/monocypher-ed25519.c
-UNITS   = sim.c $(V5F)/blocks.c $(V5F)/gdma.c $(V5F)/guard.c $(SRC)/card.c $(SRC)/exfat.c $(SEALED)
+UNITS   = sim.c pool.c $(V5F)/blocks.c $(V5F)/gdma.c $(V5F)/guard.c $(SRC)/card.c $(SRC)/exfat.c $(SEALED)
 DEPS    = $(UNITS) fake/*.h $(V5F)/blocks.h $(V5F)/gdma.h $(V5F)/guard.h $(V5F)/sdio.h
 
 .PHONY: all test clean

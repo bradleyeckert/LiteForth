@@ -2500,3 +2500,85 @@ and pages at every boot, and passed each time. Not tested on the board:
   forged with a valid MAC.
 - The refusal of a V5F-only package.
 - The time the check adds, which wasn't measured.
+
+### B26. The V5F's memory pool in general-purpose SRAM (22 October 2026)
+
+**Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
+`SECURITY_LEVEL` 1. It was built in MounRiver from branch `pool-sram`
+(PR #215) and flashed by the user:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 64000 | `ede6bcea52960d06eb1833e1b4afb982cfcc57063d43fd763f41e0c651d3710c` |
+| `LiteForth_V5F.bin` | 110708 | `3d62a082b12a8fb753d9de7ee2e1f9bf1d6115a0945baa6f2da17d119ab25eb0` |
+
+**Why:** the pool (`memalloc.c`) moved from DTCM to general-purpose SRAM
+at 0x20140000 (224 KB), to make room for the data logs' slots
+([data-logs.md](data-logs.md)). Guarded DMA and the flash service now
+take buffers from it. Some static buffers were also replaced by buffers
+taken from the pool only while they're needed: `ymodem`'s, `sealed.c`'s
+while a package is mounted, and the V5F `blocks.c`'s block 0 check and
+package check. The VM's RAM page is the pool's first allocation, so it
+moved too.
+
+**Expected:** LiteForth starts and finds its block file. `1 load` works,
+which opens a flash page in the pool and commits it. `-2 ymodem` stages and
+checks a package. `ymodem` receives a file. The VM is a little slower with
+its RAM page outside DTCM.
+
+**Speed:** this word, a million fetches and stores to a variable in the
+RAM page, timed with the microsecond counter:
+
+```
+: bench  capusec x@  1000000 for v @ 1+ v ! next  capusec x@ swap - . ;
+```
+
+| Build | `bench` |
+|---|---|
+| Before (pool in DTCM) | 801490 us (804004 the first time) |
+| After (pool in general SRAM) | 814049 us |
+
+So the VM is 1.6% slower on a loop that's all RAM accesses.
+
+**Run** (kwai):
+
+```
+1 load
+value test: 11 10
+Dictionary loaded and committed to flash memory.
+...
+ok>bench
+814049 ok>
+~x D:\Brad\adminLF\test\spare-app.lfu -2
+ymodem: send the file(s) now (YMODEM)
+[kwai: sent D:\Brad\adminLF\test\spare-app.lfu]
+ymodem: spare-app.lfu: staged in lfstage.bin, 94 blocks, read back and checked
+ymodem: package refused: sealed file refused: this board isn't one of its recipients; stage 1 won't install it
+Error: ior=-124 Bad file in a YMODEM transfer
+ok>~x lfblocks.fb4 0
+ymodem: send the file(s) now (YMODEM)
+[kwai: sent lfblocks.fb4]
+ymodem: lfblocks.fb4: 0 blocks written
+note: 528 non-blank line(s) outside blocks ignored
+ok>reboot
+```
+
+`spare-app.lfu` is the spare board's package from B25, so this board
+refusing it is the right answer: the check read every block's hash through
+pool buffers before saying so. The second transfer sent a block file as
+source, which has no `( BLOCK n )` lines, so nothing was written. The
+transfer itself went through `ymodem`'s pool buffers. The debug port,
+from flashing to after `reboot`:
+
+```
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, flash is blank
+...
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash
+```
+
+**Result:** pass. Starting up (the block 0 check), `1 load`, the
+package check and `ymodem` all work with their buffers in the pool, and
+the VM is 1.6% slower. Not run this time: `-1 ymodem`, `save-pages` and
+`ecdc-test`.

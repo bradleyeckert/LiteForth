@@ -29,7 +29,8 @@
 #define IO_BASE      0x40000000u // CH32H417: PERIPH_BASE in ch32h417.h
 #define IO_CELLS  (0x38400u / 4) // CH32H417: the peripheral block, through UHSIF
 // memalloc.c
-#define POOL_CAPACITY     24576 // cells of the system memory pool. CH32H417: RAM page + open-flash cache [3]
+#define POOL_CAPACITY     57344 // cells of the system memory pool: all of Link_v5f.ld's POOL, 224KB [3]
+#define POOL_SECTION     ".pool" // memalloc.c puts the pool there, not in DTCM [3]
 #define TEMP_HEAD_CELLS    2048 // pool buffer for temporary headers (head-) [3]
 #define FLASH_SHADOW_PAGES    1 // flash pages 0.. that the VM reads from RAM copies in DTCM [5]
 // flash.c: the flash lives at __lf_flash_start (V5F linker script). Unused.
@@ -50,7 +51,13 @@
 [3] open-flash allocates a FLASH_PAGE_CELLS cache from the pool while a
     flash page is open, on top of the RAM page, and head- allocates
     TEMP_HEAD_CELLS for temporary headers until head+. The pool is a static array
-    in the V5F's 256KB DTCM.
+    in its own section (POOL_SECTION), which Link_v5f.ld puts in general-purpose
+    SRAM: 0x20140000-0x20177FFF, above the V3F's RAM (PMP entry 1) and below the
+    shared block. Stage 1 uses that RAM only in recovery, while the V5F is off.
+    Buffers that are needed only now and then (ymodem's, the package check's)
+    come from the pool too, and data logging (doc/admin/data-logs.md) takes
+    what's left while no flash page is open. Guarded DMA (gdma.c) and the
+    flash service (pmp.c) take buffers from the pool as from DTCM.
 
 [4] main.c maps page VM_IO_PAGE onto the peripheral registers: the register
     at IO_BASE + 4c is at VM address (VM_IO_PAGE << 19) + c, so GPIOA

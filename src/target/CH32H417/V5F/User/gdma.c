@@ -84,13 +84,16 @@ int gdma_finish(int ch, uint32_t *buf, uint32_t bytes) {
 static uint32_t dma_buf[GDMA_BUF_BYTES / 4] __attribute__((aligned(32)));
 
 /* Link_v5f.ld: DTCM's .data and .bss (and the unused heap) run from
-   _data_vma up to the stack at _susrstack */
-extern uint32_t _data_vma[], _susrstack[];
+   _data_vma up to the stack at _susrstack; memalloc.c's pool is in
+   general-purpose SRAM, _pool_start to _pool_end, where nothing of
+   machine mode is */
+extern uint32_t _data_vma[], _susrstack[], _pool_start[], _pool_end[];
 
 static int user_buffer_ok(uint32_t p, uint32_t n) {
     uint32_t x = (uint32_t)dma_buf;
     return guard_buffer_ok(p, n, (uint32_t)_data_vma, (uint32_t)_susrstack,
-                           x, x + GDMA_BUF_BYTES);
+                           x, x + GDMA_BUF_BYTES)
+        || guard_buffer_ok(p, n, (uint32_t)_pool_start, (uint32_t)_pool_end, 0, 0);
 }
 
 /* memcpy without calling it: this file runs in machine mode, from flash,

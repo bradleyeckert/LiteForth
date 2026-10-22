@@ -20,7 +20,8 @@ MEMORY
 	/* LiteForth: all of the V3F's RAM, code, data, heap and stack, lies in the 256K
 	   from 0x20100000, which the V5F's PMP entry 1 keeps the V5F out of (V5F/User/pmp.c).
 	   0x20140000-0x20177FFF holds only recovery's RAM staging (stage1.c's ram_stage),
-	   used while the V5F is off. The top 32K (0x20178000) is shared with the
+	   used while the V5F is off: while it runs, the same RAM is the V5F's memory
+	   pool (Link_v5f.ld's POOL). The top 32K (0x20178000) is shared with the
 	   V5F, see Common/cdc_shared.h */
 	RAM_STAGE (rw) : ORIGIN = 0x20140000, LENGTH = (0x20178000 - 0x20140000)
 	RAM_SHARED (rw) : ORIGIN = 0x20178000, LENGTH = 32K

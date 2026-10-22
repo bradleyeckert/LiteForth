@@ -97,10 +97,11 @@ int pmp_call(uint32_t n, uint32_t a, uint32_t b);
 int pmp_call3(uint32_t n, uint32_t a, uint32_t b, uint32_t c);
 
 /**
- * Nonzero if [p, p + n) lies in DTCM: where a service's buffers must be,
- * so it can't be made to read or write anywhere else.
+ * Nonzero if [p, p + n) lies in DTCM or in memalloc.c's pool (Link_v5f.ld's
+ * POOL, general-purpose SRAM): where a service's buffers must be, so it
+ * can't be made to read or write anywhere else.
  */
-int pmp_in_dtcm(uint32_t p, uint32_t n);
+int pmp_in_ram(uint32_t p, uint32_t n);
 
 /**
  * Erases one LiteForth flash page at addr (__lf_flash_start plus a whole

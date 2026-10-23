@@ -457,8 +457,8 @@ def h_recovery(rig, a):
 
 def h_lockdown(rig, a):
     """The lock-down check at boot: what this board reports."""
-    line, start = rig.reset_and_wait(r'security|LiteForth starting', 30)
-    locked = line is not None and 'security' not in line
+    line, start = rig.reset_and_wait(r'not locked down|LiteForth starting', 30)
+    locked = line is not None and 'not locked down' not in line
     note(f'- The board is {"locked down" if locked else "not locked down"}: `{line}`')
     print(f'  board: {line}')
     check(line is not None, 'the boot reported')

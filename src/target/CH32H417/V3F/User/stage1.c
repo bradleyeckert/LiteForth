@@ -402,7 +402,7 @@ void stage1_wait_v5f(void) {
     NVIC_SystemReset();
 }
 
-int stage1_boot(void) {
+static int boot(void) {
     static upd_record rec;
     static char msg[160];
     sealed_board keys;
@@ -458,6 +458,17 @@ int stage1_boot(void) {
         return start_or_not(waiting || busy || rec.state != UPD_IDLE);
     }
     return enter_recovery(msg);
+}
+
+/* The boot log's summary: the build's security level and the installed
+   image's version (Forth's `revision`, the package's), so a log says which
+   firmware it came from */
+int stage1_boot(void) {
+    int result = boot();
+    uint32_t version = CDC_SHARED->rev_magic == CDC_REVISION_MAGIC ? CDC_SHARED->revision : 0;
+    printf("V3F stage 1: security level %d, installed version %lu%s\r\n", SECURITY_LEVEL,
+           (unsigned long)version, result == STAGE1_START ? "" : ", recovery");
+    return result;
 }
 
 /* ------------------------------------------------------------------------

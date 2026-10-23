@@ -150,7 +150,7 @@ static void LiteForth(void)
         g_lf_sys_options |= SYS_OPTION_NO_AUTORUN;
     }
     crumb(TAG('Q','U','I','T'), g_block_capacity, (uint32_t)g_lf_sys_options);
-    printf("V5F: LiteForth starting, %s%s\r\n",
+    printf("V5F: LiteForth starting, security level %d, %s%s\r\n", SECURITY_LEVEL,
            (g_lf_sys_options & SYS_OPTION_BOOTING) ? "booting from flash" : "flash is blank",
            safe ? ", safe boot (app not started)" : "");
 

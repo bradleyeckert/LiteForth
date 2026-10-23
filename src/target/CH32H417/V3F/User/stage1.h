@@ -72,7 +72,8 @@
  * At reset, before the V5F is woken: if a package is waiting (`update` in
  * the shared block is CDC_UPDATE_MAGIC) or the security record exists,
  * runs upd_boot: carries on with any update under way, or starts one, and
- * checks the V5F image. Clears the flag. Reports on the debug UART.
+ * checks the V5F image. Clears the flag. Reports on the debug UART,
+ * ending with "V3F stage 1: security level N, installed version V".
  * Returns STAGE1_START, or STAGE1_RECOVERY if there's no working V5F
  * image: then the caller doesn't wake the V5F, and stage1_poll runs the
  * recovery terminal.

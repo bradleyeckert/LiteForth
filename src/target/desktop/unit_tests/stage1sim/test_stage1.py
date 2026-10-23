@@ -391,7 +391,10 @@ def s_install():
     check(line and 'LiteForth' in line, 'install: the next boot starts LiteForth')
     r = b.boot()
     check(r.wait_debug(r'SIM: (no )?revision') == 'SIM: revision 1', 'install: revision 1 after')
+    line = r.wait_debug(r'V3F stage 1: security level')
     r.stop()
+    check(line == 'V3F stage 1: security level 0, installed version 1',
+          f'install: the boot log gives the level and the installed version ({line})')
 
 
 def s_rollback():
@@ -740,12 +743,12 @@ def s_lockdown():
     r = b.boot(obr=LOCKED_OBR, wpr=LOCKED_WPR)
     check(r.wait_debug(r'LiteForth starting') is not None, 'locked: starts')
     r.stop()
-    check(not any('security' in l for l in r.debug), 'locked: no warning')
+    check(not any('not locked down' in l for l in r.debug), 'locked: no warning')
     for obr, wpr, what in ((LOCKED_OBR, 'FFFFFFFF', "V3F's sectors not all write-protected"),
                            (LOCKED_OBR, 'FFFFFE00', 'sectors that updates write'),
                            ('%X' % (0x2 | (0x41 << 2)), LOCKED_WPR, 'USB download on'),
                            ('%X' % (0x81 << 2), LOCKED_WPR, 'read protection off')):
-        line = b.boot_until(r'security', obr=obr, wpr=wpr)
+        line = b.boot_until(r'not locked down', obr=obr, wpr=wpr)
         check(line and what in line, f'lockdown: {what} ({line})')
     r = b.boot(strict=True)
     check(r.wait_debug(r'security level 2') is not None or r.wait_debug(r'recovery mode') is not None,

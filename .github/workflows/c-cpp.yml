@@ -51,7 +51,7 @@ jobs:
 
     - name: Cache the RISC-V toolchain
       id: toolchain
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/${{ env.XPACK }}
         key: ${{ env.XPACK }}-linux-x64

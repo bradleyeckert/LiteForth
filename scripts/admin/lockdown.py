@@ -231,6 +231,10 @@ def open_console(a, dbg, start):
     if not usb.wait('recovery ok> ', 8):
         usb.write('\r')
         usb.wait('recovery ok> ', 5)
+    # The prompt can be the tail of a help printed before the port opened, read
+    # before the reply to our `help`: wait for that reply's prompt too.
+    if b'lockdown: lock this board' not in usb.text:
+        usb.wait('recovery ok> ', 5)
     console = bytes(usb.text).decode('latin-1')
     debug_log(dbg, start, 'Debug port')
     block('Cli port (recovery console)', console)

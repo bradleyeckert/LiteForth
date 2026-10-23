@@ -32,9 +32,8 @@ update code, on a PC without the board, to develop and to test.
 A Forth application starts at power-up and keeps running when it hits an
 error, while the terminal stays usable for the developer or technician.
 
-- **Verified by:** board:B24, demo:src/target/desktop/unit_tests/appstep::yeet handler tests passed
-- **Status:** partial
-- **Gap:** no board run of an application handling its own error
+- **Verified by:** board:B24, demo:src/target/desktop/unit_tests/appstep::yeet handler tests passed, board:B27
+- **Status:** verified
 
 ### UN-04: Source and data on a card a PC can read
 The developer keeps source, fonts and data in a block file on the
@@ -54,9 +53,8 @@ The application shows text, including Chinese, on small color LCDs.
 The application keeps the time of day, and sleeps at low power until an
 alarm wakes it.
 
-- **Verified by:** demo:src/target/desktop/unit_tests/rtc/run.sh
-- **Status:** partial
-- **Gap:** no board run logged
+- **Verified by:** demo:src/target/desktop/unit_tests/rtc/run.sh, board:B27
+- **Status:** verified
 
 ### UN-07: Updates that never brick a device
 The service technician updates a device's firmware and application in the

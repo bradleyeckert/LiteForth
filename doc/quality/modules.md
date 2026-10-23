@@ -280,9 +280,9 @@ only in DTCM.
 - **Parent:** ARC-V5F, ARC-PKG
 - **Code:** src/target/CH32H417/V5F/User/ecdc.c::ctr_hw_crypt
 - **Design:** doc/ch32h417-notes.md#ECDC
-- **Verified by:** unit:datalog::record not wiped
+- **Verified by:** unit:datalog::record not wiped, board:B27
 - **Status:** partial
-- **Gap:** only its failure handling is tested (a stand-in engine); `ecdc-test` on the board isn't logged
+- **Gap:** the engine exists only on the chip: `ecdc-test` (B27) compares it with software there; the desktop tests its failure handling with a stand-in
 
 ### MOD-V5F-TIME: Time and standby on the V5F
 The microsecond counter, the RTC, the alarm and standby.
@@ -290,9 +290,9 @@ The microsecond counter, the RTC, the alarm and standby.
 - **Parent:** ARC-V5F
 - **Code:** src/target/CH32H417/V5F/User/lftime.c
 - **Design:** doc/glossary.md
-- **Verified by:** unit:rtc
+- **Verified by:** unit:rtc, board:B27
 - **Status:** partial
-- **Gap:** the desktop's version is tested; the V5F's isn't
+- **Gap:** the desktop's version is unit-tested; the V5F's is shown on the board (B27)
 
 ### MOD-LCD: The LCD drivers
 The simulated LCD and its ST7789 model on the desktop, the ST7789 on SPI

@@ -73,9 +73,9 @@ the board's identity without its key, the ECDC engine for AES and SM4,
 the LCD on SPI, the RTC and standby, and the memory map.
 
 - **Parent:** SYS-STO-03, SYS-STO-07, SYS-DISP-01, SYS-TIME-01, SYS-TIME-02, SYS-UPD-10
-- **Verified by:** integ:blocksim::test_reads, integ:blocksim::test_faults, board:B17, board:B24, board:B26
+- **Verified by:** integ:blocksim::test_reads, integ:blocksim::test_faults, board:B17, board:B24, board:B26, board:B27
 - **Status:** partial
-- **Gap:** the LCD, the RTC and standby, and the ECDC engine have no board run logged
+- **Gap:** the LCD has no board run logged
 
 ### ARC-MMODE: The V5F's machine mode
 What user mode can't change or get around: the PMP entries set before

@@ -88,9 +88,9 @@ illegal instruction (-128) in Forth code is reported to Forth (the
 terminal, or the application's handler) instead of resetting the chip.
 
 - **Parent:** UN-01, UN-03
-- **Verified by:** integ:traps::app: PC at the yeet handler, board:B15, board:B18
+- **Verified by:** integ:traps::app: PC at the yeet handler, board:B15, board:B18, board:B27
 - **Status:** partial
-- **Gap:** on the board only access faults (-127) are shown; -23, -128 and a fault going to an application's handler are tested on the desktop, with API calls standing in for the faults
+- **Gap:** -23 and -128 can't be made from Forth on the board (whole-cell accesses, no machine code), so they're tested on the desktop with API calls standing in
 
 ### SYS-LANG-10: A block editor
 Blocks are edited on the board from the terminal, each change saved at
@@ -189,9 +189,9 @@ only by machine mode's service, which checks the address range; at level
 refuse with -20, and only update packages write the pages.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** board:B14, board:B19, sys:locked::locked tests passed, unit:update::test_app_locked
+- **Verified by:** board:B14, board:B19, board:B28, sys:locked::locked tests passed, unit:update::test_app_locked
 - **Status:** partial
-- **Gap:** on the board, B28 shows `open-flash` and `save-pages` refused at level 2, but `close-flash` answering `ok` (a no-op); the fix that makes it refuse isn't on a board yet
+- **Gap:** on the board, `close-flash` refusing at level 2 (be529e1) isn't on a board yet; B28 showed it answering `ok`, a no-op
 
 ### SYS-STO-08: Shared memory for occasional buffers
 Buffers needed only now and then, and the data logs' buffers, come from
@@ -233,9 +233,8 @@ During a YMODEM transfer the terminal passes every byte to the receiver:
 Ctrl+X in the data doesn't reset the board.
 
 - **Parent:** UN-01, UN-07
-- **Verified by:** sys:ymodem::Ctrl+X runs, insp:src/target/CH32H417/Common/cdc_shared.h::CDC_BINARY_MAGIC
-- **Status:** partial
-- **Gap:** the V3F's escape being off during a transfer isn't tested on the simulated board
+- **Verified by:** sys:ymodem::Ctrl+X runs, insp:src/target/CH32H417/Common/cdc_shared.h::CDC_BINARY_MAGIC, board:B27
+- **Status:** verified
 
 ## UPD: firmware updates
 
@@ -554,18 +553,17 @@ fonts kept in blocks, CJK included, with a cache in flash.
 words convert them to and from dates and times.
 
 - **Parent:** UN-06
-- **Verified by:** sys:rtc::[time kept], sys:calendar
-- **Status:** partial
-- **Gap:** no board run logged
+- **Verified by:** sys:rtc::[time kept], sys:calendar, board:B27
+- **Status:** verified
 
 ### SYS-TIME-02: Sleep until an alarm
 `standby` sleeps with both cores stopped until the alarm, then restarts,
 keeping the time; without an alarm set it refuses.
 
 - **Parent:** UN-06
-- **Verified by:** sys:rtc::[woke]
+- **Verified by:** sys:rtc::[woke], board:B27
 - **Status:** partial
-- **Gap:** no board run logged
+- **Gap:** the refusal without an alarm isn't shown on the board; standby's current isn't measured
 
 ## TOOL: the PC tools
 

@@ -2590,3 +2590,225 @@ V5F: LiteForth starting, booting from flash
 package check and `ymodem` all work with their buffers in the pool, and
 the VM is 1.6% slower. Not run this time: `-1 ymodem`, `save-pages` and
 `ecdc-test`.
+
+### B27. ECDC, the RTC and standby, a CPU fault in the app, Ctrl+X in a transfer (22 October 2026)
+
+**Board and firmware:** the main board, UID `69a90e647f9cf6a9`, as the
+user had last built and flashed it in MounRiver: the V3F reports `built
+Oct 22 2026 11:06:37, GCC 12.2.0`, and the V5F's PMP line is as in B26.
+The hashes weren't recorded and the boot log didn't give the security
+level. The level is taken as 0: a store to DMA1 reached the CPU, which a
+level 1 build's I/O allowlist would have refused first (-9), and the user
+recalls building it at 0. Since then, stage 1 prints the level and the
+installed version at every boot. `revision` 0: an image the debugger
+flashed, not a package. The steps ran on the cli port through lfmcp,
+except step 4, which ran in kwai.
+
+**Why:** to close gaps in the traceability matrix (`rtm.py --gaps`):
+MOD-ECDC, SYS-TIME-01/02 and UN-06, UN-03 and SYS-LANG-09, and SYS-TERM-04.
+
+**1. The ECDC engine.** Expected: every unit matches software, except the
+deliberate case without the pause after key expansion.
+
+```
+> ecdc-test
+AES, out of place: 256/256 units match software; 174 us, software 2446 us
+AES, in place: 256/256 units match software; 172 us, software 2445 us
+AES, no pause after key expansion: 253/256 units match software; 164 us, software 2444 us
+    wrong (unit.word^difference): 0.3^ca3e2641 1.3^ca3e2641 2.3^ca3e2641
+SM4, out of place: 256/256 units match software; 176 us, software 770 us
+AES through ctr_crypt_block (first use: checks the engine): 256/256 units match software; 484 us, software 2438 us
+AES through ctr_crypt_block again: 256/256 units match software; 172 us, software 2444 us
+AES through ctr_crypt_block, a buffer not 32-byte aligned: 256/256 units match software; 261 us, software 2439 us
+SM4 through ctr_crypt_block (first use): 256/256 units match software; 378 us, software 771 us
+SM4 through ctr_crypt_block again: 256/256 units match software; 176 us, software 769 us
+SM4 through ctr_crypt_block, a buffer not 32-byte aligned: 256/256 units match software; 260 us, software 769 us
+ctr_crypt_block uses the engine for AES: yes, SM4: yes
+The block buffers are 32-byte aligned (no copy): yes
+ok>
+```
+
+**2. The RTC and standby.** Expected: `clock!` sets the clock, and the
+calendar words read it back. `standby` sleeps until the alarm, then the
+chip restarts with `alarm?` true and the clock still counting.
+
+```
+> alarm? .
+0 ok>
+> rtc@ dup . .date space rtc@ .time
+29709 1970-01-01 08:15:09ok>
+> 0 20 2 23 10 2026 clock!
+ok>
+> rtc@ dup . dup .date space .time
+1792722000 2026-10-23 02:20:00ok>
+> rtc@ 5 + dup alarm! .time
+02:20:05ok>
+> standby
+```
+
+The port went away, then LiteForth's banner came back:
+
+```
+[幸运狐] v0.02
+ok>学如不及, 犹恐失之
+> alarm? .
+-1 ok>
+> rtc@ dup . dup .date space .time
+1792722018 2026-10-23 02:20:18ok>
+```
+
+A second run started from the boot the alarm had woken:
+
+```
+> rtc@ 15 + dup alarm! .time
+02:20:38ok>
+> standby
+```
+
+The PC took about a minute to show the port again. To check that the
+chip hadn't slept past the alarm, the boot time was worked out from the
+microsecond counter:
+
+```
+> alarm? .
+-1 ok>
+> rtc@ .time
+02:21:43ok>
+> rtc@ capusec x@ 1000000 u/mod nip - .time
+02:20:39ok>
+```
+
+So this boot started at 02:20:39, a second after the 02:20:38 alarm. The
+debug port, from the second `standby`:
+
+```
+V3F: standby
+V3F security: not locked down: read protection off, the V3F's sectors not all write-protected, boot ROM USB download on, boot ROM USART download on (OBR 000003FC, WPR FFFFFFFF)
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 3; the previous run left 84 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 1FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 22 2026 11:06:37, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 12864 (exFAT)
+V5F: LiteForth starting, booting from flash
+V3F: USB configured
+```
+
+**3. A CPU fault in the running app.** The demo app runs at boot. A task
+in its ring stores to DMA1, which PMP entry 2 makes read-only in user
+mode. Expected: the app's yeet handler (core.f) reports the fault and
+parks the app, and the terminal still works.
+
+```
+> counter @ . counter @ .
+1573341068 1573341068 ok>
+> 0 open-flash
+ok>
+> : boom ( -- ) t1 activate  0 2654208 ! ;
+ok>
+> close-flash
+ok>
+> boom
+ok>
+App error -127 at 901H
+> counter @ .
+1573406135 ok>
+> counter @ .
+1573406135 ok>
+```
+
+The debug port:
+
+```
+V5F fault: mcause 00000007 mepc 200AAABA mtval 40020000 ra 200AA562 sp 200FFD80 -> Forth
+```
+
+`counter` stopped, so the app was parked. Then `1 load` rebuilt the
+dictionary without `boom`, and after a `reboot` `counter` moved again
+(1576029766, then 1576853265).
+
+**4. Ctrl+X inside a YMODEM transfer.** The file `ctrlx.lfu` is 8192
+bytes: `LITEFORTHF`, then 8182 bytes of 0x18. Its sha256 is
+`318ff85fc39643850516fbc841c6638ca43858d9cc60dd6713fa4937cf35af69`.
+Expected: the whole file arrives, the board doesn't reset (three Ctrl+X
+in a row would reset it outside a transfer), and the package is refused.
+In kwai:
+
+```
+ok>~x ctrlx.lfu -2
+ymodem: send the file(s) now (YMODEM)
+
+[kwai: sending ctrlx.lfu: 8192 bytes]
+[kwai: 8/8]
+[kwai: sent ctrlx.lfu]
+ymodem: ctrlx.lfu: staged in lfstage.bin, 2 blocks, read back and checked
+ymodem: package refused: sealed file refused: unknown format version; stage 1 won't install it
+Error: ior=-124 Bad file in a YMODEM transfer
+ok>1 2 + .
+3 ok>revision .
+0 ok>
+```
+
+**Result:** pass.
+- The ECDC engine matches software for AES and SM4: in place, out of
+  place, and through `ctr_crypt_block`, aligned or not.
+- The RTC keeps time through standby and a reset, and the alarm wakes the
+  chip on time, twice in a row.
+- A CPU access fault in the app goes to the app's own handler.
+- Ctrl+X in a transfer's data doesn't reset the board.
+
+Not tested:
+- A misaligned access (-23) and an illegal instruction (-128): Forth's VM
+  makes only whole-cell accesses and runs no machine code, so neither can
+  be made to happen from Forth.
+- Standby's current draw.
+
+### B28. Level 2: the flash pages can't be opened or saved (22 October 2026)
+
+**Board and firmware:** the spare board, UID `e52116647f9c7a22`, as in
+B25: locked down, level 2, `spare-app.lfu` version 1 installed. The V3F
+reports `built Oct 22 2026 03:45:11, GCC 12.2.0`, the B25 build. The
+steps ran on the cli port through lfmcp.
+
+**Why:** SYS-STO-07: at level 2 only update packages write LiteForth's
+flash pages.
+
+**Expected:** `open-flash` and `save-pages` refuse with -20.
+
+```
+> revision .
+1 ok>
+> enroll
+boards.csv line:
+e52116647f9c7a22,044974c7a23fe018fdb9f2182e9d71344c290ade351700d2057d83625b8a9104
+ok>
+> 0 open-flash
+Error: ior=-20 write address prohibited
+ok>
+> save-pages
+Error: ior=-20 write address prohibited
+ok>
+> close-flash
+ok>
+> reboot
+```
+
+After the reboot, the signed image started again:
+
+```
+[幸运狐] v0.02
+ok>学如不及, 犹恐失之
+> revision .
+1 ok>
+> 1 2 + .
+3 ok>
+```
+
+**Result:** pass for `open-flash` and `save-pages`.
+
+**A finding:** `close-flash` answered `ok`. With no page open it does
+nothing, and machine mode's flash service refuses every page write at
+level 2 anyway. Still, it shouldn't say `ok`. Commit `be529e1` makes
+`close-flash` and `save-pages` refuse whenever the pages are locked, and
+`unit_tests/locked` tests that on the desktop (`lf -L 2`). The fix hasn't
+been on a board yet.

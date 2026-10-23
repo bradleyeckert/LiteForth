@@ -117,9 +117,10 @@ def gen():
         v5f = ['--component', 'v5f', '--release', 'rel.key', '--boards', 'boards.csv']
         for name, rev in (('v1', 1), ('v2hang', 2), ('v3', 3), ('stuck', 4)):
             tool('package', name + '.bin', name + '.lfu', *v5f, '--revision', rev)
+        tool('package', 'v3.bin', 'v3min.lfu', *v5f, '--revision', 3, '--min-version', 3)
         tool('package', 'v3.bin', 'other.lfu', '--component', 'v5f', '--release', 'rel.key',
              '--boards', 'other.csv', '--revision', 3)
-        for name in ('v1', 'v2hang', 'v3', 'stuck', 'other'):
+        for name in ('v1', 'v2hang', 'v3', 'stuck', 'other', 'v3min'):
             PACKAGES[name] = os.path.join(WORK, name + '.lfu')
         cards = {
             'full': ['--file', 'lfblocks.fb4', '--file', 'lfstage.bin,size=1048576',
@@ -390,7 +391,10 @@ def s_install():
     check(line and 'LiteForth' in line, 'install: the next boot starts LiteForth')
     r = b.boot()
     check(r.wait_debug(r'SIM: (no )?revision') == 'SIM: revision 1', 'install: revision 1 after')
+    line = r.wait_debug(r'V3F stage 1: security level')
     r.stop()
+    check(line == 'V3F stage 1: security level 0, installed version 1',
+          f'install: the boot log gives the level and the installed version ({line})')
 
 
 def s_rollback():
@@ -474,8 +478,8 @@ def s_reboot():
 
 
 def s_refusals():
-    """A package for another board, one with a damaged block, and no room
-    for a backup: refused, the image untouched, LiteForth starts."""
+    """A package for another board, a downgrade below the minimum, and no
+    room for a backup: refused, the image untouched, LiteForth starts."""
     b = Board('refusals')
     b.stage('v1')
     until_started(b)
@@ -485,6 +489,18 @@ def s_refusals():
     check(r.wait_debug(r'LiteForth starting') is not None, 'refusals: still starts')
     r.stop()
     check(b.has('v1'), 'refusals: v1 untouched')
+
+    # a downgrade below the minimum a confirmed package set
+    b.stage('v3min')
+    until_started(b)
+    check(b.has('v3'), 'minimum: v3 installed, raising the minimum to 3')
+    b.stage('v1')
+    r = b.boot()
+    line = r.wait_debug(r'refused|installed')
+    check(line and 'older revision' in line, f'minimum: version 1 refused ({line})')
+    check(r.wait_debug(r'LiteForth starting') is not None, 'minimum: v3 still starts')
+    r.stop()
+    check(b.has('v3'), 'minimum: v3 untouched')
 
     b = Board('no-backup', card='nobackup')
     b.stage('v1')
@@ -727,12 +743,12 @@ def s_lockdown():
     r = b.boot(obr=LOCKED_OBR, wpr=LOCKED_WPR)
     check(r.wait_debug(r'LiteForth starting') is not None, 'locked: starts')
     r.stop()
-    check(not any('security' in l for l in r.debug), 'locked: no warning')
+    check(not any('not locked down' in l for l in r.debug), 'locked: no warning')
     for obr, wpr, what in ((LOCKED_OBR, 'FFFFFFFF', "V3F's sectors not all write-protected"),
                            (LOCKED_OBR, 'FFFFFE00', 'sectors that updates write'),
                            ('%X' % (0x2 | (0x41 << 2)), LOCKED_WPR, 'USB download on'),
                            ('%X' % (0x81 << 2), LOCKED_WPR, 'read protection off')):
-        line = b.boot_until(r'security', obr=obr, wpr=wpr)
+        line = b.boot_until(r'not locked down', obr=obr, wpr=wpr)
         check(line and what in line, f'lockdown: {what} ({line})')
     r = b.boot(strict=True)
     check(r.wait_debug(r'security level 2') is not None or r.wait_debug(r'recovery mode') is not None,

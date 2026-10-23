@@ -44,7 +44,7 @@ int lfInitPointers(void) {
 
 static void usage(const char* prog) {
     fprintf(stderr, "Usage: %s [-t port_name] [-b baudrate] [-o options]"
-        " [-f flash_file] [-k blocks_file] [-K board_file]\n", prog);
+        " [-f flash_file] [-k blocks_file] [-K board_file] [-L 2]\n", prog);
 }
 
 int main(int argc, char* argv[]) {
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         char opt = argv[i][1];
-        if (!strchr("tbofkK", opt)) {
+        if (!strchr("tbofkKL", opt)) {
             fprintf(stderr, "Unknown option: %s\n", argv[i]);
             usage(argv[0]);
             return 1;
@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
         case 'f': flash_name = value;                   break;
         case 'k': blocks_name = value;                  break;
         case 'K': board_name = value;                   break;
+        case 'L': flash_set_locked(atoi(value) >= 2);   break; // pages as at level 2
         default:                                        break;
         }
     }

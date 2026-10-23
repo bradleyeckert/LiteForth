@@ -728,6 +728,43 @@ static void test_signed(void) {
     io.adopt_blank = 1;
 }
 
+/* The backup on the card: anyone can write any file there (security plan
+   section 4: the holder of the device), so it must be neither readable nor
+   changeable without the token */
+static void test_backup_on_card(void) {
+    /* not plaintext: no 64-byte run of the old image anywhere in it */
+    adopt();
+    put_package("new0.lfu");
+    boot(1);
+    CHECK(rec.backup_length == UPD_V5F_SLOT, "backup made");
+    int plain = 0;
+    for (long at = 0; at + 64 <= old_len && !plain; at += 64) {
+        for (size_t b = 0; b + 64 <= sizeof backup; b += 16) {
+            if (memcmp(backup + b, old_img + at, 64) == 0) {
+                plain = 1;
+                break;
+            }
+        }
+    }
+    CHECK(!plain, "the backup isn't the image in the clear");
+
+    /* one byte changed in it: the failed trial goes to recovery, not to it */
+    backup[3 * UPD_BLOCK + 100] ^= 1;
+    int r = 0;
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN && strstr(msg, "can't roll back")
+          && !is_image(old_img, old_len), "a changed backup isn't restored: %d %s", r, msg);
+
+    /* its header changed (another version claimed): not restored either */
+    adopt();
+    put_package("new0.lfu");
+    boot(1);
+    backup[8] ^= 1;                     /* the version in block 0 */
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN,
+          "a backup claiming another version isn't restored: %d %s", r, msg);
+}
+
 /* The package replaced while an install was cut short. (Cut during the
    backup instead, the update simply starts over, with whatever package is
    there then: that's right, since nothing has been programmed yet.) */
@@ -888,6 +925,7 @@ int main(void) {
     test_blank_without_adopt();
     test_recovery();
     test_record_copies();
+    test_backup_on_card();
     test_power_cuts();
     test_debugger_adopt();
     test_app_development();

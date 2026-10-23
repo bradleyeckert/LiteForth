@@ -24,9 +24,16 @@ int flash_program(uint32_t *m, int page);
 
 /**
  * Nonzero if LiteForth's flash pages can't be written (see the CH32H417's
- * flash.h). On the desktop they always can: returns 0.
+ * flash.h): on the desktop, only after flash_set_locked(1) (`lf -L 2`).
  */
 int flash_locked(void);
+
+/**
+ * Locks (nonzero) or unlocks LiteForth's flash pages, so the desktop can
+ * test the CH32H417's SECURITY_LEVEL 2: open-flash, close-flash and
+ * save-pages then refuse with ERR_WRITE_PROTECTED.
+ */
+void flash_set_locked(int locked);
 
 /**
  * Simulation stub for filling in a random key at the end of the Root of Trust (RoT) sector.

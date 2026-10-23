@@ -103,6 +103,7 @@ Visual Studio builds without the makefile.
 - [Glossary](doc/glossary.md): Forth words and VM constants
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
 - [Security plan](doc/admin/security-plan.md): root of trust, signed images, device keys, updates, provisioning (draft)
+- [Quality: the V-model and the RTM](doc/quality/README.md): stakeholder needs, system requirements, architecture and modules, each traced to its tests and board runs in a checked Requirements Traceability Matrix ([rtm.md](doc/quality/rtm.md))
 - [Software Bill of Materials](doc/admin/sbom.md): the third-party code and data in LiteForth and their licenses (`sbom.spdx.json`, SPDX 2.3)
 - [Updating a board's blocks](doc/admin/updates.md): block files, setting up a product, enrolling boards, and installing over the terminal (`-1 ymodem`), and the build options
 - [The sealed format](doc/admin/encrypted-blocks.md): encrypted, signed firmware update packages, and their keys (the design; sealed block files are retired)

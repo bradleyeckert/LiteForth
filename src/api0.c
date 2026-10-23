@@ -192,6 +192,7 @@ uint32_t* flash = NULL;
 
 /* CLOSE-FLASH  ( -- ) */
 static int flashClose(void) {
+    if (flash_locked()) return ERR_WRITE_PROTECTED; // only update packages write them
     if (openpage < 0) return 0; // already closed
     if (lfTempHeads()) return ERR_MUST_HAVE_HEADS; // -heads first: its buffer is newer
     if (openpage >= RAM_PAGE) return ERR_FLASH_INVALID_SECTOR;
@@ -458,6 +459,7 @@ static int revision(void) {
 static int savePages(void) {
     const uint32_t per_page = FLASH_PAGE_CELLS / BLOCK_SIZE_CELLS;
     if (openpage >= 0) return ERR_WRITE_PROTECTED;  // close-flash first
+    if (flash_locked()) return ERR_WRITE_PROTECTED; // packages carry the pages then
     if (blk_pages_space() < RAM_PAGE * per_page) return ERR_BLK_BOUNDS;
     uint32_t* buf = pool_alloc(BLOCK_SIZE_CELLS);
     if (buf == NULL) return ERR_ALLOCATE_FAILED;

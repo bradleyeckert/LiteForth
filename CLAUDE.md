@@ -57,6 +57,18 @@ make clean      # leaves the tracked bin/*.bin images alone
 - `STACK_CAPACITY` must be a power of 2, at least 32 (checked in `vm.h`).
 - For refactors that shouldn't change behavior, save `build/*.o` and `bin/lf`
   first and `cmp` them afterwards; gcc output is reproducible here.
+- **Requirements and traceability** (`doc/quality/`, its README): a
+  V-model of stakeholder needs (`needs.md`, UN), system requirements
+  (`system.md`, SYS), architecture (`architecture.md`, ARC) and modules
+  (`modules.md`, MOD), each item naming its parent and its evidence
+  (`unit:suite::text`, `integ:`, `sys:`, `board:Bnn`, `insp:`, `ci:`).
+  `scripts/rtm.py` writes `rtm.md`, the matrix; `unit_tests/rtm` fails if
+  a link (a suite, a text in it, a board test, a file, a symbol, a
+  heading) is broken or `rtm.md` is stale. A change of behavior changes
+  its items first (a new one `planned`), and its tests go in the items'
+  **Verified by**; then run `scripts/rtm.py` and commit `rtm.md`.
+  `rtm.py --gaps` lists what isn't verified at its level. When you rename
+  a test or a check's message, grep `doc/quality` for it.
 - Security tests on the board (updates, rollback, PMP, protection) are
   logged in `doc/admin/board-tests.md`, as evidence for a cybersecurity document:
   firmware build and hashes, packages' sha256, steps, expected, and the
@@ -174,6 +186,7 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
 | `scripts/putbin.py` | Writes a binary file (a font from `mkfont.py`) into blocks as one stream from byte 32 of the given block (bytes 0-31 zeros, kept for an HMAC; the last block zero-filled), prints the next free block, and warns about font glyphs that cross a block. Same signature and block 0 rules as `putblocks.py` (`unit_tests/putbin`) |
 | `scripts/getblocks.py` | The reverse: dumps a block file as text (stdout or `-o`), writing a `( BLOCK n )` marker before each non-blank block, and a binary block (`putbin.py`) as one `( BLOCK IGNORE ) block n: binary, crc32 ...` line that `putblocks.py` skips. `putblocks.py` writes the dump back byte for byte. Also the git diff driver for `*.fb4` (`.gitattributes`): run `git config diff.fb4.textconv "python3 scripts/getblocks.py -0"` once per clone so `git diff` shows blocks as text; GitHub can't use it and collapses `.fb4` diffs |
 | `scripts/mksbom.py`, `sbom.spdx.json` | The SBOM (SPDX 2.3, `doc/admin/sbom.md`): the third-party components (Monocypher, blake2s, WCH's EVT, Unity, Noto fonts, Python packages), written from the list in the script with each file's checksums. `unit_tests/sbom` fails if a listed file changes (`--check`) or a file has a copyright notice no component claims (`--scan`): when you change or add third-party code, update `COMPONENTS`/`MODIFIED` and run the script |
+| `scripts/rtm.py`, `doc/quality/` | The V-model's items and the Requirements Traceability Matrix (`doc/quality/README.md`): parses the four item files, checks every parent and piece of evidence against the repository (suites and texts in them, `board-tests.md` entries, files, symbols, headings), and writes `rtm.md` (needs to requirements, requirements to architecture and evidence, modules, test suites and board tests back to items, gaps); `--check` (CI, `unit_tests/rtm` with its self-test `test_rtm.py`), `--gaps`, `--strict` |
 | `scripts/lfmcp.py` | MCP server for an AI assistant: LiteForth's terminal on a serial port (`forth`, `forth_read`, `forth_restart`; or `--mailbox`), and the WCH-LinkE through `wlink` (`status list regs dump reset flash` only; `flash` refused unless `FLASH->OBR` shows read protection off and `FLASH->WPR` is all ones, since wlink's flash unprotects first; never `--erase`). `unit_tests/lfmcp` tests it with a fake wlink |
 | `scripts/admin/hiltest.py` | Hardware-in-the-loop tests of stage 1 on a real board (`--list`, `check`, `run --good PKG --hang PKG`): the cli port (the board's USB terminal, the V3F's CDC; pyserial, found by 1A86:FE0C, or `--cli`) and the debug port (the WCH-Link's UART, found by its USB IDs, or `--debug`); resets by typing `reboot` (or `reset` in recovery), or `--reset-cmd`; writes a report for `doc/admin/board-tests.md` |
 | `scripts/admin/lockdown.py` | `check` (reads the option bytes through wlink) and `run --v3f --v5f`: refuses a protected chip (wlink's flash would unprotect it), flashes both images with wlink without erasing, reads them back, resets, checks a level 2 build's recovery offers `lockdown`, asks for `LOCK`, sends `lockdown yes` (stage 1 programs the option bytes in one pass), waits for a locked start (or a power cycle: at level 2 recovery saying no V5F image is installed, since a level 2 board with no record never starts the slot) and `wlink status` protected; writes a report. Never erases or unprotects. `unit_tests/stage1sim/test_lockdown.py` runs it on `sim_strict` with a fake wlink (`sim.c` keeps programmed option bytes in `ob.bin`) |

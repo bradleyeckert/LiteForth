@@ -117,9 +117,10 @@ def gen():
         v5f = ['--component', 'v5f', '--release', 'rel.key', '--boards', 'boards.csv']
         for name, rev in (('v1', 1), ('v2hang', 2), ('v3', 3), ('stuck', 4)):
             tool('package', name + '.bin', name + '.lfu', *v5f, '--revision', rev)
+        tool('package', 'v3.bin', 'v3min.lfu', *v5f, '--revision', 3, '--min-version', 3)
         tool('package', 'v3.bin', 'other.lfu', '--component', 'v5f', '--release', 'rel.key',
              '--boards', 'other.csv', '--revision', 3)
-        for name in ('v1', 'v2hang', 'v3', 'stuck', 'other'):
+        for name in ('v1', 'v2hang', 'v3', 'stuck', 'other', 'v3min'):
             PACKAGES[name] = os.path.join(WORK, name + '.lfu')
         cards = {
             'full': ['--file', 'lfblocks.fb4', '--file', 'lfstage.bin,size=1048576',
@@ -474,8 +475,8 @@ def s_reboot():
 
 
 def s_refusals():
-    """A package for another board, one with a damaged block, and no room
-    for a backup: refused, the image untouched, LiteForth starts."""
+    """A package for another board, a downgrade below the minimum, and no
+    room for a backup: refused, the image untouched, LiteForth starts."""
     b = Board('refusals')
     b.stage('v1')
     until_started(b)
@@ -485,6 +486,18 @@ def s_refusals():
     check(r.wait_debug(r'LiteForth starting') is not None, 'refusals: still starts')
     r.stop()
     check(b.has('v1'), 'refusals: v1 untouched')
+
+    # a downgrade below the minimum a confirmed package set
+    b.stage('v3min')
+    until_started(b)
+    check(b.has('v3'), 'minimum: v3 installed, raising the minimum to 3')
+    b.stage('v1')
+    r = b.boot()
+    line = r.wait_debug(r'refused|installed')
+    check(line and 'older revision' in line, f'minimum: version 1 refused ({line})')
+    check(r.wait_debug(r'LiteForth starting') is not None, 'minimum: v3 still starts')
+    r.stop()
+    check(b.has('v3'), 'minimum: v3 untouched')
 
     b = Board('no-backup', card='nobackup')
     b.stage('v1')

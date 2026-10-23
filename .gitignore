@@ -73,3 +73,4 @@ src/target/desktop/unit_tests/exfat/core.fb4
 src/target/CH32H417/V5F/User/sealed_root.h
 # Private keys (sealblocks.py root-key, release-key, board-key): never commit one
 *.key
+src/target/desktop/unit_tests/rtm/work/

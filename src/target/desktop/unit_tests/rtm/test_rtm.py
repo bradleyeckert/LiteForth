@@ -76,6 +76,9 @@ def main():
     expect('a board test that doesn\'t exist',
            lambda: edit('system.md', 'board:B4,', 'board:B999,'),
            'no B999 in doc/admin/board-tests.md')
+    expect('a superseded board test cited as evidence',
+           lambda: edit('system.md', 'board:B4,', 'board:B12,'),
+           'B12 is superseded')
     expect('an unknown kind of evidence',
            lambda: edit('system.md', 'board:B4,', 'hope:B4,'),
            'unknown kind')

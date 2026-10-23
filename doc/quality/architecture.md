@@ -30,7 +30,7 @@ for the board that must match it. Interfaces: `vmRun`, `vmExec`,
 `vm_io_ranges`, `vmTrap`; API 0 calls out to C.
 
 - **Parent:** SYS-VM-01, SYS-VM-03, SYS-LANG-07, SYS-LANG-09
-- **Verified by:** integ:vmasm::difftest.c, integ:traps::app: PC at the yeet handler, sys:scripts/regression.f::T{, sys:deadtib::VM ran too long
+- **Verified by:** integ:vmasm::vm_rv32.S matches vm.c, integ:traps::app: PC at the yeet handler, sys:scripts/regression.f::T{, sys:deadtib::VM ran too long
 - **Status:** verified
 
 ### ARC-FORTH: The interpreter, compiler and dictionary
@@ -41,7 +41,7 @@ saves and boots it, and reports errors with their traces. The Forth half
 calendar. Interfaces: the terminal (`serial_io.h`), blocks
 (`lfblocks.h`), flash pages (`flash.h`), API 0 (`api0_list.h`).
 
-- **Parent:** SYS-LANG-01, SYS-LANG-02, SYS-LANG-03, SYS-LANG-04, SYS-LANG-05, SYS-LANG-06, SYS-LANG-08, SYS-LANG-10, SYS-VM-02
+- **Parent:** SYS-LANG-01, SYS-LANG-02, SYS-LANG-03, SYS-LANG-04, SYS-LANG-05, SYS-LANG-06, SYS-LANG-08, SYS-LANG-10, SYS-VM-02, SYS-SEC-10
 - **Verified by:** sys:quit::stack underflow, sys:load::chain-done, sys:boot::forth root extra, sys:label, sys:heads, sys:editor, sys:api0
 - **Status:** verified
 
@@ -54,7 +54,7 @@ occasional buffers come from. Interfaces: `blocks.h` (each target's),
 `card.h`, `exfat.h`, `memalloc.h`, `ymodem.h`.
 
 - **Parent:** SYS-STO-01, SYS-STO-02, SYS-STO-04, SYS-STO-05, SYS-STO-06, SYS-STO-08, SYS-LANG-02
-- **Verified by:** integ:exfat::run_lf.sh, sys:blocks::[signed], sys:ymodem::corrupt packet NAKed, sys:sealed::package refused as a block file, integ:blkrun, board:B21, board:B26
+- **Verified by:** integ:exfat::run_lf: lf finds lfblocks.fb4, sys:blocks::[signed], sys:ymodem::corrupt packet NAKed, sys:sealed::package refused as a block file, integ:blkrun, sys:ymodem::Ctrl+X runs, board:B21, board:B26
 - **Status:** verified
 
 ### ARC-DESKTOP: The desktop host
@@ -79,14 +79,15 @@ the LCD on SPI, the RTC and standby, and the memory map.
 
 ### ARC-MMODE: The V5F's machine mode
 What user mode can't change or get around: the PMP entries set before
-`main` (stage 1's flash and the V3F's RAM fenced, the DMA, flash and USB
+`main` (stage 1's flash and the V3F's RAM fenced, the DMA, flash and USBFS
 registers read-only), machine-mode code run from flash, the `ecall`
 services (flash programming, Guarded DMA), and the fault handler that
 emulates RCC and CRC stores and sends faults to Forth.
 
-- **Parent:** SYS-SEC-01, SYS-SEC-02, SYS-SEC-03, SYS-SEC-04, SYS-SEC-08, SYS-STO-07, SYS-LANG-09
-- **Verified by:** integ:blocksim::test_guard, board:B12, board:B13, board:B14, board:B15, board:B23, board:B24
-- **Status:** verified
+- **Parent:** SYS-SEC-01, SYS-SEC-02, SYS-SEC-03, SYS-SEC-04, SYS-SEC-08, SYS-SEC-11, SYS-STO-07, SYS-LANG-09
+- **Verified by:** integ:blocksim::test_guard, board:B14, board:B15, board:B18, board:B22, board:B23, board:B24
+- **Status:** partial
+- **Gap:** machine mode's data and stack are in RAM user mode can write; the interrupt controller's reach from user mode is unchecked (SYS-SEC-11)
 
 ### ARC-V3F: The V3F's USB terminal
 The V3F core runs USB CDC and bridges it to the V5F through rings in
@@ -94,7 +95,7 @@ shared RAM, with the Ctrl+X escape and the flags that tie the cores
 together (an update waiting, a confirm, a safe boot, recovery).
 Interface: `cdc_shared.h`.
 
-- **Parent:** SYS-TERM-01
+- **Parent:** SYS-TERM-01, SYS-TERM-04
 - **Verified by:** integ:stage1sim::s_recovery_ram_and_ctrl_x, integ:stage1sim::s_reboot, board:B18
 - **Status:** verified
 
@@ -106,9 +107,10 @@ installs, confirms and rolls back updates, checks the installed image
 runs the recovery terminal. Reaches the flash and the card only through
 `upd_io` callbacks.
 
-- **Parent:** SYS-UPD-03, SYS-UPD-04, SYS-UPD-05, SYS-UPD-06, SYS-UPD-07, SYS-UPD-08, SYS-UPD-09, SYS-UPD-11, SYS-SEC-01, SYS-SEC-05, SYS-SEC-06, SYS-SEC-07, SYS-LOG-08
+- **Parent:** SYS-UPD-03, SYS-UPD-04, SYS-UPD-05, SYS-UPD-06, SYS-UPD-07, SYS-UPD-08, SYS-UPD-09, SYS-UPD-11, SYS-UPD-12, SYS-SEC-01, SYS-SEC-05, SYS-SEC-06, SYS-SEC-07, SYS-SEC-12, SYS-LOG-08
 - **Verified by:** integ:stage1sim::s_install, integ:stage1sim::s_power_cuts, integ:stage1sim::s_enroll, integ:stage1sim::s_lockdown, board:B6, board:B11, board:B25
-- **Status:** verified
+- **Status:** partial
+- **Gap:** the log key service (SYS-LOG-08) isn't built
 
 ### ARC-PKG: Update packages
 The sealed format: per-board content keys wrapped with X25519, AES or SM4
@@ -127,7 +129,7 @@ cut (`logfile.c`, `exfat_create`/`exfat_trim`), and the server's tool.
 The capture from the CODECs and stage 1's key service are still to come.
 
 - **Parent:** SYS-LOG-01, SYS-LOG-02, SYS-LOG-03, SYS-LOG-04, SYS-LOG-05, SYS-LOG-06, SYS-LOG-07, SYS-LOG-09, SYS-TOOL-04
-- **Verified by:** integ:datalog::test_round_trip, integ:datalog::test_power_cuts, integ:datalog::engine
+- **Verified by:** integ:datalog::test_round_trip, integ:datalog::test_power_cuts, integ:datalog::record not wiped
 - **Status:** partial
 - **Gap:** not on the board yet (SYS-LOG-07, SYS-LOG-08 planned)
 
@@ -147,7 +149,7 @@ fonts in and out of block files, card images, the board tests and
 lock-down, and the assistant's access to the terminal and probe.
 
 - **Parent:** SYS-TOOL-02, SYS-TOOL-03, SYS-SEC-09
-- **Verified by:** integ:putblocks::round trip: same blocks, integ:stage1sim::test_hil.py, integ:stage1sim::test_lockdown.py, integ:lfmcp
+- **Verified by:** integ:putblocks::round trip: same blocks, integ:stage1sim::hiltest on the simulated board, integ:stage1sim::lockdown.py run: a locked board refused before any flash, integ:lfmcp::wlink flash refused
 - **Status:** verified
 
 ### ARC-QA: Build, test and evidence

@@ -34,8 +34,7 @@ each level it unwound through.
 ### SYS-LANG-03: The dictionary persists in flash and boots
 Words compiled into the flash pages survive a reset; at start-up the
 system restores the wordlists from flash and starts the application,
-unless asked not to (`-o 256` on the desktop, Ctrl+X three times on the
-board).
+unless the board is reset with Ctrl+X three times.
 
 - **Parent:** UN-01, UN-03
 - **Verified by:** sys:boot::forth root extra, unit:flash, board:B24, board:B18
@@ -72,7 +71,7 @@ error in it goes to its own handler (`yeet`), not to the terminal, and
 an application that never yields is stopped (-116) and reported.
 
 - **Parent:** UN-03
-- **Verified by:** sys:appstep::test_yeet.py, sys:deadtib::VM ran too long, board:B24
+- **Verified by:** sys:appstep::yeet handler tests passed, sys:deadtib::VM ran too long
 - **Status:** verified
 
 ### SYS-LANG-08: The application can take the keyboard
@@ -89,8 +88,9 @@ illegal instruction (-128) in Forth code is reported to Forth (the
 terminal, or the application's handler) instead of resetting the chip.
 
 - **Parent:** UN-01, UN-03
-- **Verified by:** integ:traps::app: PC at the yeet handler, board:B13, board:B15
-- **Status:** verified
+- **Verified by:** integ:traps::app: PC at the yeet handler, board:B15, board:B18
+- **Status:** partial
+- **Gap:** on the board only access faults (-127) are shown; -23, -128 and a fault going to an application's handler are tested on the desktop, with API calls standing in for the faults
 
 ### SYS-LANG-10: A block editor
 Blocks are edited on the board from the terminal, each change saved at
@@ -107,7 +107,7 @@ The VM in assembly for the board (`vm_rv32.S`) behaves exactly as the C
 VM for every instruction, with one and two cached stack registers.
 
 - **Parent:** UN-02
-- **Verified by:** integ:vmasm::difftest.c
+- **Verified by:** integ:vmasm::vm_rv32.S matches vm.c
 - **Status:** verified
 
 ### SYS-VM-02: Compiled code stays valid across releases
@@ -115,7 +115,7 @@ The indices of the C functions Forth calls (API 0) never change, so code
 saved in flash keeps working with a newer firmware.
 
 - **Parent:** UN-01, UN-07
-- **Verified by:** sys:api0::expected.txt
+- **Verified by:** sys:api0::api0 order test passed
 - **Status:** verified
 
 ### SYS-VM-03: Forth reaches only allowed peripherals
@@ -144,7 +144,7 @@ larger than its partition, a cluster past the end) is refused or the
 entry ignored; nothing is read or written outside the volume.
 
 - **Parent:** UN-04, UN-09
-- **Verified by:** integ:exfat::test_root_directory_loop, integ:exfat::test_find_ignores_bad_checksum, integ:exfat::test_volume_larger_than_partition, integ:exfat::test_sectors_and_fence
+- **Verified by:** integ:exfat::test_root_directory_loop, integ:exfat::test_find_ignores_bad_checksum, integ:exfat::test_volume_larger_than_partition, integ:exfat::test_first_cluster_past_the_volume, integ:exfat::test_sectors_and_fence
 - **Status:** verified
 
 ### SYS-STO-03: Card transfers by DMA, with errors reported
@@ -185,11 +185,12 @@ finish, so the half-written file isn't mistaken for a good one.
 ### SYS-STO-07: Flash pages written only through a checked service
 On the board, the application's flash pages are erased and programmed
 only by machine mode's service, which checks the address range; at level
-2 only update packages write them.
+2 the service refuses, and only update packages write them.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** board:B14, board:B9, board:B19, unit:update::test_app_locked
-- **Status:** verified
+- **Verified by:** board:B14, board:B19, unit:update::test_app_locked
+- **Status:** partial
+- **Gap:** the level 2 refusal (`open-flash`, `close-flash`, `save-pages` giving -20) isn't exercised by a test or a board run
 
 ### SYS-STO-08: Shared memory for occasional buffers
 Buffers needed only now and then, and the data logs' buffers, come from
@@ -225,6 +226,15 @@ terminal never stops the application from running.
 - **Parent:** UN-01, UN-07
 - **Verified by:** sys:reboot, board:B25
 - **Status:** verified
+
+### SYS-TERM-04: Binary transfers pass every byte
+During a YMODEM transfer the terminal passes every byte to the receiver:
+Ctrl+X in the data doesn't reset the board.
+
+- **Parent:** UN-01, UN-07
+- **Verified by:** sys:ymodem::Ctrl+X runs, insp:src/target/CH32H417/Common/cdc_shared.h::CDC_BINARY_MAGIC
+- **Status:** partial
+- **Gap:** the V3F's escape being off during a transfer isn't tested on the simulated board
 
 ## UPD: firmware updates
 
@@ -311,6 +321,16 @@ it; below level 2 it's derived from the UID, for development only.
 - **Verified by:** integ:stage1sim::s_enroll, sys:sealed::enroll prints the boards.csv line, board:B22, board:B25
 - **Status:** verified
 
+### SYS-UPD-12: The backup on the card can't be read or changed
+The backup stage 1 writes to the card is encrypted and MACed with the
+device token's keys: it isn't the image in the clear, and a changed one
+is never restored.
+
+- **Parent:** UN-07, UN-08, UN-09
+- **Verified by:** integ:update::test_backup_on_card, integ:update::a changed backup isn't restored, integ:update::a backup claiming another version isn't restored
+- **Status:** partial
+- **Gap:** unit level only; not on the simulated board or a board
+
 ### SYS-UPD-10: The installed version
 `revision` reports the installed image's version.
 
@@ -328,32 +348,35 @@ developers can reflash at will; at level 2 it fails the boot check.
 
 ## SEC: protection
 
-### SYS-SEC-01: Only stage 1 holds the board's key
-The board's private key, the device token and stage 1's records are
-reachable only by the V3F: the V5F, even in machine mode, can't read or
-write the flash sectors that hold them.
+### SYS-SEC-01: The V5F's CPU can't reach stage 1's secrets
+The board's private key, the device token and stage 1's records are in
+flash sectors that the V5F's CPU, in user or machine mode, can't read or
+write (PMP entry 0, locked).
 
 - **Parent:** UN-09
-- **Verified by:** board:B12, board:B13, board:B22, insp:src/target/CH32H417/V5F/User/pmp.c::pmp_lock
-- **Status:** verified
+- **Verified by:** board:B18, board:B22, insp:src/target/CH32H417/V5F/User/pmp.c::pmp_lock
+- **Status:** partial
+- **Gap:** bus masters the V5F's code can program (the ECDC engine, SDMMC, USBHS) aren't fenced, so this rests on that code being the vendor's (SYS-SEC-06); no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
 
-### SYS-SEC-02: The V3F's RAM is fenced from the V5F
-The V5F can't read or write the V3F's RAM, where stage 1 handles keys.
+### SYS-SEC-02: The V3F's RAM is fenced from the V5F's CPU
+The V5F's CPU, in either mode, can't read or write the V3F's RAM, where
+stage 1 handles keys (PMP entry 1, locked).
 
 - **Parent:** UN-09
 - **Verified by:** board:B23
-- **Status:** verified
+- **Status:** partial
+- **Gap:** B23 shows reads faulting, not writes; bus masters aren't fenced (as SYS-SEC-01)
 
 ### SYS-SEC-03: DMA only through Guarded DMA
-User mode can't program the DMA controllers, the flash controller, USB or
-the RNG; the card's DMA runs through a machine-mode service that only
+User mode can't program the DMA controllers, the flash controller, USBFS
+or the RNG; the card's DMA runs through a machine-mode service that only
 ever points the channel at its own buffer and copies to or from checked
 user buffers.
 
 - **Parent:** UN-09
 - **Verified by:** integ:blocksim::test_guard, unit:guard::test_buffer, board:B15, board:B17
 - **Status:** partial
-- **Gap:** other bus masters (the ECDC, SDMMC, USB, ...) aren't fenced; SYS-SEC-06 covers what that leaves
+- **Gap:** other bus masters (the ECDC, SDMMC, USBHS, ...) aren't fenced; SYS-SEC-06 covers what that leaves
 
 ### SYS-SEC-04: Machine mode's code can't be changed by user mode
 The V5F's machine-mode code (the vector table, the handlers, the
@@ -371,7 +394,7 @@ boot, and at level 2 a board that isn't locked down never starts the
 V5F. `lockdown` in recovery locks a board in one step.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** integ:stage1sim::s_lockdown, integ:stage1sim::s_lockdown_command, integ:stage1sim::test_lockdown.py, board:B8, board:B25
+- **Verified by:** integ:stage1sim::s_lockdown, integ:stage1sim::s_lockdown_command, integ:stage1sim::lockdown.py run: a locked board refused before any flash, board:B8, board:B25
 - **Status:** verified
 
 ### SYS-SEC-06: Only signed images start at level 2
@@ -393,8 +416,8 @@ it replaced stop the build.
 - **Status:** verified
 
 ### SYS-SEC-08: Protected stores fault into Forth
-A user-mode store to the DMA, flash or USB registers faults to Forth
-(-127); stores to RCC and CRC, which share that block, are done for it.
+A user-mode store to the DMA, flash controller or USBFS registers faults
+to Forth (-127); stores to RCC and CRC, which share that block, are done for it.
 
 - **Parent:** UN-09, UN-01
 - **Verified by:** unit:guard::test_allowed, unit:guard::test_decode, board:B15
@@ -405,8 +428,32 @@ The PC tools that drive the debug probe (`lfmcp.py`, `lockdown.py`)
 never erase, unprotect or write a protected board.
 
 - **Parent:** UN-09, UN-13
-- **Verified by:** unit:lfmcp::wlink flash, integ:stage1sim::test_lockdown.py
+- **Verified by:** unit:lfmcp::wlink flash refused, integ:stage1sim::lockdown.py run: a locked board refused before any flash, integ:stage1sim::lockdown.py: both images flashed
 - **Status:** verified
+
+### SYS-SEC-10: A restricted wordlist at start-up
+At level 2 the terminal starts with a limited wordlist, and the full
+system needs an unlock.
+
+- **Parent:** UN-08, UN-09
+- **Status:** planned
+
+### SYS-SEC-11: Machine mode's data can't be changed by user mode
+Machine mode's data and stack, and the interrupt controller, are out of
+user mode's reach, as its code is (SYS-SEC-04).
+
+- **Parent:** UN-09
+- **Status:** planned
+
+### SYS-SEC-12: Keys only from a healthy RNG
+Stage 1 makes the device token, and so the board's key, from RNG words
+each checked for data ready, seed and clock errors and a repeat, hashed
+together; a failure makes no key.
+
+- **Parent:** UN-09
+- **Verified by:** insp:src/target/CH32H417/V3F/User/stage1.c::RNG_FLAG_SECS, board:B25
+- **Status:** partial
+- **Gap:** no test makes the RNG fail; its quality on real parts isn't verified
 
 ## LOG: data logs
 
@@ -417,7 +464,8 @@ keys only in RAM while the log is open.
 
 - **Parent:** UN-10
 - **Verified by:** sys:datalog::test_round_trip
-- **Status:** verified
+- **Status:** partial
+- **Gap:** the format and keys are built and tested on the desktop (datalog.c, lflog.py); the server key in the firmware and the board side are not (SYS-LOG-07, SYS-LOG-08)
 
 ### SYS-LOG-02: The server knows which board, and that nothing changed
 The header's tag needs the board's key (through stage 1), and every
@@ -426,7 +474,8 @@ record, a changed header, or the wrong board's key is reported.
 
 - **Parent:** UN-10
 - **Verified by:** sys:datalog::test_tampering
-- **Status:** verified
+- **Status:** partial
+- **Gap:** the header tag with the board key is tested with a desktop stand-in for stage 1; stage 1's service for it is SYS-LOG-08, planned
 
 ### SYS-LOG-03: The UID stays private
 The board's UID is in the log only encrypted, readable only with the
@@ -453,13 +502,14 @@ closes, so any PC sees an ordinary file.
 
 - **Parent:** UN-10
 - **Verified by:** sys:datalog::test_many_logs, sys:datalog::test_round_trip
-- **Status:** verified
+- **Status:** partial
+- **Gap:** the file handling runs on the desktop on card images; not yet on the board
 
 ### SYS-LOG-06: No plaintext on the card
 If the encryption engine fails, the record is wiped and never written.
 
 - **Parent:** UN-10
-- **Verified by:** integ:datalog::engine
+- **Verified by:** integ:datalog::record not wiped
 - **Status:** verified
 
 ### SYS-LOG-07: Two CODECs at 75 kSPS
@@ -532,7 +582,7 @@ and checks them, and writes the root key header for a build.
 card images.
 
 - **Parent:** UN-13, UN-04
-- **Verified by:** sys:putblocks::round trip: same blocks, sys:putbin, sys:mkfont, integ:exfat::run_lf.sh
+- **Verified by:** sys:putblocks::round trip: same blocks, sys:putbin, sys:mkfont, integ:exfat::run_lf: lf finds lfblocks.fb4
 - **Status:** verified
 
 ### SYS-TOOL-03: Driving a board
@@ -541,7 +591,7 @@ board and write a report; `lfmcp.py` gives an AI assistant the terminal
 and a safe part of the debug probe.
 
 - **Parent:** UN-13
-- **Verified by:** integ:stage1sim::test_hil.py, integ:stage1sim::test_lockdown.py, unit:lfmcp, board:B6, board:B11
+- **Verified by:** integ:stage1sim::hiltest on the simulated board, integ:stage1sim::lockdown.py run: a locked board refused before any flash, unit:lfmcp::wlink flash refused, board:B6, board:B11
 - **Status:** verified
 
 ### SYS-TOOL-04: Opening logs on the server
@@ -554,13 +604,16 @@ checks and decrypts logs.
 
 ## QA: the development process
 
-### SYS-QA-01: Warning-free builds, every change
-Every pull request builds lf and both of the board's cores without
-warnings and runs every test (CI).
+### SYS-QA-01: Every change to main is built and tested
+Every pull request to `main` builds lf and both of the board's cores,
+fails on a warning in the cores' builds, and runs every test (CI). The
+cores' CI builds use upstream GCC, not the MounRiver builds that are
+flashed.
 
 - **Parent:** UN-12
 - **Verified by:** ci:.github/workflows/c-cpp.yml::ch32build, ci:.github/workflows/c-cpp.yml::make test
-- **Status:** verified
+- **Status:** partial
+- **Gap:** lf's own build doesn't fail on a warning (no -Werror)
 
 ### SYS-QA-02: A current bill of materials
 The SBOM lists every third-party component with its files' checksums,
@@ -573,18 +626,23 @@ notice appears.
 
 ### SYS-QA-03: Board tests on record
 Every security test on a board is logged with the firmware's hashes,
-the steps, what was expected and the board's output word for word.
+the steps, what was expected and the board's output word for word, and
+an entry whose design has since changed is marked superseded.
 
 - **Parent:** UN-12
-- **Verified by:** insp:doc/admin/board-tests.md::B25
-- **Status:** verified
+- **Verified by:** insp:doc/admin/board-tests.md::B25, insp:doc/admin/board-tests.md::Superseded
+- **Status:** partial
+- **Gap:** some early entries lack hashes or part of the output (B2, B7, B8, B13, B20, B22)
 
 ### SYS-QA-04: A checked traceability matrix
-Every requirement traces to its need and its evidence, every link is
-checked, and the matrix is current at every change.
+Every requirement traces to its need and its evidence; every link is
+checked to exist (a suite and a text in it, a board test that isn't
+superseded, a file, a symbol, a heading), and the matrix is current at
+every change. Whether the evidence shows its claim is reviewed, not
+checked.
 
 - **Parent:** UN-12
-- **Verified by:** ci:src/target/desktop/unit_tests/rtm
+- **Verified by:** ci:src/target/desktop/unit_tests/rtm::test_rtm.py
 - **Status:** verified
 
 ### SYS-QA-05: Forth source follows the coding rules

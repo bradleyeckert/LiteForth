@@ -25,14 +25,14 @@ blocks, and seeing errors where they happen.
 The developer runs the same Forth, with the same words, storage and
 update code, on a PC without the board, to develop and to test.
 
-- **Verified by:** demo:scripts/regression.f::T{, demo:src/target/desktop/unit_tests/exfat/run_lf.sh
+- **Verified by:** demo:scripts/regression.f::T{, demo:src/target/desktop/unit_tests/exfat::run_lf: lf finds lfblocks.fb4
 - **Status:** verified
 
 ### UN-03: Applications that run on their own
 A Forth application starts at power-up and keeps running when it hits an
 error, while the terminal stays usable for the developer or technician.
 
-- **Verified by:** board:B24, demo:src/target/desktop/unit_tests/appstep/test_yeet.py
+- **Verified by:** board:B24, demo:src/target/desktop/unit_tests/appstep::yeet handler tests passed
 - **Status:** partial
 - **Gap:** no board run of an application handling its own error
 
@@ -60,26 +60,29 @@ alarm wakes it.
 
 ### UN-07: Updates that never brick a device
 The service technician updates a device's firmware and application in the
-field, from a card or over USB. No power cut, bad file or broken image
+field, over the USB terminal. No power cut, bad file or broken image
 leaves the device unusable, and a device that won't start can be
 recovered over USB.
 
 - **Verified by:** board:B3, board:B4, board:B5, board:B5a, board:B6, board:B10, board:B11, board:B19
-- **Status:** verified
+- **Status:** partial
+- **Gap:** power cuts during an update are tested on the desktop and the simulated board, not on a board
 
 ### UN-08: Only the vendor's firmware runs
 On a production device, only firmware and applications the vendor
 released start, and tampering with the flash doesn't survive a reset.
 
 - **Verified by:** board:B25, board:B11
-- **Status:** verified
+- **Status:** partial
+- **Gap:** a changed image refused is shown on the desktop and the simulated board, not on a board (a locked board's flash can't be changed by the debugger)
 
 ### UN-09: Secrets that can't be extracted
 A device's keys can't be read out, even by someone with the board and a
 debug probe; such a person can at most erase the device.
 
-- **Verified by:** board:B8, board:B12, board:B13, board:B22, board:B23
-- **Status:** verified
+- **Verified by:** board:B8, board:B18, board:B22, board:B23
+- **Status:** partial
+- **Gap:** bus masters and machine mode's data aren't fenced (SYS-SEC-01, SYS-SEC-11)
 
 ### UN-10: Recorded data only the data owner can read
 The device records audio from its CODECs to the card. Only the data

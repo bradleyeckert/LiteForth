@@ -28,7 +28,7 @@ the C VM exactly.
 - **Parent:** ARC-VM
 - **Code:** src/vm_rv32.S
 - **Design:** CLAUDE.md#Design notes
-- **Verified by:** unit:vmasm::difftest.c
+- **Verified by:** unit:vmasm::vm_rv32.S matches vm.c
 - **Status:** verified
 
 ### MOD-FORTH: The text interpreter
@@ -56,7 +56,7 @@ The API 0 list, in a fixed order, and the words it implements.
 - **Parent:** ARC-FORTH
 - **Code:** src/api0.c, src/api0_list.h, src/api0.h
 - **Design:** doc/add2api.md
-- **Verified by:** unit:api0::expected.txt
+- **Verified by:** unit:api0::api0 order test passed
 - **Status:** verified
 
 ### MOD-TOOLS: Development tools in Forth
@@ -215,9 +215,9 @@ flash.
 - **Parent:** ARC-MMODE
 - **Code:** src/target/CH32H417/V5F/User/pmp.c::pmp_lock, src/target/CH32H417/V5F/User/mmode.h
 - **Design:** doc/admin/firmware-updates.md#Keeping the V5F out
-- **Verified by:** board:B1, board:B12, board:B14, board:B16, board:B23, board:B24
+- **Verified by:** board:B1, board:B14, board:B18, board:B22, board:B23, board:B24
 - **Status:** partial
-- **Gap:** no unit test: the PMP and machine mode can only be tried on the chip
+- **Gap:** no unit test: the PMP and machine mode can only be tried on the chip (B12, B13 and B16 tried layouts since retired)
 
 ### MOD-GDMA: Guarded DMA
 The fixed channel table, the machine-mode buffer, the user buffer check,
@@ -280,7 +280,7 @@ only in DTCM.
 - **Parent:** ARC-V5F, ARC-PKG
 - **Code:** src/target/CH32H417/V5F/User/ecdc.c::ctr_hw_crypt
 - **Design:** doc/ch32h417-notes.md#ECDC
-- **Verified by:** unit:datalog::engine
+- **Verified by:** unit:datalog::record not wiped
 - **Status:** partial
 - **Gap:** only its failure handling is tested (a stand-in engine); `ecdc-test` on the board isn't logged
 
@@ -313,7 +313,7 @@ Keys, block 0, records, the end of a log after a power cut.
 - **Parent:** ARC-LOG
 - **Code:** src/datalog.c::dl_record, src/datalog.c::dl_find_end, src/datalog.h
 - **Design:** doc/admin/data-logs.md#Deriving the keys, doc/admin/data-logs.md#The file
-- **Verified by:** unit:datalog::test_round_trip, unit:datalog::test_tampering, unit:datalog::engine
+- **Verified by:** unit:datalog::test_round_trip, unit:datalog::test_tampering, unit:datalog::record not wiped
 - **Status:** verified
 
 ### MOD-LOGFILE: Log files
@@ -360,7 +360,7 @@ The server's key, the board's header for it, opening logs.
 - **Parent:** ARC-TOOLS
 - **Code:** scripts/admin/hiltest.py, scripts/admin/lockdown.py, scripts/lfmcp.py
 - **Design:** doc/admin/firmware-updates.md#without bricking anything
-- **Verified by:** unit:stage1sim::test_hil.py, unit:stage1sim::test_lockdown.py, unit:lfmcp::wlink flash
+- **Verified by:** unit:stage1sim::hiltest on the simulated board, unit:stage1sim::lockdown.py run: a locked board refused before any flash, unit:lfmcp::wlink flash refused
 - **Status:** verified
 
 ### MOD-QATOOLS: Quality tools
@@ -371,4 +371,4 @@ The SBOM, the lint, the RTM, the machine-mode check, the board build.
 - **Design:** doc/admin/sbom.md, doc/coding-rules.md, doc/quality/README.md
 - **Verified by:** unit:sbom, unit:lintf, unit:rtm
 - **Status:** partial
-- **Gap:** mmodecheck.py and ch32build.sh have no test of their own; CI runs them on every PR
+- **Gap:** mmodecheck.py and ch32build.sh have no test of their own; CI runs them on every pull request to main

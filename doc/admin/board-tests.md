@@ -849,6 +849,8 @@ so the option bytes loaded. The debug port's text of that boot wasn't kept.
 
 ### B9. A flash write by the V5F under read protection: `enroll` (19 October 2026)
 
+**Superseded:** by B22. The board record this wrote at 0x08070000 is gone: the board's key is stage 1's now, under PMP entry 0. Kept as the record of what was run.
+
 **Board and firmware:** the spare board, locked down in B8, with the same
 images.
 
@@ -1160,6 +1162,8 @@ mistake, not the board's.
 
 ### B12. The V5F's PMP locked over stage 1's records, at power-on (20 October 2026)
 
+**Superseded:** by B18 and B22. The records it fenced (at 0x08072000, by NAPOT entries) moved below the V5F's slot, under entry 0 (TOR). Kept as the record of what was run.
+
 **Board and firmware:** the main board (UID `69a90e647f9cf6a9`), not
 locked down, `SECURITY_LEVEL` 0. The V5F built from branch `pmp` at
 `36629a4` (PR #194); the V3F built 20 October 2026 10:20:30 with GCC
@@ -1225,6 +1229,8 @@ V3F: USB configured
 **Result:** pass: all four entries as set and locked.
 
 ### B13. A read of stage 1's record from the V5F faults under the PMP (20 October 2026)
+
+**Superseded:** by B18 and B22. The record it read (at 0x08072000) moved below the V5F's slot, under entry 0. Kept as the record of what was run.
 
 **Board and firmware:** the main board, as in B12, with the V5F from PR
 #194 and one test line added by hand to `lfRtcSet` in
@@ -1528,6 +1534,8 @@ set (`cfg0 9F191898`, `addr` `100087FF`: 16 KB from 0x40020000, user R).
 through Guarded DMA (needs a plain block file).
 
 ### B16. The board record's services through a mailbox (20 October 2026)
+
+**Superseded:** by B22. The board record and its services in the V5F's machine mode are gone: stage 1 holds the key. Kept as the record of what was run.
 
 **Board and firmware:** as in B15 (main board, UID `69a90e647f9cf6a9`,
 not locked down, `SECURITY_LEVEL` 0, sealed `lfblocks.fb4` on the card),

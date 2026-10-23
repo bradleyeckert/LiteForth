@@ -139,15 +139,25 @@ def contains(path, text):
 
 
 def board_entries():
+    """{entry: title}, and {entry: why} for those marked **Superseded:**
+    (a run of a design that has since changed: kept as a record, no longer
+    evidence)"""
     try:
         text = open(BOARD_TESTS, encoding='utf-8').read()
     except OSError:
-        return {}
-    return {m.group(1): m.group(2).strip()
-            for m in re.finditer(r'^### (B\d+[a-z]?)\. (.+?)(?: \(\d+ \w+ \d+\))?$', text, re.M)}
+        return {}, {}
+    heads = list(re.finditer(r'^### (B\d+[a-z]?)\. (.+?)(?: \(\d+ \w+ \d+\))?$', text, re.M))
+    titles, superseded = {}, {}
+    for i, m in enumerate(heads):
+        titles[m.group(1)] = m.group(2).strip()
+        end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
+        s = re.search(r'^\*\*Superseded:\*\* *(.+)$', text[m.end():end], re.M)
+        if s:
+            superseded[m.group(1)] = s.group(1).split('.')[0].strip()
+    return titles, superseded
 
 
-BOARD = board_entries()
+BOARD, SUPERSEDED = board_entries()
 
 
 def target_path(t):
@@ -173,7 +183,11 @@ def check_ref(ref):
     if not sep or kind not in KINDS:
         return f'"{ref}": unknown kind (use {", ".join(sorted(KINDS))})'
     if kind == 'board':
-        return None if spec in BOARD else f'"{ref}": no {spec} in doc/admin/board-tests.md'
+        if spec not in BOARD:
+            return f'"{ref}": no {spec} in doc/admin/board-tests.md'
+        if spec in SUPERSEDED:
+            return f'"{ref}": {spec} is superseded ({SUPERSEDED[spec]}): cite what superseded it'
+        return None
     err = check_path_ref(spec)
     return f'"{ref}": {err}' if err else None
 
@@ -361,7 +375,9 @@ def render(items, gaps):
           'Every entry of [board-tests.md](../admin/board-tests.md), the hardware '
           'evidence, and what it verifies or validates.', '', '| Entry | Verifies |', '|---|---|']
     for b in sorted(BOARD, key=lambda x: (int(re.match(r'\d+', x[1:]).group()), x)):
-        ids = ', '.join(link(i, items) for i in sorted(boards.get(b, ()))) or '**nothing traced**'
+        ids = ', '.join(link(i, items) for i in sorted(boards.get(b, ())))
+        if not ids:
+            ids = (f'superseded {SUPERSEDED[b]}' if b in SUPERSEDED else '**nothing traced**')
         L.append(f'| {b}. {BOARD[b]} | {ids} |')
     L.append('')
 
@@ -374,7 +390,7 @@ def render(items, gaps):
         if s not in uses:
             L.append(f'- test suite `{s}`: traces to no item')
     for b in BOARD:
-        if b not in boards:
+        if b not in boards and b not in SUPERSEDED:
             L.append(f'- board test {b}: traces to no item')
     L.append('')
     return '\n'.join(L)

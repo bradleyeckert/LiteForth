@@ -185,12 +185,13 @@ finish, so the half-written file isn't mistaken for a good one.
 ### SYS-STO-07: Flash pages written only through a checked service
 On the board, the application's flash pages are erased and programmed
 only by machine mode's service, which checks the address range; at level
-2 the service refuses, and only update packages write them.
+2 the service refuses, `open-flash`, `close-flash` and `save-pages`
+refuse with -20, and only update packages write the pages.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** board:B14, board:B19, unit:update::test_app_locked
+- **Verified by:** board:B14, board:B19, sys:locked::locked tests passed, unit:update::test_app_locked
 - **Status:** partial
-- **Gap:** the level 2 refusal (`open-flash`, `close-flash`, `save-pages` giving -20) isn't exercised by a test or a board run
+- **Gap:** on the board, B28 shows `open-flash` and `save-pages` refused at level 2, but `close-flash` answering `ok` (a no-op); the fix that makes it refuse isn't on a board yet
 
 ### SYS-STO-08: Shared memory for occasional buffers
 Buffers needed only now and then, and the data logs' buffers, come from

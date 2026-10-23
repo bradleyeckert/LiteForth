@@ -107,7 +107,10 @@ printf '0 open-flash\n: foo 42 . ;\nfoo\nbye\n' | ./bin/lf -o 3
   and the LF makes an empty one), so reported line numbers double. There are no options to skip the flash or block files: lf always
   loads or creates them. `-f file` and `-k file` name the flash and block
   files (defaults `FLASHFILENAME` and `BLOCKFILENAME` in `options.h`);
-  `-t port` and `-b baud` select a serial port instead of stdio.
+  `-t port` and `-b baud` select a serial port instead of stdio. `-L 2` locks
+  the flash pages as at the CH32H417's `SECURITY_LEVEL` 2 (`flash_locked`):
+  `open-flash`, `close-flash` and `save-pages` refuse with -20
+  (`unit_tests/locked`).
   `-k` also takes a card image (an unsigned file holding an MBR, or none,
   and an exFAT volume with `lfblocks.fb4` in its root): blocks.c then maps
   the blocks onto that file as the board does (`src/card.c`), and the

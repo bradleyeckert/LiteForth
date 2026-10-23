@@ -123,6 +123,12 @@ int flash_rndkey(void) {
     return 0;
 }
 
+static int pages_locked;                // -L 2: as at SECURITY_LEVEL 2
+
+void flash_set_locked(int locked) {
+    pages_locked = locked;
+}
+
 int flash_locked(void) {
-    return 0;
+    return pages_locked;
 }

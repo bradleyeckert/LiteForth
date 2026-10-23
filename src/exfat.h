@@ -6,9 +6,11 @@
 /*
  * A minimal exFAT reader: finds the volume on a card and a file in a
  * directory, so the block space can live in a file (lfblocks.fb4) that a
- * PC copied to the card. Nothing here writes. Portable C: the target
- * supplies a function that reads one 512-byte sector. doc/exfat.md has
- * the plan and the on-disk layout.
+ * PC copied to the card. Portable C: the target supplies a function that
+ * reads one 512-byte sector. doc/exfat.md has the plan and the on-disk
+ * layout. Only exfat_create and exfat_trim write, through a function that
+ * writes one: they make and trim a contiguous file in the root directory,
+ * for the data logs (doc/admin/data-logs.md section 6).
  */
 
 #define EXFAT_SECTOR_BYTES  512
@@ -73,8 +75,9 @@ int exfat_find(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
                const char *name, exfat_file *file);
 
 /* exfat_list's callback: name (ASCII, any other character as '?') and
-   what the entry set says (length, valid, first_cluster, flags with only
-   EXFAT_NOFATCHAIN and EXFAT_DIRECTORY; the clusters aren't followed).
+   what the entry set says (length, valid, first_cluster, entry_sector and
+   entry_offset, flags with only EXFAT_NOFATCHAIN and EXFAT_DIRECTORY; the
+   clusters aren't followed).
    Returns 0 to go on, nonzero to stop the listing. */
 typedef int (*exfat_list_fn)(void *ctx, const char *name, const exfat_file *file);
 
@@ -89,6 +92,55 @@ typedef int (*exfat_list_fn)(void *ctx, const char *name, const exfat_file *file
  */
 int exfat_list(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
                exfat_list_fn fn, void *ctx);
+
+/* Writes card sector `sector` (512 bytes) from buf. Returns 0 or a
+   negative error code. */
+typedef int (*exfat_write_fn)(uint32_t sector, const uint8_t *buf);
+
+/**
+ * Makes a file `name` (1 to 15 printable ASCII characters, none of
+ * them one of  " * / : < > ? \ |  ) in the root directory, `bytes` long (DataLength) with
+ * ValidDataLength 0, on one run of free clusters, NoFatChain: the FAT
+ * isn't touched, and of the file's contents only its first sector is
+ * written (cleared, so nothing an earlier file left there passes for this
+ * one's). Its three entries go in free entries of one sector of the root
+ * directory; if that's past the end-of-directory entry, the end entries
+ * before it become unused ones (type 05). The bitmap's bits are set first,
+ * then the first sector cleared, then the directory written, so a power
+ * cut leaves at worst clusters no file owns.
+ * `timestamp` is exFAT's (as DOS's: year - 1980, month, day, hours,
+ * minutes, seconds / 2) for created and modified.
+ * Returns 0 and fills in file, ERR_CREATE_FILE_FAILED if the name is bad
+ * or taken, there's no run of free clusters that long, or no room in the
+ * root directory, ERR_BLK_PARSE_FAIL for a broken volume, or read's or
+ * write's error.
+ */
+int exfat_create(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
+                 const char *name, uint64_t bytes, uint32_t timestamp, exfat_file *file);
+
+/**
+ * Trims file (found by exfat_find or exfat_list's walk: a contiguous,
+ * NoFatChain file whose entry set lies in one sector) to `bytes`, 1 to its
+ * length: DataLength = ValidDataLength = bytes, a new SetChecksum and the
+ * modified time `timestamp`, then the clusters past the new end cleared in
+ * the bitmap. The entry set goes first, so a power cut between the two
+ * leaves only clusters no file owns.
+ * Returns 0 (file updated), ERR_FILE_SIZE_FAILED if the file isn't one
+ * this can trim, ERR_BLK_PARSE_FAIL, or read's or write's error.
+ */
+int exfat_trim(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
+               exfat_file *file, uint64_t bytes, uint32_t timestamp);
+
+/**
+ * Deletes file (as exfat_trim takes it: contiguous, NoFatChain, its entry
+ * set in one sector, unchanged since it was found): the entry set marked
+ * unused, then the file's clusters cleared in the bitmap. The contents
+ * stay on the card.
+ * Returns 0, ERR_DELETE_FILE_FAILED if the file isn't one this can delete,
+ * ERR_BLK_PARSE_FAIL, or read's or write's error.
+ */
+int exfat_delete(exfat_read_fn read, exfat_write_fn write, const exfat_vol *vol,
+                 const exfat_file *file);
 
 /**
  * The card sector where cluster c starts, or 0 if c isn't a cluster of

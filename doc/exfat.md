@@ -290,8 +290,13 @@ one `exfat_file` slot for `root-file`); Forth reads their fields with
 
 ## Part 3: Forth, writing files
 
-Later, after Parts 1 and 2 run on the board. A sketch, to check the C
-interface is enough.
+Making and trimming a contiguous file in the root directory are now in C
+(`exfat_create` and `exfat_trim` in `src/exfat.c`, for the data logs:
+[admin/data-logs.md](admin/data-logs.md) section 6). They follow the
+steps below, without VolumeDirty, and refuse what they don't handle: a
+fragmented bitmap, a root directory with no three free entries in one
+sector, an entry set that crosses a sector. The rest of this part is
+still a sketch.
 
 ### Making a file and pre-expanding it
 

@@ -57,8 +57,15 @@ When it opens a file, the V5F:
    refuses an all-zero shared secret.
 4. Computes `master = BLAKE2s(es || E || S, key=k_auth, person="LFlogkey")`.
 5. Derives `k_enc` (16 bytes, AES-128), `nonce` (8 bytes) and `k_hdr`
-   (32 bytes) from `master` with BLAKE2s, personalizations `LFlogenc`,
-   `LFlognon` and `LFloghdr`.
+   (32 bytes) from `master`: BLAKE2s of nothing, keyed with `master`,
+   with that digest size and personalizations `LFlogenc`, `LFlognon` and
+   `LFloghdr`.
+
+Every BLAKE2s here is plain BLAKE2s (RFC 7693, as Python's
+`hashlib.blake2s`) with a key and an 8-byte personalization, the digest
+32 bytes unless said otherwise. `src/datalog.c` and
+`scripts/admin/lflog.py` are the two implementations, and
+`unit_tests/datalog` checks that they agree.
 6. Wipes `e`, `es`, `k_auth` and `master`.
 
 Stage 1 takes `S` from the V5F rather than holding its own copy. For any
@@ -89,8 +96,10 @@ The board makes the file under the name it's given (section 6): 4 GB long
 is a run of 32 KB blocks: 131072 of them, 64 sectors each, so a block
 starts at sector `first + 64 n`.
 
-**Block 0, the header.** Its first three sectors carry the following; the
-rest of block 0 is zeros:
+**Block 0, the header.** Its first three sectors carry the following, its
+last 16 bytes end it as a record ends (`n` = 0, `file_id`, `LFLE`), so a
+block 0 the power cut short isn't taken for a header, and the rest of it
+is zeros:
 
 | Offset | Size | Contents |
 |---|---|---|
@@ -99,10 +108,10 @@ rest of block 0 is zeros:
 | 12 | 4 | Server key ID |
 | 16 | 8 | `file_id`: random, so blocks from an earlier log are told apart |
 | 24 | 32 | `E` |
-| 56 | 32 | Identity, encrypted by XOR with `BLAKE2s(k_id, person="LFlogidx")`: the UID (8 bytes), the RTC time at the start (8), the firmware version (4), the security level (1), reserved |
+| 56 | 32 | Identity, encrypted by XOR with `BLAKE2s("", key=k_id, person="LFlogidx")`: the UID (8 bytes), the RTC time at the start (8, little-endian seconds), the firmware version (4), the security level (1), 11 zeros |
 | 88 | 40 | Reserved, 0 |
 | 128 | 1024 | Application header, encrypted with AES-128-CTR under `k_enc` (counters `nonce \|\| i`, i = 0 to 63, which no record uses): the CODEC settings, sample rate, channel map, and whatever else the application adds later. Unused bytes are 0 |
-| 1152 | 16 | Header tag: `BLAKE2s(bytes 0-1151, key=k_hdr, size 16)` |
+| 1152 | 16 | Header tag: `BLAKE2s(bytes 0-1151, key=k_hdr, person="LFloghtg", size 16)` |
 
 **Blocks 1 on, the records.** Each 32 KB block is one record, 256 units
 of 128 bytes: a header unit split between the record's two ends, and 255
@@ -266,11 +275,14 @@ DTCM. Whatever the RAM, choose cards by their worst write latency for
 ## 5. After a power cut
 
 `log-recover` (run at start-up, before a new log opens) walks the root
-directory for files with DataLength 4 GB and ValidDataLength 0, whose
-block 0 starts with `LFLOG001`. A closed log never looks like that. For
-each one:
+directory for files with DataLength 4 GB and ValidDataLength 0, which a
+closed log never has. For each one:
 
-1. Read block 0's first sector; check `LFLOG001`; take `file_id`.
+1. Read block 0's first sector; check `LFLOG001`; take `file_id`; check
+   block 0's end (its last sector: `n` = 0, `file_id`, `LFLE`). Without a
+   whole header, the power went before or while block 0 was written: a
+   file whose first sector is clear (`log_make` clears it) or starts with
+   `LFLOG001` is deleted, and anything else is left alone.
 2. Block n is written if its first sector holds `LFLB`, `file_id` and `n`,
    and its last sector holds `n`, `file_id` and `LFLE`. Since blocks are
    written in order, binary search finds the last written block in about
@@ -280,6 +292,10 @@ each one:
 3. Close the file after that block (section 6). No key is needed, and
    none is available: the file keys died with the power.
 
+On the board, an encryption that fails (the ECDC engine timing out
+partway) wipes the record, never written, and the next one takes its
+number, so the log has no gap and no plaintext reaches the card.
+
 The server sees the file ends without the last-record flag and reports
 "ended without a close". That can't be told apart from someone cutting
 the tail off the file, so the server should treat an unclosed log's end
@@ -288,6 +304,11 @@ as unproven, but every record before it is still checked by its tag.
 A block that is torn in its middle sectors (both frame sectors written,
 one in between not) passes the board's scan but fails its tag at the
 server, which then reports where the damage is.
+
+A log on clusters where a deleted log was can't bring the old one back:
+the first sector of every new file is cleared before its entry set is
+written, so a cut before the new block 0 leaves a clear sector, not the
+old header.
 
 ## 6. Closing the file in exFAT
 
@@ -319,12 +340,17 @@ claims it.
    of bitmap. Scanning a whole card's bitmap is 64 KB at most on a 64 GB
    card, and 512 KB on a 1 TB one.
 2. **Allocate:** set the run's bits in the bitmap.
-3. **The entry set:** three free consecutive entries in the root
-   directory (a name of up to 15 characters), all in one sector: the
+3. **Clear the file's first sector**, so nothing an earlier file left
+   there passes for this log's header (section 5).
+4. **The entry set:** three free consecutive entries in the root
+   directory (a name of up to 15 characters), all in one sector. If that
+   sector is past the end-of-directory entry (type 0, where every reader
+   stops), the type 0 entries before it become unused ones (type 05)
+   first, or the new file would be invisible. Then the
    stream entry with DataLength 4 GB, ValidDataLength 0, FirstCluster,
    AllocationPossible and NoFatChain; the file entry with the RTC's
    timestamps; NameHash and SetChecksum.
-4. **Block 0** (section 3), then the records.
+5. **Block 0** (section 3), then the records.
 
 That's reading the bitmap and writing a few sectors, nothing that touches
 the 4 GB itself (ValidDataLength 0 means the PC reads zeros past what was
@@ -333,7 +359,7 @@ second, even on a large card, so files are made on the board, not
 pre-made on the PC. If measuring shows otherwise, the PC can pre-make
 them and `log-open` takes an existing one. A cut during making leaves at
 worst bits set that no file owns, the same lost space as in closing: the
-bitmap goes first, the entry set second. A root directory with no free
+bitmap goes first, the entry set last. A root directory with no free
 entries in one sector would need another cluster and the FAT; the first
 version refuses with a clear message instead.
 
@@ -345,11 +371,19 @@ never overwritten.
 A PC tool (`scripts/admin/lflog.py`, with `cryptography`, like
 `sealblocks.py`):
 
-- `open LOG --server-key s.key --boards boards.csv`: checks the header,
-  names the board, then checks and decrypts every record, writing the
-  payload out. It reports gaps, bad tags, and whether the log was closed.
-- `server-key`: makes `s`/`S` and the key ID, and adds `S` to
-  `sealed_root.h` (`root-header`).
+- `open LOG --server-key s.key --boards boards.csv -o OUT`: checks the
+  header, names the board, then checks and decrypts every record, writing
+  the sample blocks to OUT (and the application header with
+  `--app-header FILE`). It reports bad frames and tags, and whether the
+  log was closed. A file that wasn't trimmed (copied off the card before
+  the board's recovery) gets one note for the blocks past its last
+  record, not a problem for each. It warns when the board's key in
+  `boards.csv` is a development key, made from the UID (levels 0 and 1),
+  since anyone who knows the UID could have written that log. It reads a
+  block at a time, so a 4 GB file is no trouble.
+- `server-key OUT --key-id N`: makes `s`/`S` (OUT.key, OUT.pub).
+- `header OUT.pub`: writes `log_server.h`, `S` and the key ID for the
+  board's build.
 
 The server keeps every `s` it has ever used, by key ID, for old logs.
 
@@ -357,14 +391,15 @@ The server keeps every `s` it has ever used, by key ID, for old logs.
 
 | Part | Where |
 |---|---|
-| Log format and key derivation, shared by board and tests | `src/datalog.c/.h`, plain C, through callbacks like `update.c` |
+| Log format and key derivation, shared by board and tests | `src/datalog.c/.h`, plain C (done) |
+| Making, closing and recovering log files | `src/logfile.c/.h`, on `exfat_create` and `exfat_trim` (done) |
 | `k_auth` service | Stage 1 (`stage1_poll`), a request in the shared block like `enroll` |
-| exFAT making, closing and recovery | `src/exfat.c` (writing the entry set and bitmap), the first file-system writes in C |
+| exFAT making and trimming | `src/exfat.c`: `exfat_create`, `exfat_trim` (done) |
 | Forth words | `log-open ( c-addr u -- ior )`, `log-close`, `log-recover`, and the application header |
 | I2S capture | A machine-mode service to start and stop the I2S DMA channels into the pool (section 4), and the I2S/SAI and CODEC setup |
 | The pool in general-purpose SRAM | `Link_v5f.ld` and `memalloc.c` (the pool at 0x20140000, 224 KB), Guarded DMA allowing it, the 4 KB static buffers taken from the pool instead (section 4) |
-| PC tool | `scripts/admin/lflog.py` |
-| Tests | `unit_tests/datalog`: round trips with `lflog.py`, every tamper (byte, reorder, a record from another file, a forged header), power cuts at every write including during the close, and recovery on `mkexfat.py` images |
+| PC tool | `scripts/admin/lflog.py` (done) |
+| Tests | `unit_tests/datalog` (done): round trips with `lflog.py`, the bitmap checked independently, every tamper (a byte, a reorder, a record from another file, one framed to fit, the identity, the application header, the wrong board), and power cuts every 5 sector writes through making, writing and closing, with recovery on `mkexfat.py` images |
 
 ## 9. To decide
 

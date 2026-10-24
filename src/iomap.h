@@ -23,18 +23,24 @@
  *   18  sys>  emit?  ( -- flag )   nonzero while the transmitter is busy
  *
  * Math unit: three argument registers A0 A1 A2 and up to three results.
- * Writing IO_MATH_ARG shifts an argument in (A2 <- A1 <- A0 <- x), so
- * after a word's arguments are written from the top of the stack down,
- * A0 holds the deepest. Reading an operation's port computes it from the
- * arguments and gives its first result; IO_MATH_RES then gives the
- * others, in order, so they land on the stack as the word leaves them:
- *   um*     ( u1 u2 -- ud )            32 >sys 32 >sys 33 sys> 32 sys>
- *   m*      ( n1 n2 -- d )             32 >sys 32 >sys 34 sys> 32 sys>
- *   mu/mod  ( udl udh u -- r uql uqh ) 32 >sys 32 >sys 32 >sys 35 sys> 32 sys> 32 sys>
- *   star-slash-mod ( n1 n2 n3 -- r q )     32 >sys 32 >sys 32 >sys 36 sys> 32 sys>
- * mu/mod and star-slash-mod give -10 (division by zero) if the divisor is 0. The
- * registers are shared: a sequence must not be split by `pause` (none of
- * these are, as they're straight-line code).
+ * Writing IO_MATH_ARG shifts an argument in (A2 <- A1 <- A0 <- x).
+ * Writing an operation's port shifts in its last argument the same way
+ * and starts it, so a word writes its arguments from the top of the
+ * stack down and A0 holds the deepest. The unit doesn't block the VM:
+ * IO_MATH_STATUS reads nonzero while it's busy, and 0 once the results
+ * are ready (as a hardware unit with iterative multiply and divide
+ * would; this one finishes at once). IO_MATH_RES then gives the results
+ * in order, so they land on the stack as the word leaves them:
+ *   um*     ( u1 u2 -- ud )            32 >sys 33 >sys wait 32 sys> 32 sys>
+ *   m*      ( n1 n2 -- d )             32 >sys 34 >sys wait 32 sys> 32 sys>
+ *   mu/mod  ( udl udh u -- r uql uqh ) 32 >sys 32 >sys 35 >sys wait 32 sys> 32 sys> 32 sys>
+ *   star-slash-mod ( n1 n2 n3 -- r q ) 32 >sys 32 >sys 36 >sys wait 32 sys> 32 sys>
+ * where wait is `begin 37 sys> 0= until` (or `pause` in the loop, to let
+ * other tasks run meanwhile). Starting mu/mod or star-slash-mod with a
+ * divisor of 0 fails with -10 and starts nothing. Reading a result while
+ * the unit is busy fails with -21. The registers are shared: while one
+ * word is using the unit, no other may start an operation, so a word that
+ * pauses while it waits must own the unit for that time.
  */
 
 #define IOMAP_FIRST         16      /* the first I/O index; 0-15 are the VM's */
@@ -46,11 +52,12 @@
 
 /* Math unit */
 #define IO_MATH_ARG         32      /* >sys: shift in an argument */
-#define IO_MATH_RES         32      /* sys>: the operation's next result, 0 when none is left */
-#define IO_MATH_UMSTAR      33      /* sys>: um*, A0 * A1 unsigned: low cell, then high */
-#define IO_MATH_MSTAR       34      /* sys>: m*, signed */
-#define IO_MATH_MUDIVMOD    35      /* sys>: mu/mod, A1:A0 / A2: remainder, quotient low, high */
-#define IO_MATH_STARDIVMOD  36      /* sys>: star-slash-mod, A0 * A1 / A2 symmetric: remainder, quotient */
+#define IO_MATH_RES         32      /* sys>: the next result, 0 when none is left */
+#define IO_MATH_UMSTAR      33      /* >sys: last argument, start um*: A0 * A1 unsigned, low cell then high */
+#define IO_MATH_MSTAR       34      /* >sys: last argument, start m*: signed */
+#define IO_MATH_MUDIVMOD    35      /* >sys: last argument, start mu/mod: A1:A0 / A2, remainder, quotient low, high */
+#define IO_MATH_STARDIVMOD  36      /* >sys: last argument, start star-slash-mod: A0 * A1 / A2 symmetric, remainder, quotient */
+#define IO_MATH_STATUS      37      /* sys>: nonzero while busy, 0 when the results are ready */
 
 #ifndef __ASSEMBLER__
 /**
@@ -58,7 +65,8 @@
  * @param addr The port, IOMAP_FIRST to 511.
  * @param data Receives the value, or 0 if the read fails.
  * @return 0, or an ior: ERR_INVALID_ADDRESS for a port that can't be read,
- * ERR_DIVISION_BY_ZERO from the math unit, or the terminal's error.
+ * ERR_UNSUPPORTED_OPERATION for a math result while the unit is busy, or
+ * the terminal's error.
  */
 int iomap_rd(int addr, uint32_t *data);
 
@@ -67,9 +75,16 @@ int iomap_rd(int addr, uint32_t *data);
  * @param addr The port, IOMAP_FIRST to 511.
  * @param data The value.
  * @return 0, or an ior: ERR_INVALID_ADDRESS for a port that can't be
- * written, or the terminal's error.
+ * written, ERR_DIVISION_BY_ZERO when the math unit is started with a
+ * divisor of 0, or the terminal's error.
  */
 int iomap_wr(int addr, uint32_t data);
+
+/**
+ * For tests: how many reads of IO_MATH_STATUS say busy after an operation
+ * starts, as a slower unit would (0, the default: none).
+ */
+extern int iomap_math_latency;
 
 #endif /* __ASSEMBLER__ */
 

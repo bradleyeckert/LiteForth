@@ -50,11 +50,24 @@ static int rd(int port) { return vmRun(1, VMI_FROMSYS | port, 0); }
 static void push(uint32_t x) { vmPush((int32_t)x); }
 static uint32_t pop(void) { return (uint32_t)vmPop(); }
 
+/* `begin 37 sys> 0= until`: the number of busy reads */
+static int wait(void) {
+    int polls = 0;
+    for (;;) {
+        rd(IO_MATH_STATUS);
+        if (pop() == 0) {
+            return polls;
+        }
+        polls++;
+    }
+}
+
 /* um* or m*: two arguments, two results */
 static void mul(int port, uint32_t a, uint32_t b, uint32_t *lo, uint32_t *hi) {
     push(a);  push(b);
-    wr(IO_MATH_ARG);  wr(IO_MATH_ARG);
-    rd(port);  rd(IO_MATH_RES);
+    wr(IO_MATH_ARG);  wr(port);
+    wait();
+    rd(IO_MATH_RES);  rd(IO_MATH_RES);
     *hi = pop();  *lo = pop();
 }
 
@@ -100,8 +113,9 @@ static void test_mudivmod(void) {
     };
     for (unsigned i = 0; i < sizeof c / sizeof c[0]; i++) {
         push((uint32_t)c[i].d);  push((uint32_t)(c[i].d >> 32));  push(c[i].u);
-        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_ARG);
-        rd(IO_MATH_MUDIVMOD);  rd(IO_MATH_RES);  rd(IO_MATH_RES);
+        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_MUDIVMOD);
+        wait();
+        rd(IO_MATH_RES);  rd(IO_MATH_RES);  rd(IO_MATH_RES);
         uint32_t qh = pop(), ql = pop(), r = pop();
         uint64_t q = c[i].d / c[i].u;
         check(r == (uint32_t)(c[i].d % c[i].u) && ql == (uint32_t)q && qh == (uint32_t)(q >> 32),
@@ -117,8 +131,9 @@ static void test_stardivmod(void) {
     };
     for (unsigned i = 0; i < sizeof c / sizeof c[0]; i++) {
         push((uint32_t)c[i].n1);  push((uint32_t)c[i].n2);  push((uint32_t)c[i].n3);
-        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_ARG);
-        rd(IO_MATH_STARDIVMOD);  rd(IO_MATH_RES);
+        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_STARDIVMOD);
+        wait();
+        rd(IO_MATH_RES);  rd(IO_MATH_RES);
         int32_t q = (int32_t)pop(), r = (int32_t)pop();
         check(q == c[i].q && r == c[i].r, "star-slash-mod (symmetric)");
     }
@@ -126,11 +141,14 @@ static void test_stardivmod(void) {
 
 static void test_errors(void) {
     for (int port = IO_MATH_MUDIVMOD; port <= IO_MATH_STARDIVMOD; port++) {
-        push(10);  push(0);  push(0);   /* divisor 0 */
-        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_ARG);
         uint32_t depth = stack_depth();
-        check(rd(port) == ERR_DIVISION_BY_ZERO, "division by zero");
-        check(stack_depth() == depth + 1 && pop() == 0, "a failed read pushes 0");
+        push(10);  push(0);  push(0);   /* divisor 0 */
+        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);
+        check(wr(port) == ERR_DIVISION_BY_ZERO, "starting a division by zero");
+        check(stack_depth() == depth, "takes its arguments");
+        check(wait() == 0, "and leaves the unit idle");
+        rd(IO_MATH_RES);
+        check(pop() == 0, "with no results");
     }
     uint32_t lo, hi;
     mul(IO_MATH_UMSTAR, 6, 7, &lo, &hi);
@@ -140,13 +158,35 @@ static void test_errors(void) {
     uint32_t depth = stack_depth();
     check(rd(IOMAP_FIRST + 100) == ERR_INVALID_ADDRESS, "a port that can't be read");
     check(stack_depth() == depth + 1 && pop() == 0, "pushes 0");
+    check(rd(IO_MATH_UMSTAR) == ERR_INVALID_ADDRESS, "an operation's port is write-only");
+    pop();
     push(5);
     check(wr(IOMAP_FIRST + 100) == ERR_INVALID_ADDRESS, "a port that can't be written");
     push(6);
-    check(wr(IO_TERM_RXQ) == ERR_INVALID_ADDRESS && rd(IO_MATH_ARG) == 0,
-          "key? is read-only; the math port reads results");
-    pop();
-    check(stack_depth() == depth, "and takes its value");
+    check(wr(IO_TERM_RXQ) == ERR_INVALID_ADDRESS, "key? is read-only");
+    push(7);
+    check(wr(IO_MATH_STATUS) == ERR_INVALID_ADDRESS, "the status is read-only");
+    check(stack_depth() == depth, "a failed write still takes its value");
+}
+
+/* A slower unit: busy for a few status reads, and results refused meanwhile */
+static void test_busy(void) {
+    iomap_math_latency = 3;
+    push(6);  push(7);
+    wr(IO_MATH_ARG);  wr(IO_MATH_UMSTAR);
+    uint32_t depth = stack_depth();
+    check(rd(IO_MATH_RES) == ERR_UNSUPPORTED_OPERATION, "a result while busy");
+    check(stack_depth() == depth + 1 && pop() == 0, "pushes 0");
+    check(wait() == 3, "the status says busy, then ready");
+    rd(IO_MATH_RES);  rd(IO_MATH_RES);
+    uint32_t hi = pop(), lo = pop();
+    check(lo == 42 && hi == 0, "the results once it's ready");
+    iomap_math_latency = 0;
+    push(1);  push(2);
+    wr(IO_MATH_ARG);  wr(IO_MATH_MSTAR);
+    check(wait() == 0, "a unit that finishes at once is never busy");
+    rd(IO_MATH_RES);  rd(IO_MATH_RES);
+    pop();  pop();
 }
 
 static void test_vm_indexes_unchanged(void) {
@@ -165,6 +205,7 @@ int main(void) {
     test_mudivmod();
     test_stardivmod();
     test_errors();
+    test_busy();
     test_vm_indexes_unchanged();
     if (failures) {
         printf("iomap: %d of %d checks FAILED\n", failures, checks);

@@ -148,7 +148,7 @@ The scripts that prepare what goes on a board and drive one: blocks and
 fonts in and out of block files, card images, the board tests and
 lock-down, and the assistant's access to the terminal and probe.
 
-- **Parent:** SYS-TOOL-02, SYS-TOOL-03, SYS-SEC-09
+- **Parent:** SYS-TOOL-02, SYS-TOOL-03, SYS-TOOL-05, SYS-TOOL-06, SYS-SEC-09
 - **Verified by:** integ:putblocks::round trip: same blocks, integ:stage1sim::hiltest on the simulated board, integ:stage1sim::lockdown.py run: a locked board refused before any flash, integ:lfmcp::wlink flash refused
 - **Status:** verified
 

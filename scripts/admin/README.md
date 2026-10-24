@@ -1,31 +1,35 @@
 # Admin scripts
 
-The release side of LiteForth: making keys, sealed block files and
-firmware update packages. They need Python 3 and the `cryptography`
+The release side of LiteForth: making keys and firmware update packages,
+testing and locking boards, and provisioning new ones. They need Python 3 and the `cryptography`
 package. A board only checks what these make. The examples use `py`,
 the Windows launcher, run in this folder; on Linux and macOS use
 `python3`.
 
 | Script | What it does |
 |---|---|
-| `sealblocks.py` | Makes and checks sealed (encrypted, signed) block files and firmware update packages, and their keys |
+| `sealblocks.py` | Makes and checks firmware update packages (encrypted, signed), their keys, and the signed manifest of a release for provisioning |
 | `hiltest.py` | Runs stage 1's update, rollback and recovery tests on a real board, with nobody at it, and writes the report |
 | `lockdown.py` | Flashes a board with a `SECURITY_LEVEL` 2 build and locks it down (read protection, write protection, boot ROM downloads off), and writes the report |
+| `provision.py` | Provisions new boards in two passes: flash, lock and enroll, then install the release ([doc/admin/provisioning.md](../../doc/admin/provisioning.md)) |
+| `lflog.py` | The server's side of the data logs: its key, the board's header, opening logs ([doc/admin/data-logs.md](../../doc/admin/data-logs.md)) |
 
 ## sealblocks.py
 
 ```
 py sealblocks.py root-key root
 py sealblocks.py release-key root.key 1 release1.key --product 0x4C46
-py sealblocks.py seal lfblocks.fb4 sealed.fb4 --release release1.key --boards boards.csv --revision 1
-py sealblocks.py check sealed.fb4 --root root.pub
-py sealblocks.py open sealed.fb4 opened.fb4 --root root.pub --board-key board.key
-py sealblocks.py package LiteForth_V5F.bin v5f-1.lfu --component v5f --release release1.key --boards boards.csv --revision 1
+py sealblocks.py package LiteForth_V5F.bin app-1.lfu --component app --pages lfpages.bin --release release1.key --boards boards.csv --revision 1
+py sealblocks.py check app-1.lfu --root root.pub
+py sealblocks.py open app-1.lfu app-1.bin --root root.pub --board-key board.key
+py sealblocks.py manifest release --release release1.key --revision 1
+py sealblocks.py check-manifest release --root root.pub
 py sealblocks.py lf-board board.lfb --board-key board.key --root root.pub --product 0x4C46
 py sealblocks.py root-header root.pub --product 0x4C46 -o ..\..\src\target\CH32H417\V5F\User\sealed_root.h
 ```
 
-Makes a sealed block file from a plain one, as planned in
+Makes a firmware update package from a V5F image (with LiteForth's flash
+pages, for an app package), in the format of
 [doc/admin/encrypted-blocks.md](../../doc/admin/encrypted-blocks.md): the content blocks
 encrypted (AES-128 or SM4 in CTR mode) with a new key for each release,
 that key wrapped for each board in `boards.csv` (`UID,public key,name` in
@@ -35,9 +39,12 @@ everything that needs no board key; `open` also unwraps and decrypts, as a
 board would, and refuses what a board would refuse (`--min-revision`,
 `--min-serial`, `--product`). `board-key` makes a board key pair on the PC
 for testing; a real board will make its own. `lf-board` writes a board
-file for the desktop `lf -K`, which then reads the sealed file as that
+file for the desktop `lf -K`, which then checks a staged package as that
 board would, and `root-header` the `sealed_root.h` a CH32H417 build reads
-them with. On the board, `enroll` prints its `boards.csv` line.
+them with. On the board, `enroll` prints its `boards.csv` line. `manifest`
+signs the list of a release's files that a provisioning station flashes
+and copies to cards, and `check-manifest` checks it as the station does
+([doc/admin/provisioning.md](../../doc/admin/provisioning.md)).
 
 Key files are JSON; `.key` files hold private keys. Keep the root's
 offline: `release-key` is the only command that needs it. Needs the
@@ -141,3 +148,23 @@ and the cli port (the board's USB terminal) by their USB IDs, or name them
 with `--debug` and `--cli` (`hiltest.py --list` shows which is which). Try it on a spare board first.
 `unit_tests/stage1sim/test_lockdown.py` runs it against the simulated
 board with a fake wlink.
+
+## provision.py
+
+```
+py provision.py station-check
+py provision.py batch-new 2026-11-03-A
+py provision.py card E:
+py provision.py pass1 --batch 2026-11-03-A
+py provision.py batch-review batches\2026-11-03-A --boards boards.csv --append
+py provision.py pass2 --batch 2026-11-03-A --package batch.lfu
+```
+
+Provisioning, as [doc/admin/provisioning.md](../../doc/admin/provisioning.md)
+describes it: run in the station's folder (`release/`, `boards.csv`,
+`batches/`). `pass1` flashes, locks and enrolls each board the operator
+connects; the vendor checks the batch with `batch-review` and packages the
+release for it; `pass2` installs that package on each board. Each board
+gets a report in its batch's `records/`. It needs pyserial and wlink, as
+`lockdown.py` does (`batch-review` needs neither).
+`unit_tests/stage1sim/test_provision.py` tests it on simulated boards.

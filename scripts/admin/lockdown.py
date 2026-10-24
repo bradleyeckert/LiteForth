@@ -45,7 +45,8 @@ both ports' output word for word, the images' sha256 and the UID, for
 doc/admin/board-tests.md. Exit status 0 if the board ended up locked down.
 
 After it: run `enroll` (a level 2 board's key comes from the RNG), put the
-new line in boards.csv, and seal the card's lfblocks.fb4 and packages for it.
+new line in boards.csv, and package a release for it. provision.py does all
+of this for a batch of new boards (doc/admin/provisioning.md).
 
 It needs wlink (scripts/README.md, lfmcp.py) and pyserial, as hiltest.py
 does. Its ports: the cli port, the board's own USB terminal (--cli, or
@@ -364,7 +365,7 @@ def cmd_run(a):
                                       'tell).'))
     say()
     say('**Locked down.** The probe may have left the V3F halted: turn the power off and on. '
-        'Next: `enroll`, the new line in boards.csv, and the card\'s files sealed for it.')
+        'Next: `enroll`, the new line in boards.csv, and a release packaged for it.')
     return 0
 
 

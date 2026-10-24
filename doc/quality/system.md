@@ -601,6 +601,30 @@ checks and decrypts logs.
 - **Verified by:** sys:datalog::test_lflog_edges
 - **Status:** verified
 
+### SYS-TOOL-05: Provisioning, in two passes
+`provision.py` takes a blank board through pass 1 (flash the release,
+lock it down, `enroll`, record the board) and, once the vendor has
+packaged the release for the batch, pass 2 (install it and check it).
+It refuses a protected or non-blank chip, a UID that's enrolled already
+or isn't the one the probe read, and a public key another board has; it
+never reads the chip past the V3F's image. The station holds no private
+key: the vendor reviews each batch (`batch-review`) before its lines go
+into `boards.csv`.
+
+- **Parent:** UN-14, UN-09
+- **Verified by:** integ:stage1sim::provision.py on the simulated board: passed, integ:stage1sim::pass1: three boards enrolled, integ:stage1sim::pass2: two boards done, integ:stage1sim::batch-review: the batch checks out
+- **Status:** partial
+- **Gap:** no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)
+
+### SYS-TOOL-06: A signed release for the station
+`sealblocks.py manifest` lists a release's files with their sha256 and
+signs the list with a release key; the station checks it against the root
+key before every batch, and refuses a changed or extra file.
+
+- **Parent:** UN-14, UN-08
+- **Verified by:** integ:seal::manifest: a file missing, integ:seal::manifest: another root, integ:seal::manifest: a changed image, integ:stage1sim::provision station-check: a changed image stops it
+- **Status:** verified
+
 ## QA: the development process
 
 ### SYS-QA-01: Every change to main is built and tested

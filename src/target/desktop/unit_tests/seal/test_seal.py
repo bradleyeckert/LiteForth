@@ -73,6 +73,81 @@ def resign(data, release_key):
     return bytes(b0) + data[BLOCK:]
 
 
+def manifest_tests():
+    """The provisioning manifest (doc/admin/provisioning.md): signed with a
+    release key, checked against the root, every file it names checked, and
+    nothing in its folder that it doesn't name. Runs in main's directory,
+    with its keys."""
+    import json
+    os.makedirs('rel')
+    v3f = bytes((i * 11 + 3) & 255 for i in range(50000))
+    write('rel/LiteForth_V3F.bin', v3f)
+    blocks = b'LITEFORTH' + bytes(BLOCK - 9) + bytes(range(256)) * 16
+    write('rel/lfblocks.fb4', blocks)
+    root = ('--root', 'root.pub')
+    expect_ok('manifest', 'manifest', 'rel', '--release', 'rel1.json', '--revision', 4)
+    out = expect_ok('manifest checked', 'check-manifest', 'rel', *root)
+    expect('manifest: version and files', 'Version 4' in out and 'LiteForth_V3F.bin (v3f'
+           in out and 'lfblocks.fb4 (card' in out and 'V5F' not in out, out)
+    m = sb.check_manifest('rel', sb.root_public('root.pub'))
+    expect('manifest: the card sizes', m['card'] == {'lfstage.bin': 512 * 1024,
+                                                     'lfbackup.bin': 512 * 1024}, m['card'])
+    expect('manifest: the V3F at its address',
+           [(f['use'], f.get('address')) for f in m['files']]
+           == [('v3f', 0x08000000), ('card', None)], m['files'])
+    expect_refused('manifest not overwritten', 'exists', 'manifest', 'rel', '--release',
+                   'rel1.json', '--revision', 4)
+    write('rel/LiteForth_V5F.bin', b'V5F' + bytes(9000))
+    expect_ok('manifest with a V5F', 'manifest', 'rel', '--release', 'rel1.json', '--revision',
+              4, '--v5f', 'LiteForth_V5F.bin', '--force')
+    expect('manifest: the V5F at its slot', any(f['use'] == 'v5f' and f['address'] == 0x08014000
+                                                for f in sb.check_manifest(
+                                                    'rel', sb.root_public('root.pub'))['files']))
+    good = read('rel/manifest.json')
+
+    def changed(name, edit, why):
+        m = json.loads(good)
+        edit(m)
+        with open('rel/manifest.json', 'w') as f:
+            json.dump(m, f)
+        expect_refused(f'manifest: {name}', why, 'check-manifest', 'rel', *root)
+
+    changed('a changed hash', lambda m: m['files'][0].update(sha256='0' * 64), 'signature')
+    changed('a changed version', lambda m: m.update(revision=5), 'signature')
+    changed('bigger card files', lambda m: m['card'].update({'lfstage.bin': 1 << 20}),
+            'signature')
+    changed('another release key', lambda m: m.update(
+        release=json.load(open('rel2.json'))['public']), 'certificate')
+    write('rel/manifest.json', good)
+    expect_refused('manifest: another root', 'certificate', 'check-manifest', 'rel', '--root',
+                   'other.pub')
+    write('rel/LiteForth_V3F.bin', v3f[:-1] + bytes([v3f[-1] ^ 1]))
+    expect_refused('manifest: a changed image', "isn't the file the manifest names",
+                   'check-manifest', 'rel', *root)
+    write('rel/LiteForth_V3F.bin', v3f)
+    write('rel/extra.bin', b'x')
+    expect_refused('manifest: a file it doesn\'t name', "doesn't name: extra.bin",
+                   'check-manifest', 'rel', *root)
+    os.remove('rel/extra.bin')
+    write('rel/root.pub', read('root.pub'))         # root.pub may sit beside it
+    expect_ok('manifest: root.pub beside it', 'check-manifest', 'rel', *root)
+    os.remove('rel/LiteForth_V5F.bin')
+    expect_refused('manifest: a file missing', 'LiteForth_V5F.bin', 'check-manifest', 'rel', *root)
+    write('rel/LiteForth_V5F.bin', b'V5F' + bytes(9000))
+    write('rel/plain.fb4', b'LITEFORTHS' + bytes(BLOCK - 10))
+    expect_refused('manifest: a sealed block file for the card', 'not a plain block file',
+                   'manifest', 'rel', '--release', 'rel1.json', '--revision', 4, '--blocks',
+                   'plain.fb4', '--force')
+    os.remove('rel/plain.fb4')
+    expect_refused('manifest: lfstage.bin too small', 'at least', 'manifest', 'rel',
+                   '--release', 'rel1.json', '--revision', 4, '--stage-size', 64 * BLOCK,
+                   '--force')
+    expect_refused('manifest: a block file as the V3F image', 'not a firmware image', 'manifest',
+                   'rel', '--release', 'rel1.json', '--revision', 4, '--v3f', 'lfblocks.fb4',
+                   '--force')
+    expect('manifest: a refused one leaves the last', read('rel/manifest.json') == good)
+
+
 def main():
     tmp = tempfile.mkdtemp()
     try:
@@ -373,6 +448,8 @@ def main():
                            'bad.lfu', *base)
         finally:
             sb.COMPONENT_LIMIT[1] = limit
+
+        manifest_tests()
     finally:
         os.chdir(HERE)
         shutil.rmtree(tmp)

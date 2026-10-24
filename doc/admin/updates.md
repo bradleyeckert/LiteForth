@@ -74,6 +74,9 @@ private key there. The tool is `scripts/admin/sealblocks.py` (it needs
 
 ## 3. Enrolling each board, once
 
+For a production line, [provisioning.md](provisioning.md) scripts all of
+this: flashing, lock-down, `enroll`, the card and the first release.
+
 A product board (`SECURITY_LEVEL` 2) makes its key in stage 1's recovery
 console, once it's locked down: Ctrl+X three times, twice, to get there
 (or it's there already, with no V5F image installed), then `enroll`:

@@ -1,0 +1,71 @@
+{
+    "DESIGN_NAME": "mcu_top",
+    "DESIGN_IS_CORE": 0,
+    "VERILOG_FILES": [
+        "dir::../../verilog/rtl/defines.v",
+        "dir::../../verilog/rtl/mcu_cpu.v",
+        "dir::../../verilog/rtl/mcu_uart.v",
+        "dir::../../verilog/rtl/mcu_ram.v",
+        "dir::../../verilog/rtl/mcu_top.v"
+    ],
+    "CLOCK_PERIOD": 25,
+    "CLOCK_PORT": "wb_clk_i",
+    "CLOCK_NET": "clk",
+    "FP_SIZING": "absolute",
+    "PL_TARGET_DENSITY": 0.5,
+    "FP_PIN_ORDER_CFG": "dir::pin_order.cfg",
+    "MAX_TRANSITION_CONSTRAINT": 1.0,
+    "MAX_FANOUT_CONSTRAINT": 16,
+    "PL_RESIZER_SETUP_SLACK_MARGIN": 0.4,
+    "GLB_RESIZER_SETUP_SLACK_MARGIN": 0.2,
+    "GLB_RESIZER_HOLD_SLACK_MARGIN": 0.3,
+    "PL_RESIZER_HOLD_SLACK_MARGIN": 0.3,
+    "MAGIC_DEF_LABELS": 0,
+    "SYNTH_BUFFERING": 0,
+    "SYNTH_STRATEGY": "AREA 0",
+    "RUN_HEURISTIC_DIODE_INSERTION": 1,
+    "HEURISTIC_ANTENNA_THRESHOLD": 110,
+    "GRT_REPAIR_ANTENNAS": 1,
+    "VDD_NETS": [
+        "vccd1"
+    ],
+    "GND_NETS": [
+        "vssd1"
+    ],
+    "IO_SYNC": 0,
+    "BASE_SDC_FILE": "dir::base_mcu_top.sdc",
+    "RUN_CVC": 0,
+    "RUN_KLAYOUT": 0,
+    "RUN_KLAYOUT_XOR": 0,
+    "RUN_KLAYOUT_DRC": 0,
+    "RUN_LINTER": 1,
+    "ROUTING_CORES": 2,
+    "RT_MAX_LAYER": "met4",
+    "QUIT_ON_SYNTH_CHECKS": 0,
+    "SYNTH_DEFINES": [
+        "MCU_SRAM22"
+    ],
+    "LINTER_DEFINES": [
+        "LINT"
+    ],
+    "VERILOG_FILES_BLACKBOX": [
+        "dir::../../macros/sram22_512x32m4w8/sram22_512x32m4w8_bb.v"
+    ],
+    "EXTRA_LEFS": [
+        "dir::../../macros/sram22_512x32m4w8/sram22_512x32m4w8.lef"
+    ],
+    "EXTRA_GDS_FILES": [
+        "dir::../../macros/sram22_512x32m4w8/sram22_512x32m4w8.gds"
+    ],
+    "EXTRA_LIBS": [
+        "dir::../../macros/sram22_512x32m4w8/sram22_512x32m4w8_tt_025C_1v80.lib"
+    ],
+    "MACRO_PLACEMENT_CFG": "dir::macro.cfg",
+    "FP_PDN_MACRO_HOOKS": "ram.sram vccd1 vssd1 vdd vss",
+    "FP_PDN_CFG": "dir::pdn_cfg.tcl",
+    "DIE_AREA": "0 0 720 720",
+    "MAGIC_DRC_USE_GDS": 1,
+    "FP_PDN_CHECK_NODES": 1,
+    "FP_PDN_VPITCH": 50,
+    "FP_PDN_VOFFSET": 10
+}

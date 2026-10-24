@@ -1,0 +1,19 @@
+Design Name: mcu_top
+Run Directory: /home/claude/mcu_caravel/openlane/mcu_top/runs/r4
+----------------------------------------
+
+Magic DRC Summary:
+Source: /home/claude/mcu_caravel/openlane/mcu_top/runs/r4/reports/signoff/drc.rpt
+Total Magic DRC violations is 0
+----------------------------------------
+
+LVS Summary:
+Source: /home/claude/mcu_caravel/openlane/mcu_top/runs/r4/logs/signoff/40-mcu_top.lef.lvs.log
+Number of nets: 23575                      |Number of nets: 23575                      
+Design is LVS clean.
+----------------------------------------
+
+Antenna Summary:
+Source: /home/claude/mcu_caravel/openlane/mcu_top/runs/r4/logs/signoff/42-arc.log
+Pin violations: 3
+Net violations: 3

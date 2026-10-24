@@ -1,0 +1,38 @@
+Design Name: mcu_top
+Run Directory: /home/claude/mcu_caravel/openlane/mcu_top/runs/r6
+Source not found.
+----------------------------------------
+
+LVS Summary:
+Source: /home/claude/mcu_caravel/openlane/mcu_top/runs/r6/logs/signoff/40-mcu_top.lef.lvs.log
+Number of nets: 8112 **Mismatch**          |Number of nets: 8099 **Mismatch**          
+Net: hold151/X                             |Net: net427                                
+Net: hold164/X                             |Net: net464                                
+Net: hold110/X                             |Net: net468                                
+Net: hold188/X                             |Net: net481                                
+Net: hold215/X                             |Net: net505                                
+Net: hold233/X                             |Net: net523                                
+Net: hold206/X                             |Net: net525                                
+Net: hold208/X                             |Net: net532                                
+Net: hold67/X                              |Net: net550                                
+Net: hold147/X                             |Net: net384                                
+Net: ram.sram/addr[0]                      |Net: net324                                
+Net: ram.sram/addr[1]                      |Net: clknet_3_2_0_wb_clk_i                 
+Net: ram.sram/addr[2]                      |(no matching net)                          
+Net: ram.sram/addr[3]                      |(no matching net)                          
+Net: ram.sram/addr[4]                      |(no matching net)                          
+Net: ram.sram/addr[5]                      |(no matching net)                          
+Net: ram.sram/addr[6]                      |(no matching net)                          
+Net: ram.sram/addr[7]                      |(no matching net)                          
+Net: ram.sram/addr[8]                      |(no matching net)                          
+Net: ram.sram/we                           |(no matching net)                          
+Net: ram.sram/ce                           |(no matching net)                          
+Net: ram.sram/clk                          |(no matching net)                          
+Net: ram.sram/rstb                         |(no matching net)                          
+Net: hold7/X                               |(no matching net)                          
+Net: _05718_/X                             |(no matching net)                          
+Design is LVS clean.
+----------------------------------------
+
+Antenna Summary:
+No antenna report found.

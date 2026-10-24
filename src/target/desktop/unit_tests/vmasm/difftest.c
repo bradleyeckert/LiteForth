@@ -23,6 +23,7 @@
 #include "errcodes.h"
 #include "api0.h"
 #include "lftime.h"
+#include "iomap.h"
 
 void out(const char* s, int n);         // rt_rv32.c, or below
 
@@ -173,11 +174,11 @@ UNUSED_IN_BENCH static uint32_t rnd_inst(int safe) {
             if (imm == VMS_BREAK && below(3)) continue;
             break;
         case VMO_TOSYS:
-            imm = below(3);
+            imm = below(4) ? below(3) : IOMAP_FIRST + below(6);    // or an I/O port
             if (imm == VMSTO_YEET && below(2)) continue;
             break;
         case VMO_FROMSYS:
-            imm = below(4);
+            imm = below(4) ? below(4) : IOMAP_FIRST + below(6);
             if (safe && imm == VMSFROM_TASK) continue;
             break;
         case 5: case 7: case 11:        // invalid opcodes
@@ -224,6 +225,23 @@ uint64_t lfGetTimeMicroSec(void) {
 }
 void lfWatchdogPing(void) { pings++; }
 
+/* The I/O ports (iomap.h): reads give a value from the port and a count,
+   writes fold into io_sum, and IO_STUB_FAIL fails both ways */
+#define IO_STUB_FAIL (IOMAP_FIRST + 4)
+static uint32_t io_sum, io_reads;
+int iomap_rd(int addr, uint32_t* data) {
+    io_reads++;
+    *data = 0;
+    if (addr == IO_STUB_FAIL) return -9;
+    *data = 0x10000u * (uint32_t)addr + io_reads;
+    return 0;
+}
+int iomap_wr(int addr, uint32_t data) {
+    if (addr == IO_STUB_FAIL) return -9;
+    io_sum = io_sum * 31u + data + (uint32_t)addr;
+    return 0;
+}
+
 /* ---- state ------------------------------------------------------------- */
 
 UNUSED_IN_BENCH static void rnd_state(void) {
@@ -263,7 +281,7 @@ static uint32_t state_hash(void) {
     for (int i = 0; i < RAM_CELLS; i++) mix(page1[i]);
     for (int i = 0; i < IO_CELLS; i++) mix(page2[i]);
     mix(vm_memory_executable[0]);
-    mix(api_sum);  mix(usec_calls);  mix(pings);
+    mix(api_sum);  mix(usec_calls);  mix(pings);  mix(io_sum);  mix(io_reads);
     return hash;
 }
 

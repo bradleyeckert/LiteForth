@@ -13,6 +13,8 @@ int VMapi0Call(int fn) { (void)fn; return 0; }
 int VMapi1Call(int fn) { (void)fn; return 0; }
 uint64_t lfGetTimeMicroSec(void) { return 0; }
 void lfWatchdogPing(void) { }
+int iomap_rd(int addr, uint32_t *data) { (void)addr; *data = 0; return -9; }   /* no I/O ports here */
+int iomap_wr(int addr, uint32_t data) { (void)addr; (void)data; return -9; }
 
 #define PAGE_SHIFT (22 - VM_LOG2_PAGES)
 #define IO  3                           // the guarded page

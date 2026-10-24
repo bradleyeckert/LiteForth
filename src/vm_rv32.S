@@ -27,6 +27,7 @@
 #include "vm.h"
 #include "vm_labels.h"
 #include "errcodes.h"
+#include "iomap.h"                      // IOMAP_FIRST
 
 #if (VMS_RSTACK + 4 * STACK_CAPACITY) > 2047
 #error "vm_rv32.S: the stacks must fit in 12-bit offsets (STACK_CAPACITY <= 256)"
@@ -373,6 +374,7 @@ exit_save:
  * keeping the address a3 at GUARD_SPILL(sp) meanwhile, and leaves the
  * flags of the first range holding cell t6 in a6, or goes to `none`. */
 #define GUARD_SPILL 24                  // free in the frame: calls into C use 0-23
+#define IO_DATA     28                  // iomap_rd's result, also free in the frame
 
 .macro GUARD none
         lui     a6, %hi(vm_io_page)
@@ -584,6 +586,8 @@ tosys_op:
         mv      a3, rT
         DDROP
         andi    a1, rINST, VM_IMM_MASK
+        li      a6, IOMAP_FIRST
+        bgeu    a1, a6, tosys_io        // an I/O port (iomap.h)
         beqz    a1, 1f                  // VMSTO_SHIFT 0
         addi    a1, a1, -1
         beqz    a1, 3f                  // VMSTO_YEET 1
@@ -596,10 +600,21 @@ tosys_op:
 1:      andi    a3, a3, 31
         sw      a3, VMS_SHIFT(rBASE)
         jr      rTAIL
+tosys_io:                               // iomap_wr(imm, T)
+        SPILL
+        mv      a0, a1
+        mv      a1, a3
+        call    iomap_wr
+        mv      a3, a0
+        UNSPILL
+        bnez    a3, fail
+        jr      rTAIL
 
 fromsys_op:
         DDUP
         andi    a1, rINST, VM_IMM_MASK
+        li      a6, IOMAP_FIRST
+        bgeu    a1, a6, fromsys_io      // an I/O port (iomap.h)
         beqz    a1, 1f                  // VMSFROM_TASK 0
         addi    a1, a1, -1
         beqz    a1, 2f                  // VMSFROM_X 1
@@ -619,6 +634,16 @@ fromsys_op:
         slli    rT, rRSP, 14            // (rp << 16) | sp
         srli    a1, rDSP, 2
         or      rT, rT, a1
+        jr      rTAIL
+fromsys_io:                             // T = iomap_rd(imm, &data): 0 if it failed
+        SPILL
+        mv      a0, a1
+        addi    a1, sp, IO_DATA
+        call    iomap_rd
+        mv      a3, a0
+        lw      rT, IO_DATA(sp)         // iomap_rd sets it, to 0 on failure
+        UNSPILL
+        bnez    a3, fail
         jr      rTAIL
 
 api_op:                                 // API and XAPI

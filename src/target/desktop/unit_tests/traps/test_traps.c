@@ -12,6 +12,8 @@
 uint32_t g_lf_sys_options;
 uint64_t lfGetTimeMicroSec(void) { return 0; }
 void lfWatchdogPing(void) { }
+int iomap_rd(int addr, uint32_t *data) { (void)addr; *data = 0; return -9; }   /* no I/O ports here */
+int iomap_wr(int addr, uint32_t data) { (void)addr; (void)data; return -9; }
 
 #define PAGE 1
 #define CODE(i) (((uint32_t)PAGE << (23 - VM_LOG2_PAGES)) + (i))  /* instruction address */

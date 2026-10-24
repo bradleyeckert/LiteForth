@@ -29,6 +29,12 @@
                   [--min-revision N] [--min-serial N] [--product P]
                                                    check and decrypt, as a board would: IMAGE
                                                    gets the image itself
+    sealblocks.py manifest DIR --release R --revision N [--v3f F] [--v5f F] [--blocks F]
+                  [--stage-size N] [--backup-size N]
+                                                   write and sign DIR/manifest.json: a release's
+                                                   files for provisioning (doc/admin/provisioning.md)
+    sealblocks.py check-manifest DIR --root ROOT.pub
+                                                   check DIR's manifest and every file it names
 
 Sealed block files (block 0 LITEFORTHS) are retired: an app's Forth goes in
 an app package now, and block files are plain.
@@ -312,6 +318,141 @@ def unwrap(h, board):
     return cek
 
 
+# The provisioning manifest -----------------------------------------------
+#
+# DIR/manifest.json lists a release's files for the provisioning station
+# (doc/admin/provisioning.md): the images it flashes, the block file it
+# copies to each card, and the sizes of the card's other files. It's signed
+# with a release key and carries that key's certificate, so the station
+# checks it against root.pub alone. The signature covers MANIFEST_PERSON and
+# then the manifest as canonical JSON (sorted keys, no spaces, ASCII),
+# without its "signature" field: a package's block 0 starts LITEFORTHF, so
+# neither can stand for the other.
+
+MANIFEST = 'manifest.json'
+MANIFEST_PERSON = b'LiteForth manifest 1\0'
+MANIFEST_EXTRA = {MANIFEST, 'root.pub'}   # what DIR may hold besides the files listed
+V3F_MAX = 64 * 1024                     # the V3F's image (stage 0 and 1)
+FLASH_BASE = 0x08000000
+V3F_AT, V5F_AT = FLASH_BASE, FLASH_BASE + 0x14000   # stage1_layout.h
+CARD_MIN = 94 * BLOCK                   # lfstage.bin and lfbackup.bin: an app package today
+CARD_DEFAULT = 512 * 1024
+
+
+def manifest_message(m):
+    body = {k: v for k, v in m.items() if k != 'signature'}
+    return MANIFEST_PERSON + json.dumps(body, sort_keys=True, separators=(',', ':'),
+                                        ensure_ascii=True).encode()
+
+
+def file_entry(d, name, use, address=None):
+    path = os.path.join(d, name)
+    with open(path, 'rb') as f:
+        data = f.read()
+    e = {'name': name, 'use': use, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+    if address is not None:
+        e['address'] = address
+    return e, data
+
+
+def cmd_manifest(a):
+    rel = read_json(a.release, 'release')
+    rel_priv = Ed25519PrivateKey.from_private_bytes(hexbytes(rel, 'private', 32, a.release))
+    v3f, data = file_entry(a.dir, a.v3f, 'v3f', V3F_AT)
+    if not 0 < len(data) <= V3F_MAX:
+        raise SealError(f'{a.v3f}: {len(data)} bytes; the V3F\'s image takes 1 to {V3F_MAX}')
+    if data[:9] == SIGNATURE:
+        raise SealError(f'{a.v3f} is a block file or package, not a firmware image')
+    files = [v3f]
+    if a.v5f:
+        v5f, data = file_entry(a.dir, a.v5f, 'v5f', V5F_AT)
+        if not 0 < len(data) <= APP_SLOT or data[:9] == SIGNATURE:
+            raise SealError(f'{a.v5f}: not a V5F image of 1 to {APP_SLOT} bytes')
+        files.append(v5f)
+    blocks, data = file_entry(a.dir, a.blocks, 'card')
+    if len(data) % BLOCK or data[:9] != SIGNATURE or data[9:10] in (SEALED_MARK, PACKAGE_MARK):
+        raise SealError(f'{a.blocks}: not a plain block file (LITEFORTH, whole 4 KB blocks)')
+    files.append(blocks)
+    for what, size in (('--stage-size', a.stage_size), ('--backup-size', a.backup_size)):
+        if size % BLOCK or size < CARD_MIN:
+            raise SealError(f'{what} {size}: a whole number of 4 KB blocks, at least {CARD_MIN}')
+    names = [f['name'] for f in files]
+    if len(set(n.lower() for n in names)) != len(names) or MANIFEST in names:
+        raise SealError('each file once, and none named manifest.json')
+    m = {'type': 'manifest', 'format': 1, 'product': int(rel['product']),
+         'serial': int(rel['serial']), 'release': hexbytes(rel, 'public', 32, a.release).hex(),
+         'cert': hexbytes(rel, 'cert', 64, a.release).hex(), 'revision': a.revision,
+         'files': files,
+         'card': {'lfstage.bin': a.stage_size, 'lfbackup.bin': a.backup_size}}
+    m['signature'] = rel_priv.sign(manifest_message(m)).hex()
+    out = os.path.join(a.dir, MANIFEST)
+    write_json(out, m, a.force)
+    print(f'{out}: version {a.revision}, product {m["product"]:#x}, release key {m["serial"]}: '
+          + ', '.join(f'{f["name"]} ({f["use"]})' for f in files))
+
+
+def check_manifest(d, root_pub):
+    """DIR/manifest.json, checked: its certificate against the root, its
+    signature, and every file it names (size and sha256), with nothing in
+    DIR it doesn't name. Returns the manifest, its files' paths added."""
+    path = os.path.join(d, MANIFEST)
+    try:
+        with open(path) as f:
+            m = json.load(f)
+    except (OSError, ValueError) as e:
+        raise SealError(f'{path}: {e}')
+    try:
+        if m['type'] != 'manifest' or m['format'] != 1:
+            raise SealError(f'{path}: not a version 1 manifest')
+        product, serial, revision = int(m['product']), int(m['serial']), int(m['revision'])
+        rel = bytes.fromhex(m['release'])
+        cert, sig = bytes.fromhex(m['cert']), bytes.fromhex(m['signature'])
+        files, card = list(m['files']), dict(m['card'])
+    except (KeyError, ValueError, TypeError) as e:
+        raise SealError(f'{path}: malformed ({e})')
+    if len(rel) != 32 or len(cert) != 64 or len(sig) != 64:
+        raise SealError(f'{path}: malformed (key, certificate or signature)')
+    try:
+        root_pub.verify(cert, cert_message(product, serial, rel))
+    except InvalidSignature:
+        raise SealError(f'{path}: the release key\'s certificate doesn\'t match the root key')
+    try:
+        Ed25519PublicKey.from_public_bytes(rel).verify(sig, manifest_message(m))
+    except InvalidSignature:
+        raise SealError(f'{path}: its signature doesn\'t match: it was changed after signing')
+    uses = sorted(f.get('use') for f in files)
+    if uses not in (['card', 'v3f'], ['card', 'v3f', 'v5f']):
+        raise SealError(f'{path}: needs one v3f image, one card file and at most one v5f image')
+    if sorted(card) != ['lfbackup.bin', 'lfstage.bin'] or any(
+            not isinstance(v, int) or v % BLOCK or v < CARD_MIN for v in card.values()):
+        raise SealError(f'{path}: bad card sizes')
+    listed = set()
+    for f in files:
+        name = f.get('name', '')
+        if not name or os.path.basename(name) != name:
+            raise SealError(f'{path}: bad file name {name!r}')
+        try:
+            with open(os.path.join(d, name), 'rb') as g:
+                data = g.read()
+        except OSError as e:
+            raise SealError(f'{name}: {e}')
+        if len(data) != f.get('bytes') or hashlib.sha256(data).hexdigest() != f.get('sha256'):
+            raise SealError(f'{name} isn\'t the file the manifest names (size or sha256)')
+        f['path'] = os.path.join(d, name)
+        listed.add(name.lower())
+    extra = [n for n in os.listdir(d) if n.lower() not in listed | MANIFEST_EXTRA]
+    if extra:
+        raise SealError(f'{d} holds files the manifest doesn\'t name: {", ".join(sorted(extra))}')
+    return m
+
+
+def cmd_check_manifest(a):
+    m = check_manifest(a.dir, root_public(a.root))
+    print(f'{os.path.join(a.dir, MANIFEST)}: ok. Version {m["revision"]}, product '
+          f'{m["product"]:#x}, release key {m["serial"]}: '
+          + ', '.join(f'{f["name"]} ({f["use"]}, {f["bytes"]} bytes)' for f in m['files']))
+
+
 # Commands ----------------------------------------------------------------
 
 def cmd_root_key(a):
@@ -588,6 +729,20 @@ def main(argv=None):
     s.add_argument('--min-revision', type=num, default=0)
     s.add_argument('--min-serial', type=num, default=0)
     s.add_argument('--product', type=num)
+    s = sub.add_parser('manifest', help="write and sign a release's provisioning manifest")
+    s.add_argument('dir', help='the folder with the files; manifest.json goes there')
+    s.add_argument('--release', required=True, help='release key file')
+    s.add_argument('--revision', type=num, required=True,
+                   help='the version of the app package the station installs')
+    s.add_argument('--v3f', default='LiteForth_V3F.bin', help='the V3F image, flashed')
+    s.add_argument('--v5f', help='a V5F image to flash too (optional: pass 2 installs one)')
+    s.add_argument('--blocks', default='lfblocks.fb4', help="the card's block file")
+    s.add_argument('--stage-size', type=num, default=CARD_DEFAULT, help='lfstage.bin, bytes')
+    s.add_argument('--backup-size', type=num, default=CARD_DEFAULT, help='lfbackup.bin, bytes')
+    s.add_argument('--force', action='store_true')
+    s = sub.add_parser('check-manifest', help='check a manifest and the files it names')
+    s.add_argument('dir')
+    s.add_argument('--root', required=True, help='the root .pub file')
     a = p.parse_args(argv)
     if getattr(a, 'serial', 0) is not None and not 0 <= getattr(a, 'serial', 0) < 2**32:
         p.error('serial must fit in 32 bits')
@@ -603,7 +758,8 @@ def main(argv=None):
         {'root-key': cmd_root_key, 'release-key': cmd_release_key, 'board-key': cmd_board_key,
          'lf-board': cmd_lf_board, 'root-header': cmd_root_header,
          'package': cmd_package, 'check': cmd_check,
-         'open': cmd_open}[a.cmd](a)
+         'open': cmd_open, 'manifest': cmd_manifest,
+         'check-manifest': cmd_check_manifest}[a.cmd](a)
     except SealError as e:
         print(f'sealblocks: {e}', file=sys.stderr)
         return 1

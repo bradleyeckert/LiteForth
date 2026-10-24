@@ -328,12 +328,13 @@ Making, closing and recovering log files on the card.
 ## PC tools
 
 ### MOD-SEALBLOCKS: The package tool
-- Keys, packages, `check` and `open`, the root key header.
+- Keys, packages, `check` and `open`, the root key header, and the
+provisioning manifest.
 
 - **Parent:** ARC-PKG
 - **Code:** scripts/admin/sealblocks.py
 - **Design:** doc/admin/encrypted-blocks.md#On the PC
-- **Verified by:** unit:seal::package round trip, unit:seal::retired release key
+- **Verified by:** unit:seal::package round trip, unit:seal::retired release key, unit:seal::manifest: a changed image
 - **Status:** verified
 
 ### MOD-LFLOG: The log tool
@@ -354,13 +355,13 @@ The server's key, the board's header for it, opening logs.
 - **Verified by:** unit:putblocks::round trip: same blocks, unit:putbin, unit:mkfont
 - **Status:** verified
 
-### MOD-BOARDTOOLS: Board test tools
-`hiltest.py`, `lockdown.py` and `lfmcp.py`.
+### MOD-BOARDTOOLS: Board test and provisioning tools
+`hiltest.py`, `lockdown.py`, `provision.py` and `lfmcp.py`.
 
 - **Parent:** ARC-TOOLS
-- **Code:** scripts/admin/hiltest.py, scripts/admin/lockdown.py, scripts/lfmcp.py
-- **Design:** doc/admin/firmware-updates.md#without bricking anything
-- **Verified by:** unit:stage1sim::hiltest on the simulated board, unit:stage1sim::lockdown.py run: a locked board refused before any flash, unit:lfmcp::wlink flash refused
+- **Code:** scripts/admin/hiltest.py, scripts/admin/lockdown.py, scripts/admin/provision.py, scripts/lfmcp.py
+- **Design:** doc/admin/firmware-updates.md#without bricking anything, doc/admin/provisioning.md#Pass 1
+- **Verified by:** unit:stage1sim::hiltest on the simulated board, unit:stage1sim::lockdown.py run: a locked board refused before any flash, unit:stage1sim::provision.py on the simulated board: passed, unit:lfmcp::wlink flash refused
 - **Status:** verified
 
 ### MOD-QATOOLS: Quality tools

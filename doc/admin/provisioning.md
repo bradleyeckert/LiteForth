@@ -7,8 +7,8 @@ current release installed. One person, the **provisioning operator**, does
 it at a **provisioning station**, and a script, `scripts/admin/provision.py`,
 does every step that a person doesn't have to.
 
-This page is the procedure, and the specification for `provision.py`,
-which is still to be written (section 10). Background:
+This page is the procedure, and what `provision.py` does at each step
+(section 10 has its commands and how it's tested). Background:
 [updates.md](updates.md) (keys, `boards.csv`, packages),
 [firmware-updates.md](firmware-updates.md) (stage 1, recovery, the card
 files) and [security-plan.md](security-plan.md) section 7.
@@ -35,7 +35,7 @@ takes two passes over each batch of boards, with the vendor in between:
 | Root key (`root.key`) | never | offline |
 | Release key (`releaseN.key`) | never | yes |
 | `root.pub` | yes: checks packages and the signed manifest | yes |
-| The release's images (level 2 `LiteForth_V3F.bin`, `LiteForth_V5F.bin`) and its card files | yes | makes them |
+| The release's level 2 `LiteForth_V3F.bin` (and a `LiteForth_V5F.bin`, if the manifest names one) and its card file | yes | makes them |
 | `boards.csv` | read-only copy, to refuse duplicates | the reviewed copy, in the repository |
 | Enrollment records | writes them | keeps them |
 
@@ -93,14 +93,20 @@ line in `boards.csv`.
    sealblocks.py manifest release/ --release release1.key --revision R
    ```
 
-   and copies `release/` to the station.
+   with `LiteForth_V3F.bin`, `lfblocks.fb4` and `root.pub` in `release/`,
+   and copies `release/` to the station. R is the version pass 2 will
+   install. `--v5f FILE` adds a V5F image to flash too, which isn't needed:
+   at level 2 stage 1 starts only a V5F it installed, and pass 2 installs
+   one. `--stage-size` and `--backup-size` set the card files' sizes.
 2. `provision.py station-check` checks the folder:
-   - the manifest's signature and certificate against `root.pub`, and its
-     product against the one `root.pub` was made for;
-   - every file against the manifest;
-   - `wlink`, the probe and the ports are there;
-   - `boards.csv` reads.
-3. `provision.py batch-new NAME` makes the batch's folder.
+   - the manifest's signature, and the release key's certificate against
+     `root.pub` (the certificate names the product);
+   - every file against the manifest, and no file the manifest doesn't name;
+   - `boards.csv` reads;
+   - `wlink` and the debug port are there.
+3. `provision.py batch-new NAME` makes the batch's folder, tied to the
+   release as it is: if `release/` changes, the batch's passes stop, and a
+   new release gets a new batch.
 
 ## 4. Pass 1: card, flash, lock, enroll
 
@@ -146,25 +152,32 @@ What it does, step by step:
 
 1. **Reads the chip with the probe:** its UID, and the option bytes. It
    refuses a chip that's read- or write-protected, since wlink's flash
-   would unprotect it, which erases it. It also refuses a chip that isn't
-   blank: a board provisioned before is handled by section 8, not
-   reflashed.
-2. **Flashes the V5F image, then the V3F image,** without erasing anything
-   else and without a reset between them. It reads the start of each back.
-   The V3F goes last because once a level 2 stage 1 runs, the probe often
-   can't attach again (B25).
+   would unprotect it, which erases it, and a UID that's in `boards.csv`
+   or the batch already. It also refuses a chip that isn't blank, reading
+   only the first 256 bytes of the V3F's image area, never stage 1's
+   records: erased flash reads all 0xFF, or 0xE339E339 as the simulator
+   has it. A board provisioned before is handled by section 8, not
+   reflashed. The exception is a board this batch flashed but didn't
+   lock (the operator didn't type `LOCK`, or a read-back failed): it's
+   flashed again.
+2. **Flashes the manifest's images,** the V3F's last, without erasing
+   anything else and without a reset between them, and reads the start of
+   each back. The V3F goes last because once a level 2 stage 1 runs, the
+   probe often can't attach again (B25).
 3. **Resets the chip and reads the debug port.** Stage 1 must report
    `security level 2, installed version 0, recovery` and `not locked down`,
    and the cli port's recovery console must offer `lockdown`. Anything else
    is the wrong build, and the script stops before locking.
 4. **Locks the chip:** sends `lockdown yes` on the cli port. Stage 1
    programs the option bytes (read protection on, its own sectors
-   write-protected, the boot ROM's downloads off) and reads them back. The
-   operator confirms once per batch, not per board: `pass1` asks for `LOCK`
-   at its first board.
-5. **Asks for a power cycle:** *Unplug the board, wait 2 s, plug it in.*
-   Then the debug port must show recovery without `not locked down`, which
-   means stage 1 found the option bytes as it wants them.
+   write-protected, the boot ROM's downloads off), reads them back and
+   restarts. The operator confirms once per run, not per board: `pass1`
+   asks for `LOCK` at its first board.
+5. **Waits for the board to come back locked:** the debug port must show
+   recovery, `no V5F image installed`, without `not locked down`, which
+   means stage 1 found the option bytes as it wants them. If they didn't
+   load at that restart, the script asks for a power cycle (*unplug the
+   WCH-LinkE and the board's USB, wait 2 s, plug them in*) and waits.
 
 ### 4.3 Enroll
 
@@ -180,18 +193,22 @@ Still in pass 1, on the cli port:
    ```
 
    The script requires `new key made`: a board that already had a key
-   wasn't blank. It also requires the line's UID to match the one the
-   probe read in step 1, and to be in neither `boards.csv` nor the batch
-   already.
+   wasn't blank. It also requires the line's UID to be the one the probe
+   read in step 1 (in either byte order, which the record notes), and to
+   be in neither `boards.csv` nor the batch already, and the public key to
+   be no other board's: a repeated key would mean a broken RNG.
 7. **Checks with the probe**, last of all, because it halts the V3F: the
-   flash is read-protected. Then it asks for another power cycle, to leave
-   the board running.
+   flash is read-protected and the option bytes are as stage 1 wants
+   them. Then it lets the V3F run again.
 8. **Records the board.** It adds `UID,public key` to the batch's
    `enrolled.csv`, and writes the board's report, `records/UID.md`: the
    UID, public key, the images' sha256, the option bytes before and after, the time,
    the station and the operator, and both ports' output word for word.
 
-Label the board with its UID, its serial number.
+Label the board with its UID, its serial number, and unplug it. `pass1`
+then asks for the next board; `q` ends the run. A board that stops gets
+its report all the same, as `records/UID-failed-TIME.md`, and the run
+goes on with the next.
 
 A board stays in recovery until pass 2: at level 2 it starts only a
 release that stage 1 installed.
@@ -206,14 +223,17 @@ The release manager then:
 1. **Checks the batch:**
 
    ```
-   provision.py batch-review enrolled.csv --boards boards.csv
+   provision.py batch-review 2026-11-03-A --boards boards.csv
    ```
 
-   It refuses duplicates and malformed lines, and checks each line against
-   the board's report. A line in `boards.csv` decides which boards can open
+   It refuses malformed lines; a UID twice, or one in `boards.csv`
+   already; a public key another board has; and a line whose board's
+   report doesn't end enrolled with that line, or doesn't show the lock
+   and `new key made`. A line in `boards.csv` decides which boards can open
    our releases, so it goes in only for a board we provisioned.
 2. **Adds the lines to `boards.csv`** in a reviewed commit, as
-   [updates.md](updates.md) section 3 says.
+   [updates.md](updates.md) section 3 says. `--append` adds them, under
+   a comment naming the batch.
 3. **Packages the current release for the batch only:**
 
    ```
@@ -221,9 +241,9 @@ The release manager then:
    sealblocks.py check batch.lfu --root root.pub
    ```
 
-   A package holds at most about 157 boards. `batch-review` splits a
-   larger batch into parts (`enrolled-1.csv`, ...), and each part gets its
-   own package.
+   `batch-review` prints these commands. A package holds at most 157
+   boards, so it splits a larger batch into parts (`enrolled-1.csv`, ...,
+   or fewer per part with `--split N`), each with its own package.
 4. **Returns `batch.lfu` and its sha256** to the station.
 
 ## 6. Pass 2: install the release
@@ -234,10 +254,14 @@ For each board of the batch:
 provision.py pass2 --batch 2026-11-03-A --package batch.lfu
 ```
 
-1. **Checks the package**, once per batch: its sha256, and
-   `sealblocks.py check` against `root.pub`.
+1. **Checks the packages**, once per run, before any board: against
+   `root.pub` as `sealblocks.py check` does, for the manifest's product,
+   an app package, of the manifest's version. A batch in parts gets one
+   `--package` for each.
 2. **Identifies the board:** `enroll` on the cli port gives its UID, which
-   must be in the batch, and a recipient of the package.
+   must have a pass 1 record in the batch, with the same public key (a key
+   made again since means the board was erased), and be a recipient of one
+   of the packages.
 3. **Sends the package** by YMODEM to stage 1's recovery console (`-2
    ymodem`). Stage 1 writes it into `lfstage.bin`, checks it, installs it,
    says `update: version R installed, on trial` on the cli port, and
@@ -255,9 +279,11 @@ provision.py pass2 --batch 2026-11-03-A --package batch.lfu
    - `reboot`, then the same boot lines again: the signed boot check
      passes every time;
    - the application's own test, if the product has one
-     (`--test SCRIPT`: lines to send, and what each must print).
-5. **Adds the outcome to the board's report.** A board that passes is done:
-   unplug it.
+     (`--test FILE`: lines `COMMAND ==> TEXT`, each sent and TEXT expected
+     in the reply).
+5. **Adds the outcome to the board's report**, and the board to the
+   batch's `installed.csv` (UID, version, the package's sha256, the time).
+   A board that passes is done: unplug it.
 
 ## 7. Records
 
@@ -273,14 +299,18 @@ boards to `boards.csv`.
 |---|---|---|
 | `the chip isn't blank` | A board provisioned before, or from another line | Set it aside for the release manager (below) |
 | `the chip is protected` | Locked already | As above |
-| `read back differs` after flashing | A bad connection or chip | Check the probe's cable; run `pass1` again (the chip is still unlocked) |
-| `not a level 2 build` (no `lockdown` in recovery) | The wrong images in `release/` | Stop the batch, tell the release manager |
-| `still not locked down` after the power cycle | The option bytes didn't load | Power-cycle again; if it persists, set the board aside |
+| `... doesn't read back` after flashing | A bad connection or chip | Check the probe's cable; run `pass1` again: the chip is still unlocked, and this batch flashes it again |
+| `the release changed since batch ... began` | `release/` isn't what the batch started with | Start a new batch for the new release |
+| `isn't a level 2 build in recovery` | The wrong images in `release/` | Stop the batch, tell the release manager |
+| `still not locked down after the power cycle` | The option bytes didn't load | Power-cycle again; if it persists, set the board aside |
 | `enroll didn't make a new key` | The board had a record already | Set it aside |
-| `UID already enrolled` | The same board twice, or a clone | Set it aside, tell the release manager |
-| `not a recipient` in pass 2 | The board isn't in this package | Check the batch; a board missing from `enrolled.csv` goes through pass 1's records again |
-| `no lfstage.bin` / a fragmented file | The card | Prepare a new card (4.1), put it in, run `pass2` again |
-| No `confirmed` | The release didn't start | Stage 1 rolls back or stays in recovery; set the board aside with its report |
+| `UID ... already enrolled` | The same board twice, or a clone | Set it aside, tell the release manager |
+| `enroll's UID ... isn't the probe's` | The probe on one board, the USB on another | Connect both to the same board; this one is locked, so set it aside |
+| `its public key is another board's` | A broken RNG | Set it aside, tell the release manager |
+| `isn't a recipient of any package given` in pass 2 | The board isn't in these packages | Check the batch and its parts |
+| `no recovery console` in pass 2 | A release is installed already, or the board isn't the batch's | Check its record |
+| `stage 1 didn't install it` (`no lfstage.bin`, a fragmented file) | The card | Prepare a new card (4.1), put it in, run `pass2` again |
+| `the release wasn't confirmed` | The release didn't start | Stage 1 rolls back or stays in recovery; set the board aside with its report |
 
 A board set aside has been locked, and nothing short of a chip erase
 takes a locked board back. A chip erase (`wlink unprotect`, done by hand by
@@ -298,46 +328,69 @@ board as `UID already enrolled`. Its old report stays with the records.
   integrity, which the signed manifest gives them: the station checks it
   against `root.pub` before every batch.
 - **A board's key never leaves it.** `enroll` prints only the public half,
-  and the script never reads flash beyond the start of the two images.
+  and the probe reads only the start of the V3F's image area and of each
+  image flashed, never stage 1's records.
 - **No board leaves unlocked.** `pass1` doesn't record a board until the
   debug port shows it locked and the probe can't read its flash, and
   `pass2` won't install on a board without its pass 1 record.
 - **The UID is checked twice**, by the probe and by `enroll`, so a board
   swapped between steps is caught.
+- **A repeated public key is refused**, by `pass1` and by `batch-review`:
+  boards making the same key would mean the RNG isn't random.
 
-## 10. `provision.py`, to be written
+## 10. The scripts
+
+`scripts/admin/provision.py` (pyserial, the cryptography package and
+wlink, as `lockdown.py`; `batch-review` needs no pyserial):
 
 | Command | Runs at | Does |
 |---|---|---|
-| `station-check` | station | section 3 |
+| `station-check [--station DIR]` | station | section 3 |
 | `batch-new NAME` | station | section 3 |
 | `card DRIVE` | station | 4.1 |
-| `pass1 --batch B` | station | 4.2, 4.3; loops over boards until stopped |
-| `batch-review CSV --boards CSV` | vendor | section 5 |
-| `pass2 --batch B --package P [--test SCRIPT]` | station | section 6; loops over boards |
+| `pass1 --batch NAME` | station | 4.2, 4.3; loops over boards until `q` |
+| `batch-review BATCHDIR --boards CSV [--append] [--split N]` | vendor | section 5 |
+| `pass2 --batch NAME --package P [--package P ...] [--test FILE]` | station | section 6; loops over boards |
 
-`sealblocks.py` gets one more command, for the vendor:
-`manifest DIR --release KEY --revision R` writes `DIR/manifest.json` and
-signs it. The signature is Ed25519, under its own personalization so it
-can't be taken for a package's, over the manifest's bytes, with the
-release key's certificate beside it. `provision.py` checks it with the
-same code that checks a package's certificate.
+The station's folder is the current one unless `--station` names it.
+`pass1` and `pass2` find the debug port and the cli port by their USB
+IDs, or take `--debug` and `--cli`, and `wlink` on the PATH or `--wlink`.
 
-- **What it builds on:** the ports, the probe and the YMODEM sender from
-  `hiltest.py` and `lockdown.py`, whose `run` already does steps 1 to 5 of
-  4.2 for one board; and the package checks from `sealblocks.py`.
-- **How it's tested:** like `lockdown.py`, against `stage1sim` with a fake
-  wlink (`unit_tests/stage1sim`): a whole batch of simulated boards
-  through both passes, and every row of section 8. Then a board run logged
-  in [board-tests.md](board-tests.md).
-- **To find out while writing it:**
-  - **The UID's byte order:** whether wlink prints it in the same order
-    as `enroll`'s UID (the 8 bytes at `ESIG_UNIID1` as they lie in
-    memory).
-  - **The blank check:** whether a new chip reads all 0xFF, or comes with
-    something from the factory.
+`sealblocks.py manifest DIR --release KEY --revision R` writes
+`DIR/manifest.json` and signs it, and `sealblocks.py check-manifest DIR
+--root root.pub` checks it as the station does. The signature is Ed25519
+over `LiteForth manifest 1` and a NUL, then the manifest as canonical JSON
+(sorted keys, no spaces) without its signature, so it can't be taken for
+a package's, whose block 0 starts `LITEFORTHF`.
+
+- **What it builds on:** `lockdown.py`'s probe, flashing, read-back and
+  recovery console, which `lockdown.py run` uses for one board, and
+  `hiltest.py`'s ports and YMODEM sender; the package and manifest checks
+  from `sealblocks.py`.
+- **How it's tested:** `unit_tests/stage1sim/test_provision.py` runs it
+  against simulated level 2 boards (`sim_strict`) with a fake wlink, as
+  `test_lockdown.py` does `lockdown.py`. It covers:
+  - a station with a signed release, and a changed file refused;
+  - a card, and a card that isn't empty refused;
+  - pass 1 over seven boards: three enrolled, one of them flashed again
+    after `LOCK` wasn't typed; one in `boards.csv` already, one not
+    blank, one whose RNG repeats another board's key and one whose probe
+    is on another board, all four refused;
+  - the vendor's review, a split, a tampered record refused, and
+    `--append`;
+  - a package of the wrong version refused;
+  - pass 2 installing on two boards with a product test, and refusing a
+    board not in the batch and one already done.
+
+  `unit_tests/seal` tests the manifest: every change after signing, another
+  root, a changed, missing or extra file.
+- **To see on the first real board** (and log in [board-tests.md](board-tests.md)):
+  - **The UID's byte order:** whether wlink prints the UID in the same
+    order as `enroll` (the 8 bytes at `ESIG_UNIID1` as they lie in
+    memory). Both orders are taken, and the record notes a reversed one.
+  - **The blank check:** what a new chip's flash reads.
   - **A switchable USB hub:** whether one can do the power cycles
     (`uhubctl` or similar), so the operator only connects and labels.
-  - **Reading the card on Windows:** whether the script can check the
-    files' contiguity on the PC (raw volume access needs administrator
-    rights), or leaves that to the board in pass 2.
+  - **Card contiguity:** the script doesn't check it on the PC (that needs
+    raw access, administrator rights on Windows). The board does in pass
+    2, when stage 1 takes the package into `lfstage.bin`.

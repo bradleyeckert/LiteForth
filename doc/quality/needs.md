@@ -9,8 +9,9 @@ demonstration. [README.md](README.md) explains the format.
 The stakeholders: the **developer** (writes the Forth application), the
 **vendor** (releases and supports the product, holds the keys), the
 **operator** (uses a device in the field), the **service technician**
-(updates and recovers devices), the **data owner** (receives the recorded
-data on a server), and the **auditor** (assesses the product's security
+(updates and recovers devices), the **provisioning operator** (makes new
+boards into products), the **data owner** (receives the recorded data on
+a server), and the **auditor** (assesses the product's security
 for a regulator or a customer).
 
 ### UN-01: Interactive Forth on a cheap board
@@ -115,3 +116,13 @@ can use the board's terminal and debug probe safely.
 
 - **Verified by:** board:B25, board:B26
 - **Status:** verified
+
+### UN-14: Provisioning new boards
+The provisioning operator turns blank boards into products with a script:
+production firmware, the chip locked down, the board's own key made and
+recorded, its card prepared and the current release installed, without
+holding a private key, and with a record of each board.
+
+- **Verified by:** demo:src/target/desktop/unit_tests/stage1sim::provision.py on the simulated board: passed
+- **Status:** partial
+- **Gap:** no board run: provision.py has run on simulated boards only

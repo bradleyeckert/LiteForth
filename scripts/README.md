@@ -13,7 +13,7 @@ Each script prints its full usage with `-h`.
 | `mkfont.py` | Makes 4-bit anti-aliased bitmap fonts for the graphic LCDs |
 | `lintf.py` | Checks Forth source against `doc/coding-rules.md` |
 | `mkexfat.py` | Builds small exFAT card images (with `lfblocks.fb4` inside) for testing; `lf -k card.img` uses one as the board uses its card |
-| `admin/sealblocks.py` | Makes and checks sealed (encrypted, signed) block files and firmware update packages, and their keys: the release side, in [admin/](admin/README.md) |
+| `admin/sealblocks.py` | Makes and checks firmware update packages (encrypted, signed) and their keys: the release side, in [admin/](admin/README.md), with the board tests, lock-down and provisioning (`admin/provision.py`) |
 | `lfmcp.py` | Gives an AI assistant (an MCP client such as the Claude desktop app) LiteForth's terminal on a serial port, and the WCH-LinkE through `wlink` |
 
 The other files here aren't Python: `regression.f` is the test script that

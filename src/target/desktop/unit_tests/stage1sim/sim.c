@@ -33,7 +33,7 @@
  * The V5F is a model, chosen by the start of its image in flash at UPD_V5F_ADDR
  * (or SIM_V5F): "SIMV5F:OK" boots LiteForth (counts the start, then after
  * SIM_SETUP_MS, its memory setup, clears safe_boot and confirms; answers
- * lines with ok>, and `-2 ymodem` by taking a package into lfstage.bin and
+ * lines with ok>, `revision .` with the installed version, and `-2 ymodem` by taking a package into lfstage.bin and
  * setting the flag, without the real V5F's checks), "SIMV5F:STUCK" starts but
  * gets stuck before LiteForth (counts the start, nothing more), anything
  * else never starts at all, so stage1_wait_v5f resets the chip. A line
@@ -428,6 +428,12 @@ static void v5f_service(void) {
                 v5f_busy = 1;
                 v5f_ymodem();
                 v5f_busy = 0;
+            } else if (!strcmp(v5f_line, "revision .")) {
+                char out[40];           /* what Forth's `revision .` prints */
+                snprintf(out, sizeof out, " %lu ok>\r\n",
+                         CDC_SHARED->rev_magic == CDC_REVISION_MAGIC
+                         ? (unsigned long)CDC_SHARED->revision : 0ul);
+                v5f_put(out);
             } else {
                 v5f_put(" ok>\r\n");
             }

@@ -34,7 +34,7 @@ takes two passes over each batch of boards, with the vendor in between:
 |---|---|---|
 | Root key (`root.key`) | never | offline |
 | Release key (`releaseN.key`) | never | yes |
-| `root.pub` | yes: checks packages and the image manifest | yes |
+| `root.pub` | yes: checks packages and the signed manifest | yes |
 | The release's images (level 2 `LiteForth_V3F.bin`, `LiteForth_V5F.bin`) and its card files | yes | makes them |
 | `boards.csv` | read-only copy, to refuse duplicates | the reviewed copy, in the repository |
 | Enrollment records | writes them | keeps them |
@@ -66,29 +66,41 @@ station/
   boards.csv      the vendor's current copy (read-only here)
   batches/
     2026-11-03-A/
-      enrolled.csv      UID,public key,name: one line per board enrolled
+      enrolled.csv      UID,public key: one line per board enrolled
       records/          one report per board, every port's output word for word
       batch.lfu         from the vendor, for pass 2
 ```
 
-`manifest.json` names the release (its version), the sha256 of each
-image and card file, and the card files' sizes. **Decide:** sign it with
-the release key, so the station can check it against `root.pub` rather
-than trust whoever copied the folder.
+`manifest.json` names the release (its version and product), the sha256
+of each image and card file, and the card files' sizes. It's signed with
+the release key and carries that key's certificate from the root, as a
+package does. So the station checks it against `root.pub` alone and
+doesn't have to trust whoever copied the folder. A file in `release/` that
+the manifest doesn't name, or whose hash differs, stops everything.
+
+**Serial numbers:** a board's serial number is its UID, the 16 hex digits
+`enroll` prints first (`e52116647f9c7a22`). It's in the chip, so it can't
+be mislabelled in the records, and it's the first field of the board's
+line in `boards.csv`.
 
 ## 3. Before a batch
 
 1. The vendor builds both cores at `SECURITY_LEVEL` 2 with the product's
    `sealed_root.h` (clean builds, [updates.md](updates.md) section 2),
-   and copies the images, the card files and `manifest.json` to
-   `station/release/`.
+   writes and signs the manifest:
+
+   ```
+   sealblocks.py manifest release/ --release release1.key --revision R
+   ```
+
+   and copies `release/` to the station.
 2. `provision.py station-check` checks the folder:
+   - the manifest's signature and certificate against `root.pub`, and its
+     product against the one `root.pub` was made for;
    - every file against the manifest;
    - `wlink`, the probe and the ports are there;
    - `boards.csv` reads.
-3. `provision.py batch-new NAME` makes the batch's folder. Board names are
-   the batch name and a number (`2026-11-03-A-007`), unless `--names`
-   gives a list, such as serial numbers already on labels.
+3. `provision.py batch-new NAME` makes the batch's folder.
 
 ## 4. Pass 1: card, flash, lock, enroll
 
@@ -174,12 +186,12 @@ Still in pass 1, on the cli port:
 7. **Checks with the probe**, last of all, because it halts the V3F: the
    flash is read-protected. Then it asks for another power cycle, to leave
    the board running.
-8. **Records the board.** It adds `UID,public key,name` to the batch's
-   `enrolled.csv`, and writes the board's report: the name, UID, public
-   key, the images' sha256, the option bytes before and after, the time,
+8. **Records the board.** It adds `UID,public key` to the batch's
+   `enrolled.csv`, and writes the board's report, `records/UID.md`: the
+   UID, public key, the images' sha256, the option bytes before and after, the time,
    the station and the operator, and both ports' output word for word.
 
-Label the board with its name.
+Label the board with its UID, its serial number.
 
 A board stays in recovery until pass 2: at level 2 it starts only a
 release that stage 1 installed.
@@ -273,16 +285,18 @@ boards to `boards.csv`.
 A board set aside has been locked, and nothing short of a chip erase
 takes a locked board back. A chip erase (`wlink unprotect`, done by hand by
 the release manager) wipes its flash, its record and its key. It then
-starts again at pass 1 as a blank board and gets a new key. Its old line
-comes out of `boards.csv`: the old key no longer exists, and no package
-should name it again.
+starts again at pass 1 as a blank board and gets a new key, keeping its
+UID and so its serial number. The release manager first takes its old
+line out of `boards.csv` in a reviewed commit (the old key no longer
+exists, and no package should name it again), or `pass1` refuses the
+board as `UID already enrolled`. Its old report stays with the records.
 
 ## 9. Security notes
 
 - **Nothing on the station is secret.** The images and card files are
   public, and so is `root.pub`. What the station must protect is their
-  integrity, and the manifest's sha256 do that (signed by the release key,
-  once decided in section 2).
+  integrity, which the signed manifest gives them: the station checks it
+  against `root.pub` before every batch.
 - **A board's key never leaves it.** `enroll` prints only the public half,
   and the script never reads flash beyond the start of the two images.
 - **No board leaves unlocked.** `pass1` doesn't record a board until the
@@ -296,11 +310,18 @@ should name it again.
 | Command | Runs at | Does |
 |---|---|---|
 | `station-check` | station | section 3 |
-| `batch-new NAME [--names FILE]` | station | section 3 |
+| `batch-new NAME` | station | section 3 |
 | `card DRIVE` | station | 4.1 |
 | `pass1 --batch B` | station | 4.2, 4.3; loops over boards until stopped |
 | `batch-review CSV --boards CSV` | vendor | section 5 |
 | `pass2 --batch B --package P [--test SCRIPT]` | station | section 6; loops over boards |
+
+`sealblocks.py` gets one more command, for the vendor:
+`manifest DIR --release KEY --revision R` writes `DIR/manifest.json` and
+signs it. The signature is Ed25519, under its own personalization so it
+can't be taken for a package's, over the manifest's bytes, with the
+release key's certificate beside it. `provision.py` checks it with the
+same code that checks a package's certificate.
 
 - **What it builds on:** the ports, the probe and the YMODEM sender from
   `hiltest.py` and `lockdown.py`, whose `run` already does steps 1 to 5 of

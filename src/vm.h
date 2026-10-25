@@ -240,7 +240,7 @@ int32_t vmReset(void);
 /**
  * @brief Runs an API instruction (API or XAPI) for the VM.
  *
- * Checks SYS_OPTION_NO_API and SYS_OPTION_ONLY_TERM, then calls the API 0 or
+ * Checks SYS_OPTION_NO_API, then calls the API 0 or
  * API 1 function. The caller saves the VM registers first and reloads them
  * after, since the function pops and pushes and may run more VM code.
  *

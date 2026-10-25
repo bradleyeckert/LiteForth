@@ -86,7 +86,15 @@ def main():
         os.close(s)
         shutil.rmtree(tmp)
     text = out.decode('utf-8', 'replace').replace('\r', '')
-    tail = text[text.rfind('1 2 + .'):] if '1 2 + .' in text else text[-300:]
+    # what `1 2 + .` printed: after its echo, if any, else after the last
+    # word list (which has `( ` and `.( ` in it)
+    last = 'invert only forth words bye'
+    if '1 2 + .' in text:
+        tail = text[text.rfind('1 2 + .'):]
+    elif last in text:
+        tail = text[text.rfind(last) + len(last):]
+    else:
+        tail = text[-300:]
     problems = []
     if 'App error' in text:
         problems.append('the app failed')

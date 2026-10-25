@@ -234,11 +234,7 @@ create numbuf 10 allot                                                          
 : _contexts ( -- )          context contexts 2parms for @+ .wid next drop ;     \ list contexts with first on the left
 : order     ( -- )          ." Context: " _contexts cr                          \ list the search order
                             ." Current: " current @ .wid ;
-
--->
-( BLOCK++ )
-( Block support _______________________________________________ 10/9/26 BNE )
-: thru      ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
+: thru     ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
 -->
 ( BLOCK 18 )
 ( Block editor 1/3 ____________________________________________ 10/11/26 BNE )

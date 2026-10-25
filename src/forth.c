@@ -182,7 +182,7 @@ static const struct s_head forth_heads[] = {
     { PREV, "-heads",       API0(API_TRIMHEADS),                      189},
     { PREV, "ymodem",       API0(API_YMODEM),                         190},
     { PREV, "lcd-init",     API0(API_LCD_INIT),                       191},
-    { PREV, "lcd-tx",       API0(API_LCD_TX),                         193},
+//    { PREV, "lcd-tx",       API0(API_LCD_TX),                         193},
     { PREV, "lcd-decode",   API0(API_LCD_DECODE),                     195},
     { PREV, "rtc@",         API0(API_RTC_FETCH),                      196},
     { PREV, "rtc!",         API0(API_RTC_STORE),                      197},

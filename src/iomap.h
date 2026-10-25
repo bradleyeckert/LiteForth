@@ -48,7 +48,7 @@
 #define IO_MATH_UMSTAR      32      /* >sys: um*: A0 * tos unsigned, Y1:Y0 result */
 #define IO_MATH_MSTAR       33      /* >sys: m*: A0 * tos signed, Y1:Y0 result */
 #define IO_MATH_MUDIVMOD    34      /* >sys: mu/mod: A0:tos / A1, remainder Y2, quotient Y1:Y0 */
-#define IO_MATH_STARDIVMOD  35      /* >sys: star-slash-mod: A0 * tos / A1 symmetric, remainder Y2, quotient Y0 */
+#define IO_MATH_STARDIVMOD  35      /* >sys: star/mod: A0 * tos / A1 symmetric, remainder Y2, quotient Y0 */
 #define IO_MATH_ARG         40      /* >sys: store to argument A0 (add 1 for A1) */
 #define IO_MATH_RES         40      /* sys>: read from result Y0 (add 1 for Y1, 2 for Y2) */
 #define IO_MATH_STATUS      43      /* sys>: nonzero while busy, 0 when the results are ready */

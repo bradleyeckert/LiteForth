@@ -53,6 +53,8 @@ hex
 : caddr     ( a1 -- a2 )    1 over and 1A lshift  swap 2/ amask + 80000000 + ;  \ convert instruction address to normal format
 : [char]    ( <char> -- )   char  postpone literal ; immediate                  \ compile a character as a literal
 : @+        ( a -- a+1 n )  a! @a+ a swap ;                                     \ fetch next cell or slice in a stream
+: >sys      ( imm -- )      7000 + ,inst ;                                      \ compile >sys
+: sys>      ( imm -- )      7400 + ,inst ;                                      \ compile sys>
 decimal -->
 ( BLOCK++ )
 ( Control structures __________________________________________ 10/10/26 BNE )
@@ -124,27 +126,39 @@ decimal _udata here 3 allot constant operator                                   
 ;
 -->
 ( BLOCK++ )
-( Basic math __________________________________________________ 10/14/26 BNE )
+( Multiplier and divider math ________________________________ 10/25/26 BNE )
+: mcwait    ( -- )          begin [ 43 sys> ] while pause repeat ;              \ wait for math coprocessor to finish
+: um*       ( u1 u2 -- ud )      \ Multiply u1 by u2, giving the unsigned double-cell product ud.
+                            [ 40 >sys 32 >sys ] mcwait [ 40 sys> 41 sys> ] ;
+: m*        ( n1 n2 -- d )       \ d is the signed product of n1 times n2.
+                            [ 40 >sys 33 >sys ] mcwait [ 40 sys> 41 sys> ] ;
+: mu/mod    ( ud1 u1 -- u2 ud2 ) \ Unsigned divide ud1 by u1, u2 is the remainder, ud2 is the quotient.
+                            [ 41 >sys 40 >sys 34 >sys ] mcwait [ 42 sys> 40 sys> 41 sys> ] ;
+: */mod     ( n1 n2 n3 -- r q )  \ Multiply n1 by n2 producing d, then divide by n3 producing remainder n4 and quotient n5.
+                            [ 41 >sys 40 >sys 35 >sys ] mcwait [ 42 sys> 40 sys> ] ;
+: _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        \ a multiply that does not use extra hardware
+: *         ( n1 n2 -- n3 ) um* drop ;                                          \ multiply
+: u/mod     ( u1 u2 -- rem quot ) 0 swap mu/mod drop ;                          \ unsigned divide: remainder and quotient
+: */        ( n1 n2 n3 -- n4 ) */mod nip ;                                      \ n1 * n2 / n3 with double intermediate product
+: um/mod    ( ud u1 -- u2 u3 ) mu/mod drop ;                                    \ ud / u1; remainder u2, quotient u3
+-->
+( BLOCK++ )
+( Basic math __________________________________________________ 10/25/26 BNE )
 : -         ( n1 n2 -- n3 ) negate + ;                                          \ subtract n2 from n1
 : 1+        ( n1 -- n2 )    1 + ;                                               \ increment by 1
 : 1-        ( n1 -- n2 )    -1 + ;                                              \ decrement by 1
 : or        ( n1 n2 -- n3 ) inv swap inv and inv ;                              \ bitwise OR
-: _um*      ( u1 u2 -- ud ) a!  0  16 >r |inst +* +* unext  nip a swap ;        \ a multiply that does not use the API
 : 0<        ( n -- flag )   -if dup xor inv exit then dup xor ;                 \ true if n < 0
 : dnegate   ( d1 -- d2 )    inv swap inv 1+ swap cy + ;                         \ double-cell negate
 : abs       ( n -- u )      -if negate then ;                                   \ absolute value
 : dabs      ( d -- ud )     -if dnegate then ;                                  \ double-cell absolute value
 : +!        ( n a -- )      a! @a + !a ;                                        \ add n to cell at a
-: *         ( n1 n2 -- n3 ) um* drop ;                                          \ multiply
 : s>d       ( n -- d )      dup 0< ;                                            \ convert single to double
 : min       ( n1 n2 -- n3 ) 2dup - -if 2drop exit then drop nip ;               \ n3 is the lesser of n1 and n2
 : max       ( n1 n2 -- n3 ) 2dup - -if drop nip exit then 2drop ;               \ n3 is the greater of n1 and n2
 : rot       ( x1 x2 x3 -- x2 x3 x1 ) b! swap b swap ;                           \ rotate third item to top of stack
 : u<=       ( u1 u2 -- flag1 ) swap - drop cy ;                                 \ unsigned less than or equal
 : u<        ( u1 u2 -- flag ) swap u<= 0= ;                                     \ unsigned less than
-: u/mod     ( u1 u2 -- rem quot ) 0 swap mu/mod drop ;                          \ unsigned divide: remainder and quotient
-: */        ( n1 n2 n3 -- n4 ) */mod nip ;                                      \ n1 * n2 / n3 with double intermediate product
-: um/mod    ( ud u1 -- u2 u3 ) mu/mod drop ;                                    \ ud / u1; remainder u2, quotient u3
 : usec      ( u -- )        capusec x@ +                                        \ pause until u microseconds have passed
                             begin  pause  capusec x@ over - 0< 0= until  drop ;
 : ms        ( u -- )        1000 * usec ;                                       \ pause until u milliseconds have passed
@@ -152,11 +166,11 @@ decimal _udata here 3 allot constant operator                                   
 ( BLOCK++ )
 ( String output _______________________________________________ 10/14/26 BNE )
 _idata variable emit_xt
-: conemit   ( c -- )        begin t_tx? while pause repeat t_tx! ;              \ emit to console
+: conemit   ( c -- )        begin [ 18 sys> ] while pause repeat [ 16 >sys ] ;  \ emit to console
 : con       ( -- )          ['] conemit emit_xt ! ;  con                        \ direct emit to console
 : emit      ( c -- )        emit_xt @ >r ;                                      \ late-bound emit
-: key       ( -- c )        t_rx ;                                              \ raw xterm input, blocking
-: key?      ( -- flag )     t_rx? ;                                             \ a smarter key would pause while `key?`
+: key       ( -- c )        [ 16 sys> ] ;                                       \ raw xterm input, blocking
+: key?      ( -- flag )     [ 17 sys> ] ;                                       \ a smarter key would pause while `key?`
 : 1parm     ( n1 -- | n1 )  1- -if  drop r> drop exit then 1+ ;                 \ exit the caller if there is nothing to do
 : 2parms    ( n1 n2 -- | n1 n2 ) 1- -if drop r> drop drop exit then 1+ ;        \ exit the caller if there is nothing to do
 : type      ( ca n -- )     2parms for @+ emit next drop ;                      \ output a string using emit

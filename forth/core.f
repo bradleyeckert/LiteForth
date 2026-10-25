@@ -236,7 +236,7 @@ create numbuf 10 allot                                                          
                             ." Current: " current @ .wid ;
 : thru     ( u1 u2 -- )    over - 1+ 2parms  for dup load 1+ next drop ;       \ load a sequence of blocks
 -->
-( BLOCK 18 )
+( BLOCK++ )
 ( Block editor 1/3 ____________________________________________ 10/11/26 BNE )
 vocabulary editor  also editor definitions                                      \ vocabulary for the editor
 _udata  variable scr                                                            \ block being edited or listed

@@ -27,26 +27,6 @@ static int bye(void) {
     return ERR_QUIT;
 }
 
-/* EMIT  ( c -- ) */
-static int emit(void) {
-    return lf_putc((char)vmPop());
-}
-
-/* EMIT? ( -- busy? ) */
-static int qemit(void) {
-    return vmPush(serial_busy());
-}
-
-/* KEY?  ( -- ready? ) */
-static int qkey(void) {
-    return vmPush(serial_ready());
-}
-
-/* KEY  ( -- c ) */
-static int key(void) {
-    return vmPush(serial_getc());
-}
-
 /* `'PAGE` */
 static int tickpage(void) {
     int32_t val = vmPop();
@@ -98,92 +78,6 @@ static int commaQ(void) {
     if (length < 256) vmStore(tp, length);
     // append zero terminator for C compatibility
     return lf_compc('\0');
-}
-
-static int umstar_x(int sign) {
-    uint32_t a = (uint32_t)vmPeek(0);
-    uint32_t b = (uint32_t)vmPeek(1);
-    int invert = 0;
-    if (sign) {
-        invert = (a ^ b) & 0x80000000;
-        if (a & 0x80000000) a = 0 - a;
-        if (b & 0x80000000) b = 0 - b;
-    }
-    uint64_t p = (uint64_t)a * (uint64_t)b;
-    if (invert) {
-        p = 0 - p;
-    }
-    vmPoke(1, (int32_t)(p & 0xFFFFFFFF));
-    vmPoke(0, (int32_t)(p >> 32));
-    return 0;
-}
-
-/* UM* */
-static int umstar(void) {
-    return umstar_x(0);
-}
-
-/* M* */
-static int mstar(void) {
-    return umstar_x(1);
-}
-
-/* MU/MOD ( dividendL dividendH divisor -- rem ql qh )
-* Used for numeric conversion and as a primitive for UM/MOD
-* : UM/MOD  MU/MOD ROT DROP ;
-*/
-static int mudivmod(void) {
-    uint32_t divisor = (uint32_t)vmPop();
-    if (divisor == 0) return ERR_DIVISION_BY_ZERO;
-
-    uint32_t dividendH = (uint32_t)vmPop();
-    uint32_t dividendL = (uint32_t)vmPop();
-    uint64_t dividend = ((uint64_t)dividendH << 32) | (uint64_t)dividendL;
-    uint32_t rem = 0;
-
-    uint64_t quotient = divide64by32(dividend, divisor, &rem);
-
-    // Push remainder, quotient low, quotient high
-    vmPush((uint32_t)rem);
-    vmPush((uint32_t)quotient);
-    vmPush((uint32_t)(quotient >> 32));
-
-    return 0;
-}
-
-// */MOD ( n multiplier divisor -- rem quot )
-// : */  */MOD NIP ;
-static int stardivmod(void) {
-    int32_t divisorS = (int32_t)vmPop();
-    if (divisorS == 0) return ERR_DIVISION_BY_ZERO;
-
-    int32_t multiplier = (int32_t)vmPop();
-    int32_t n = (int32_t)vmPop();
-
-    // Compute 64-bit full product
-    int64_t d = (int64_t)n * (int64_t)multiplier;
-
-    // Determine signs
-    int dividend_negative = (d < 0);
-    int divisor_negative = (divisorS < 0);
-    int quot_negative = dividend_negative ^ divisor_negative;
-
-    // Get absolute values (64-bit dividend, 32-bit divisor)
-    uint64_t u_dividend = dividend_negative ? (uint64_t)(-d) : (uint64_t)d;
-    uint32_t u_divisor = divisor_negative ? (uint32_t)(-divisorS) : (uint32_t)divisorS;
-
-    uint32_t u_remainder = 0;
-
-    uint64_t u_quotient = divide64by32(u_dividend, u_divisor, &u_remainder);
-
-    // Apply signs (Symmetric division: remainder takes sign of dividend)
-    int32_t quotient = quot_negative ? -(int32_t)u_quotient : (int32_t)u_quotient;
-    int32_t remainder = dividend_negative ? -(int32_t)u_remainder : (int32_t)u_remainder;
-
-    vmPush((uint32_t)remainder);
-    vmPush((uint32_t)quotient);
-
-    return 0;
 }
 
 int openpage = -1;
@@ -334,11 +228,6 @@ static int lcdInit(void) {
         return ERR_INVALID_ADDRESS;     // not 8 readable cells in one page
     }
     return lcd_init(width, height, controller, colors);
-}
-
-/* LCD-TX  ( u -- )  One transfer on the LCD bus: pins and a byte (lcd.h) */
-static int lcdTx(void) {
-    return lcd_tx((uint16_t)vmPop());
 }
 
 /* LCD-DECODE  ( u16 -- )  Expand a font pixel code into palette colors, sent

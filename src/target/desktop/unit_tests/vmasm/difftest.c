@@ -264,7 +264,6 @@ UNUSED_IN_BENCH static void rnd_state(void) {
     page0[NESTED] = (VMI_LIT | 7) | ((uint32_t)(VM_UOPS | VM_RET | (VMU_PLUS << 9)) << 16);
     map_memory();
     g_lf_sys_options = 0;
-    if (below(8) == 0) g_lf_sys_options = SYS_OPTION_ONLY_TERM;
     if (below(16) == 0) g_lf_sys_options = SYS_OPTION_NO_API;
 }
 

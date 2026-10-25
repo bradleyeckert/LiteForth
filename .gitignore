@@ -16,6 +16,7 @@ src/target/desktop/unit_tests/ctr/test_ctr
 src/target/desktop/unit_tests/guard/test_guard
 src/target/desktop/unit_tests/ioguard/test_ioguard
 src/target/desktop/unit_tests/traps/test_traps
+src/target/desktop/unit_tests/iomap/test_iomap
 src/target/desktop/unit_tests/update/test_update
 src/target/desktop/unit_tests/update/work/
 src/target/desktop/unit_tests/ymrecv/drv

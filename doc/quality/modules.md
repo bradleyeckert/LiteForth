@@ -31,6 +31,19 @@ the C VM exactly.
 - **Verified by:** unit:vmasm::vm_rv32.S matches vm.c
 - **Status:** verified
 
+### MOD-IOMAP: The VM's I/O ports
+What a hardware VM would wire to `>sys` and `sys>` from index 16 up
+(`IOMAP_FIRST`): the terminal (`key`, `key?`, `emit`, `emit?`) and a
+non-blocking math unit for `um*`, `m*`, `mu/mod` and star-slash-mod, with
+argument and result registers and a status port, so these need no C API. A port that fails gives an
+ior, as a failed memory access does.
+
+- **Parent:** ARC-VM
+- **Code:** src/iomap.c::iomap_rd, src/iomap.h
+- **Design:** src/iomap.h
+- **Verified by:** unit:iomap::iomap tests passed, unit:vmasm::vm_rv32.S matches vm.c
+- **Status:** verified
+
 ### MOD-FORTH: The text interpreter
 Parsing, `QUIT`, `load` and `-->`, the built-in dictionary, error traces,
 booting from flash.

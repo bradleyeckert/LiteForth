@@ -17,76 +17,10 @@ LiteForth expects a line to end in either \n or \r.
 Terminals (that supply stdin) only send \n.
 Serial terminals like PuTTY send \r.
 
------
-## LiteForth in Linux 
-
-The default terminal is okay.
-
-You can give a serial port name as an argument to connect to a serial port instead of `stdio`.
-
-## Linux terminal, Embedded LiteForth
-
-To connect the terminal to a UART:
-```bash
-socat -G -,raw,echo=0 /dev/ttyUSB0,raw,b115200,echo=0 # raw mode
-socat - /dev/ttyUSB0,raw,b115200,echo=0            # cooked mode
-```
-## LiteForth in Windows
-
-The default terminal is mostly okay. Use Windows Terminal, not `cmd.com`.
-
-You can provide a serial port name as an argument to connect to a serial port instead of `stdio`.
-In that case, you could use a serial cable emulator like `com0com`.
-A terminal emulator (like PuTTY) would treat it as a serial-connected MCU port.
-
-To demonstrate CJK character output, LiteForth sends "幸运狐" in UTF-8.
-The following Windows terminals were tried:
-
-- ConEmu, displays correctly.
-- Windows Terminal, displays correctly.
-- Command Prompt, displays square boxes instead of CJK. 
-- Windows Powershell, displays square boxes instead of CJK. 
-
-Windows Terminal stores actions in a JSON file, which you can edit in Windows Terminal.
-The [`scripts/settings.json`](../scripts/settings.json) file contains shortcuts you can merge into your own settings JSON.
-Some of the keys include:
-
-- F9 = Boot up LiteForth from core.f
-- F10 = Jump to the LiteForth directory
-- F11 = Toggle full-screen mode
-- F12 = Run regression tests for LiteForth
-
-## Windows terminal, Embedded LiteForth
-
-Some terminal emulators give you cooked mode input.
-
-### Tera Term VT
-
-`Setup -> Terminal` pops up the terminal settings. 
-
-- New-line Receive: select LF
-- New-line Transmit: select LF
-- Local Echo: Checked-on
-
-`Setup -> Save setup` lets you save your setup. 
-[Tera Term](https://github.com/TeraTermProject/teraterm/releases) displays CJK correctly. 
-
-### PuTTY
-
-Right Click on the Title Bar, select Change Settings.
-
-- Local Echo: Force On
-- Local Line Editing: Force On
-
-When you get PuTTY set up like you want, click on Default Settings and hit the Save button.
-PuTTY displays CJK correctly.
-
-### Kwai
-
-[kwai](https://github.com/bradleyeckert/kwai) is specifically made for LiteForth.
+[kwai](https://github.com/bradleyeckert/kwai) is a terminal emulator built for LiteForth.
 
 -----
-## mouse usage
+## mouse usage (proposed)
 
 In cooked mode, the mouse belongs to the terminal.
 

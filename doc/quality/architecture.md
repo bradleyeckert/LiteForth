@@ -27,7 +27,8 @@ registers, stacks, memory pages (flash, RAM, the guarded I/O page with its
 allowlist), the application's stepping and step limit, and traps that
 turn CPU faults into iors. One C implementation, and one in RV32 assembly
 for the board that must match it. Interfaces: `vmRun`, `vmExec`,
-`vm_io_ranges`, `vmTrap`; API 0 calls out to C.
+`vm_io_ranges`, `vmTrap`; API 0 calls out to C, and `>sys`/`sys>` from
+index 16 up reach the I/O ports (`iomap_rd`, `iomap_wr`).
 
 - **Parent:** SYS-VM-01, SYS-VM-03, SYS-LANG-07, SYS-LANG-09
 - **Verified by:** integ:vmasm::vm_rv32.S matches vm.c, integ:traps::app: PC at the yeet handler, sys:scripts/regression.f::T{, sys:deadtib::VM ran too long

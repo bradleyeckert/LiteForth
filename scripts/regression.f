@@ -162,67 +162,6 @@ T{ sp@ sp@ swap invert 1 + + -> 1 }T
 T{ 1 2 3 4 tdrop2 -> 1 2 }T
 
 
-( ===================================================================== )
-( Math API calls                                                        )
-( ===================================================================== )
-
-( um* )
-T{ 0 0 um*       -> 0 0 }T
-T{ 1 1 um*       -> 1 0 }T
-T{ 2 3 um*       -> 6 0 }T
-T{ -1 -1 um*     -> 1 -2 }T
-
-( m* )
-T{  0  0 m*      -> 0 0 }T
-T{  1  1 m*      -> 1 0 }T
-T{ -1  1 m*      -> -1 -1 }T
-T{ -2 -3 m*      -> 6 0 }T
-
-HEX
-
-( Simple Division - No Overflow into Upper Quotient )
-T{     0 0 1 MU/MOD -> 0 0 0 }T
-T{     7 0 1 MU/MOD -> 0 7 0 }T
-T{     7 0 2 MU/MOD -> 1 3 0 }T
-T{    64 0 7 MU/MOD -> 2 E 0 }T
-
-( Large Lower Dividend )
-T{  FFFF 0 2 MU/MOD -> 1 7FFF 0 }T
-T{ 10000 0 2 MU/MOD -> 0 8000 0 }T
-
-( High-Cell Dividend Producing High-Cell Quotient )
-T{ 0 2 2 MU/MOD -> 0 0 1 }T
-T{ 1 2 2 MU/MOD -> 1 0 1 }T
-T{ 5 7 2 MU/MOD -> 1 80000002 3 }T
-
-( Max Value Boundary Checks - 32-bit cells )
-T{ FFFFFFFF FFFFFFFF FFFFFFFF MU/MOD -> 0 1 1 }T
-T{ FFFFFFFF FFFFFFFF 80000000 MU/MOD -> 7FFFFFFF FFFFFFFF 1 }T
-
-( Basic Multiplication and Division )
-T{     0 2 1 */MOD -> 0 0 }T
-T{     1 2 1 */MOD -> 0 2 }T
-T{     2 3 2 */MOD -> 0 3 }T
-T{     7 3 2 */MOD -> 1 0A }T  ( 21 / 2 = 10 rem 1 )
-T{    64 2 7 */MOD -> 4 1C }T ( 200 / 7 = 28 rem 4 )
-
-( Intermediate Product Exceeds Single-Cell Range )
-( Ensures intermediate calculation uses double-cell width )
-T{ 10000 10000 10000 */MOD -> 0 10000 }T
-T{ 40000000 2 40000000 */MOD -> 0 2 }T
-T{ 7FFFFFFF 2 2 */MOD -> 0 7FFFFFFF }T
-
-( Signed Arithmetic Checks - Symmetric Division )
-T{ -7 3 2 */MOD -> -1 -0A }T
-T{ 7 -3 2 */MOD -> -1 -0A }T
-T{ -7 -3 2 */MOD -> 1  0A }T
-
-( Boundary Checks - 32-bit cells )
-T{ 7FFFFFFF 2 7FFFFFFF */MOD -> 0 2 }T
-T{ 7FFFFFFF 2 3 */MOD -> 2 55555554 }T
-
-DECIMAL
-
 
 ( ===================================================================== )
 ( Compiler and defining words                                           )
@@ -285,10 +224,6 @@ T{ base @  DECIMAL  -> 16 }T
 T{ 0 page -> 0 }T
 T{ 1 page -> 524288 }T
 
-( terminal input: more of this file is waiting on stdin; t_rx is      )
-( tested below, after if/then are defined                              )
-T{ t_rx? -> 1 }T
-
 ( wordlist returns the next wordlist number )
 T{ wordlist wordlist swap invert 1 + + -> 1 }T
 
@@ -302,9 +237,16 @@ T{ wordlist wordlist swap invert 1 + + -> 1 }T
 : decimal   ( -- )          10 base! ;
 : hex       ( -- )          16 base! ;
 
-( I/O bindings )
-: emit      ( c -- )        t_tx! ;
-: emit?     ( -- flag )     t_tx? ;
+( I/O: the terminal's ports, with sys instructions as in core.f )
+: >sys      ( imm -- )      28672 + ,inst ;  ( 7000 hex )
+: sys>      ( imm -- )      29696 + ,inst ;  ( 7400 hex )
+: emit      ( c -- )        [ 16 >sys ] ;
+: emit?     ( -- flag )     [ 18 sys> ] ;
+: key       ( -- c )        [ 16 sys> ] ;
+: key?      ( -- flag )     [ 17 sys> ] ;
+( terminal input: more of this file is waiting on stdin; key is tested )
+( below, after if/then are defined                                     )
+T{ key? -> 1 }T
 
 ( dictionary )
 hex
@@ -514,6 +456,75 @@ T{ operator @  mt-user @  mt-user 1 + @ -> mt-user operator awake }T
 T{ 11 22 33  3 mt-spin  mt-ctr @ -> 11 22 33 3 }T
 operator operator !  ( back to a ring of one )
 
+( ===================================================================== )
+( The math unit: I/O ports 32-43, through >sys and sys>, as in core.f   )
+( ===================================================================== )
+
+decimal
+: mcwait    ( -- )          begin [ 43 sys> ] while pause repeat ;
+: um*       ( u1 u2 -- ud ) [ 40 >sys 32 >sys ] mcwait [ 40 sys> 41 sys> ] ;
+: m*        ( n1 n2 -- d )  [ 40 >sys 33 >sys ] mcwait [ 40 sys> 41 sys> ] ;
+: mu/mod    ( ud1 u1 -- u2 ud2 ) [ 41 >sys 40 >sys 34 >sys ] mcwait [ 42 sys> 40 sys> 41 sys> ] ;
+: */mod     ( n1 n2 n3 -- r q )  [ 41 >sys 40 >sys 35 >sys ] mcwait [ 42 sys> 40 sys> ] ;
+
+
+( um* )
+T{ 0 0 um*       -> 0 0 }T
+T{ 1 1 um*       -> 1 0 }T
+T{ 2 3 um*       -> 6 0 }T
+T{ -1 -1 um*     -> 1 -2 }T
+
+( m* )
+T{  0  0 m*      -> 0 0 }T
+T{  1  1 m*      -> 1 0 }T
+T{ -1  1 m*      -> -1 -1 }T
+T{ -2 -3 m*      -> 6 0 }T
+
+HEX
+
+( Simple Division - No Overflow into Upper Quotient )
+T{     0 0 1 MU/MOD -> 0 0 0 }T
+T{     7 0 1 MU/MOD -> 0 7 0 }T
+T{     7 0 2 MU/MOD -> 1 3 0 }T
+T{    64 0 7 MU/MOD -> 2 E 0 }T
+
+( Large Lower Dividend )
+T{  FFFF 0 2 MU/MOD -> 1 7FFF 0 }T
+T{ 10000 0 2 MU/MOD -> 0 8000 0 }T
+
+( High-Cell Dividend Producing High-Cell Quotient )
+T{ 0 2 2 MU/MOD -> 0 0 1 }T
+T{ 1 2 2 MU/MOD -> 1 0 1 }T
+T{ 5 7 2 MU/MOD -> 1 80000002 3 }T
+
+( Max Value Boundary Checks - 32-bit cells )
+T{ FFFFFFFF FFFFFFFF FFFFFFFF MU/MOD -> 0 1 1 }T
+T{ FFFFFFFF FFFFFFFF 80000000 MU/MOD -> 7FFFFFFF FFFFFFFF 1 }T
+
+( Basic Multiplication and Division )
+T{     0 2 1 */MOD -> 0 0 }T
+T{     1 2 1 */MOD -> 0 2 }T
+T{     2 3 2 */MOD -> 0 3 }T
+T{     7 3 2 */MOD -> 1 0A }T  ( 21 / 2 = 10 rem 1 )
+T{    64 2 7 */MOD -> 4 1C }T ( 200 / 7 = 28 rem 4 )
+
+( Intermediate Product Exceeds Single-Cell Range )
+( Ensures intermediate calculation uses double-cell width )
+T{ 10000 10000 10000 */MOD -> 0 10000 }T
+T{ 40000000 2 40000000 */MOD -> 0 2 }T
+T{ 7FFFFFFF 2 2 */MOD -> 0 7FFFFFFF }T
+
+( Signed Arithmetic Checks - Symmetric Division )
+T{ -7 3 2 */MOD -> -1 -0A }T
+T{ 7 -3 2 */MOD -> -1 -0A }T
+T{ -7 -3 2 */MOD -> 1  0A }T
+
+( Boundary Checks - 32-bit cells )
+T{ 7FFFFFFF 2 7FFFFFFF */MOD -> 0 2 }T
+T{ 7FFFFFFF 2 3 */MOD -> 2 55555554 }T
+
+DECIMAL
+
 ( label declares a word for a forward reference; a later : resolves it )
 ( without a new header, so the word defined before it stays visible   )
 label lb-fwd
@@ -524,10 +535,10 @@ label lb-fwd
 T{ lb-use lb-tail lb-before lb-fwd -> 42 41 5 41 }T
 T{ x' lb-fwd drop execute -> 41 }T
 
-( t_rx reads stdin directly, so the next unread byte is the start of  )
+( key reads stdin directly, so the next unread byte is the start of   )
 ( the next line of this file. With CRLF line endings and without -o 32 )
 ( lf ends the line at the CR, leaving the LF unread: nextc skips it.   )
-: nextc  ( -- c ) t_rx dup 10 xor if exit then drop t_rx ;
+: nextc  ( -- c ) key dup 10 xor if exit then drop key ;
 T{ nextc -> 88 }T
 X  ( nextc above consumed the X at the start of this line )
 

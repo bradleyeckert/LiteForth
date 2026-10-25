@@ -8,6 +8,7 @@
 #include "errcodes.h"
 #include "api0.h"
 #include "lftime.h"
+#include "iomap.h"
 
 uint32_t* vm_memory[VM_MEM_PAGES] = { NULL };
 uint32_t vm_memory_rd_limit[VM_MEM_PAGES] = { 0 };
@@ -404,6 +405,10 @@ execute:
         case VMO_TOSYS: {
             uint32_t tos = t;
             DDROP();
+            if (imm >= IOMAP_FIRST) {   // an I/O port (iomap.h)
+                ior = iomap_wr((int)imm, tos);
+                break;
+            }
             switch (imm) {
             case VMSTO_YEET: if (tos) ior = (int32_t)tos;  break;
             case VMSTO_SHIFT:
@@ -415,6 +420,12 @@ execute:
         case VMO_USER: a = u + imm;  break;
         case VMO_FROMSYS:
             DDUP();
+            if (imm >= IOMAP_FIRST) {   // an I/O port (iomap.h)
+                uint32_t data;
+                ior = iomap_rd((int)imm, &data);
+                t = data;               // 0 if it failed
+                break;
+            }
             switch (imm) {
             case VMSFROM_TASK:  // task[
                 RDUP();

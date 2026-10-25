@@ -381,7 +381,7 @@ head+
 -->
 ( BLOCK++ )
 ( LCD text 1/3 ________________________________________________ 10/25/26 BNE )
-: lcd-tx    ( u -- )        [ 24 >sys ] ;                                       \ LCD bus: reset, CSX, cmd: bits 15-13
+: lcd-tx    ( u -- )        [ 24 >sys ] ; \ Drive the LCD bus: bit 15 reset, 14 CSX, 13 command, 7:0 the byte (lcd_tx)
 head-
 : _cmd      ( b -- )        8192 or lcd-tx ;                                    \ send a command byte to the LCD
 : _w16      ( u -- )        dup 8 rshift lcd-tx  255 and lcd-tx ;               \ send a 16-bit parameter, high byte first

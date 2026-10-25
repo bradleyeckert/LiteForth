@@ -187,9 +187,6 @@ int vmStore(uint32_t addr, uint32_t data) {
 int32_t vmApiCall(uint32_t inst) {
     uint32_t imm = inst & VM_IMM_MASK;
     int api0 = (((inst >> VM_IMM_BITS) & 0x0F) == VMO_API0);
-    if (api0 && (g_lf_sys_options & SYS_OPTION_ONLY_TERM) && (imm > API_T_TXQ)) {
-        return ERR_NO_API_CALL_ALLOWED;
-    }
     if (g_lf_sys_options & SYS_OPTION_NO_API) {
         return ERR_NO_API_CALL_ALLOWED;
     }

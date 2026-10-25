@@ -57,16 +57,9 @@
 ( x -- x rp:sp ) ( R: x -- x x ) \ Get the current stack pointers, pushing registers onto the stacks.
 ( -- u )                        \ Fetch the X register, which is the PC where a yeet occurred.
 ( -- u )                        \ Fetch the Y register, which is the error that caused the yeet.
-( u1 u2 -- ud )                 \ Multiply u1 by u2, giving the unsigned double-cell product ud.
-( n1 n2 -- d )                  \ d is the signed product of n1 times n2.
-( ud1 u1 -- u2 ud2 )            \ Unsigned divide ud1 by u1, u2 is the remainder, ud2 is the quotient.
-( n1 n2 n3 -- n4 n5 )           \ Multiply n1 by n2 producing d, then divide by n3 producing remainder n4 and quotient n5.
-( -- flag )                     \ True if a byte is in the receive buffer.
-( -- c )                        \ Get the next byte from the terminal, block if there isn't one.
-( c -- )                        \ Transmit one byte to the terminal.
 ( BLOCK 4 )
 ( LiteForth internal glossary lines 129 to 159 ________________ 10/10/26 BNE )
-( -- flag )                     \ True if the transmitter is busy (not ready to send).
+
 ( C: "<spaces>name" -- colon-sys ) \ Create a new colon definition for `name` and set STATE=1.
 ( C: colon-sys -- )             \ End a colon definition by compiling an exit or tail-recursing; set STATE=0.
 ( flag -- )                     \ Set system options: XOR flag with current options, or clear options if flag=0.
@@ -132,6 +125,6 @@
 ( w h ctrl palette -- )         \ Open a w x h pixel LCD panel (ctrl 0: ST7789); palette: the cell address of 16 RGB565 colors.
 ( BLOCK 6 )
 ( LiteForth internal glossary lines 193 to 223 ________________ 10/13/26 BNE )
-( u -- )                        \ Drive the LCD bus: bit 15 reset, 14 CSX, 13 command, 7:0 the byte (lcd_tx).
+                        
 ( n1 -- n2 )                    \ Shift n1 right, copying the sign bit, by the count set with shft[.
 ( u16 -- )                      \ Expand a font pixel code into palette colors and send them to the LCD as data.

@@ -57,7 +57,7 @@
 /**
  * Reads I/O port addr, for `sys>`.
  * @param addr The port, IOMAP_FIRST to 511.
- * @param data Receives the value, or 0 if the read fails.
+ * @param tos Receives the value for T, or 0 if the read fails.
  * @return 0, or an ior: ERR_INVALID_ADDRESS for a port that can't be read,
  * ERR_UNSUPPORTED_OPERATION for a math result while the unit is busy, or
  * the terminal's error.
@@ -67,7 +67,7 @@ int iomap_rd(int addr, uint32_t *tos);
 /**
  * Writes data to I/O port addr, for `>sys`.
  * @param addr The port, IOMAP_FIRST to 511.
- * @param data The value.
+ * @param tos The value, from T.
  * @return 0, or an ior: ERR_INVALID_ADDRESS for a port that can't be
  * written, ERR_DIVISION_BY_ZERO when the math unit is started with a
  * divisor of 0, or the terminal's error.

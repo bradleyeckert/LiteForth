@@ -1,6 +1,6 @@
 /* Tests src/iomap.c through the VM: each `>sys` and `sys>` runs as one
    instruction (vmRun(1, inst, 0)) on values pushed onto the data stack,
-   as the words in iomap.h's comment would run them. The serial port is
+   in the order a Forth word would run them. The serial port is
    a fake. */
 #include <stdio.h>
 #include <stdint.h>
@@ -62,12 +62,12 @@ static int wait(void) {
     }
 }
 
-/* um* or m*: two arguments, two results */
+/* um* or m* ( a b -- lo hi ): 40 >sys 32/33 >sys wait 40 sys> 41 sys> */
 static void mul(int port, uint32_t a, uint32_t b, uint32_t *lo, uint32_t *hi) {
     push(a);  push(b);
     wr(IO_MATH_ARG);  wr(port);
     wait();
-    rd(IO_MATH_RES);  rd(IO_MATH_RES);
+    rd(IO_MATH_RES);  rd(IO_MATH_RES + 1);
     *hi = pop();  *lo = pop();
 }
 
@@ -112,10 +112,11 @@ static void test_mudivmod(void) {
         { 0x00000005FFFFFFFFull, 3 }, { 0, 5 }, { 0xFFFFFFFFull, 0xFFFFFFFF },
     };
     for (unsigned i = 0; i < sizeof c / sizeof c[0]; i++) {
+        /* ( udl udh u -- r uql uqh ): 41 >sys 40 >sys 34 >sys wait 42 sys> 40 sys> 41 sys> */
         push((uint32_t)c[i].d);  push((uint32_t)(c[i].d >> 32));  push(c[i].u);
-        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_MUDIVMOD);
+        wr(IO_MATH_ARG + 1);  wr(IO_MATH_ARG);  wr(IO_MATH_MUDIVMOD);
         wait();
-        rd(IO_MATH_RES);  rd(IO_MATH_RES);  rd(IO_MATH_RES);
+        rd(IO_MATH_RES + 2);  rd(IO_MATH_RES);  rd(IO_MATH_RES + 1);
         uint32_t qh = pop(), ql = pop(), r = pop();
         uint64_t q = c[i].d / c[i].u;
         check(r == (uint32_t)(c[i].d % c[i].u) && ql == (uint32_t)q && qh == (uint32_t)(q >> 32),
@@ -130,30 +131,29 @@ static void test_stardivmod(void) {
         { -2147483647 - 1, 1, 1, 0, -2147483647 - 1 }, { 0, 5, 9, 0, 0 },
     };
     for (unsigned i = 0; i < sizeof c / sizeof c[0]; i++) {
+        /* ( n1 n2 n3 -- r q ): 41 >sys 40 >sys 35 >sys wait 42 sys> 40 sys> */
         push((uint32_t)c[i].n1);  push((uint32_t)c[i].n2);  push((uint32_t)c[i].n3);
-        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);  wr(IO_MATH_STARDIVMOD);
+        wr(IO_MATH_ARG + 1);  wr(IO_MATH_ARG);  wr(IO_MATH_STARDIVMOD);
         wait();
-        rd(IO_MATH_RES);  rd(IO_MATH_RES);
+        rd(IO_MATH_RES + 2);  rd(IO_MATH_RES);
         int32_t q = (int32_t)pop(), r = (int32_t)pop();
         check(q == c[i].q && r == c[i].r, "star-slash-mod (symmetric)");
     }
 }
 
 static void test_errors(void) {
+    uint32_t lo, hi;
+    mul(IO_MATH_UMSTAR, 6, 7, &lo, &hi);  /* Y0 = 42, Y1 = 0 */
     for (int port = IO_MATH_MUDIVMOD; port <= IO_MATH_STARDIVMOD; port++) {
         uint32_t depth = stack_depth();
-        push(10);  push(0);  push(0);   /* divisor 0 */
-        wr(IO_MATH_ARG);  wr(IO_MATH_ARG);
+        push(10);  push(5);  push(0);   /* divisor 0 */
+        wr(IO_MATH_ARG + 1);  wr(IO_MATH_ARG);
         check(wr(port) == ERR_DIVISION_BY_ZERO, "starting a division by zero");
         check(stack_depth() == depth, "takes its arguments");
         check(wait() == 0, "and leaves the unit idle");
         rd(IO_MATH_RES);
-        check(pop() == 0, "with no results");
+        check(pop() == 42, "with the results as they were");
     }
-    uint32_t lo, hi;
-    mul(IO_MATH_UMSTAR, 6, 7, &lo, &hi);
-    rd(IO_MATH_RES);
-    check(pop() == 0, "past the last result: 0");
 
     uint32_t depth = stack_depth();
     check(rd(IOMAP_FIRST + 100) == ERR_INVALID_ADDRESS, "a port that can't be read");
@@ -166,6 +166,8 @@ static void test_errors(void) {
     check(wr(IO_TERM_RXQ) == ERR_INVALID_ADDRESS, "key? is read-only");
     push(7);
     check(wr(IO_MATH_STATUS) == ERR_INVALID_ADDRESS, "the status is read-only");
+    push(8);
+    check(wr(IO_MATH_ARG + 2) == ERR_INVALID_ADDRESS, "there are two argument registers");
     check(stack_depth() == depth, "a failed write still takes its value");
 }
 
@@ -175,17 +177,19 @@ static void test_busy(void) {
     push(6);  push(7);
     wr(IO_MATH_ARG);  wr(IO_MATH_UMSTAR);
     uint32_t depth = stack_depth();
-    check(rd(IO_MATH_RES) == ERR_UNSUPPORTED_OPERATION, "a result while busy");
-    check(stack_depth() == depth + 1 && pop() == 0, "pushes 0");
+    for (int n = 0; n < 3; n++) {
+        check(rd(IO_MATH_RES + n) == ERR_UNSUPPORTED_OPERATION, "a result while busy");
+        check(stack_depth() == depth + 1 && pop() == 0, "pushes 0");
+    }
     check(wait() == 3, "the status says busy, then ready");
-    rd(IO_MATH_RES);  rd(IO_MATH_RES);
+    rd(IO_MATH_RES);  rd(IO_MATH_RES + 1);
     uint32_t hi = pop(), lo = pop();
     check(lo == 42 && hi == 0, "the results once it's ready");
     iomap_math_latency = 0;
     push(1);  push(2);
     wr(IO_MATH_ARG);  wr(IO_MATH_MSTAR);
     check(wait() == 0, "a unit that finishes at once is never busy");
-    rd(IO_MATH_RES);  rd(IO_MATH_RES);
+    rd(IO_MATH_RES);  rd(IO_MATH_RES + 1);
     pop();  pop();
 }
 

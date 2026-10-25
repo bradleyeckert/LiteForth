@@ -33,7 +33,8 @@ the C VM exactly.
 
 ### MOD-IOMAP: The VM's I/O ports
 What a hardware VM would wire to `>sys` and `sys>` from index 16 up
-(`IOMAP_FIRST`): the terminal (`key`, `key?`, `emit`, `emit?`) and a
+(`IOMAP_FIRST`): the terminal (`key`, `key?`, `emit`, `emit?`), the LCD
+module's bus (`lcd-tx`) and a
 non-blocking math unit for `um*`, `m*`, `mu/mod` and star-slash-mod, with
 argument and result registers and a status port, so these need no C API. A port that fails gives an
 ior, as a failed memory access does.

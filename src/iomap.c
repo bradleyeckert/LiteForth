@@ -1,5 +1,5 @@
 /*
- * The VM's I/O space (iomap.h): the terminal and the math unit, reached
+ * The VM's I/O space (iomap.h): the terminal, the LCD and the math unit, reached
  * by `>sys` and `sys>` with an index of IOMAP_FIRST or more.
  */
 #include <stdint.h>
@@ -7,6 +7,7 @@
 #include "errcodes.h"
 #include "serial_io.h"
 #include "tools.h"                      /* lf_putc, divide64by32 */
+#include "lcd.h"                        /* lcd_tx: the target's */
 
 /* ---- Math unit --------------------------------------------------------- */
 
@@ -109,6 +110,8 @@ int iomap_wr(int addr, uint32_t tos) {
     switch (addr) {
     case IO_TERM_DATA:
         return lf_putc((char)tos);
+    case IO_LCD_TX:
+        return lcd_tx((uint16_t)tos);
     case IO_MATH_ARG:
     case IO_MATH_ARG + 1:
         a[addr - IO_MATH_ARG] = tos;

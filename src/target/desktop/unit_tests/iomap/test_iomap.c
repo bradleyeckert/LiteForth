@@ -28,6 +28,10 @@ int serial_getc(void) { return *typed ? (unsigned char)*typed++ : -1; }
 int serial_ready(void) { return *typed != 0; }
 int serial_busy(void) { return busy; }
 
+static uint16_t lcd_sent[8];
+static int lcd_n, lcd_ior;
+int lcd_tx(uint16_t data) { if (lcd_n < 8) lcd_sent[lcd_n++] = data; return lcd_ior; }
+
 uint64_t divide64by32(uint64_t dividend, uint32_t divisor, uint32_t *remainder) {
     *remainder = (uint32_t)(dividend % divisor);
     return dividend / divisor;
@@ -88,6 +92,22 @@ static void test_terminal(void) {
     check(wr(IO_TERM_DATA) == ERR_EXCEPTION_IN_CHAR, "emit passes the port's error on");
     check(stack_depth() == depth, "a failed emit still takes its character");
     put_ior = 0;
+}
+
+static void test_lcd(void) {
+    lcd_n = 0;
+    push(0x202C);  check(wr(IO_LCD_TX) == 0, "lcd-tx");
+    push(0x12355);  wr(IO_LCD_TX);
+    check(lcd_n == 2 && lcd_sent[0] == 0x202C && lcd_sent[1] == 0x2355,
+          "lcd-tx sends the low 16 bits");
+    lcd_ior = ERR_UNSUPPORTED_OPERATION;
+    uint32_t depth = stack_depth();
+    push(0x2029);
+    check(wr(IO_LCD_TX) == ERR_UNSUPPORTED_OPERATION, "lcd-tx passes the LCD's error on");
+    check(stack_depth() == depth, "a failed lcd-tx still takes its value");
+    check(rd(IO_LCD_TX) == ERR_INVALID_ADDRESS, "lcd-tx is write-only");
+    pop();
+    lcd_ior = 0;
 }
 
 static void test_multiply(void) {
@@ -205,6 +225,7 @@ static void test_vm_indexes_unchanged(void) {
 int main(void) {
     lf_vm.sp = 0;
     test_terminal();
+    test_lcd();
     test_multiply();
     test_mudivmod();
     test_stardivmod();

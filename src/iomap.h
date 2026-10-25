@@ -26,6 +26,10 @@
  *   : key?   ( -- flag ) [ 17 sys> ] ; \ nonzero if a character is waiting
  *   : emit?  ( -- flag ) [ 18 sys> ] ; \ nonzero while the transmitter is busy
  *
+ * LCD module: one bus transfer per write, as an SPI or 8-bit parallel
+ * stream to its controller (lcd_tx in the target's lcd.h):
+ *   : lcd-tx ( u -- )    [ 24 >sys ] ; \ bit 15 reset, 14 CSX, 13 command, 7:0 the byte
+ *
  * Math unit: two argument registers A0 A1 and up to three results Y0 Y1 Y2.
  * Each are individually addressable (An for argument, Yn for a result).
  * The unit doesn't block the VM: IO_MATH_STATUS reads nonzero while it's busy,
@@ -43,6 +47,9 @@
 #define IO_TERM_DATA        16      /* sys>: key, >sys: emit */
 #define IO_TERM_RXQ         17      /* sys>: key? */
 #define IO_TERM_TXQ         18      /* sys>: emit? */
+
+/* LCD module */
+#define IO_LCD_TX           24      /* >sys: lcd-tx: one transfer on the LCD bus (lcd_tx) */
 
 /* Math unit */
 #define IO_MATH_UMSTAR      32      /* >sys: um*: A0 * tos unsigned, Y1:Y0 result */
@@ -70,7 +77,8 @@ int iomap_rd(int addr, uint32_t *tos);
  * @param tos The value, from T.
  * @return 0, or an ior: ERR_INVALID_ADDRESS for a port that can't be
  * written, ERR_DIVISION_BY_ZERO when the math unit is started with a
- * divisor of 0, or the terminal's error.
+ * divisor of 0, or the terminal's or the LCD's error (ERR_UNSUPPORTED_OPERATION
+ * before lcd-init).
  */
 int iomap_wr(int addr, uint32_t tos);
 

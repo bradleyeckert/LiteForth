@@ -545,7 +545,7 @@ static void put64(uint8_t *p, uint64_t x) {
    contiguous (as formatters make it); 0 if not */
 static uint32_t bitmap_start(exfat_read_fn read, const exfat_vol *vol) {
     uint32_t cbytes_shift = 9u + vol->spc_shift;
-    uint32_t n = (uint32_t)(((uint64_t)vol->bitmap_bytes + (1u << cbytes_shift) - 1) >> cbytes_shift);
+    uint32_t n = (uint32_t)(((uint64_t)vol->bitmap_bytes + ((uint64_t)1 << cbytes_shift) - 1) >> cbytes_shift);
     uint32_t c = vol->bitmap;
     for (uint32_t i = 1; i < n; i++, c++) {
         uint32_t next;

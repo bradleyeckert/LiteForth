@@ -498,6 +498,12 @@ _load_base:
 /* LiteForth: lock the PMP (V5F/User/pmp.c) while still in machine mode */
 	call pmp_lock
 
+/* LiteForth: machine mode's own stack, for the trap handlers to switch to
+   (mscratch), so user mode can't steer a machine-mode store with its sp
+   (doc/admin/firmware-updates.md section 8) */
+	la t0, _mstack_top
+	csrw mscratch, t0
+
 	la t0, main
 	csrw mepc, t0
 	mret

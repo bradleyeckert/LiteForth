@@ -190,13 +190,26 @@ void hardfault_c(uint32_t *regs)
   }
 }
 
-/* The vector: saves x1-x31 below the stack pointer, with x2 as it was at
-   the fault, calls hardfault_c with their address, puts them back and
-   returns. Naked, because a C handler can't see the registers the
-   faulting code had: the store emulation needs the one it stored. */
+/* The vector. It first switches to machine mode's own stack (mscratch,
+   set in the start-up code): user mode can set its sp to anything,
+   including a peripheral's registers, before it faults, and the handler
+   must not store the faulting registers there (it runs in machine mode,
+   which PMP entry 2 and the rest don't fence). After the swap mscratch
+   holds the faulting sp, which the handler records as x2. It saves x1-x31,
+   calls hardfault_c with their address, puts them back, swaps the stacks
+   again (so mscratch holds the machine-mode stack top for the next fault)
+   and returns. Naked, because a C handler can't see the registers the
+   faulting code had: the store emulation needs the one it stored. A fault
+   in a handler would double-fault and reset the chip (LOCKUP), so the one
+   machine-mode stack is never re-entered.
+
+   t0 (x5) is read from mscratch after it has been saved, and reloaded
+   from its slot at the end, so clobbering it to carry the faulting sp is
+   safe. */
 void HardFault_Handler(void)
 {
   __asm volatile (
+    "csrrw sp, mscratch, sp\n"         /* sp <- machine-mode stack; mscratch <- faulting sp */
     "addi sp, sp, -128\n"
     "sw zero, 0(sp)\n"
     "sw x1, 4(sp)\n"
@@ -208,8 +221,8 @@ void HardFault_Handler(void)
     "sw x23, 92(sp)\n"  "sw x24, 96(sp)\n"  "sw x25, 100(sp)\n" "sw x26, 104(sp)\n"
     "sw x27, 108(sp)\n" "sw x28, 112(sp)\n" "sw x29, 116(sp)\n" "sw x30, 120(sp)\n"
     "sw x31, 124(sp)\n"
-    "addi t0, sp, 128\n"
-    "sw t0, 8(sp)\n"                   /* x2: the sp at the fault */
+    "csrr t0, mscratch\n"              /* the sp at the fault */
+    "sw t0, 8(sp)\n"                   /* x2 */
     "mv a0, sp\n"
     "call hardfault_c\n"
     "lw x1, 4(sp)\n"
@@ -222,6 +235,7 @@ void HardFault_Handler(void)
     "lw x27, 108(sp)\n" "lw x28, 112(sp)\n" "lw x29, 116(sp)\n" "lw x30, 120(sp)\n"
     "lw x31, 124(sp)\n"
     "addi sp, sp, 128\n"
+    "csrrw sp, mscratch, sp\n"         /* sp <- faulting sp; mscratch <- machine-mode stack top */
     "mret\n"
   );
 }

@@ -2,6 +2,14 @@ ENTRY( _start )
 
 __stack_size = 16384;   /* LiteForth: WCH had 2048; the interpreter recurses (load, words calling the VM) */
 
+/* LiteForth: machine mode's own stack (doc/admin/firmware-updates.md
+   section 8). The trap handlers switch to it (mscratch) before storing
+   anything, so user mode can't steer a machine-mode store by setting its
+   own sp. It's in DTCM, which user mode can write, and that's fine: one
+   core, no user code runs while a handler does, and a handler fills its
+   frame before using it. */
+__mstack_size = 1024;
+
 PROVIDE( _stack_size = __stack_size );
 
 
@@ -254,14 +262,22 @@ SECTIONS
 		*(.pool)
 	} >POOL
 
+    .mstack ORIGIN(RAM) + LENGTH(RAM) - __stack_size - __mstack_size :
+    {
+        PROVIDE( _heap_end = . );
+        . = ALIGN(16);
+        PROVIDE( _mstack_base = . );
+        . = . + __mstack_size;
+        PROVIDE( _mstack_top = . );
+    } >RAM
+
     .stack ORIGIN(RAM) + LENGTH(RAM) - __stack_size :
     {
-        PROVIDE( _heap_end = . );    
         . = ALIGN(4);
         PROVIDE(_susrstack = . );
         . = . + __stack_size;
         PROVIDE( _eusrstack = .);
-    } >RAM 
+    } >RAM
 
 }
 

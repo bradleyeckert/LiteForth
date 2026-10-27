@@ -683,11 +683,26 @@ token.
   on the board), which doesn't matter for this little code: an `ecall`
   takes about 12 us, a page erase and write about 1.2 ms.
 
-  Still open: machine mode's data and stack are in DTCM, which user mode
-  can write (the handlers run on user mode's stack; Guarded DMA's buffer
-  and state, the `ecall` block). And whether user mode can reach the
-  interrupt controller (PFIC, 0xE000E000: its VTF registers give an
-  interrupt a handler address of their own) hasn't been checked.
+  The fault handler runs on a stack of its own (27 October 2026,
+  SYS-SEC-11, part 1 below). `HardFault_Handler` switches `sp` to the
+  machine-mode stack (`_mstack_top`, set into `mscratch` by the start-up
+  code before its `mret`) before it stores anything, so user mode can't
+  have the handler save the faulting registers into a peripheral by
+  setting its own `sp` there first; `mscratch` is a machine CSR user mode
+  can't change. The stack is 1 KB in DTCM (`Link_v5f.ld`), which user mode
+  can write, and that's fine: one core, so no user code runs while the
+  handler does, and the handler fills its frame before using it. A fault
+  inside the handler double-faults and resets the chip, so the stack is
+  never re-entered.
+
+  Still open: the fast-interrupt handlers (`SysTick1`, the `ecall`
+  services) still save at user mode's `sp`, through WCH's hardware
+  prologue (HPE, CSR 0x804 bit 0). Turning HPE off makes every one of them
+  a stub that switches stacks the way the fault handler now does; that
+  comes with part 3 below, which also moves the system timer off SysTick.
+  Guarded DMA's buffer and state and the `ecall` block are in DTCM too,
+  checked on each call. Whether user mode can reach the interrupt
+  controller (PFIC, 0xE000E000) is part 3's concern.
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
 
@@ -738,6 +753,10 @@ fix doesn't need it shown.
    `mmodecheck.py` also checks that every vector's target starts with the
    swap. This replaces fencing machine mode's data with a PMP entry, which
    there isn't room for.
+
+   *Built so far (27 October 2026):* the fault handler switches to the
+   machine-mode stack (above); the fast-interrupt handlers still use HPE
+   and come with part 3.
 2. **No bus master runs for user mode.** User mode can't write RCC: entry 2
    makes it read-only, and `guard.c` does the stores user mode is allowed.
    A peripheral without its clock neither takes register writes nor runs.

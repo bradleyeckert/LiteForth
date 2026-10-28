@@ -779,10 +779,12 @@ fix doesn't need it shown.
    - **The time base moves from SysTick1 to a general-purpose timer** that
      user mode reads: it counts microseconds and wraps each millisecond,
      and its update interrupt counts milliseconds in machine mode, as
-     SysTick's does now. *Built (28 October 2026, pending a board test):*
-     TIM6, a basic timer (no output channels), in `V5F/User/lftime.c`.
-     This is the prerequisite; the PMP shrink and the interrupt-enable
-     move follow once it's confirmed on the board.
+     SysTick's does now. *Built and confirmed on the board (B30, 28
+     October 2026):* TIM6, a basic timer (no output channels), in
+     `V5F/User/lftime.c`; its microsecond rate tracks the RTC and
+     survives standby. Its prescaler comes from HCLK, not the V5F's
+     `SystemCoreClock` (`doc/ch32h417-notes.md`). This is the
+     prerequisite; the PMP shrink and the interrupt-enable move follow.
    - **Interrupt enables move to the start-up code,** and `reboot` and
      `standby` become services.
 4. **Machine mode's code is the root's.** Today the release key signs the

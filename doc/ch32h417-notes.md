@@ -179,6 +179,19 @@ The debug helpers in `SRC/Debug/debug.c` take over the V5F's SysTick
 (`SysTick1`), so any time base built on it stops working after a delay
 call. Worth a note in `debug.h`.
 
+### SystemCoreClock is the core clock on the V5F, HCLK on the V3F
+
+`system_ch32h417.c` sets `SystemCoreClock` differently on the two cores:
+on the V3F it is HCLK (SYSCLK >> HPRE >> FPRE), but on the V5F it is the
+*core* clock (SYSCLK >> HPRE), before the FPRE divide. Peripherals,
+the basic timers TIM6/TIM7 among them, are clocked from HCLK. So a timer
+prescaler computed as `SystemCoreClock / 1000000 - 1` for a 1 MHz count
+is right on the V3F but runs the timer slow on the V5F, by the FPRE
+divisor: a quarter rate on the board tested (FPRE = /4), found by B30.
+Use `RCC_GetClocksFreq`'s `HCLK_Frequency`, which is SYSCLK >> HPRE >>
+FPRE on either core. `V5F/User/lftime.c` does this for TIM6; the V3F's
+`UART.c` uses `SystemCoreClock` and is correct there.
+
 ### ECDC (the AES/SM4 engine): what its registers really do
 
 Tested from the Forth prompt through VM page 5 (ECDC at `0x40016C00`, VM

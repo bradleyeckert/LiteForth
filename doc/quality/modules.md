@@ -304,9 +304,9 @@ The microsecond counter, the RTC, the alarm and standby.
 - **Parent:** ARC-V5F
 - **Code:** src/target/CH32H417/V5F/User/lftime.c
 - **Design:** doc/glossary.md
-- **Verified by:** unit:rtc, board:B27
+- **Verified by:** unit:rtc, board:B27, board:B30
 - **Status:** partial
-- **Gap:** the desktop's version is unit-tested; the V5F's is shown on the board (B27)
+- **Gap:** the desktop's version is unit-tested; the V5F's is shown on the board (B27, and the TIM6 microsecond base in B30)
 
 ### MOD-LCD: The LCD drivers
 The simulated LCD and its ST7789 model on the desktop, the ST7789 on SPI

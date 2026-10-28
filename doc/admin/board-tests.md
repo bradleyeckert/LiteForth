@@ -2812,3 +2812,83 @@ level 2 anyway. Still, it shouldn't say `ok`. Commit `be529e1` makes
 `close-flash` and `save-pages` refuse whenever the pages are locked, and
 `unit_tests/locked` tests that on the desktop (`lf -L 2`). The fix hasn't
 been on a board yet.
+
+### B29. The fault handler on machine mode's own stack (28 October 2026)
+
+**Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
+`SECURITY_LEVEL` 0, built in MounRiver from branch `rot-plan` (commit
+`bec7026`: the fault handler on the machine-mode stack, SYS-SEC-11 part 1,
+`doc/admin/firmware-updates.md` section 8) and flashed by the user:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 64144 | `ad8d3d121472c505f7801a32e15604070c6405a37412bff9ba3222d5039f3c47` |
+| `LiteForth_V5F.bin` | 110716 | `d0ad837109132c229d44a16d06f03781ba779795af8101994a6dcc9d73ae3287` |
+
+(The V3F is unchanged from `main` on this branch; it reports `built Oct 22
+2026 11:06:37`.)
+
+**Why:** `HardFault_Handler` used to save the faulting registers at the
+faulting `sp`, in machine mode. User mode sets its own `sp`, so it could
+point it at a peripheral and fault, and have the handler store there past
+PMP entry 2. The handler now swaps `sp` with `mscratch` (a 1 KB
+machine-mode stack in DTCM, set by the start-up code before its `mret`)
+before it stores anything. This is a regression test on the board: the
+rewrite must keep the chip booting, keep the machine-mode `ecall` services
+working, and keep returning Forth faults to Forth.
+
+**Expected:** the board boots and runs; `1 load` writes the flash pages
+through the `ecall` service; a store to an address that isn't there faults
+to Forth (`-127`, `-> Forth` on the debug port) and the terminal carries
+on; a second fault behaves the same (the handler restored `mscratch`); and
+`reboot` starts cleanly.
+
+**Run.** Cli port (COM17, through lfmcp):
+
+```
+> revision .
+0 ok>
+> 1 load
+value test: 11 10
+Dictionary loaded and committed to flash memory.
+...
+ok>
+> hex 0 288000 !
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+> decimal 2 3 + .
+5 ok>
+> .s
+ok>
+> hex 0 288000 !
+Error: ior=-127 CPU access fault: no memory or peripheral there
+ok>
+> decimal 7 8 + .
+15 ok>
+> reboot
+[the board restarts]
+> revision .
+0 ok>
+```
+
+Debug port (COM14), the two faults:
+
+```
+V5F fault: mcause 00000007 mepc 200AAABA mtval 40020000 ra 200AA562 sp 200FFD20 -> Forth
+
+V5F fault: mcause 00000007 mepc 200AAABA mtval 40020000 ra 200AA562 sp 200FFD20 -> Forth
+```
+
+The reported `sp` (0x200FFD20) is the faulting code's stack, the user C
+stack near the top of DTCM, not the machine-mode stack (0x200FBC00-
+0x200FC000): the handler switched to its own stack internally and recorded
+the `sp` the fault had, for the report and the store emulation.
+
+**Result:** pass. The board boots with the start-up `mscratch` set-up and
+the `.mstack` carve, `1 load` commits to flash through the `ecall`
+service, a store fault returns to Forth and the terminal keeps its stacks,
+a second fault behaves identically (so `mscratch` is swapped back and the
+one machine-mode stack is reusable), and `reboot` starts cleanly. Not
+tested: a store aimed by `sp` into a peripheral, which needs native code,
+not Forth; the fast-interrupt handlers still save at user mode's `sp`
+(SYS-SEC-11 is finished with part 3).

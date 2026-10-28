@@ -85,7 +85,7 @@ registers read-only), machine-mode code run from flash, the `ecall`
 services (flash programming, Guarded DMA), and the fault handler that
 emulates RCC and CRC stores and sends faults to Forth.
 
-- **Parent:** SYS-SEC-01, SYS-SEC-02, SYS-SEC-03, SYS-SEC-04, SYS-SEC-08, SYS-SEC-11, SYS-STO-07, SYS-LANG-09
+- **Parent:** SYS-SEC-01, SYS-SEC-02, SYS-SEC-03, SYS-SEC-04, SYS-SEC-08, SYS-SEC-11, SYS-SEC-13, SYS-SEC-14, SYS-SEC-15, SYS-STO-07, SYS-LANG-09
 - **Verified by:** integ:blocksim::test_guard, board:B14, board:B15, board:B18, board:B22, board:B23, board:B24
 - **Status:** partial
 - **Gap:** machine mode's data and stack are in RAM user mode can write; the interrupt controller's reach from user mode is unchecked (SYS-SEC-11)

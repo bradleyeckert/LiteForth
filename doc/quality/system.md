@@ -356,7 +356,7 @@ write (PMP entry 0, locked).
 - **Parent:** UN-09
 - **Verified by:** board:B18, board:B22, insp:src/target/CH32H417/V5F/User/pmp.c::pmp_lock
 - **Status:** partial
-- **Gap:** bus masters the V5F's code can program (the ECDC engine, SDMMC, USBHS) aren't fenced, so this rests on that code being the vendor's (SYS-SEC-06); no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
+- **Gap:** bus masters the V5F's code can program (the ECDC engine, SDMMC, USBHS) aren't fenced, so this rests on that code being the vendor's (SYS-SEC-06), until SYS-SEC-13 and SYS-SEC-14; no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
 
 ### SYS-SEC-02: The V3F's RAM is fenced from the V5F's CPU
 The V5F's CPU, in either mode, can't read or write the V3F's RAM, where
@@ -376,7 +376,7 @@ user buffers.
 - **Parent:** UN-09
 - **Verified by:** integ:blocksim::test_guard, unit:guard::test_buffer, board:B15, board:B17
 - **Status:** partial
-- **Gap:** other bus masters (the ECDC, SDMMC, USBHS, ...) aren't fenced; SYS-SEC-06 covers what that leaves
+- **Gap:** other bus masters (the ECDC, SDMMC, USBHS, ...) aren't fenced (SYS-SEC-13, planned); SYS-SEC-06 covers what that leaves
 
 ### SYS-SEC-04: Machine mode's code can't be changed by user mode
 The V5F's machine-mode code (the vector table, the handlers, the
@@ -438,9 +438,42 @@ system needs an unlock.
 - **Parent:** UN-08, UN-09
 - **Status:** planned
 
-### SYS-SEC-11: Machine mode's data can't be changed by user mode
-Machine mode's data and stack, and the interrupt controller, are out of
-user mode's reach, as its code is (SYS-SEC-04).
+### SYS-SEC-11: User mode can't steer machine mode
+Every trap and interrupt switches to machine mode's own stack before it
+stores anything (no hardware stacking at user mode's `sp`); machine mode
+stores through user mode's pointers only into buffers it has checked, and
+trusts none of its data between traps without checking it again.
+
+- **Parent:** UN-09
+- **Verified by:** board:B29
+- **Status:** partial
+- **Gap:** the fault handler is on the machine-mode stack (B29); the
+  fast-interrupt handlers (SysTick1, the ecall services) still save at
+  user mode's `sp` through WCH's hardware prologue, done with the PFIC and
+  timer move (firmware-updates.md section 8, part 3)
+
+### SYS-SEC-13: No bus master runs for user mode
+User mode can't turn on the clock of any bus master (the ECDC, LTDC,
+GPHA, HSADC, SDMMC, the USB controllers, USBPD, ETH, DVP, SerDes, UHSIF,
+QSPI, FMC, PIOC, DMA1/2): the guard refuses such an RCC store, and the
+start-up code turns them all off. Machine-mode services (Guarded DMA, the
+ECDC) turn on only what they use, and only while they use it.
+
+- **Parent:** UN-09
+- **Status:** planned
+
+### SYS-SEC-14: Machine mode's code is the root's
+The code that runs in the V5F's machine mode carries a signature by the
+root key, which stage 1 checks at every boot as well as the release
+signature, so a release key alone can't change it.
+
+- **Parent:** UN-08, UN-09
+- **Status:** planned
+
+### SYS-SEC-15: User mode can't reach the interrupt controller
+The PFIC and the system timers (from 0xE0000000) are machine mode's
+alone; user mode's time base is a general-purpose timer, and interrupt
+enables, `reboot` and `standby` are machine mode's.
 
 - **Parent:** UN-09
 - **Status:** planned

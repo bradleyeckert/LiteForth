@@ -683,13 +683,146 @@ token.
   on the board), which doesn't matter for this little code: an `ecall`
   takes about 12 us, a page erase and write about 1.2 ms.
 
-  Still open: machine mode's data and stack are in DTCM, which user mode
-  can write (the handlers run on user mode's stack; Guarded DMA's buffer
-  and state, the `ecall` block). And whether user mode can reach the
-  interrupt controller (PFIC, 0xE000E000: its VTF registers give an
-  interrupt a handler address of their own) hasn't been checked.
+  The fault handler runs on a stack of its own (27 October 2026,
+  SYS-SEC-11, part 1 below). `HardFault_Handler` switches `sp` to the
+  machine-mode stack (`_mstack_top`, set into `mscratch` by the start-up
+  code before its `mret`) before it stores anything, so user mode can't
+  have the handler save the faulting registers into a peripheral by
+  setting its own `sp` there first; `mscratch` is a machine CSR user mode
+  can't change. The stack is 1 KB in DTCM (`Link_v5f.ld`), which user mode
+  can write, and that's fine: one core, so no user code runs while the
+  handler does, and the handler fills its frame before using it. A fault
+  inside the handler double-faults and resets the chip, so the stack is
+  never re-entered.
+
+  Still open: the fast-interrupt handlers (`SysTick1`, the `ecall`
+  services) still save at user mode's `sp`, through WCH's hardware
+  prologue (HPE, CSR 0x804 bit 0). Turning HPE off makes every one of them
+  a stub that switches stacks the way the fault handler now does; that
+  comes with part 3 below, which also moves the system timer off SysTick.
+  Guarded DMA's buffer and state and the `ecall` block are in DTCM too,
+  checked on each call. Whether user mode can reach the interrupt
+  controller (PFIC, 0xE000E000) is part 3's concern.
 
 The V3F keeps its own PMP unlocked: it's the trusted side.
+
+### Closing the bus masters (planned, 27 October 2026)
+
+**The gap.** Entry 2 fences DMA1, DMA2 and DMAMUX from user mode, but not
+the other bus masters. The ECDC (0x40016C00) has a RAM-to-RAM engine with
+addresses of its own; SDMMC, USBHS, USBSS, USBPD, ETH, DVP, SerDes, LTDC,
+GPHA, HSADC, UHSIF, QSPI and FMC are bus masters too. User mode can program
+every one of them. The VM's allowlist keeps Forth out at levels 1 and 2, but
+code that gets past the VM can point the ECDC at stage 1's records and read
+the device token. That might be a memory-safety bug in LiteForth's C code,
+or a fault injected into the allowlist's check. PMP entry 0 doesn't stop a
+bus master. A signed but malicious image can do the same from machine mode.
+This chip has no bus firewall, and its flash has no area hidden from bus
+masters. Read protection stops only the debugger and the boot ROM.
+`MEMARY_CFGR` covers only the V5F's ITCM and DTCM. The PMP has four entries,
+all in use.
+
+**A second way in.** Machine mode's trap and interrupt handlers run on user
+mode's stack: `HardFault_Handler` saves x1-x31 at user mode's `sp`, and so
+does the hardware prologue (HPE, turned on by the start-up code's write to
+CSR 0x804) of every "fast" interrupt. User code that set `sp` to a
+peripheral's registers and then trapped would have machine mode store its
+registers there. It could program a DMA channel through entry 2 that way,
+or turn on a clock. This hasn't been tried on the board, and won't be: the
+fix doesn't need it shown.
+
+**The plan.** Four parts, none needing another PMP entry:
+
+1. **Machine mode on its own stack.** Every vector goes to a stub whose
+   first instruction is `csrrw sp, mscratch, sp`. It switches to machine
+   mode's stack before anything is stored, and switches back before
+   `mret`. HPE is off. The start-up code sets `mscratch` before its `mret`
+   into `main`. The stack is in DTCM, which user mode can write, and
+   that's acceptable:
+   - there's one core, and no user code runs while a handler does;
+   - user mode can't program a bus master to write it meanwhile (part 2);
+   - so nothing on it can change under a handler.
+
+   Two rules for machine mode, which `mmodecheck.py` partly checks:
+   - **No stores through user mode's pointers,** except into buffers that
+     `guard_buffer_ok` allows.
+   - **No trust in its own data between traps without checking it again.**
+     The `ecall` block (`svc` in `pmp.c`) is copied in at entry; Guarded
+     DMA's state is checked on every call.
+
+   `mmodecheck.py` also checks that every vector's target starts with the
+   swap. This replaces fencing machine mode's data with a PMP entry, which
+   there isn't room for.
+
+   *Built so far:* the fault handler switches to the machine-mode stack
+   (above), confirmed on the board (B29, 28 October 2026); the
+   fast-interrupt handlers still use HPE and come with part 3.
+2. **No bus master runs for user mode.** User mode can't write RCC: entry 2
+   makes it read-only, and `guard.c` does the stores user mode is allowed.
+   A peripheral without its clock neither takes register writes nor runs.
+   - **The guard refuses a store that would turn on a bus master's clock:**
+     ECDC, LTDC, GPHA, HSADC, SDMMC, USBHS, USBSS, USBPD, ETH, DVP, SerDes,
+     UHSIF, QSPI1/2, FMC and PIOC, as well as DMA1/2. It computes the
+     register's value after the store.
+   - **The start-up code turns all of them off.**
+   - **Machine-mode services turn on only what they use,** and turn it off
+     again before returning: Guarded DMA (DMA2) as now, and a new ECDC
+     service that `ctr_hw_crypt` calls. That service takes the key, the
+     counter and a buffer, checked as Guarded DMA checks its buffers. The
+     engine then only ever runs inside machine mode.
+   - **The V3F shares RCC and is trusted.** Its USBFS is inside entry 2.
+3. **User mode out of the interrupt controller and the system timer.**
+   Entry 3 shrinks from all memory to the 2 GB from 0 (NAPOT
+   `0x0FFFFFFF`), so from 0xE0000000 up, the PFIC and SysTick, is machine
+   mode's alone. Its VTF registers could otherwise send an interrupt to
+   user code in machine mode. That means:
+   - **The time base moves from SysTick1 to a general-purpose timer** that
+     user mode reads: it counts microseconds and wraps each millisecond,
+     and its update interrupt counts milliseconds in machine mode, as
+     SysTick's does now.
+   - **Interrupt enables move to the start-up code,** and `reboot` and
+     `standby` become services.
+4. **Machine mode's code is the root's.** Today the release key signs the
+   whole image, machine-mode code included. The code that runs in machine
+   mode (`.mmode` with the vector table, `.ramfunc`'s flash copy, and the
+   start-up path up to its `mret`, moved into `.mmode`) also gets a root
+   signature, made offline (`sealblocks.py mmode-sign`, to be written).
+   Stage 1 checks it at every boot beside the release signature. A stolen
+   release key can then change only user-mode code, and parts 1 to 3
+   fence that in. A machine-mode change needs the root key; that code is
+   about 8 KB and rarely changes.
+
+Entries after part 3:
+
+| # | Region | User | Machine | Locked |
+|---|---|---|---|---|
+| 0 | TOR, 0x00000000-0x08013FFF | none | none | yes |
+| 1 | 0x20100000-0x2013FFFF: the V3F's RAM | none | none | yes |
+| 2 | 0x40020000-0x40023FFF: DMA1, DMA2, DMAMUX, RCC, the flash controller, CRC, USBFS, RNG | read | all | no |
+| 3 | 0x00000000-0x7FFFFFFF | RWX | RWX | yes |
+| | from 0x80000000: the PFIC, SysTick | none | all | |
+
+Considered and left out: `MEMARY_CFGR`, to turn off DMA access to ITCM and
+DTCM. With part 2, only machine mode runs a bus master, and the ECDC's
+in-place path works in DTCM.
+
+**What's left.** Machine-mode code signed by the root that is itself
+hostile: on this chip whatever machine mode can program can read the
+records. Then physical attacks on stage 1 itself (glitching its checks, side
+channels on its key operations). Per-board keys keep any one extraction to
+that board.
+
+**Board checks first**, from Forth on a level 0 board (VM page 5 maps every
+register there; nothing new to build, nothing flashed):
+- **The gap:** the ECDC copies the first 256 bytes of the V3F's image
+  (0x08000000, inside entry 0 but not secret) into the VM's RAM page.
+  Matching the image shows a bus master reading past the PMP.
+- **The fence:** with the ECDC's clock off, a write to its `SRC_ADDR`
+  doesn't stick, and starting it does nothing.
+- **The reset values:** which bus masters' clocks are on at boot (RCC
+  reads only).
+
+Then parts 1 to 3, each with its board test, and part 4.
 
 ### What the board showed (`pmp-test`, 18 October 2026)
 

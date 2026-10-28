@@ -13,15 +13,18 @@
  * `lfGetTimeMicroSec` runs in user mode, so the time base has to be an
  * ordinary peripheral it may read. TIM6 is one.
  *
- * TIM6's count clock: the V3F's TIM7 setup (Common/UART.c) divides
- * SystemCoreClock for a 1 MHz count, so the same holds here. The board
- * test cross-checks the rate against the RTC.
+ * TIM6's count clock is HCLK, the peripheral bus clock. On the V5F
+ * SystemCoreClock is the faster *core* clock (system_ch32h417.c: the
+ * core gets SYSCLK>>HPRE, HCLK is that >>FPRE), unlike the V3F, where
+ * SystemCoreClock already is HCLK. So the prescaler must come from
+ * RCC_GetClocksFreq's HCLK_Frequency, not SystemCoreClock: with
+ * SystemCoreClock the count ran at a quarter rate (FPRE=/4), caught by
+ * the board test's cross-check against the RTC, which this still does.
  */
 #include "ch32h417.h"
 #include "lftime.h"
 #include "mmode.h"                  /* MMODE: TIM6_IRQHandler runs from flash */
 
-extern uint32_t SystemCoreClock;        /* set by SystemAndCoreClockUpdate */
 
 #define US_PER_MS   1000u               /* TIM6 reloads every millisecond */
 #define TIM_UIF     ((uint16_t)0x0001)  /* TIM6->INTFR: the update flag */
@@ -42,11 +45,13 @@ MMODE void TIM6_IRQHandler(void) {
 }
 
 void lfTimeInit(void) {
+    RCC_ClocksTypeDef clk;
     ms_count = 0;
     RCC_HB1PeriphClockCmd(RCC_HB1Periph_TIM6, ENABLE);
     NVIC_SetAllocateIRQ(TIM6_IRQn, Core_ID_V5F);    /* its interrupt goes to the V5F */
+    RCC_GetClocksFreq(&clk);            /* TIM6 counts HCLK, not the V5F core clock */
     TIM6->CTLR1 = 0;                    /* counter off while it's set up */
-    TIM6->PSC = (uint16_t)(SystemCoreClock / 1000000u - 1u);  /* count microseconds */
+    TIM6->PSC = (uint16_t)(clk.HCLK_Frequency / 1000000u - 1u);  /* count microseconds */
     TIM6->ATRLR = (uint16_t)(US_PER_MS - 1u);       /* reload every 1000 us */
     TIM6->SWEVGR = TIM_UG;              /* load PSC and ATRLR */
     TIM6->INTFR = (uint16_t)~TIM_UIF;   /* drop the update the load raised */

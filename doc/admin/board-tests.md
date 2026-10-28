@@ -2903,8 +2903,8 @@ the prescaler fix below) and flashed by the user:
 
 | Image | Size | sha256 |
 |---|---|---|
-| `LiteForth_V3F.bin` | TBD | `TBD` |
-| `LiteForth_V5F.bin` | TBD | `TBD` |
+| `LiteForth_V3F.bin` | 64160 | `404af7a3c96d8f5dfd4cbb9804300b85a555527a71cb1c87c93d19527c62ed7c` |
+| `LiteForth_V5F.bin` | 110712 | `1be6635a295f97a6943c494ab46f899d71058b9923d12017b16c7845fffde27f` |
 
 (The V3F carries the `basic-timers` TIM2->TIM7 change but is otherwise
 as on `main`.)

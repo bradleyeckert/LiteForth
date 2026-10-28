@@ -1,53 +1,66 @@
 /*
  * Time base for LiteForth on the V5F.
  *
- * SysTick1 (the V5F's system timer) counts HCLK cycles up to CMP and
- * reloads to 0, interrupting once a millisecond. The interrupt counts
- * milliseconds in 64 bits; a reading is that count plus the cycles into
- * the current millisecond. Same setup as WCH's SYSTICK_Interrupt example.
+ * TIM6 (a basic timer: a counter and an update event, no output channels
+ * and no pins it could drive) counts microseconds and reloads every 1000,
+ * so its update interrupt fires once a millisecond and counts
+ * milliseconds in 64 bits; a reading is that count plus TIM6->CNT, the
+ * microseconds into the current millisecond.
  *
- * The V5F's SysTick flag is bit 1 of SysTick0->ISR, a register it shares
- * with the V3F (bit 0). The interrupt clears its bit with the same
- * read-modify-write WCH's code uses on both cores.
+ * SysTick was the V5F's first time base, but it lives in the core's
+ * 0xE000xxxx region, which the PMP plan fences off from user mode
+ * (doc/admin/firmware-updates.md section 8, part 3);
+ * `lfGetTimeMicroSec` runs in user mode, so the time base has to be an
+ * ordinary peripheral it may read. TIM6 is one.
+ *
+ * TIM6's count clock: WCH's own TIM2 setup (Common/UART.c) divides
+ * SystemCoreClock for a 1 MHz count, so the same holds here. The board
+ * test cross-checks the rate against the RTC.
  */
 #include "ch32h417.h"
 #include "lftime.h"
-#include "mmode.h"                  /* MMODE: SysTick1_Handler runs from flash */
+#include "mmode.h"                  /* MMODE: TIM6_IRQHandler runs from flash */
 
-extern uint32_t HCLKClock;              /* set by SystemAndCoreClockUpdate */
+extern uint32_t SystemCoreClock;        /* set by SystemAndCoreClockUpdate */
 
-#define TICK_FLAG   (1u << 1)           /* the V5F's bit in SysTick0->ISR */
+#define US_PER_MS   1000u               /* TIM6 reloads every millisecond */
+#define TIM_UIF     ((uint16_t)0x0001)  /* TIM6->INTFR: the update flag */
+#define TIM_UIE     ((uint16_t)0x0001)  /* TIM6->DMAINTENR: update interrupt enable */
+#define TIM_CEN     ((uint16_t)0x0001)  /* TIM6->CTLR1: counter enable */
+/* TIM_UG (TIM6->SWEVGR: load PSC/ATRLR now) comes from ch32h417.h */
 
 static volatile uint64_t ms_count;      /* whole milliseconds since lfTimeInit */
-static uint32_t cycles_per_us;
-static uint32_t cycles_per_ms;
+static int started;
 
-void SysTick1_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+void TIM6_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
 
-MMODE void SysTick1_Handler(void) {
-    if (SysTick0->ISR & TICK_FLAG) {
-        SysTick0->ISR &= ~TICK_FLAG;
+MMODE void TIM6_IRQHandler(void) {
+    if (TIM6->INTFR & TIM_UIF) {
+        TIM6->INTFR = (uint16_t)~TIM_UIF;   /* clear the update flag (rc_w0) */
         ms_count++;
     }
 }
 
 void lfTimeInit(void) {
-    cycles_per_us = HCLKClock / 1000000u;
-    cycles_per_ms = HCLKClock / 1000u;
     ms_count = 0;
-    SysTick1->CTLR = 0;
-    SysTick0->ISR &= ~TICK_FLAG;
-    SysTick1->CMP = cycles_per_ms - 1;  /* counts 0..CMP: one millisecond */
-    SysTick1->CNT = 0;
-    SysTick1->CTLR = 0xF;               /* reload at CMP, HCLK, interrupt, enable */
-    NVIC_SetPriority(SysTick1_IRQn, 0);
-    NVIC_EnableIRQ(SysTick1_IRQn);
+    RCC_HB1PeriphClockCmd(RCC_HB1Periph_TIM6, ENABLE);
+    NVIC_SetAllocateIRQ(TIM6_IRQn, Core_ID_V5F);    /* its interrupt goes to the V5F */
+    TIM6->CTLR1 = 0;                    /* counter off while it's set up */
+    TIM6->PSC = (uint16_t)(SystemCoreClock / 1000000u - 1u);  /* count microseconds */
+    TIM6->ATRLR = (uint16_t)(US_PER_MS - 1u);       /* reload every 1000 us */
+    TIM6->SWEVGR = TIM_UG;              /* load PSC and ATRLR */
+    TIM6->INTFR = (uint16_t)~TIM_UIF;   /* drop the update the load raised */
+    TIM6->DMAINTENR = TIM_UIE;          /* interrupt on each reload */
+    TIM6->CTLR1 = TIM_CEN;              /* start counting */
+    NVIC_SetPriority(TIM6_IRQn, 0);
+    NVIC_EnableIRQ(TIM6_IRQn);
+    started = 1;
 }
 
 uint64_t lfGetTimeMicroSec(void) {
     uint64_t ms;
-    uint32_t cycles, reloaded;
-    if (cycles_per_us == 0) return 0;   /* lfTimeInit not called */
+    uint32_t us, reloaded;
+    if (!started) return 0;             /* lfTimeInit not called */
     /* Upper, lower, upper: read the millisecond count, then the counter and
        its reload flag, then the count again, and retry if the interrupt ran
        in between. Reading the flag inside the loop matters: if the interrupt
@@ -55,16 +68,16 @@ uint64_t lfGetTimeMicroSec(void) {
        small counter value would be added to the old count (1 ms back). */
     do {
         ms = ms_count;
-        cycles = SysTick1->CNT;
-        reloaded = SysTick0->ISR & TICK_FLAG;
+        us = TIM6->CNT;
+        reloaded = TIM6->INTFR & TIM_UIF;
     } while (ms != ms_count);
     /* The counter has reloaded but the interrupt hasn't run yet (interrupts
        off, or it's pending): count that millisecond here. A small counter
        value means the reload came before the counter was read. */
-    if (reloaded && cycles < cycles_per_ms / 2) {
+    if (reloaded && us < US_PER_MS / 2) {
         ms++;
     }
-    return ms * 1000u + cycles / cycles_per_us;
+    return ms * 1000u + us;
 }
 
 void lfWatchdogPing(void) {
@@ -258,7 +271,7 @@ int lfStandby(void) {
     }
 
     __disable_irq();
-    SysTick1->CTLR = 0;                 /* no millisecond ticks to wake us */
+    TIM6->CTLR1 = 0;                    /* stop the millisecond tick before Stop mode */
     __WFE_IDSET(EXTI_Line17);
     PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFE);
 

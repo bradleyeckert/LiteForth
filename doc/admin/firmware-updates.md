@@ -779,7 +779,10 @@ fix doesn't need it shown.
    - **The time base moves from SysTick1 to a general-purpose timer** that
      user mode reads: it counts microseconds and wraps each millisecond,
      and its update interrupt counts milliseconds in machine mode, as
-     SysTick's does now.
+     SysTick's does now. *Built (28 October 2026, pending a board test):*
+     TIM6, a basic timer (no output channels), in `V5F/User/lftime.c`.
+     This is the prerequisite; the PMP shrink and the interrupt-enable
+     move follow once it's confirmed on the board.
    - **Interrupt enables move to the start-up code,** and `reboot` and
      `standby` become services.
 4. **Machine mode's code is the root's.** Today the release key signs the

@@ -601,12 +601,16 @@ tosys_op:
         sw      a3, VMS_SHIFT(rBASE)
         jr      rTAIL
 tosys_io:                               // iomap_wr(imm, T)
-        SPILL
-        mv      a0, a1
-        mv      a1, a3
+        mv      a7, a1                  // the port (VM_SAVE uses a1)
+        VM_SAVE                         // iomap_wr may clobber a callee-saved
+        SPILL                           // register on the board (the XW build
+        mv      a0, a7                  // did), so park all VM state and reload
+        mv      a1, a3                  // it, as api_op does
         call    iomap_wr
         mv      a3, a0
         UNSPILL
+        VM_LOAD
+        li      rCSPAN, 0               // in case rCBASE/rCSPAN were clobbered
         bnez    a3, fail
         jr      rTAIL
 
@@ -636,13 +640,17 @@ fromsys_op:
         or      rT, rT, a1
         jr      rTAIL
 fromsys_io:                             // T = iomap_rd(imm, &data): 0 if it failed
-        SPILL
-        mv      a0, a1
+        mv      a7, a1                  // the port (VM_SAVE uses a1)
+        VM_SAVE                         // as tosys_io: park all VM state across
+        SPILL                           // the call, in case it clobbers one
+        mv      a0, a7
         addi    a1, sp, IO_DATA
         call    iomap_rd
         mv      a3, a0
-        lw      rT, IO_DATA(sp)         // iomap_rd sets it, to 0 on failure
         UNSPILL
+        VM_LOAD
+        lw      rT, IO_DATA(sp)         // the result (0 on failure): after
+        li      rCSPAN, 0               // VM_LOAD, which would overwrite it
         bnez    a3, fail
         jr      rTAIL
 

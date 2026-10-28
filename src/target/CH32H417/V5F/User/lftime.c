@@ -13,7 +13,7 @@
  * `lfGetTimeMicroSec` runs in user mode, so the time base has to be an
  * ordinary peripheral it may read. TIM6 is one.
  *
- * TIM6's count clock: WCH's own TIM2 setup (Common/UART.c) divides
+ * TIM6's count clock: the V3F's TIM7 setup (Common/UART.c) divides
  * SystemCoreClock for a 1 MHz count, so the same holds here. The board
  * test cross-checks the rate against the RTC.
  */

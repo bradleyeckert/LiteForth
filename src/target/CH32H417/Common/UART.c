@@ -15,7 +15,7 @@
 /*******************************************************************************/
 /* Variable Definition */
 /* Global */
-void TIM2_IRQHandler( void )__attribute__((interrupt("WCH-Interrupt-fast")));
+void TIM7_IRQHandler( void )__attribute__((interrupt("WCH-Interrupt-fast")));
 
 
 /* The following are serial port transmit and receive related variables and buffers */
@@ -36,43 +36,43 @@ volatile uint32_t UARTx_Rx_DMALastCount;                      /* Serial port rec
 uint8_t RCC_Configuration( void )
 {
     RCC_HB2PeriphClockCmd( RCC_HB2Periph_AFIO | RCC_HB2Periph_GPIOF | RCC_HB2Periph_GPIOA, ENABLE );
-    RCC_HB1PeriphClockCmd( RCC_HB1Periph_USART4 | RCC_HB1Periph_TIM2, ENABLE );
+    RCC_HB1PeriphClockCmd( RCC_HB1Periph_USART4 | RCC_HB1Periph_TIM7, ENABLE );
     RCC_HBPeriphClockCmd( RCC_HBPeriph_DMA1, ENABLE );
     return 0;
 }
 
 /*********************************************************************
- * @fn      TIM2_Init
+ * @fn      TIM7_Init
  *
  * @brief   100us Timer
  *          144 * 100 * 13.8888 -----> 100uS
  *
  * @return  none
  */
-void TIM2_Init( void )
+void TIM7_Init( void )
 {
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure = {0};
 
-    TIM_DeInit( TIM2 );
+    TIM_DeInit( TIM7 );
 
     /* Time base configuration */
     TIM_TimeBaseStructure.TIM_Period = 100 - 1;
     TIM_TimeBaseStructure.TIM_Prescaler = SystemCoreClock / 1000000 - 1;
     TIM_TimeBaseStructure.TIM_ClockDivision = 0;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit( TIM2, &TIM_TimeBaseStructure );
+    TIM_TimeBaseInit( TIM7, &TIM_TimeBaseStructure );
 
-    /* Clear TIM2 update pending flag */
-    TIM_ClearFlag( TIM2, TIM_FLAG_Update );
+    /* Clear TIM7 update pending flag */
+    TIM_ClearFlag( TIM7, TIM_FLAG_Update );
 
     /* TIM IT enable */
-    TIM_ITConfig( TIM2, TIM_IT_Update, ENABLE );
+    TIM_ITConfig( TIM7, TIM_IT_Update, ENABLE );
 
     /* Enable Interrupt */
-    NVIC_EnableIRQ( TIM2_IRQn );
+    NVIC_EnableIRQ( TIM7_IRQn );
 
-    /* TIM2 enable counter */
-    TIM_Cmd( TIM2, ENABLE );
+    /* TIM7 enable counter */
+    TIM_Cmd( TIM7, ENABLE );
 }
 
 /*********************************************************************
@@ -536,15 +536,15 @@ void UART_DataRx_Deal( void )
 
 
 /*********************************************************************
- * @fn      TIM2_IRQHandler
+ * @fn      TIM7_IRQHandler
  *
- * @brief   This function handles TIM2 exception.
+ * @brief   This function handles TIM7 exception.
  *
  * @return  none
  */
 #ifndef Core_V5F    /* LiteForth: the V5F never takes this interrupt, and its
                         machine mode runs only code in flash (V5F/User/mmode.h) */
-void TIM2_IRQHandler( void )
+void TIM7_IRQHandler( void )
 {
     /* Test IO */
     static uint8_t tog;
@@ -555,6 +555,6 @@ void TIM2_IRQHandler( void )
     Uart.USB_Up_TimeOut++;
 
     /* clear status */
-    TIM2->INTFR = (uint16_t)~TIM_IT_Update;
+    TIM7->INTFR = (uint16_t)~TIM_IT_Update;
 }
 #endif

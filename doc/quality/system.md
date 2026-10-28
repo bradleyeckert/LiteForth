@@ -445,7 +445,12 @@ stores through user mode's pointers only into buffers it has checked, and
 trusts none of its data between traps without checking it again.
 
 - **Parent:** UN-09
-- **Status:** planned
+- **Verified by:** board:B29
+- **Status:** partial
+- **Gap:** the fault handler is on the machine-mode stack (B29); the
+  fast-interrupt handlers (SysTick1, the ecall services) still save at
+  user mode's `sp` through WCH's hardware prologue, done with the PFIC and
+  timer move (firmware-updates.md section 8, part 3)
 
 ### SYS-SEC-13: No bus master runs for user mode
 User mode can't turn on the clock of any bus master (the ECDC, LTDC,

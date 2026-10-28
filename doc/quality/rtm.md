@@ -7,7 +7,7 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 75 | 51 | 17 | 7 | 24 |
+| System requirements (SYS) | 75 | 51 | 18 | 6 | 24 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -73,7 +73,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-SEC-08](system.md#sys-sec-08-protected-stores-fault-into-forth) Protected stores fault into Forth | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted), [UN-01](needs.md#un-01-interactive-forth-on-a-cheap-board) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`guard::test_allowed`<br>unit:`guard::test_decode`<br>B15 | verified |
 | [SYS-SEC-09](system.md#sys-sec-09-debug-tools-dont-unlock-boards) Debug tools don't unlock boards | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted), [UN-13](needs.md#un-13-tools-on-the-pc) | [ARC-TOOLS](architecture.md#arc-tools-the-pc-tools) | unit:`lfmcp::wlink flash refused`<br>integ:`stage1sim::lockdown.py run: a locked board refused before any flash`<br>integ:`stage1sim::lockdown.py: both images flashed` | verified |
 | [SYS-SEC-10](system.md#sys-sec-10-a-restricted-wordlist-at-start-up) A restricted wordlist at start-up | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-FORTH](architecture.md#arc-forth-the-interpreter-compiler-and-dictionary) | - | planned |
-| [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) User mode can't steer machine mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | - | planned |
+| [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) User mode can't steer machine mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B29 | partial |
 | [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng) Keys only from a healthy RNG | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | insp:`src/target/CH32H417/V3F/User/stage1.c::RNG_FLAG_SECS`<br>B25 | partial |
 | [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) No bus master runs for user mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | - | planned |
 | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) Machine mode's code is the root's | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | - | planned |
@@ -260,6 +260,7 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B26. The V5F's memory pool in general-purpose SRAM | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool), [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime), [SYS-STO-01](system.md#sys-sto-01-the-block-file-on-the-card), [SYS-STO-08](system.md#sys-sto-08-shared-memory-for-occasional-buffers), [UN-01](needs.md#un-01-interactive-forth-on-a-cheap-board), [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read), [UN-13](needs.md#un-13-tools-on-the-pc) |
 | B27. ECDC, the RTC and standby, a CPU fault in the app, Ctrl+X in a transfer | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime), [MOD-ECDC](modules.md#mod-ecdc-the-aes-and-sm4-engine), [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f), [SYS-LANG-09](system.md#sys-lang-09-cpu-faults-become-forth-errors), [SYS-TERM-04](system.md#sys-term-04-binary-transfers-pass-every-byte), [SYS-TIME-01](system.md#sys-time-01-a-real-time-clock-and-the-calendar), [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm), [UN-03](needs.md#un-03-applications-that-run-on-their-own), [UN-06](needs.md#un-06-clock-and-low-power-sleep) |
 | B28. Level 2: the flash pages can't be opened or saved | [SYS-STO-07](system.md#sys-sto-07-flash-pages-written-only-through-a-checked-service) |
+| B29. The fault handler on machine mode's own stack | [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) |
 
 ## Gaps
 
@@ -293,7 +294,7 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-SEC-02](system.md#sys-sec-02-the-v3fs-ram-is-fenced-from-the-v5fs-cpu): partial: B23 shows reads faulting, not writes; bus masters aren't fenced (as SYS-SEC-01)
 - [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma): partial: other bus masters (the ECDC, SDMMC, USBHS, ...) aren't fenced (SYS-SEC-13, planned); SYS-SEC-06 covers what that leaves
 - [SYS-SEC-10](system.md#sys-sec-10-a-restricted-wordlist-at-start-up): planned: not built yet
-- [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode): planned: not built yet
+- [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode): partial: the fault handler is on the machine-mode stack (B29); the
 - [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng): partial: no test makes the RNG fail; its quality on real parts isn't verified
 - [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode): planned: not built yet
 - [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots): planned: not built yet

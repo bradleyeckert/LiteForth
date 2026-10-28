@@ -754,9 +754,9 @@ fix doesn't need it shown.
    swap. This replaces fencing machine mode's data with a PMP entry, which
    there isn't room for.
 
-   *Built so far (27 October 2026):* the fault handler switches to the
-   machine-mode stack (above); the fast-interrupt handlers still use HPE
-   and come with part 3.
+   *Built so far:* the fault handler switches to the machine-mode stack
+   (above), confirmed on the board (B29, 28 October 2026); the
+   fast-interrupt handlers still use HPE and come with part 3.
 2. **No bus master runs for user mode.** User mode can't write RCC: entry 2
    makes it read-only, and `guard.c` does the stores user mode is allowed.
    A peripheral without its clock neither takes register writes nor runs.

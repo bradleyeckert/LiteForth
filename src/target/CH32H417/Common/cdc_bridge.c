@@ -36,7 +36,7 @@
  *   meanwhile (up to 4K; serial_putc drops the rest) appears when a
  *   terminal opens the port.
  *
- *   A program can also keep the port open but stop reading. TIM2's
+ *   A program can also keep the port open but stop reading. TIM7's
  *   interrupt (UART.c, 100 us ticks) counts Uart.USB_Up_TimeOut; when a
  *   packet waits longer than CDC_TX_TIMEOUT with the port open, the bridge
  *   discards the tx ring until the host reads again, so the V5F never
@@ -57,7 +57,7 @@
 #include "ch32h417_usbfs_device.h"  /* USBFSD, USBFS_EP3_Buf, Uart, UART_Tx_Buf */
 
 #ifndef CDC_TX_TIMEOUT
-#define CDC_TX_TIMEOUT  1000            /* TIM2 ticks of 100 us: 100 ms */
+#define CDC_TX_TIMEOUT  1000            /* TIM7 ticks of 100 us: 100 ms */
 #endif
 
 #define CDC_PACKET      DEF_USBD_FS_PACK_SIZE   /* 64 */
@@ -273,7 +273,7 @@ static void cdc_standby(void) {
     printf("V3F: standby\r\n");
     debug_uart_drain();
     USBFS_Device_Init(DISABLE);         /* pull-up off: the host sees a detach */
-    NVIC_DisableIRQ(TIM2_IRQn);
+    NVIC_DisableIRQ(TIM7_IRQn);
     __disable_irq();
     while (1) {                         /* a stray wake-up just sleeps again */
         PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFI);

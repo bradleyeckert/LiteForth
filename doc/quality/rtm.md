@@ -168,7 +168,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [MOD-V5F-BLOCKS](modules.md#mod-v5f-blocks-the-card-driver) The card driver | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime), [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | `src/target/CH32H417/V5F/User/blocks.c::blk_stage_check`<br>`src/target/CH32H417/V5F/User/blocks.h` | `doc/sdcard.md`<br>`doc/blocks.md#Transfers without waiting` | unit:`blocksim::test_reads`<br>unit:`blocksim::test_faults` | verified |
 | [MOD-V5F-BOARD](modules.md#mod-v5f-board-the-boards-identity) The board's identity | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime) | `src/target/CH32H417/V5F/User/board.c` | `doc/admin/updates.md#Both cores` | B22<br>B25 | partial |
 | [MOD-V5F-FLASH](modules.md#mod-v5f-flash-flash-pages-on-the-v5f) Flash pages on the V5F | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime) | `src/target/CH32H417/V5F/User/flash.c` | `doc/flashmem.md` | B14<br>B24 | partial |
-| [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f) Time and standby on the V5F | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime) | `src/target/CH32H417/V5F/User/lftime.c` | `doc/glossary.md` | unit:`rtc`<br>B27 | partial |
+| [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f) Time and standby on the V5F | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime) | `src/target/CH32H417/V5F/User/lftime.c` | `doc/glossary.md` | unit:`rtc`<br>B27<br>B30 | partial |
 | [MOD-VM](modules.md#mod-vm-the-vm-in-c) The VM in C | [ARC-VM](architecture.md#arc-vm-the-forth-virtual-machine) | `src/vm.c::vmExec`<br>`src/vm.h`<br>`src/vm_labels.h` | `README.md#ISA`<br>`doc/popthehood.md#VM memory`<br>`CLAUDE.md#Design notes` | unit:`ioguard`<br>unit:`traps::once: the trap's ior`<br>unit:`scripts/regression.f::T{` | verified |
 | [MOD-VMASM](modules.md#mod-vmasm-the-vm-in-rv32-assembly) The VM in RV32 assembly | [ARC-VM](architecture.md#arc-vm-the-forth-virtual-machine) | `src/vm_rv32.S` | `CLAUDE.md#Design notes` | unit:`vmasm::vm_rv32.S matches vm.c` | verified |
 | [MOD-YMODEM](modules.md#mod-ymodem-ymodem-in-liteforth) YMODEM in LiteForth | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | `src/ymodem.c::lfAPI_ymodem`<br>`src/ymodem.h` | `doc/blocks.md#Sending files over the terminal` | unit:`ymodem::corrupt packet NAKed`<br>unit:`sealed::stage: written exactly` | verified |
@@ -261,6 +261,7 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B27. ECDC, the RTC and standby, a CPU fault in the app, Ctrl+X in a transfer | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime), [MOD-ECDC](modules.md#mod-ecdc-the-aes-and-sm4-engine), [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f), [SYS-LANG-09](system.md#sys-lang-09-cpu-faults-become-forth-errors), [SYS-TERM-04](system.md#sys-term-04-binary-transfers-pass-every-byte), [SYS-TIME-01](system.md#sys-time-01-a-real-time-clock-and-the-calendar), [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm), [UN-03](needs.md#un-03-applications-that-run-on-their-own), [UN-06](needs.md#un-06-clock-and-low-power-sleep) |
 | B28. Level 2: the flash pages can't be opened or saved | [SYS-STO-07](system.md#sys-sto-07-flash-pages-written-only-through-a-checked-service) |
 | B29. The fault handler on machine mode's own stack | [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) |
+| B30. The V5F's time base on TIM6, and standby | [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f) |
 
 ## Gaps
 
@@ -279,7 +280,7 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [MOD-V3F](modules.md#mod-v3f-the-v3fs-main-loop-and-bridge): partial: the V3F's `main.c` runs only on the board (stage1sim has its own); B18 covers it
 - [MOD-V5F-BOARD](modules.md#mod-v5f-board-the-boards-identity): no unit evidence for a module
 - [MOD-V5F-FLASH](modules.md#mod-v5f-flash-flash-pages-on-the-v5f): no unit evidence for a module
-- [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f): partial: the desktop's version is unit-tested; the V5F's is shown on the board (B27)
+- [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f): partial: the desktop's version is unit-tested; the V5F's is shown on the board (B27, and the TIM6 microsecond base in B30)
 - [SYS-DISP-01](system.md#sys-disp-01-text-on-an-st7789-lcd): partial: no board run logged
 - [SYS-LANG-09](system.md#sys-lang-09-cpu-faults-become-forth-errors): partial: -23 and -128 can't be made from Forth on the board (whole-cell accesses, no machine code), so they're tested on the desktop with API calls standing in
 - [SYS-LOG-01](system.md#sys-log-01-logs-only-the-server-can-read): partial: the format and keys are built and tested on the desktop (datalog.c, lflog.py); the server key in the firmware and the board side are not (SYS-LOG-07, SYS-LOG-08)

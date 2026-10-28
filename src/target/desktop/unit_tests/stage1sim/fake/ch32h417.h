@@ -67,7 +67,7 @@ FlagStatus RNG_GetFlagStatus(uint32_t flag);
 uint32_t RNG_GetRandomNumber(void);
 
 /* Interrupts and resets */
-typedef enum { SDIO_IRQn = 1, USBFS_IRQn, TIM2_IRQn, HSEM_IRQn } IRQn_Type;
+typedef enum { SDIO_IRQn = 1, USBFS_IRQn, TIM7_IRQn, HSEM_IRQn } IRQn_Type;
 void NVIC_DisableIRQ(IRQn_Type irq);
 void NVIC_EnableIRQ(IRQn_Type irq);
 void NVIC_SystemReset(void) __attribute__((noreturn));

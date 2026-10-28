@@ -41,8 +41,8 @@ void Hardware(void)
            __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 	RCC_Configuration( );
 
-    /* Tim2 init */
-    TIM2_Init( );
+    /* Tim7 init (a basic timer, no PWM pins: frees TIM2 for applications) */
+    TIM7_Init( );
 
     /* USB state (Uart, used by the USB interrupt) and USART4 */
     UART_Init( 1, DEF_UARTx_BAUDRATE, DEF_UARTx_STOPBIT, DEF_UARTx_PARITY );

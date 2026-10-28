@@ -2892,3 +2892,103 @@ one machine-mode stack is reusable), and `reboot` starts cleanly. Not
 tested: a store aimed by `sp` into a peripheral, which needs native code,
 not Forth; the fast-interrupt handlers still save at user mode's `sp`
 (SYS-SEC-11 is finished with part 3).
+
+### B30. The V5F's time base on TIM6, and standby (28 October 2026)
+
+**Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
+`SECURITY_LEVEL` 0, built in MounRiver from branch `basic-timers`
+(commit `7fdbc44`: the time base on TIM6, SYS-SEC-15's prerequisite,
+`doc/admin/firmware-updates.md` section 8 part 3; and commit `fbf9e08`:
+the prescaler fix below) and flashed by the user:
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 64160 | `404af7a3c96d8f5dfd4cbb9804300b85a555527a71cb1c87c93d19527c62ed7c` |
+| `LiteForth_V5F.bin` | 110712 | `1be6635a295f97a6943c494ab46f899d71058b9923d12017b16c7845fffde27f` |
+
+(The V3F carries the `basic-timers` TIM2->TIM7 change but is otherwise
+as on `main`.)
+
+**Why:** the V5F's microsecond time base moved from SysTick1 to TIM6, a
+basic timer user mode can read, so the PMP plan can later fence off the
+0xE000xxxx region (PFIC and SysTick). Two things to confirm on the
+board: that the microsecond rate is right, cross-checked against the
+RTC (an independent 32.768 kHz crystal), and that `standby` (Stop mode,
+woken by the RTC alarm, which resets the chip) still works with TIM6 as
+the base. `capusec` captures the counter; `x@` reads its low 32 bits.
+
+**A rate bug, found and fixed.** The first flash ran the microsecond
+counter at a quarter rate. Over ~24 s, `capusec x@` advanced ~3.93 s
+then ~6.0 s against 16 s and 24 s of RTC: about 250 kHz, not 1 MHz.
+`lfTimeInit` set the prescaler from `SystemCoreClock`, but on the V5F
+that is the core clock (SYSCLK >> HPRE), while TIM6 counts HCLK (that
+>> FPRE, FPRE = /4 here); `system_ch32h417.c` makes `SystemCoreClock`
+the core clock on the V5F and HCLK on the V3F, which is why the V3F's
+TIM7/TIM2 prescaler (same formula) is right and this one wasn't. Fixed
+to take the prescaler from `RCC_GetClocksFreq`'s `HCLK_Frequency`
+(commit `fbf9e08`, `doc/ch32h417-notes.md`), and reflashed.
+
+**Expected:** after the fix, the microsecond counter tracks the RTC at
+~1 MHz (one RTC second per 1,000,000 counts); `standby` with an alarm a
+few seconds ahead sleeps, the alarm wakes and resets the chip, it
+reboots, `alarm?` reports the alarm wake, and `rtc@` has advanced by the
+sleep (the RTC counts through Stop mode and the reset); TIM6 is set up
+again on the reboot and keeps the right rate.
+
+**Run.** Cli port (COM17, through lfmcp). Rate, after the fix: two
+captures of `rtc@` and `capusec x@`, ~31 s of wall clock apart:
+
+```
+> rtc@ . capusec x@ .
+85 85345019 ok>
+> rtc@ . capusec x@ .
+116 116610936 ok>
+```
+
+d(rtc) = 31 s, d(us) = 31,265,917 us = 31.27 s: 1,008,578 us per RTC
+second, 1 MHz within the RTC's +/-1 s integer quantization. (The first
+flash, before the fix, gave ~250,000 us per RTC second.)
+
+Standby. The alarm is an absolute RTC second and must be at least 2 s
+ahead when `standby` runs, so it is set and `standby` called on one
+line (set too early, the round-trip latency ate the margin and `standby`
+returned `-24`):
+
+```
+> rtc@ .
+477 ok>
+> rtc@ 20 + alarm!
+ok>
+> standby
+[no ok>: the board drained its output, slept in Stop mode, the RTC
+ alarm woke it ~20 s later and reset the chip, and it rebooted]
+[幸运狐] v0.02
+ok>
+> alarm? .
+-1 ok>
+> rtc@ .
+530 ok>
+```
+
+`alarm?` is true (`-1`): the reboot came from the RTC alarm. `rtc@` went
+477 -> 530 across the sleep and reset, so the RTC counted through Stop
+mode and the backup domain survived. TIM6 was set up again on the
+reboot and keeps the rate:
+
+```
+> capusec x@ .
+56930873 ok>
+> rtc@ .
+555 ok>
+```
+
+56.93 s on TIM6 against 57 s of RTC since the reboot (the alarm reset
+was at rtc ~498).
+
+**Result:** pass. The microsecond base runs at 1 MHz against the RTC
+after the prescaler fix, `standby` sleeps and wakes on the alarm with a
+clean reboot, the RTC keeps time through Stop mode and the reset, and
+TIM6 re-inits at the right rate on the reboot. Not tested: the full
+SYS-SEC-15 PMP shrink and the interrupt-enable move, which this time
+base is only the prerequisite for; the V3F's TIM7 TX-timeout edge case
+(needs a host that opens the port and stops reading).

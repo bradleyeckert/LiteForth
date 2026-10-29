@@ -107,6 +107,28 @@ def read_until_prompt(s, timeout):
     return total, saw, time.monotonic() - t0
 
 
+def read_counting(s, quiet=1.0, limit=20.0):
+    """Read and count bytes until the line goes quiet or the limit is hit,
+    whichever first. Doesn't wait for an ok>: when the board races through
+    the dump (TIM7 discarding the unread ring) it may finish, and print its
+    ok>, while we aren't reading, so no prompt is left to see on resume.
+    Returns (byte_count, saw_prompt)."""
+    total = 0
+    tail = b""
+    saw = False
+    last = time.monotonic()
+    start = last
+    while time.monotonic() - last < quiet and time.monotonic() - start < limit:
+        chunk = s.read(8192)
+        if chunk:
+            total += len(chunk)
+            tail = (tail + chunk)[-64:]
+            if PROMPT in tail:
+                saw = True
+            last = time.monotonic()
+    return total, saw
+
+
 def dump_cmd(cells):
     return b"decimal 0 %d dump\r" % cells
 
@@ -151,9 +173,9 @@ def main():
         s.write(dump_cmd(a.cells))
         s.flush()
         time.sleep(a.stall)             # port open (DTR), host not reading
-        b_stall, ok_stall, t_stall = read_until_prompt(s, timeout=60)
-        print(f"stall:    {b_stall} bytes "
-              f"({'reached' if ok_stall else 'no'} ok> after {a.stall}s of not reading)")
+        b_stall, ok_stall = read_counting(s, quiet=1.0, limit=20)
+        print(f"stall:    {b_stall} bytes after {a.stall}s of not reading"
+              f"{' (ok> still in the ring)' if ok_stall else ' (ok> was discarded too)'}")
 
         # Liveness sanity check: the board answers afterwards.
         drain(s)
@@ -174,15 +196,20 @@ def main():
               f"were discarded during the stall")
         print(f"alive:    board {'answered' if alive else 'did NOT answer'} after the stall")
 
-        ok = ok_stall and alive and loss >= a.loss
+        # The pass criterion is loss + liveness. A missing ok> in the stall
+        # read is NOT a failure: when the board finishes the dump during the
+        # stall, its ok> is discarded with everything else; the sentinel below
+        # proves it is back at a working prompt either way.
+        ok = alive and loss >= a.loss
         if ok:
-            print(f"\nPASS: the bridge discarded the tx ring while unread "
-                  f"(>= {a.loss*100:.0f}% lost) and the V5F kept going -- "
-                  f"TIM7's TX timeout works.")
+            tail_note = ("the board even finished the dump during the stall "
+                         "(its ok> was discarded too); "
+                         if not ok_stall else "")
+            print(f"\nPASS: {tail_note}the bridge discarded the tx ring while "
+                  f"unread ({loss*100:.1f}% lost, >= {a.loss*100:.0f}%) and the "
+                  f"V5F kept going and answered -- TIM7's TX timeout works.")
         else:
             print("\nFAIL:")
-            if not ok_stall:
-                print("  - the dump never finished after the stall")
             if not alive:
                 print("  - the board didn't answer afterwards (it may be wedged; "
                       "Ctrl+X x3 resets it)")

@@ -609,9 +609,8 @@ tosys_io:                               // iomap_wr(imm, T)
         call    iomap_wr
         mv      a3, a0
         UNSPILL
-        VM_LOAD
-        li      rCSPAN, 0               // in case rCBASE/rCSPAN were clobbered
-        bnez    a3, fail
+        VM_LOAD                         // iomap doesn't remap memory, so (unlike
+        bnez    a3, fail                // api_op) cspan stays valid: no refetch
         jr      rTAIL
 
 fromsys_op:
@@ -649,9 +648,8 @@ fromsys_io:                             // T = iomap_rd(imm, &data): 0 if it fai
         mv      a3, a0
         UNSPILL
         VM_LOAD
-        lw      rT, IO_DATA(sp)         // the result (0 on failure): after
-        li      rCSPAN, 0               // VM_LOAD, which would overwrite it
-        bnez    a3, fail
+        lw      rT, IO_DATA(sp)         // the result (0 on failure)
+        bnez    a3, fail                // cspan stays valid (see tosys_io)
         jr      rTAIL
 
 api_op:                                 // API and XAPI

@@ -58,9 +58,13 @@ _Static_assert(V3F_RAM % V3F_RAM_SIZE == 0, "a NAPOT region is aligned to its si
 _Static_assert(CDC_SHARED_ADDR >= V3F_RAM + V3F_RAM_SIZE, "the shared block is outside entry 1");
 #define PMP_ADDR1   NAPOT(V3F_RAM, V3F_RAM_SIZE)
 #define PMP_ADDR2   NAPOT(GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE)
-#define PMP_ADDR3   0x1FFFFFFFu                 /* NAPOT: 4 GB from 0, all of memory */
-/* (0xFFFFFFFF reads back as 0x3FFFFFFF: the core doesn't keep pmpaddr's
-   top two bits, address bits 33:32. Both still cover everything.) */
+/* NAPOT: 2 GB from 0. From 0x80000000 up -- the PFIC, SysTick and the system
+   control register (0xE00xxxxx) -- no PMP entry matches, so that region is
+   machine mode's alone (an unmatched access is allowed for M, denied for U),
+   which fences the interrupt controller and the timer off from user mode
+   (SYS-SEC-15, doc/admin/firmware-updates.md section 8 part 3). User mode
+   keeps all it needs below 2 GB: flash, RAM, ITCM/DTCM and the peripherals. */
+#define PMP_ADDR3   0x0FFFFFFFu
 #define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | (PMP_L | PMP_NAPOT) << 8 | \
                      (PMP_NAPOT | PMP_R) << 16 | (PMP_L | PMP_NAPOT | PMP_RWX) << 24)
 

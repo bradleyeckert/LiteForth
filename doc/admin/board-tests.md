@@ -3012,7 +3012,7 @@ flashed by the user. Only the V5F changed; the V3F is as on `main`.
 
 | Image | Size | sha256 |
 |---|---|---|
-| `LiteForth_V5F.bin` | TBD | `TBD` |
+| `LiteForth_V5F.bin` | 111016 | `8d5f8d90cda0dcd090f4b52a65a02598a040cd993e517cadfb1ca7c5f0a34b7e` |
 
 **Why:** part 3 of the PMP plan (SYS-SEC-15,
 `doc/admin/firmware-updates.md` section 8): the PFIC, SysTick and the

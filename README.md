@@ -14,6 +14,7 @@ The [nanoCH32H417](https://github.com/wuxx/nanoCH32H417)
 is about 10 times that. It has a built-in WCH-Link. Try to find a kit with a 1.54" LCD.
 To get LiteForth running on it, see the
 [quickstart](src/target/CH32H417/quickstart.md).
+![nanoCH32H417](./doc/nanoboard.jpg)
 
 The minimum hardware requirements for LiteForth are something like:
 

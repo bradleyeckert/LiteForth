@@ -630,6 +630,20 @@ static void test_signed(void) {
     forge_record(4);
     CHECK(boot(0) == UPD_RECOVERY, "signed: changed code with a forged MAC: %s", msg);
 
+    /* the root signature covers different machine-mode bytes than the image
+       carries: a stolen release key can re-sign block 0 but not forge the
+       root's signature over changed machine-mode code, so the flash won't
+       match it and the trial ends in recovery (part 4) */
+    io.check_pages = 1;
+    io.check_signature = 1;
+    io.adopt_blank = 0;
+    fresh();
+    put_package("appbadmm.lfu");
+    r = boot(1);
+    for (unsigned i = 0; i <= UPD_TRIAL_BOOTS; i++) r = boot(0);
+    CHECK(r == UPD_RECOVERY && rec.result == UPD_R_BROKEN,
+          "signed: an unmatched machine-mode signature stays in recovery: %d %s", r, msg);
+
     /* the kept block 0 changed, or another package's */
     signed_board();
     flash[UPD_HEADER + 200] ^= 1;

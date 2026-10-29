@@ -384,12 +384,20 @@ def main():
 
         with open(os.path.join(t.WORK, 'pages.bin'), 'wb') as f:
             f.write(bytes((i * 13 + (i >> 9)) & 255 for i in range(t.PAGES_LEN)))
+        with open(os.path.join(t.WORK, 'v1.bin'), 'rb') as f:
+            body = f.read()
+        with open(os.path.join(t.WORK, 'v1slot.bin'), 'wb') as f:
+            f.write(body + b'\xff' * (t.sb.APP_SLOT - len(body)))
+        sealblocks('mmode-sign', 'v1slot.bin', 'batch.mm', '--root', 'root.key',
+                   '--product', t.PRODUCT)
         pkg = os.path.join(t.WORK, 'batch.lfu')
         sealblocks('package', 'v1.bin', pkg, '--component', 'app', '--pages', 'pages.bin',
-                   '--release', 'rel.key', '--boards', enrolled, '--revision', 1)
+                   '--release', 'rel.key', '--boards', enrolled, '--revision', 1,
+                   '--mmode-sig', 'batch.mm')
         pkg2 = os.path.join(t.WORK, 'batch-v2.lfu')
         sealblocks('package', 'v1.bin', pkg2, '--component', 'app', '--pages', 'pages.bin',
-                   '--release', 'rel.key', '--boards', enrolled, '--revision', 2)
+                   '--release', 'rel.key', '--boards', enrolled, '--revision', 2,
+                   '--mmode-sig', 'batch.mm')
         test = os.path.join(t.WORK, 'product-test.txt')
         with open(test, 'w') as f:
             f.write('# the product\'s test\n1 2 + . ==> ok>\n')

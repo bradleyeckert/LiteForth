@@ -463,12 +463,16 @@ ECDC) turn on only what they use, and only while they use it.
 - **Status:** planned
 
 ### SYS-SEC-14: Machine mode's code is the root's
-The code that runs in the V5F's machine mode carries a signature by the
-root key, which stage 1 checks at every boot as well as the release
-signature, so a release key alone can't change it.
+The code that runs in the V5F's machine mode (the slot's last 8 KB: the
+`.mmode` window and `.ramfunc`'s flash copy) carries a signature by the
+root key over its hash, embedded in the package's block 0. Stage 1 checks
+it at every boot as well as the release signature, and hashes the flash
+window against it, so a release key alone can't change machine-mode code.
 
 - **Parent:** UN-08, UN-09
-- **Status:** planned
+- **Verified by:** unit:seal::machine-mode root signature, unit:update::unmatched machine-mode signature, integ:stage1sim::strict: the signed image starts
+- **Status:** partial
+- **Gap:** built and tested on the desktop (`sealblocks.py mmode-sign`, `sealed.c`, `update.c`) and the simulated board; the board test on real hardware (round 2) is pending
 
 ### SYS-SEC-15: User mode can't reach the interrupt controller
 The PFIC and the system timers (from 0xE0000000) are machine mode's

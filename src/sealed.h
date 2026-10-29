@@ -63,6 +63,14 @@ typedef struct {
     uint32_t min_version;           /* the new minimum, or 0 */
     uint32_t version;               /* the revision field: the image's version */
     uint8_t image_hash[32];         /* BLAKE2s(image, 32, person "LFimage") */
+    /* The machine-mode region's root signature (doc/admin/firmware-updates.md
+       section 8, part 4; encrypted-blocks.md section 3). mmode_addr 0 means
+       the package carries none; otherwise the root key (board->root) has
+       signed these over the region, which sealed_check_signed verifies, and
+       the caller hashes that flash span and compares it with mmode_hash. */
+    uint32_t mmode_addr;            /* machine-mode region start, or 0: none */
+    uint32_t mmode_len;             /* its length */
+    uint8_t mmode_hash[32];         /* BLAKE2s(region, 32, person "LFmmode") */
 } sealed_package;
 
 /* Reads raw block blk (4096 bytes) of the file into buf, bypassing

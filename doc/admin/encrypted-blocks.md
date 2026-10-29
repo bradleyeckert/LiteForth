@@ -143,14 +143,18 @@ All numbers little-endian.
 | 192 | 32 T | Table hashes, one per hash table block |
 | 192 + 32 T | 24 R | Recipients: UID (8 bytes), then the wrapped CEK (16 bytes) |
 | ... | | Zeros |
+| 3896 | 104 | The machine-mode region's root signature ([firmware-updates.md](firmware-updates.md) section 8, part 4): the region's flash address (4), its length (4), `BLAKE2s(region, digest_size=32, person="LFmmode")` (32), and the root key's Ed25519 signature over product ID, address, length and hash (64). All zero if the package carries none; stage 1 needs it for an app package at `SECURITY_LEVEL` 2 |
 | 4000 | 32 | The plaintext image's hash: `BLAKE2s(image, digest_size=32, person="LFimage")` |
 | 4032 | 64 | The release key's Ed25519 signature over bytes 0-4031 |
 
 The signature is plain Ed25519 over the 4032 bytes (Ed25519 hashes its
-message with SHA-512 itself), so any Ed25519 tool can check it.
+message with SHA-512 itself), so any Ed25519 tool can check it. It covers
+the machine-mode field too, so a board that changes machine-mode code must
+re-sign block 0; the root signature inside that field, which a release key
+can't forge, is what actually freezes the machine-mode bytes to the root.
 
-Space: 3808 bytes are shared by table hashes and recipients. For example,
-one table block leaves room for 157 boards. More boards
+Space: 3704 bytes are shared by table hashes and recipients. For example,
+one table block leaves room for 153 boards. More boards
 would need recipient blocks of their own, with their hash in block 0; not
 in version 1.
 
@@ -278,7 +282,8 @@ One script, `scripts/admin/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 | `root-key ROOT` | Makes the root key pair, `ROOT.key` and `ROOT.pub` (on the offline machine) |
 | `release-key ROOT.key SERIAL OUT --product P` | Makes a release key pair and its certificate; the root's private key signs it, so this runs on the offline machine and only the release key file leaves it |
 | `board-key OUT [--uid HEX] [--insecure]` | Makes a board key pair on the PC, for testing, and prints its `boards.csv` line. A real board makes its own (6.1). `--insecure` gives the key a board built below `SECURITY_LEVEL` 2 derives from its UID ([updates.md](updates.md) section 6) |
-| `package IMAGE PACKAGE --component v5f\|stage1\|app --release R --boards CSV --revision N [--hw-rev N] [--min-version N] [--cipher aes\|sm4] [--pages lfpages.bin]` | Makes a firmware update package, with the image as its content ([firmware-updates.md](firmware-updates.md) section 5) |
+| `mmode-sign IMAGE OUT --root ROOT.key --product P` | Signs a V5F image's machine-mode region (the slot's last 8 KB) with the root key, offline; writes the 104-byte field for `package --mmode-sig` ([firmware-updates.md](firmware-updates.md) section 8, part 4) |
+| `package IMAGE PACKAGE --component v5f\|stage1\|app --release R --boards CSV --revision N [--hw-rev N] [--min-version N] [--cipher aes\|sm4] [--pages lfpages.bin] [--mmode-sig OUT]` | Makes a firmware update package, with the image as its content ([firmware-updates.md](firmware-updates.md) section 5). `--mmode-sig` embeds the root signature from `mmode-sign` |
 | `check PACKAGE --root ROOT.pub` | Checks everything a board would that needs no board key: certificate, signature, header fields, table hashes, block hashes |
 | `open PACKAGE IMAGE --root ROOT.pub --board-key B [--min-revision N] [--min-serial N] [--product P]` | Checks and decrypts as a board would, refusing what it would refuse, and writes the image |
 

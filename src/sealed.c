@@ -17,6 +17,9 @@
 #define RECIPIENT       24              /* UID (8) + wrapped CEK (16) */
 #define SIG_AT          (SEALED_BLOCK_BYTES - 64)
 #define IMAGE_HASH_AT   (SIG_AT - 32)   /* a package's plaintext image hash */
+#define MMODE_SIG_AT    (IMAGE_HASH_AT - 104)   /* the machine-mode region's root
+                                                   signature: addr (4), len (4),
+                                                   hash (32), signature (64) */
 
 /* The mounted block 0, and the last table block read (cells: a DMA
    target). With SEALED_POOL (the CH32H417's V5F, lf_sealed.c) they come
@@ -128,7 +131,7 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
     }
     memcpy(header, b0, SEALED_BLOCK_BYTES);
     const uint8_t *h = header;
-    uint32_t end = IMAGE_HASH_AT;
+    uint32_t end = MMODE_SIG_AT;
 
     /* the fields */
     if (memcmp(h, PACKAGE_MAGIC, SEALED_MAGIC_LEN) != 0) {
@@ -196,6 +199,31 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
     if (rev < board->min_revision) {
         return fail(msg, len, "an older revision than this board takes");
     }
+
+    /* the machine-mode region's root signature (doc/admin/encrypted-blocks.md
+       section 3). All-zero means the package carries none; otherwise the root
+       signs product, the region's address and length, and its hash. The
+       caller hashes that flash span and compares it with mmode_hash. */
+    const uint8_t *ms = h + MMODE_SIG_AT;
+    pkg->mmode_addr = get32(ms);
+    pkg->mmode_len = get32(ms + 4);
+    memcpy(pkg->mmode_hash, ms + 8, 32);
+    if (pkg->mmode_addr == 0) {
+        for (int i = 0; i < 104; i++) {
+            if (ms[i]) {
+                return fail(msg, len, "data in the empty machine-mode signature field");
+            }
+        }
+    } else {
+        uint8_t m[44];
+        memcpy(m, h + 16, 4);                   /* product ID */
+        memcpy(m + 4, ms, 8);                   /* region address and length */
+        memcpy(m + 12, ms + 8, 32);             /* region hash */
+        if (crypto_ed25519_check(ms + 40, board->root, m, sizeof m) != 0) {
+            return fail(msg, len, "the machine-mode region's root signature doesn't match");
+        }
+    }
+
     if (unwrap == SIGNED_ONLY) {
         sealed_unmount();
         snprintf(msg, len, "revision %lu, release key %lu: signed",

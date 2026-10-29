@@ -28,6 +28,8 @@
    the root-signed region (part 4). The V3F wakes it here, not at the slot
    base. Must equal Link_v5f.ld's MMODE origin (it ASSERTs _mmode_start). */
 #define UPD_V5F_ENTRY       0x0802E000u
+#define UPD_V5F_MMODE_LEN   0x2000u         /* the machine-mode region (.mmode then .ramfunc's
+                                              flash copy): the slot's last 8 KB, root-signed (part 4) */
 #define UPD_HEADER          0x70000u        /* needs no protection: only its signature counts */
 
 #define UPD_PAGES_LEN       0x40000u        /* LiteForth's 4 x 64K flash pages (V5F/User/options.h) */

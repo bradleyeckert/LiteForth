@@ -233,6 +233,46 @@ def main():
         expect('package round trip: the image exactly', read('fw.out') == image)
         expect_refused('a package for another board', 'not a recipient', 'open', 'fw.lfu',
                        'x.out', '--root', 'root.pub', '--board-key', 'c.json')
+
+        # the machine-mode root signature (doc/admin/firmware-updates.md section 8 part 4)
+        v5f = bytes((i * 11 + 5) & 255 for i in range(sb.MMODE_OFF + 0x1300))
+        write('v5f.bin', v5f)
+        expect_ok('mmode-sign', 'mmode-sign', 'v5f.bin', 'mm.sig', '--root', 'root.key',
+                  '--product', 0x4C46)
+        mm = read('mm.sig')
+        expect('mmode-sign writes 104 bytes', len(mm) == 104, len(mm))
+        window = v5f[sb.MMODE_OFF:sb.MMODE_OFF + sb.MMODE_LEN].ljust(sb.MMODE_LEN, b'\xff')
+        expect('mmode-sign hashes the padded MMODE window', mm[8:40] == hashlib.blake2s(
+            window, digest_size=32, person=b'LFmmode').digest())
+        expect('mmode-sign records the region', struct.unpack_from('<II', mm, 0) ==
+               (sb.MMODE_ADDR, sb.MMODE_LEN), struct.unpack_from('<II', mm, 0))
+        write('short.bin', bytes(sb.MMODE_OFF - 1))
+        expect_refused('mmode-sign needs a V5F-sized image', 'no machine-mode region',
+                       'mmode-sign', 'short.bin', 'x.sig', '--root', 'root.key', '--product', 0x4C46)
+        out = expect_ok('package v5f with a machine-mode signature', 'package', 'v5f.bin',
+                        'vm.lfu', '--component', 'v5f', *base_pk, '--revision', 3,
+                        '--mmode-sig', 'mm.sig')
+        expect('package reports the machine-mode signature', 'machine-mode root signature' in out, out)
+        vp = read('vm.lfu')
+        expect('package embeds the 104-byte field at 3896', vp[3896:4000] == mm)
+        expect_ok('check passes with the machine-mode root signature', 'check', 'vm.lfu',
+                  '--root', 'root.pub')
+        d = bytearray(vp)
+        d[3896 + 8] ^= 1                        # flip a byte of the signed region hash
+        write('bad.lfu', resign(bytes(d), 'rel1.json'))
+        expect_refused('a changed machine-mode hash fails the root signature',
+                       "machine-mode region's root signature", 'check', 'bad.lfu',
+                       '--root', 'root.pub')
+        expect_ok('mmode-sign with the wrong root', 'mmode-sign', 'v5f.bin', 'mm2.sig',
+                  '--root', 'other.key', '--product', 0x4C46)
+        expect_ok('package with a wrong-root machine-mode signature', 'package', 'v5f.bin',
+                  'w.lfu', '--component', 'v5f', *base_pk, '--revision', 3, '--mmode-sig', 'mm2.sig')
+        expect_refused('a wrong-root machine-mode signature is refused',
+                       "machine-mode region's root signature", 'check', 'w.lfu',
+                       '--root', 'root.pub')
+        expect_refused('--mmode-sig is not for stage1', 'V5F or app image', 'package', 'fw.bin',
+                       'x.lfu', '--component', 'stage1', *base_pk, '--revision', 1,
+                       '--mmode-sig', 'mm.sig')
         big = bytes(range(256)) * 276                                  # 68 KB + 1 KB
         write('big.bin', big)
         write('s1.bin', big[:68 * 1024])
@@ -255,7 +295,8 @@ def main():
                 ('unknown component', 180, 9, 'unknown component'),
                 ('image flags', 181, 1, 'unknown image flags'),
                 ('length too long', 185, 0x40, "doesn't fill"),
-                ('data before the image hash', 3990, 1, 'reserved bytes')):
+                ('data before the image hash', 3890, 1, 'reserved bytes'),
+                ('data in the empty mmode field', 3990, 1, 'machine-mode signature field')):
             d = bytearray(pk)
             d[at] = value
             write('bad.lfu', resign(bytes(d), 'rel1.json'))

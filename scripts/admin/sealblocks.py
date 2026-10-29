@@ -88,6 +88,12 @@ COMPONENT_LIMIT = {1: 160 * 1024, 2: 68 * 1024,     # the slots in firmware-upda
 APP_SLOT = 0x1C000              # the V5F's slot on the board today (V3F/User/stage1_layout.h)
 APP_PAGES_LEN = 0x40000         # LiteForth's 4 x 64 KB flash pages (UPD_PAGES_LEN)
 PAD = 0xFF                      # erased flash
+MMODE_SIG_AT = IMAGE_HASH_AT - 104  # the machine-mode region's root signature in block 0:
+#                                     addr (4), len (4), hash (32), signature (64)
+MMODE_PERSON = b'LFmmode'
+MMODE_ADDR = 0x0802E000         # UPD_V5F_ENTRY (stage1_layout.h); MMODE in Link_v5f.ld
+MMODE_LEN = 0x2000              # 8 KB: the whole MMODE window (.mmode, then .ramfunc's flash copy)
+MMODE_OFF = APP_SLOT - MMODE_LEN    # its offset in the V5F slot image: the slot's last 8 KB
 
 
 class SealError(Exception):
@@ -221,7 +227,7 @@ def parse_header(b0, file_blocks):
                         'an app goes in an app package now')
     if b0[:10] != SIGNATURE + PACKAGE_MARK:
         raise SealError('not a firmware update package (block 0 must start with LITEFORTHF)')
-    end = IMAGE_HASH_AT
+    end = MMODE_SIG_AT
     version, cipher = b0[10], b0[11]
     flags, product, revision, c = struct.unpack_from('<IIII', b0, 12)
     t, r = struct.unpack_from('<HH', b0, 28)
@@ -251,8 +257,14 @@ def parse_header(b0, file_blocks):
                         f'than its {COMPONENT_LIMIT[component]}-byte slot')
     desc = {'component': component, 'hw_rev': hw_rev, 'length': length,
             'min_version': min_version, 'image_hash': b0[IMAGE_HASH_AT:SIG_AT]}
+    mmode_addr, mmode_len = struct.unpack_from('<II', b0, MMODE_SIG_AT)
+    if mmode_addr == 0 and any(b0[MMODE_SIG_AT:IMAGE_HASH_AT]):
+        raise SealError('data in the empty machine-mode signature field')
     return {
         'package': desc, 'end': end,
+        'mmode_addr': mmode_addr, 'mmode_len': mmode_len,
+        'mmode_hash': b0[MMODE_SIG_AT + 8:MMODE_SIG_AT + 40],
+        'mmode_sig': b0[MMODE_SIG_AT + 40:MMODE_SIG_AT + 104],
         'cipher': cipher, 'product': product, 'revision': revision, 'c': c, 't': t,
         'nonce': b0[32:40], 'eph': b0[40:72], 'check': b0[72:80],
         'serial': struct.unpack_from('<I', b0, 80)[0], 'release': b0[84:116],
@@ -286,6 +298,12 @@ def verify(data, root_pub, min_serial=0, min_revision=0, product=None):
         raise SealError('block 0\'s signature doesn\'t match the release key')
     if any(b0[TABLE_HASHES + 32 * h['t'] + RECIPIENT * len(h['recipients']):h['end']]):
         raise SealError('block 0 has data in its reserved bytes')
+    if h['mmode_addr']:
+        msg = struct.pack('<III', h['product'], h['mmode_addr'], h['mmode_len']) + h['mmode_hash']
+        try:
+            root_pub.verify(h['mmode_sig'], msg)
+        except InvalidSignature:
+            raise SealError('the machine-mode region\'s root signature doesn\'t match')
     if h['revision'] < min_revision:
         raise SealError(f'revision {h["revision"]} is below {min_revision}')
     for t in range(h['t']):
@@ -535,7 +553,7 @@ def cmd_root_header(a):
         sys.stdout.write(text)
 
 
-def sealed_bytes(blocks, a, desc, ihash):
+def sealed_bytes(blocks, a, desc, ihash, mmode_sig=b''):
     """A package: block 0, then blocks (content blocks 1..C-1, 4 KB each,
     plain) encrypted, then the hash tables; desc (12 bytes at 180) and
     ihash (the image hash, at IMAGE_HASH_AT) in block 0. a: the command's
@@ -548,7 +566,7 @@ def sealed_bytes(blocks, a, desc, ihash):
     boards = read_boards(a.boards)
     c = len(blocks) + 1
     t = (c + PER_TABLE - 1) // PER_TABLE
-    end = IMAGE_HASH_AT
+    end = MMODE_SIG_AT
     if TABLE_HASHES + 32 * t + RECIPIENT * len(boards) > end:
         raise SealError(f'{len(boards)} boards and {t} table blocks don\'t fit block 0')
     cipher = CIPHERS[a.cipher]
@@ -585,6 +603,10 @@ def sealed_bytes(blocks, a, desc, ihash):
         b0[at:at + 8] = uid
         b0[at + 8:at + RECIPIENT] = bytes(x ^ y for x, y in zip(cek, k))
         at += RECIPIENT
+    if mmode_sig:
+        if len(mmode_sig) != 104:
+            raise SealError(f'the machine-mode signature is {len(mmode_sig)} bytes, not 104')
+        b0[MMODE_SIG_AT:IMAGE_HASH_AT] = mmode_sig
     b0[SIG_AT:] = rel_priv.sign(bytes(b0[:SIG_AT]))
     return bytes(b0) + b''.join(content) + b''.join(bytes(x) for x in tables), t, len(boards)
 
@@ -605,6 +627,34 @@ def app_image(a, v5f):
     return v5f + bytes([PAD]) * (a.slot - len(v5f)) + pages[:a.pages_len]
 
 
+def cmd_mmode_sign(a):
+    """Sign a V5F image's machine-mode region with the root key, offline. The
+    region is the slot's last 8 KB (the MMODE window: .mmode, then .ramfunc's
+    flash copy); bytes past the image are erased flash (0xFF), as the installer
+    leaves them and as stage 1 reads them back. Writes 104 bytes -- address,
+    length, BLAKE2s hash, and the root's Ed25519 signature over product,
+    address, length and hash -- for package --mmode-sig to embed in block 0."""
+    root = read_json(a.root, 'root')
+    root_priv = Ed25519PrivateKey.from_private_bytes(hexbytes(root, 'private', 32, a.root))
+    with open(a.image, 'rb') as f:
+        image = f.read()
+    if image[:9] == SIGNATURE:
+        raise SealError(f'{a.image} is a block file, not a firmware image')
+    if len(image) <= a.mmode_off:
+        raise SealError(f'{a.image} is {len(image)} bytes: no machine-mode region at '
+                        f'{a.mmode_off:#x} (is it a V5F image?)')
+    region = image[a.mmode_off:a.mmode_off + a.mmode_len]
+    region += bytes([PAD]) * (a.mmode_len - len(region))
+    digest = b2s(region, 32, person=MMODE_PERSON)
+    msg = struct.pack('<III', a.product, a.mmode_addr, a.mmode_len) + digest
+    blob = struct.pack('<II', a.mmode_addr, a.mmode_len) + digest + root_priv.sign(msg)
+    assert len(blob) == 104
+    with open(a.out, 'wb') as f:
+        f.write(blob)
+    print(f'{a.out}: machine-mode region {a.mmode_addr:#x}, {a.mmode_len} bytes, '
+          f'signed by the root key for product {a.product:#x}')
+
+
 def cmd_package(a):
     with open(a.image, 'rb') as f:
         image = f.read()
@@ -620,14 +670,21 @@ def cmd_package(a):
     if len(image) > COMPONENT_LIMIT[component]:
         raise SealError(f'{a.image}: {len(image)} bytes, larger than the {a.component} slot '
                         f'({COMPONENT_LIMIT[component]} bytes)')
+    mmode_sig = b''
+    if a.mmode_sig:
+        if component not in (COMPONENTS['v5f'], COMPONENTS['app']):
+            raise SealError('--mmode-sig is for a V5F or app image (it carries the machine-mode code)')
+        with open(a.mmode_sig, 'rb') as f:
+            mmode_sig = f.read()
     padded = image + bytes([PAD]) * (-len(image) % BLOCK)
     blocks = [padded[i:i + BLOCK] for i in range(0, len(padded), BLOCK)]
     desc = struct.pack('<BBHII', component, 0, a.hw_rev, len(image), a.min_version)
-    data, t, nb = sealed_bytes(blocks, a, desc, image_hash(image))
+    data, t, nb = sealed_bytes(blocks, a, desc, image_hash(image), mmode_sig)
     with open(a.package, 'wb') as f:
         f.write(data)
     print(f'{a.package}: {a.component} image, {len(image)} bytes in {len(blocks)} block(s), '
           f'version {a.revision}, {nb} board(s), {a.cipher.upper()}'
+          + (', machine-mode root signature' if mmode_sig else '')
           + (f', new minimum {a.min_version}' if a.min_version else ''))
 
 
@@ -718,6 +775,19 @@ def main(argv=None):
     s.add_argument('--min-version', type=num, default=0,
                    help='raise the board\'s minimum version to this on install (default 0: leave it)')
     s.add_argument('--cipher', choices=sorted(CIPHERS), default='aes')
+    s.add_argument('--mmode-sig', help='v5f/app: the machine-mode root signature from mmode-sign')
+    s = sub.add_parser('mmode-sign',
+                       help="sign a V5F image's machine-mode region with the root key (offline)")
+    s.add_argument('image', help='the V5F .bin whose machine-mode region is signed')
+    s.add_argument('out', help='the 104-byte signature file, for package --mmode-sig')
+    s.add_argument('--root', required=True, help='the root key file (private; offline only)')
+    s.add_argument('--product', type=num, required=True, help='the product ID, as in the release key')
+    s.add_argument('--mmode-off', type=num, default=MMODE_OFF,
+                   help=f'the region offset in the image (default {MMODE_OFF:#x}, the slot\'s last 8 KB)')
+    s.add_argument('--mmode-addr', type=num, default=MMODE_ADDR,
+                   help=f'the region flash address, which stage 1 pins (default {MMODE_ADDR:#x})')
+    s.add_argument('--mmode-len', type=num, default=MMODE_LEN,
+                   help=f'the region length (default {MMODE_LEN:#x})')
     s = sub.add_parser('check', help='check a package (no board key needed)')
     s.add_argument('sealed', metavar='package')
     s.add_argument('--root', required=True, help='the root .pub file')
@@ -757,6 +827,7 @@ def main(argv=None):
     try:
         {'root-key': cmd_root_key, 'release-key': cmd_release_key, 'board-key': cmd_board_key,
          'lf-board': cmd_lf_board, 'root-header': cmd_root_header,
+         'mmode-sign': cmd_mmode_sign,
          'package': cmd_package, 'check': cmd_check,
          'open': cmd_open, 'manifest': cmd_manifest,
          'check-manifest': cmd_check_manifest}[a.cmd](a)

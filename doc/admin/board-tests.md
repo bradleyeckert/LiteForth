@@ -2988,7 +2988,17 @@ was at rtc ~498).
 **Result:** pass. The microsecond base runs at 1 MHz against the RTC
 after the prescaler fix, `standby` sleeps and wakes on the alarm with a
 clean reboot, the RTC keeps time through Stop mode and the reset, and
-TIM6 re-inits at the right rate on the reboot. Not tested: the full
-SYS-SEC-15 PMP shrink and the interrupt-enable move, which this time
-base is only the prerequisite for; the V3F's TIM7 TX-timeout edge case
-(needs a host that opens the port and stops reading).
+TIM6 re-inits at the right rate on the reboot. Not tested here: the
+full SYS-SEC-15 PMP shrink and the interrupt-enable move, which this
+time base is only the prerequisite for.
+
+**Follow-up (TX timeout, 28 October 2026).** The V3F's CDC tx timeout,
+moved from TIM2 to TIM7 on this build, was exercised from the host with
+`scripts/admin/cdc_txtimeout.py` on COM17. A large `dump` read straight
+through delivers the whole output (303,107 bytes in 1.25 s); the same
+dump with the port left open but unread for 2 s comes back 95.9% shorter
+(12,356 bytes), and the board still answers afterward. A dead timeout
+would instead hold the ring and the V5F would block, so a resumed read
+would deliver the dump intact; the 95.9% loss is the bridge discarding
+the unread ring on TIM7's 100 ms timeout, so the V5F never waits forever.
+Pass.

@@ -543,6 +543,22 @@ handle_reset:
 2:
     sw a4,0(a3)
 
+/* LiteForth: zero the memory pool (Link_v5f.ld's POOL, a NOLOAD section that
+   the image doesn't clear). memalloc.c's pool backs the VM RAM page, whose
+   _udata section the Forth code reads as zero until first written, the way C
+   guarantees for an uninitialized static; on the desktop the pool is in .bss
+   and zeroed for free. Done here in machine mode, before _load_base runs and
+   long before the PMP is locked. (.load, run from the 256-byte RAM_LOAD, has
+   no room for it, so it goes in handle_reset, which runs from flash.) */
+    la a0, _pool_start
+    la a1, _pool_end
+    bgeu a0, a1, 2f
+1:
+    sw zero, (a0)
+    addi a0, a0, 4
+    bltu a0, a1, 1b
+2:
+
     call _load_base
 
 

@@ -80,8 +80,8 @@ SD_Error SD_Init( void )
 
     SDIO_DeInit();
 
-	NVIC_SetPriority(SDIO_IRQn, 0);
-    NVIC_EnableIRQ(SDIO_IRQn);
+    /* SDIO's interrupt is set up (and left off, since we poll) in the
+       start-up code (pmp.c v5f_irq_setup): user mode can't reach the PFIC. */
 
     errorstatus = SD_PowerON();
 

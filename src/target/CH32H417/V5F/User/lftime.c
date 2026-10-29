@@ -24,6 +24,7 @@
 #include "ch32h417.h"
 #include "lftime.h"
 #include "mmode.h"                  /* MMODE: TIM6_IRQHandler runs from flash */
+#include "pmp.h"                    /* pmp_call: reboot and standby are services */
 
 
 #define US_PER_MS   1000u               /* TIM6 reloads every millisecond */
@@ -48,7 +49,6 @@ void lfTimeInit(void) {
     RCC_ClocksTypeDef clk;
     ms_count = 0;
     RCC_HB1PeriphClockCmd(RCC_HB1Periph_TIM6, ENABLE);
-    NVIC_SetAllocateIRQ(TIM6_IRQn, Core_ID_V5F);    /* its interrupt goes to the V5F */
     RCC_GetClocksFreq(&clk);            /* TIM6 counts HCLK, not the V5F core clock */
     TIM6->CTLR1 = 0;                    /* counter off while it's set up */
     TIM6->PSC = (uint16_t)(clk.HCLK_Frequency / 1000000u - 1u);  /* count microseconds */
@@ -57,8 +57,8 @@ void lfTimeInit(void) {
     TIM6->INTFR = (uint16_t)~TIM_UIF;   /* drop the update the load raised */
     TIM6->DMAINTENR = TIM_UIE;          /* interrupt on each reload */
     TIM6->CTLR1 = TIM_CEN;              /* start counting */
-    NVIC_SetPriority(TIM6_IRQn, 0);
-    NVIC_EnableIRQ(TIM6_IRQn);
+    /* TIM6's interrupt is enabled in the start-up code (v5f_irq_setup, in
+       machine mode), since the PFIC is fenced from user mode (SYS-SEC-15). */
     started = 1;
 }
 
@@ -255,7 +255,8 @@ int lfStandby(void) {
     }
 
     /* The alarm, as an event on EXTI line 17. The RTC's alarm output
-       (ALRIE) feeds the line; its interrupt stays off in the PFIC. */
+       (ALRIE) feeds the line; its interrupt stays off in the PFIC. The RTC
+       and EXTI are below the PMP fence, so this runs in user mode. */
     if (!rtc_ready()) return ERR_UNSUPPORTED_OPERATION;
     RTC_ClearFlag(RTC_FLAG_ALR);
     RTC_ITConfig(RTC_IT_ALR, ENABLE);
@@ -267,25 +268,47 @@ int lfStandby(void) {
     EXTI_Init(&exti);
     EXTI_ClearFlag(EXTI_Line17);
 
-    /* Ask the V3F to sleep (cdc_standby) and give it time to */
+    /* Ask the V3F to sleep (cdc_standby). Waiting for it, the SLEEPDEEP bit
+       and WFE, and the reset on wake all reach the PFIC or the system
+       control register, which the PMP fences from user mode, so they run in
+       machine mode (lf_standby_service). */
     sh->standby = CDC_STANDBY_MAGIC;
     CDC_FENCE();
-    t0 = lfGetTimeMicroSec();
-    while ((NVIC->CSTAR[0] & 0xC000) == 0      /* the V3F's sleep state */
-           && lfGetTimeMicroSec() - t0 < (uint64_t)LFRTC_V3F_SLEEP_MS * 1000u) {
-    }
+    return pmp_call(PMP_SVC_STANDBY, 0, 0);     /* does not return: resets */
+}
 
+/* The privileged tail of standby, in machine mode: everything that reaches
+   the PFIC (NVIC->CSTAR, NVIC->SCTLR) or resets the chip. In .mmode so user
+   mode can't change it (doc/admin/firmware-updates.md section 8). */
+MMODE int32_t lf_standby_service(void) {
+    cdc_shared_t *sh = CDC_SHARED;
+    /* Wait up to LFRTC_V3F_SLEEP_MS for the V3F to sleep, so Stop mode takes
+       both cores. TIM6's interrupt doesn't run while this ecall handler does,
+       so count milliseconds by watching TIM6->CNT wrap, not ms_count. */
+    uint32_t ms = 0, prev = TIM6->CNT;
+    while ((NVIC->CSTAR[0] & 0xC000u) == 0 && ms < LFRTC_V3F_SLEEP_MS) {
+        uint32_t now = TIM6->CNT;
+        if (now < prev) {
+            ms++;
+        }
+        prev = now;
+    }
     __disable_irq();
     TIM6->CTLR1 = 0;                    /* stop the millisecond tick before Stop mode */
     __WFE_IDSET(EXTI_Line17);
-    PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFE);
-
-    /* __WFE returns only once EXTI line 17 has fired: the alarm. The clocks
-       are back on the HSI; a reset puts everything back as it was. */
+    /* PWR_EnterSTOPMode(PWR_Regulator_ON, WFE), inlined: NVIC->SCTLR is in the
+       fenced region, so the SLEEPDEEP bit and WFE must run in machine mode. */
+    PWR->CTLR &= 0xFFFFFFFEu;           /* regulator on (deep sleep, LPDS off) */
+    NVIC->SCTLR |= (1u << 2);           /* SLEEPDEEP */
+    __WFE();
+    NVIC->SCTLR &= ~(1u << 2);
+    /* __WFE returns once EXTI line 17 (the RTC alarm) fires. Mark the wake and
+       reset; the next boot's lfRtcInit reads the mark. */
     sh->rtc_wake = CDC_RTC_WAKE_MAGIC;
     CDC_FENCE();
     NVIC_SystemReset();
-    return 0;
+    for (;;) {
+    }
 }
 
 int lfReboot(void) {
@@ -293,8 +316,7 @@ int lfReboot(void) {
     uint64_t t0 = lfGetTimeMicroSec();
     while (cdc_ring_count(&sh->tx) && lfGetTimeMicroSec() - t0 < 100000u) {
     }
-    NVIC_SystemReset();
-    return 0;
+    return pmp_call(PMP_SVC_REBOOT, 0, 0);       /* machine mode does the reset */
 }
 
 int lfRevision(uint32_t *rev) {

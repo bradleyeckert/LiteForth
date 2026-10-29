@@ -183,7 +183,10 @@ static void LiteForth(void)
 int main(void)
 {
     SystemAndCoreClockUpdate();
-    Delay_Init();
+#ifndef Core_V5F
+    Delay_Init();                       /* SysTick-based; the V5F doesn't use
+                                           Delay_* and part 3 fences SysTick */
+#endif
     USART_Printf_Init(9600);
     
 #if (Run_Core == Run_Core_V3FandV5F)

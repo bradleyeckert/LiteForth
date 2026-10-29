@@ -79,8 +79,23 @@ void pmp_lock(void);
 void pmp_report(void);
 
 /* Services 8 to 15 are Guarded DMA's (gdma_serve, GDMA_SVC_*). 16 to 18
-   were board.c's, which held the board's key before stage 1 did. */
-enum { PMP_SVC_FLASH_PROGRAM = 1 };
+   were board.c's, which held the board's key before stage 1 did.
+   PMP_SVC_REBOOT and PMP_SVC_STANDBY reset or deep-sleep the chip, which
+   reaches the PFIC and the system control register that part 3 of the PMP
+   plan fences from user mode (doc/admin/firmware-updates.md section 8). */
+enum {
+    PMP_SVC_FLASH_PROGRAM = 1,
+    PMP_SVC_REBOOT        = 2,
+    PMP_SVC_STANDBY       = 3,
+};
+
+/**
+ * Sets up the V5F's interrupt enables in the start-up code, in machine mode
+ * before the mret to user mode: TIM6's update interrupt (the time base) is
+ * enabled and routed to the V5F, SDIO's is left off (blocks.c polls). User
+ * mode can't reach the PFIC once part 3 fences it, so the enables live here.
+ */
+void v5f_irq_setup(void);
 
 /**
  * Calls machine-mode service n with arguments a and b, by `ecall`

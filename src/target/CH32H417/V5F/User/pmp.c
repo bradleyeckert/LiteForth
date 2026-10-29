@@ -10,6 +10,7 @@
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
 #include "cdc_shared.h"                 /* CDC_SHARED_ADDR, outside entry 1 */
+#include "lftime.h"                     /* lf_standby_service */
 #include "mmode.h"                      /* MMODE: machine mode's code, in flash */
 #include "../../../../errcodes.h"
 
@@ -82,6 +83,19 @@ void pmp_lock(void)
     __asm volatile ("csrc pmpcfg0, %0" : : "r"(0xFFu));
     __asm volatile ("csrr %0, pmpcfg0" : "=r"(kept_cfg));
     __asm volatile ("csrr %0, pmpaddr0" : "=r"(kept_addr0));
+}
+
+/* Run from the start-up code in machine mode, after pmp_lock and before the
+   mret to user mode: the interrupt enables the V5F needs, set here because
+   user mode can't reach the PFIC once part 3 fences it (pmp.h). Not in
+   .mmode: it runs once at start-up, before any user code exists. */
+void v5f_irq_setup(void)
+{
+    NVIC_SetAllocateIRQ(TIM6_IRQn, Core_ID_V5F);   /* the time base, to the V5F */
+    NVIC_SetPriority(TIM6_IRQn, 0);
+    NVIC_EnableIRQ(TIM6_IRQn);
+    NVIC_SetPriority(SDIO_IRQn, 0);
+    NVIC_DisableIRQ(SDIO_IRQn);                     /* blocks.c polls the card */
 }
 
 void pmp_report(void)
@@ -185,6 +199,14 @@ MMODE static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
             return ERR_FLASH_WRITE_SECTOR;
         }
         return 0;
+    }
+    if (n == PMP_SVC_REBOOT) {          /* reset the chip (SCB, fenced) */
+        NVIC_SystemReset();
+        for (;;) {
+        }
+    }
+    if (n == PMP_SVC_STANDBY) {         /* deep sleep then reset (PFIC/SCB) */
+        return lf_standby_service();
     }
     if (n >= GDMA_SVC_START && n <= GDMA_SVC_LAST) {
         return gdma_serve(n, a, b, c);  /* Guarded DMA */

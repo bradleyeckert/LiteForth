@@ -772,10 +772,12 @@ fix doesn't need it shown.
      engine then only ever runs inside machine mode.
    - **The V3F shares RCC and is trusted.** Its USBFS is inside entry 2.
 3. **User mode out of the interrupt controller and the system timer.**
-   Entry 3 shrinks from all memory to the 2 GB from 0 (NAPOT
-   `0x0FFFFFFF`), so from 0xE0000000 up, the PFIC and SysTick, is machine
-   mode's alone. Its VTF registers could otherwise send an interrupt to
-   user code in machine mode. That means:
+   *Done and confirmed on the board (B31, 29 October 2026).* Entry 3
+   shrinks from all memory to the 2 GB from 0 (NAPOT `0x0FFFFFFF`), so
+   from 0xE0000000 up, the PFIC and SysTick, is machine mode's alone (an
+   unmatched access is allowed for machine mode, denied for user mode).
+   Its VTF registers could otherwise send an interrupt to user code in
+   machine mode. That means:
    - **The time base moves from SysTick1 to a general-purpose timer** that
      user mode reads: it counts microseconds and wraps each millisecond,
      and its update interrupt counts milliseconds in machine mode, as
@@ -783,10 +785,15 @@ fix doesn't need it shown.
      October 2026):* TIM6, a basic timer (no output channels), in
      `V5F/User/lftime.c`; its microsecond rate tracks the RTC and
      survives standby. Its prescaler comes from HCLK, not the V5F's
-     `SystemCoreClock` (`doc/ch32h417-notes.md`). This is the
-     prerequisite; the PMP shrink and the interrupt-enable move follow.
-   - **Interrupt enables move to the start-up code,** and `reboot` and
-     `standby` become services.
+     `SystemCoreClock` (`doc/ch32h417-notes.md`). This was the
+     prerequisite for the shrink.
+   - **Interrupt enables moved to the start-up code** (`v5f_irq_setup`,
+     `V5F/User/pmp.c`, called in machine mode after `pmp_lock`): TIM6's to
+     the V5F, SDIO's left off. `reboot` and `standby` became machine-mode
+     ecall services (`PMP_SVC_REBOOT`, `PMP_SVC_STANDBY`); `standby`'s
+     privileged tail, which enters Stop mode and resets on the alarm wake,
+     is `lf_standby_service` in `.mmode`. `Delay_Init` (SysTick, WCH's
+     unused demo timer) is skipped on the V5F.
 4. **Machine mode's code is the root's.** Today the release key signs the
    whole image, machine-mode code included. The code that runs in machine
    mode (`.mmode` with the vector table, `.ramfunc`'s flash copy, and the

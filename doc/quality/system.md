@@ -476,7 +476,8 @@ alone; user mode's time base is a general-purpose timer, and interrupt
 enables, `reboot` and `standby` are machine mode's.
 
 - **Parent:** UN-09
-- **Status:** planned
+- **Verified by:** board:B30, board:B31
+- **Status:** verified
 
 ### SYS-SEC-12: Keys only from a healthy RNG
 Stage 1 makes the device token, and so the board's key, from RNG words

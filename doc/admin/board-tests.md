@@ -3002,3 +3002,102 @@ would instead hold the ring and the V5F would block, so a resumed read
 would deliver the dump intact; the 95.9% loss is the bridge discarding
 the unread ring on TIM7's 100 ms timeout, so the V5F never waits forever.
 Pass.
+
+### B31. PMP entry 3 fences the PFIC and SysTick from user mode (29 October 2026)
+
+**Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
+`SECURITY_LEVEL` 0, built in MounRiver from branch `sys-sec-15-pfic` (the
+restructure, then commit `adf7de3`: PMP entry 3 shrunk to 2 GB) and
+flashed by the user. Only the V5F changed; the V3F is as on `main`.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V5F.bin` | 111016 | `8d5f8d90cda0dcd090f4b52a65a02598a040cd993e517cadfb1ca7c5f0a34b7e` |
+
+**Why:** part 3 of the PMP plan (SYS-SEC-15,
+`doc/admin/firmware-updates.md` section 8): the PFIC, SysTick and the
+system control register (0xE0000000 up) become machine mode's alone, so
+user mode -- even a signed but malicious V5F image -- can't steer the
+interrupt controller or the system timer. PMP entry 3 shrinks from all
+memory (NAPOT `0x1FFFFFFF`) to the 2 GB from 0 (`0x0FFFFFFF`); from
+0x80000000 up no entry matches, which the hardware allows for machine
+mode and denies for user mode. This needs everything that touches that
+region moved into machine mode first: the time base (TIM6, B30), the
+interrupt enables (to `v5f_irq_setup`, run at start-up), and `reboot`
+and `standby` (to ecall services, `standby`'s Stop-and-reset tail in
+`.mmode`); `Delay_Init` (SysTick) is dropped on the V5F.
+
+Tested in two rounds: round 1 with entry 3 still open, to confirm the
+restructure didn't break anything; round 2 with the fence in place.
+
+**Expected:** both rounds boot and run -- the microsecond base tracks
+the RTC, `dir` reads the card, `reboot` resets, `standby` sleeps and
+wakes on the RTC alarm. In round 2 `pmp_report` shows entry 3 as
+`0FFFFFFF`, set and locked, and nothing user mode does faults.
+
+**Run (round 1, restructure, entry 3 open).** Cli port (COM17):
+
+```
+> revision .
+0 ok>
+> decimal rtc@ . capusec x@ .
+41 41609408 ok>
+> rtc@ . capusec x@ .            ( ~13 s later )
+54 55014789 ok>                  ( d-us/d-rtc ~= 1.03 MHz )
+> dir
+System Volume Information/
+lfblocks.fb4
+...
+ok>
+> reboot
+[the board resets and reboots]
+> rtc@ 20 + alarm!  standby
+[sleeps; the RTC alarm wakes it ~20 s later and resets; reboots]
+> alarm? .
+-1 ok>
+```
+
+**Run (round 2, the fence).** Debug port (COM14), at boot:
+
+```
+V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 0FFFFFFF: as set, locked (clearing entry 0 was ignored)
+```
+
+Entry 3's `pmpaddr` reads back `0FFFFFFF` (2 GB from 0) and the config is
+locked (the test write that tried to clear entry 0 was ignored), so the
+fence is in force in hardware. Cli port (COM17), behind the fence:
+
+```
+> revision .
+0 ok>
+> decimal rtc@ . capusec x@ .
+28 29011680 ok>
+> rtc@ . capusec x@ .            ( ~13 s later: ~1 MHz )
+41 41797047 ok>
+> dir
+System Volume Information/
+lfblocks.fb4
+...
+ok>
+> reboot
+[resets and reboots]
+> rtc@ 20 + alarm!  standby
+[sleeps; alarm wakes and resets ~20 s later; reboots]
+> alarm? .
+-1 ok>
+> rtc@ .                         ( 63 before standby )
+111 ok>                          ( RTC counted through Stop and the reset )
+```
+
+**Result:** pass. With the PFIC and SysTick fenced from user mode, the
+microsecond base still runs at 1 MHz (TIM6's interrupt is delivered to
+the machine-mode handler), `dir` reads the card (SDIO polled, its
+interrupt left off at start-up), `reboot` resets through the ecall
+service (the SCB is machine mode's now), and `standby` sleeps, wakes on
+the RTC alarm and resets through `lf_standby_service` in machine mode
+(the SLEEPDEEP bit and `NVIC->CSTAR` are both in the fenced region). No
+user-mode access faulted. `pmp_report` confirms entry 3 is `0FFFFFFF`,
+set and locked. Not tested: a deliberate user-mode poke at the PFIC to
+force the fault (a writability probe, left out by project rule); the
+locked `pmpaddr3` readback is the hardware proof instead. Part 4 (the
+machine-mode root signature, SYS-SEC-14) is separate and still to come.

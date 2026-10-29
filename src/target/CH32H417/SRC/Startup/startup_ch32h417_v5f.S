@@ -504,6 +504,10 @@ _load_base:
 	la t0, _mstack_top
 	csrw mscratch, t0
 
+/* LiteForth: enable the V5F's interrupts here, in machine mode, since part 3
+   of the PMP plan fences the PFIC from user mode (V5F/User/pmp.c) */
+	call v5f_irq_setup
+
 	la t0, main
 	csrw mepc, t0
 	mret

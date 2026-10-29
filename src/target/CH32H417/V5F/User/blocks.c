@@ -581,7 +581,8 @@ int blk_init(char *filename, uint32_t *capacity) {
     if (capacity) *capacity = 0;
 
     SD_Error err = SD_Init();
-    NVIC_DisableIRQ(SDIO_IRQn);         /* polling: no SDIO interrupts on this core */
+    /* SDIO is polled; its interrupt is left off in the start-up code
+       (pmp.c v5f_irq_setup), since user mode can't reach the PFIC. */
     /* (Guarded DMA turns on the DMA clocks itself, in machine mode) */
     if (err != SD_OK) {
         printf("V5F blocks: no SD card (error %d)\r\n", (int)err);

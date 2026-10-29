@@ -10,6 +10,7 @@
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
 #include "cdc_shared.h"                 /* CDC_SHARED_ADDR, outside entry 1 */
+#include "lftime.h"                     /* lf_standby_service */
 #include "mmode.h"                      /* MMODE: machine mode's code, in flash */
 #include "../../../../errcodes.h"
 
@@ -57,9 +58,13 @@ _Static_assert(V3F_RAM % V3F_RAM_SIZE == 0, "a NAPOT region is aligned to its si
 _Static_assert(CDC_SHARED_ADDR >= V3F_RAM + V3F_RAM_SIZE, "the shared block is outside entry 1");
 #define PMP_ADDR1   NAPOT(V3F_RAM, V3F_RAM_SIZE)
 #define PMP_ADDR2   NAPOT(GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE)
-#define PMP_ADDR3   0x1FFFFFFFu                 /* NAPOT: 4 GB from 0, all of memory */
-/* (0xFFFFFFFF reads back as 0x3FFFFFFF: the core doesn't keep pmpaddr's
-   top two bits, address bits 33:32. Both still cover everything.) */
+/* NAPOT: 2 GB from 0. From 0x80000000 up -- the PFIC, SysTick and the system
+   control register (0xE00xxxxx) -- no PMP entry matches, so that region is
+   machine mode's alone (an unmatched access is allowed for M, denied for U),
+   which fences the interrupt controller and the timer off from user mode
+   (SYS-SEC-15, doc/admin/firmware-updates.md section 8 part 3). User mode
+   keeps all it needs below 2 GB: flash, RAM, ITCM/DTCM and the peripherals. */
+#define PMP_ADDR3   0x0FFFFFFFu
 #define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | (PMP_L | PMP_NAPOT) << 8 | \
                      (PMP_NAPOT | PMP_R) << 16 | (PMP_L | PMP_NAPOT | PMP_RWX) << 24)
 
@@ -82,6 +87,19 @@ void pmp_lock(void)
     __asm volatile ("csrc pmpcfg0, %0" : : "r"(0xFFu));
     __asm volatile ("csrr %0, pmpcfg0" : "=r"(kept_cfg));
     __asm volatile ("csrr %0, pmpaddr0" : "=r"(kept_addr0));
+}
+
+/* Run from the start-up code in machine mode, after pmp_lock and before the
+   mret to user mode: the interrupt enables the V5F needs, set here because
+   user mode can't reach the PFIC once part 3 fences it (pmp.h). Not in
+   .mmode: it runs once at start-up, before any user code exists. */
+void v5f_irq_setup(void)
+{
+    NVIC_SetAllocateIRQ(TIM6_IRQn, Core_ID_V5F);   /* the time base, to the V5F */
+    NVIC_SetPriority(TIM6_IRQn, 0);
+    NVIC_EnableIRQ(TIM6_IRQn);
+    NVIC_SetPriority(SDIO_IRQn, 0);
+    NVIC_DisableIRQ(SDIO_IRQn);                     /* blocks.c polls the card */
 }
 
 void pmp_report(void)
@@ -185,6 +203,14 @@ MMODE static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
             return ERR_FLASH_WRITE_SECTOR;
         }
         return 0;
+    }
+    if (n == PMP_SVC_REBOOT) {          /* reset the chip (SCB, fenced) */
+        NVIC_SystemReset();
+        for (;;) {
+        }
+    }
+    if (n == PMP_SVC_STANDBY) {         /* deep sleep then reset (PFIC/SCB) */
+        return lf_standby_service();
     }
     if (n >= GDMA_SVC_START && n <= GDMA_SVC_LAST) {
         return gdma_serve(n, a, b, c);  /* Guarded DMA */

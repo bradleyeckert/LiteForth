@@ -112,6 +112,14 @@ int lfRtcAlarm(void);
 int lfStandby(void);
 
 /**
+ * The privileged tail of lfStandby, run in machine mode by the PMP ecall
+ * service (pmp.c, PMP_SVC_STANDBY): waits for the V3F to sleep, enters Stop
+ * mode, and resets on the RTC-alarm wake. In .mmode. Called only through
+ * pmp_call; not from user mode directly. @return Doesn't (resets).
+ */
+int32_t lf_standby_service(void);
+
+/**
  * Resets the whole chip, as the reset pin does: on the CH32H417 both cores
  * restart, the V3F's stage 1 first (doc/admin/firmware-updates.md), after the
  * terminal has had up to 100 ms to send what's waiting. On the desktop, lf

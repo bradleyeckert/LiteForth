@@ -61,9 +61,11 @@ def main(elf):
                 if not inside(target):
                     bad.append(f'{sec}: {fn} -> {m.group(4)} ({target:08x})')
 
-    # the vector table: mode 3, a table of handler addresses, at .mmode's start
-    # It ends where the first function after it starts.
-    start = syms['_mmode_start']
+    # the vector table: mode 3, a table of handler addresses, at _vector_base.
+    # (It is no longer at .mmode's start: the wake entry _start is first, so
+    # the V5F wakes into .mmode and runs the bring-up in place -- part 4.)
+    # It ends where the first symbol after it starts.
+    start = syms.get('_vector_base', syms['_mmode_start'])
     end = min((v for v in syms.values() if start < v < syms['_mmode_end']), default=start)
     data = run('objdump', '-s', '-j', '.mmode', '--start-address', hex(start),
                '--stop-address', hex(end), elf)

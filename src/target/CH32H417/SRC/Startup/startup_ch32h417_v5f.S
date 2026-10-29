@@ -10,16 +10,18 @@
 * microcontroller manufactured by Nanjing Qinheng Microelectronics.
 *******************************************************************************/
 
-	.section	.init,"ax",@progbits
-	.global	_start
-	.align	2
-_start:
-	j	handle_reset
     .section    .vector,"ax",@progbits
-    .align  1
+    .align  2
+    .global _vector_base
+    .global _start
 _vector_base:
+_start:
     .option norvc;
-    .word   _start
+    j   handle_reset        /* slot 0: the V5F wakes here. The V3F sets the
+                               V5F's PC to _mmode_start (= this, = the signed
+                               .mmode region) directly, so the reset vector is
+                               never fetched from the table; this slot is the
+                               entry instead, and mmodecheck skips entry 0. */
     .word   0
     .word   NMI_Handler              
     .word   HardFault_Handler         
@@ -426,9 +428,19 @@ USART_WKUP_IRQHandler:
 1:
 	j 1b
 
-    .section    .load,"ax",@progbits
+/* LiteForth: the V5F's whole bring-up, run in place from .mmode (high flash)
+   where part 4's root signature covers it -- no copy to RAM. It does only
+   flash reads and RAM writes (no erase/program), so flash stays executable.
+   Reached from the wake entry (slot 0 of the vector table, j handle_reset). */
+    .section    .handle_reset,"ax",@progbits
     .align  1
-_load_base:
+    .weak   handle_reset
+handle_reset:
+.option push
+.option norelax
+    la gp, __global_pointer$
+.option pop
+    la sp, _eusrstack
 
 /* Load highcode code  section from flash to RAM */
     la a0, _highcode_lma
@@ -476,7 +488,20 @@ _load_base:
 	sw zero, (a0)
 	addi a0, a0, 4
 	bltu a0, a1, 1b
-2:  
+2:
+/* LiteForth: zero the memory pool (Link_v5f.ld's POOL, a NOLOAD section the
+   image never clears). memalloc.c's pool backs the VM RAM page, whose _udata
+   section the Forth code reads as zero until first written, the way C
+   guarantees for an uninitialized static; on the desktop the pool is in .bss
+   and zeroed for free. Here in machine mode, before pmp_lock. */
+	la a0, _pool_start
+	la a1, _pool_end
+	bgeu a0, a1, 2f
+1:
+	sw zero, (a0)
+	addi a0, a0, 4
+	bltu a0, a1, 1b
+2:
 /* Configure Prefetch */
     li t0, 0x1237B3E0
     csrw 0xBC0, t0
@@ -511,55 +536,6 @@ _load_base:
 	la t0, main
 	csrw mepc, t0
 	mret
-
-	.section	.handle_reset,"ax",@progbits
-	.weak	handle_reset
-	.align	1
-handle_reset:
-.option push 
-.option	norelax 
-	la gp, __global_pointer$
-.option	pop 
-
-	la sp, _eusrstack 
-
-    lui a3, 0x40022
-    lw a4,0(a3)
-    li a5,0x3
-    or a5,a4,a5
-    sw a5,0(a3)
-
-/* Load loadcode  section from flash to RAM */
-    la a0, _loadcode_lma
-    la a1, _loadcode_vma_start
-    la a2, _loadcode_vma_end
-    bgeu a1, a2, 2f
-1:
-    lw t0, (a0)
-    sw t0, (a1)
-    addi a0, a0, 4
-    addi a1, a1, 4
-    bltu a1, a2, 1b
-2:
-    sw a4,0(a3)
-
-/* LiteForth: zero the memory pool (Link_v5f.ld's POOL, a NOLOAD section that
-   the image doesn't clear). memalloc.c's pool backs the VM RAM page, whose
-   _udata section the Forth code reads as zero until first written, the way C
-   guarantees for an uninitialized static; on the desktop the pool is in .bss
-   and zeroed for free. Done here in machine mode, before _load_base runs and
-   long before the PMP is locked. (.load, run from the 256-byte RAM_LOAD, has
-   no room for it, so it goes in handle_reset, which runs from flash.) */
-    la a0, _pool_start
-    la a1, _pool_end
-    bgeu a0, a1, 2f
-1:
-    sw zero, (a0)
-    addi a0, a0, 4
-    bltu a0, a1, 1b
-2:
-
-    call _load_base
 
 
 

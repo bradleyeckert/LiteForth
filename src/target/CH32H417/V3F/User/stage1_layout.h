@@ -23,6 +23,11 @@
 #define UPD_RECORD_B        0x12000u
 #define UPD_V5F_ADDR        0x14000u
 #define UPD_V5F_SLOT        0x1C000u
+/* LiteForth: the V5F wakes into its machine-mode region (.mmode, the slot's
+   last 8 KB), run in place from the high window, so the whole bring-up is in
+   the root-signed region (part 4). The V3F wakes it here, not at the slot
+   base. Must equal Link_v5f.ld's MMODE origin (it ASSERTs _mmode_start). */
+#define UPD_V5F_ENTRY       0x0802E000u
 #define UPD_HEADER          0x70000u        /* needs no protection: only its signature counts */
 
 #define UPD_PAGES_LEN       0x40000u        /* LiteForth's 4 x 64K flash pages (V5F/User/options.h) */
@@ -34,6 +39,9 @@ _Static_assert(UPD_V5F_ADDR + UPD_V5F_SLOT == 0x30000u, "the flash pages follow 
 _Static_assert(UPD_RECORD_B + UPD_SECTOR == UPD_V5F_ADDR, "the records are just below the V5F's slot");
 _Static_assert(UPD_HEADER >= UPD_V5F_ADDR + UPD_V5F_SLOT + UPD_PAGES_LEN, "the block 0 is past the pages");
 _Static_assert(UPD_V5F_ADDR % 1024u == 0, "NVIC_WakeUp_V5F takes a 1 KB aligned address");
+_Static_assert(UPD_V5F_ENTRY == 0x08000000u + UPD_V5F_ADDR + UPD_V5F_SLOT - 0x2000u,
+               "the V5F entry is .mmode: the slot's last 8 KB, in the high window");
+_Static_assert(UPD_V5F_ENTRY % 1024u == 0, "NVIC_WakeUp_V5F takes a 1 KB aligned address");
 
 /* Write protection as a locked-down board has it (stage1.c's check; WPR has
    one bit per 8 KB sector, sectors 31-119 sharing bit 31, and a 0 means

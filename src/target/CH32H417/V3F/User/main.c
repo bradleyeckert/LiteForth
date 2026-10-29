@@ -43,7 +43,7 @@ int main(void)
     printf("V3F: starting the V5F\r\n"); //if "V3F: the V5F is running" never follows, it didn't start
     while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET); //finish sending first
 	HSEM_ITConfig(HSEM_ID0, ENABLE);
-	NVIC_WakeUp_V5F(UPD_V5F_ADDR);      //wake up V5 (LiteForth: its slot, not debug.h's Core_V5F_StartAddr)
+	NVIC_WakeUp_V5F(UPD_V5F_ENTRY);     //LiteForth: wake into .mmode (part 4), run in place from the high window
 	stage1_wait_v5f();                  //LiteForth: up to STAGE1_V5F_START_MS, not Stop mode for good
 	HSEM_ClearFlag(HSEM_ID0);
 	printf("V3F: the V5F is running\r\n");
@@ -55,7 +55,7 @@ int main(void)
     Hardware();
 
 #elif (Run_Core == Run_Core_V5F)
-    NVIC_WakeUp_V5F(UPD_V5F_ADDR);      //wake up V5 (LiteForth: its slot, not debug.h's Core_V5F_StartAddr)
+    NVIC_WakeUp_V5F(UPD_V5F_ENTRY);     //LiteForth: wake into .mmode (part 4), run in place from the high window
     PWR_EnterSTOPMode(PWR_Regulator_ON, PWR_STOPEntry_WFE);
     printf("V3F: the V5F is running\r\n");
 #endif

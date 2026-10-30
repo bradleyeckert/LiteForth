@@ -356,7 +356,7 @@ write (PMP entry 0, locked).
 - **Parent:** UN-09
 - **Verified by:** board:B18, board:B22, insp:src/target/CH32H417/V5F/User/pmp.c::pmp_lock
 - **Status:** partial
-- **Gap:** bus masters the V5F's code can program (the ECDC engine, SDMMC, USBHS) aren't fenced, so this rests on that code being the vendor's (SYS-SEC-06), until SYS-SEC-13 and SYS-SEC-14; no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
+- **Gap:** SYS-SEC-14 now root-signs machine-mode code and SYS-SEC-13 fences the bus masters by their clock (built, its board run pending), so this rests on the V5F's code being the vendor's (SYS-SEC-06) only until that run; no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
 
 ### SYS-SEC-02: The V3F's RAM is fenced from the V5F's CPU
 The V5F's CPU, in either mode, can't read or write the V3F's RAM, where
@@ -376,7 +376,7 @@ user buffers.
 - **Parent:** UN-09
 - **Verified by:** integ:blocksim::test_guard, unit:guard::test_buffer, board:B15, board:B17
 - **Status:** partial
-- **Gap:** other bus masters (the ECDC, SDMMC, USBHS, ...) aren't fenced (SYS-SEC-13, planned); SYS-SEC-06 covers what that leaves
+- **Gap:** other bus masters (the ECDC, SDMMC, USBHS, ...) are fenced by their clock (SYS-SEC-13, built; board run pending); SYS-SEC-06 covers what that leaves until then
 
 ### SYS-SEC-04: Machine mode's code can't be changed by user mode
 The V5F's machine-mode code (the vector table, the handlers, the
@@ -455,12 +455,16 @@ trusts none of its data between traps without checking it again.
 ### SYS-SEC-13: No bus master runs for user mode
 User mode can't turn on the clock of any bus master (the ECDC, LTDC,
 GPHA, HSADC, SDMMC, the USB controllers, USBPD, ETH, DVP, SerDes, UHSIF,
-QSPI, FMC, PIOC, DMA1/2): the guard refuses such an RCC store, and the
-start-up code turns them all off. Machine-mode services (Guarded DMA, the
-ECDC) turn on only what they use, and only while they use it.
+QSPI, FMC, PIOC, DMA1/2): the guard refuses such an RCC store
+(`guard_rcc_turns_on_master`), and the start-up code turns them all off
+(`clock_fence`). Machine-mode services (Guarded DMA, the ECDC service
+`PMP_SVC_ECDC`) turn on only what they use, and only while they use it,
+pointing the engine at their own checked buffer.
 
 - **Parent:** UN-09
-- **Status:** planned
+- **Verified by:** unit:guard::HB2PCENR enables ECDC, unit:guard::byte 0 leaves FMC (byte 1) on
+- **Gap:** built; the board run (the fence refusing an ECDC clock-enable, and a package still decrypting through the machine-mode service) is pending
+- **Status:** partial
 
 ### SYS-SEC-14: Machine mode's code is the root's
 The code that runs in the V5F's machine mode (the slot's last 8 KB: the

@@ -523,6 +523,10 @@ handle_reset:
 /* LiteForth: lock the PMP (V5F/User/pmp.c) while still in machine mode */
 	call pmp_lock
 
+/* LiteForth: turn off the fenced bus masters' clocks (SYS-SEC-13), so none
+   runs while user mode does; the machine-mode services clock them per use */
+	call clock_fence
+
 /* LiteForth: machine mode's own stack, for the trap handlers to switch to
    (mscratch), so user mode can't steer a machine-mode store with its sp
    (doc/admin/firmware-updates.md section 8) */

@@ -91,6 +91,21 @@ def main():
 
     # update.h's defaults, which the test builds with: a 160 KB slot, 256 KB of pages
     slot, pages_len = 160 * 1024, 256 * 1024
+    # the machine-mode region (part 4): the slot's last 8 KB. The test images
+    # are far shorter, so it is erased flash (0xFF) in both the signed window
+    # and the installed slot; mmode-sign signs the slot-padded image's window.
+    mmode_len = 0x2000
+    mmode_off = slot - mmode_len                # its offset in the slot image
+    mmode_addr = 0x30000 + slot - mmode_len     # UPD_V5F_ADDR + the offset (STAGE1_FLASH_BASE 0)
+    mmode = ['--mmode-off', mmode_off, '--mmode-addr', mmode_addr, '--mmode-len', mmode_len]
+
+    def mmode_sign(v5f_bin, out):
+        with open(v5f_bin, 'rb') as f:
+            body = f.read()
+        with open('slotpad.bin', 'wb') as f:
+            f.write(body + b'\xff' * (slot - len(body)))
+        tool('mmode-sign', 'slotpad.bin', out, '--root', 'root.key', '--product', PRODUCT, *mmode)
+
     pages = image(pages_len, 11)
     with open('pages.bin', 'wb') as f:
         f.write(pages)
@@ -98,8 +113,10 @@ def main():
         f.write(images['new.bin'] + b'\xff' * (slot - len(images['new.bin'])) + pages)
     app = ['--component', 'app', '--release', 'rel.key', '--boards', 'boards.csv',
            '--pages', 'pages.bin', '--slot', slot]
-    tool('package', 'new.bin', 'app.lfu', *app, '--revision', 4)
-    tool('package', 'new.bin', 'appshort.lfu', *app, '--pages-len', 192 * 1024, '--revision', 4)
+    mmode_sign('new.bin', 'mm_app.sig')
+    tool('package', 'new.bin', 'app.lfu', *app, '--revision', 4, '--mmode-sig', 'mm_app.sig')
+    tool('package', 'new.bin', 'appshort.lfu', *app, '--pages-len', 192 * 1024, '--revision', 4,
+         '--mmode-sig', 'mm_app.sig')
     pages5 = image(pages_len, 13)
     with open('pages5.bin', 'wb') as f:
         f.write(pages5)
@@ -107,7 +124,16 @@ def main():
         f.write(images['v3.bin'] + b'\xff' * (slot - len(images['v3.bin'])) + pages5)
     app5 = ['--component', 'app', '--release', 'rel.key', '--boards', 'boards.csv',
             '--pages', 'pages5.bin', '--slot', slot]
-    tool('package', 'v3.bin', 'app5.lfu', *app5, '--revision', 5)
+    mmode_sign('v3.bin', 'mm_app5.sig')
+    tool('package', 'v3.bin', 'app5.lfu', *app5, '--revision', 5, '--mmode-sig', 'mm_app5.sig')
+    # a package whose machine-mode region is signed for different bytes: the
+    # window set to zeros, so stage 1's flash hash (0xFF) won't match it
+    with open('slotbad.bin', 'wb') as f:
+        f.write(images['new.bin'] + b'\xff' * (slot - mmode_len - len(images['new.bin']))
+                + b'\x00' * mmode_len)
+    tool('mmode-sign', 'slotbad.bin', 'mm_bad.sig', '--root', 'root.key', '--product', PRODUCT,
+         *mmode)
+    tool('package', 'new.bin', 'appbadmm.lfu', *app, '--revision', 4, '--mmode-sig', 'mm_bad.sig')
 
 
 if __name__ == '__main__':

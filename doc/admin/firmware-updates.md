@@ -794,15 +794,22 @@ fix doesn't need it shown.
      privileged tail, which enters Stop mode and resets on the alarm wake,
      is `lf_standby_service` in `.mmode`. `Delay_Init` (SysTick, WCH's
      unused demo timer) is skipped on the V5F.
-4. **Machine mode's code is the root's.** Today the release key signs the
-   whole image, machine-mode code included. The code that runs in machine
-   mode (`.mmode` with the vector table, `.ramfunc`'s flash copy, and the
-   start-up path up to its `mret`, moved into `.mmode`) also gets a root
-   signature, made offline (`sealblocks.py mmode-sign`, to be written).
-   Stage 1 checks it at every boot beside the release signature. A stolen
-   release key can then change only user-mode code, and parts 1 to 3
-   fence that in. A machine-mode change needs the root key; that code is
-   about 8 KB and rarely changes.
+4. **Machine mode's code is the root's.** *(Built; board test pending.)* The
+   release key signs the whole image, machine-mode code included, but that
+   isn't enough: a stolen release key could re-sign a changed image. So the
+   machine-mode region also gets a *root* signature. It is one contiguous
+   span now (part of the increment-1 relocation): the slot's last 8 KB, the
+   `MMODE` window, holding the vector table, the start-up path up to its
+   `mret`, the trap and interrupt handlers, and `.ramfunc`'s flash copy, all
+   run in place. `sealblocks.py mmode-sign` hashes that window and signs the
+   product ID, its address, its length and the hash with the root key,
+   offline; `package --mmode-sig` embeds the 104-byte result in block 0
+   (encrypted-blocks.md section 3). At every boot stage 1 verifies the root
+   signature (`sealed_check_signed`, beside the release signature) and hashes
+   the flash window against it (`update.c`, pinning the window to its known
+   address and length). A stolen release key can then change only user-mode
+   code, and parts 1 to 3 fence that in. A machine-mode change needs the root
+   key; that code is about 4 KB and rarely changes.
 
 Entries after part 3:
 

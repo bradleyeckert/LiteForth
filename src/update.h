@@ -45,6 +45,15 @@
 #ifndef UPD_HEADER
 #define UPD_HEADER          0x0A000u    /* the installed image's package block 0, one sector */
 #endif
+#ifndef STAGE1_FLASH_BASE
+#define STAGE1_FLASH_BASE   0u          /* flash_read takes offsets from here */
+#endif
+#ifndef UPD_V5F_MMODE_LEN
+#define UPD_V5F_MMODE_LEN   0x2000u     /* the machine-mode region: the slot's last 8 KB (part 4) */
+#endif
+#ifndef UPD_V5F_ENTRY                   /* where it sits: the root signs its hash */
+#define UPD_V5F_ENTRY       (STAGE1_FLASH_BASE + UPD_V5F_ADDR + UPD_V5F_SLOT - UPD_V5F_MMODE_LEN)
+#endif
 #define UPD_APP_SPAN        (UPD_V5F_SLOT + UPD_PAGES_LEN)  /* a SEALED_V5F_APP image */
 #ifndef UPD_TRIAL_BOOTS
 #define UPD_TRIAL_BOOTS     3u          /* boots on trial before a rollback */

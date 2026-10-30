@@ -702,11 +702,17 @@ def s_enroll():
     cwd = os.getcwd()
     os.chdir(WORK)
     try:
-        # level 2 takes only app packages: the slot and the flash pages, all signed
+        # level 2 takes only app packages: the slot and the flash pages, all
+        # signed, and the machine-mode region signed by the root too (part 4)
         with open('pages.bin', 'wb') as f:
             f.write(bytes((i * 13 + (i >> 9)) & 255 for i in range(PAGES_LEN)))
+        with open('v1.bin', 'rb') as f:
+            body = f.read()
+        with open('v1slot.bin', 'wb') as f:
+            f.write(body + b'\xff' * (sb.APP_SLOT - len(body)))
+        tool('mmode-sign', 'v1slot.bin', 'strict.mm', '--root', 'root.key', '--product', PRODUCT)
         tool('package', 'v1.bin', pkg, '--component', 'app', '--pages', 'pages.bin',
-             '--release', 'rel.key', '--boards', csv, '--revision', 1)
+             '--release', 'rel.key', '--boards', csv, '--revision', 1, '--mmode-sig', 'strict.mm')
         tool('package', 'v1.bin', pkg + '.v5f', '--component', 'v5f', '--release', 'rel.key',
              '--boards', csv, '--revision', 1)
     finally:

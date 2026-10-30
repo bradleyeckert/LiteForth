@@ -71,7 +71,7 @@ _Static_assert(CDC_SHARED_ADDR >= V3F_RAM + V3F_RAM_SIZE, "the shared block is o
 static uint32_t got_cfg, got_addr[4];   /* read back after the lock */
 static uint32_t kept_cfg, kept_addr0;   /* after trying to clear entry 0 */
 
-void pmp_lock(void)
+MMODE void pmp_lock(void)
 {
     __asm volatile ("csrw pmpaddr0, %0" : : "r"(PMP_ADDR0));
     __asm volatile ("csrw pmpaddr1, %0" : : "r"(PMP_ADDR1));
@@ -93,7 +93,7 @@ void pmp_lock(void)
    mret to user mode: the interrupt enables the V5F needs, set here because
    user mode can't reach the PFIC once part 3 fences it (pmp.h). Not in
    .mmode: it runs once at start-up, before any user code exists. */
-void v5f_irq_setup(void)
+MMODE void v5f_irq_setup(void)
 {
     NVIC_SetAllocateIRQ(TIM6_IRQn, Core_ID_V5F);   /* the time base, to the V5F */
     NVIC_SetPriority(TIM6_IRQn, 0);

@@ -54,13 +54,20 @@ ASSERT(ORIGIN(FLASH) == 0x00014000,
 
 SECTIONS
 {
-	/* LiteForth: machine mode's code, in flash (mmode.h). First, so these
-	   input sections are taken before .highcode's wildcards. */
+	/* LiteForth: machine mode's code, in flash (mmode.h), run in place from
+	   the high window. One contiguous region so the root key can sign it
+	   (doc/admin/firmware-updates.md section 8, part 4): the vector table is
+	   first (so _vector_base is at MMODE's base), and its slot 0 is the wake
+	   entry -- a `j handle_reset` the V3F jumps to by waking the V5F at
+	   MMODE's base (UPD_V5F_ENTRY). handle_reset is the whole bring-up, run
+	   in place, no copy to RAM. First section overall, so these input
+	   sections are taken before .highcode's wildcards. */
 	.mmode :
 	{
 		_mmode_start = .;
 		KEEP(*(.vector))
 		KEEP(*(.text.vector_handler))
+		KEEP(*(SORT_NONE(.handle_reset)))
 		*(.mmode .mmode.*)
 		*ch32h417_it*.o(.text .text.* .rodata .rodata.*)
 		*guard*.o(.text .text.* .rodata .rodata.*)
@@ -68,6 +75,7 @@ SECTIONS
 		. = ALIGN(4);
 		_mmode_end = .;
 	} >MMODE AT>MMODE_LMA
+	ASSERT(_mmode_start == 0x0802E000, "the V5F wakes at MMODE's base (UPD_V5F_ENTRY)")
 
 	.ramfunc :
 	{
@@ -78,31 +86,11 @@ SECTIONS
 	} >RAMFUNC AT>MMODE_LMA
 	_ramfunc_lma = LOADADDR(.ramfunc) + 0x08000000;
 
-	.init :
-	{
-		_sinit = .;
-		. = ALIGN(4);
-		KEEP(*(SORT_NONE(.init)))
-		. = ALIGN(4);
-		_einit = .;
-	} >FLASH AT>FLASH
+    /* LiteForth: the entry (.init), the bring-up (.handle_reset) and
+       _load_base (.load) are all in .mmode now, run in place; no separate
+       flash entry section and no copy of the loader to RAM. */
 
-    .loadcodelalign : 
-    {       
-        . = ALIGN(4);
-        PROVIDE(_loadcode_lma = .); 
-    } >FLASH AT>FLASH 
-
-	.loadcode :
-	{
-		. = ALIGN(4);
-        PROVIDE(_loadcode_vma_start = .);
-		*(.load);
-		. = ALIGN(4); 
-		PROVIDE(_loadcode_vma_end = .);
-	}>RAM_LOAD AT>FLASH
-
-    .highcodelalign : 
+    .highcodelalign :
     {       
         . = ALIGN(4);
         PROVIDE(_highcode_lma = .); 
@@ -127,12 +115,6 @@ SECTIONS
         PROVIDE(_highcode_vma_end = .);
     } >RAM_CODE AT>FLASH
 
-	.text :
-	{
-		. = ALIGN(4);
-		KEEP(*(SORT_NONE(.handle_reset)))
-		. = ALIGN(4);
-	} >FLASH AT>FLASH 
 
     .highcodelalign1 : 
     {       

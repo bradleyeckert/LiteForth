@@ -78,10 +78,11 @@ static int image_mac(const upd_io *io, const upd_record *r, uint32_t addr,
     return 0;
 }
 
-/* The plaintext hash of `length` bytes of flash at addr, as a package's */
-static int image_hash(const upd_io *io, uint32_t addr, uint32_t length, uint8_t out[32]) {
+/* BLAKE2s of `length` bytes of flash at addr, with the given personalization */
+static int region_hash(const upd_io *io, uint32_t addr, uint32_t length,
+                       const char *person, uint8_t out[32]) {
     blake2s_state S;
-    b2s_start(&S, 32, NULL, 0, "LFimage");
+    b2s_start(&S, 32, NULL, 0, person);
     for (uint32_t at = 0; at < length; at += UPD_BLOCK) {
         uint32_t n = (length - at < UPD_BLOCK) ? length - at : UPD_BLOCK;
         int err = io->flash_read(addr + at, buf, n);
@@ -92,6 +93,11 @@ static int image_hash(const upd_io *io, uint32_t addr, uint32_t length, uint8_t 
     }
     b2s_final(&S, out);
     return 0;
+}
+
+/* The plaintext hash of `length` bytes of flash at addr, as a package's */
+static int image_hash(const upd_io *io, uint32_t addr, uint32_t length, uint8_t out[32]) {
+    return region_hash(io, addr, length, "LFimage", out);
 }
 
 /* ------------------------------------------------------------------------
@@ -256,7 +262,22 @@ static int signed_ok(const upd_io *io, const sealed_board *keys, const upd_recor
     if (err) {
         return err;
     }
-    return crypto_verify32(h, pkg.image_hash) == 0;
+    if (crypto_verify32(h, pkg.image_hash) != 0) {
+        return 0;
+    }
+    /* the machine-mode region (part 4): the root signed its hash, which
+       sealed_check_signed verified. Require it, pin it to the .mmode window,
+       and check the flash there against it. A stolen release key can re-sign
+       block 0 but can't forge the root signature over changed machine-mode
+       code; a wrong region fails here. */
+    if (pkg.mmode_addr != UPD_V5F_ENTRY || pkg.mmode_len != UPD_V5F_MMODE_LEN) {
+        return 0;
+    }
+    err = region_hash(io, pkg.mmode_addr - STAGE1_FLASH_BASE, pkg.mmode_len, "LFmmode", h);
+    if (err) {
+        return err;
+    }
+    return crypto_verify32(h, pkg.mmode_hash) == 0;
 }
 
 /* Whether the installed image passes the boot check: its MAC, and with

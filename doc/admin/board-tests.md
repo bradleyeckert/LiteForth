@@ -3100,4 +3100,87 @@ user-mode access faulted. `pmp_report` confirms entry 3 is `0FFFFFFF`,
 set and locked. Not tested: a deliberate user-mode poke at the PFIC to
 force the fault (a writability probe, left out by project rule); the
 locked `pmpaddr3` readback is the hardware proof instead. Part 4 (the
-machine-mode root signature, SYS-SEC-14) is separate and still to come.
+machine-mode root signature, SYS-SEC-14) is in B32.
+
+### B32. Level 2: the machine-mode region's root signature (30 October 2026)
+
+**Board and firmware:** a second board, UID `e52116647f9c7a22`, at
+`SECURITY_LEVEL` 2, locked down by the recovery `lockdown` command (option
+bytes RDPR `00FF`, USER `C03F`, WRPR0 `FF00`), built in MounRiver from
+branch `sys-sec-14-mmode-sign` and flashed by the user (V3F built
+Oct 29 2026 13:27:00, GCC 12.2.0). Enrolled in recovery: `enroll` made the
+key, `boards.csv` line
+`e52116647f9c7a22,2f372551baf1b78c2d197bf9a71d1767ffe08f7637a8b0cd95cab530c9e9cd73`.
+
+| Image | sha256 |
+|---|---|
+| `LiteForth_V5F.bin` (the signed machine-mode region is its slot's last 8 KB) | `90a2168c1e858893ab82424ca56b30b8d50f0134c4ca1c934963429876568ea7` |
+
+Packages built with `sealblocks.py` (app component, 385024 bytes each,
+376832-byte image) for this board's key, with the user's root and release
+keys:
+
+| Package | Version | Machine-mode signature | sha256 |
+|---|---|---|---|
+| `mmapp.lfu` | 1 | yes, root-signed (`mmode-sign` then `package --mmode-sig`) | `8a62593fd96dad60b03828900c9d97351905b19d5cdfd86fe558cea0b47efaf4` |
+| `nomm3.lfu` | 3 | none (same image, no `--mmode-sig`) | `b115933c8e1f577134ba0313c35cc3b2971362ecbc2811e46f4f870a57c83456` |
+
+**Why:** part 4 of the PMP plan (SYS-SEC-14,
+`doc/admin/firmware-updates.md` section 8). The machine-mode region -- the
+slot's last 8 KB, the `MMODE` window with the vector table, the bring-up to
+its `mret`, the handlers and `.ramfunc`'s flash copy, all run in place --
+carries a root Ed25519 signature over its BLAKE2s hash in block 0
+(encrypted-blocks.md section 3). Stage 1 verifies it at every boot beside
+the release signature (`sealed_check_signed`) and hashes the flash window
+against it (`update.c`, pinning the window). A stolen release key can
+re-sign block 0 but can't forge the root signature over changed
+machine-mode code.
+
+**Expected:** a machine-mode-signed app package installs, passes the root
+and machine-mode checks, and the V5F starts and confirms. An otherwise
+identical package with no machine-mode signature installs on trial but is
+rejected by stage 1's boot check and rolled back to the signed image.
+
+**Run (positive, `mmapp.lfu`, version 1), installed from recovery.** Debug
+port:
+
+```
+ymodem: mmapp.lfu: 385024 bytes received
+update: version 1 installed, on trial
+recovery: installed; restarting to try it
+update: version 1 on trial, boot 1 of 3
+V3F stage 1: security level 2, installed version 1
+V3F: starting the V5F
+V5F: LiteForth starting, security level 2, booting from flash
+V3F update: version 1 confirmed
+```
+
+The root and machine-mode signatures checked out, the V5F started on trial
+and confirmed; the terminal ran LiteForth.
+
+**Run (negative, `nomm3.lfu`, version 3).** Staged over the running v1,
+then a pushbutton reset:
+
+```
+ymodem: nomm3.lfu: staged in lfstage.bin, 94 blocks, read back and checked
+ymodem: package: V5F and app image, 376832 bytes, version 3: signature, recipient and blocks check out; waiting for stage 1 to install it
+V3F update: rolled back to version 1
+V3F stage 1: security level 2, installed version 1
+V3F: starting the V5F
+V5F: LiteForth starting, security level 2, booting from flash
+```
+
+The keyless staging check passed (release signature, recipient, block
+hashes), but stage 1's boot check found no machine-mode signature
+(`pkg.mmode_addr == 0`, which it requires at level 2), failed the trial and
+rolled back to the signed version 1. The unsigned image never ran.
+
+**Result:** pass, both ways. `nomm3.lfu` is byte-identical to the signed
+image except for the missing root signature, and its release signature and
+hashes were valid, so the rejection is the machine-mode check alone. A
+first round earlier was refused with `lfbackup.bin needs 94 blocks` (the
+test card's backup file was undersized); re-imaging the card with a 1 MB
+`lfbackup.bin` fixed that and is unrelated to the signature check. Not
+tested: a forged root signature (the root key is required to make one; the
+desktop `unit_tests/seal` and `unit_tests/update` cover a wrong-root and a
+mismatched-region signature).

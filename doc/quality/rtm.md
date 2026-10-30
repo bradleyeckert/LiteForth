@@ -7,7 +7,7 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 75 | 52 | 19 | 4 | 23 |
+| System requirements (SYS) | 75 | 53 | 18 | 4 | 22 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -76,7 +76,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) User mode can't steer machine mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B29 | partial |
 | [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng) Keys only from a healthy RNG | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | insp:`src/target/CH32H417/V3F/User/stage1.c::RNG_FLAG_SECS`<br>B25 | partial |
 | [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) No bus master runs for user mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | - | planned |
-| [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) Machine mode's code is the root's | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`seal::machine-mode root signature`<br>unit:`update::unmatched machine-mode signature`<br>integ:`stage1sim::strict: the signed image starts` | partial |
+| [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) Machine mode's code is the root's | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`seal::machine-mode root signature`<br>unit:`update::unmatched machine-mode signature`<br>integ:`stage1sim::strict: the signed image starts`<br>B32 | verified |
 | [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) User mode can't reach the interrupt controller | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B30<br>B31 | verified |
 | [SYS-STO-01](system.md#sys-sto-01-the-block-file-on-the-card) The block file on the card | [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read) | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | sys:`blocks::[foreign]`<br>integ:`exfat::test_card_signed_file`<br>integ:`exfat::test_card_unsigned_file`<br>B26 | verified |
 | [SYS-STO-02](system.md#sys-sto-02-malformed-cards-are-refused-safely) Malformed cards are refused safely | [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | integ:`exfat::test_root_directory_loop`<br>integ:`exfat::test_find_ignores_bad_checksum`<br>integ:`exfat::test_volume_larger_than_partition`<br>integ:`exfat::test_first_cluster_past_the_volume`<br>integ:`exfat::test_sectors_and_fence` | verified |
@@ -263,6 +263,7 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B29. The fault handler on machine mode's own stack | [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) |
 | B30. The V5F's time base on TIM6, and standby | [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f), [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) |
 | B31. PMP entry 3 fences the PFIC and SysTick from user mode | [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) |
+| B32. Level 2: the machine-mode region's root signature | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) |
 
 ## Gaps
 
@@ -299,7 +300,6 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode): partial: the fault handler is on the machine-mode stack (B29); the
 - [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng): partial: no test makes the RNG fail; its quality on real parts isn't verified
 - [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode): planned: not built yet
-- [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots): partial: built and tested on the desktop (`sealblocks.py mmode-sign`, `sealed.c`, `update.c`) and the simulated board; the board test on real hardware (round 2) is pending
 - [SYS-STO-07](system.md#sys-sto-07-flash-pages-written-only-through-a-checked-service): partial: on the board, `close-flash` refusing at level 2 (be529e1) isn't on a board yet; B28 showed it answering `ok`, a no-op
 - [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm): partial: the refusal without an alarm isn't shown on the board; standby's current isn't measured
 - [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes): partial: no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)

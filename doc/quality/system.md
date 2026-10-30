@@ -470,9 +470,8 @@ it at every boot as well as the release signature, and hashes the flash
 window against it, so a release key alone can't change machine-mode code.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** unit:seal::machine-mode root signature, unit:update::unmatched machine-mode signature, integ:stage1sim::strict: the signed image starts
-- **Status:** partial
-- **Gap:** built and tested on the desktop (`sealblocks.py mmode-sign`, `sealed.c`, `update.c`) and the simulated board; the board test on real hardware (round 2) is pending
+- **Verified by:** unit:seal::machine-mode root signature, unit:update::unmatched machine-mode signature, integ:stage1sim::strict: the signed image starts, board:B32
+- **Status:** verified
 
 ### SYS-SEC-15: User mode can't reach the interrupt controller
 The PFIC and the system timers (from 0xE0000000) are machine mode's

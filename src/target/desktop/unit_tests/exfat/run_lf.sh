@@ -24,8 +24,8 @@ if [ "$g" != "$w" ]; then
     exit 1
 fi
 echo "$g" | grep -q "value test: 11 10" || { echo "run_lf: loading core.f failed"; echo "$g"; exit 1; }
-# dir lists the card's root directory; a plain block file has none
+# dir lists the card's root directory (name and size in bytes); a plain block file has none
 d=$(printf 'dir\nbye\n' | "$LF" -o 3 -k "$IMG" 2>&1 | tr -d '\r' | grep -v "^blocks:\|^\[")
-[ "$(echo "$d" | tr '\n' ' ')" = "notes.txt LFBlocks.fb4 " ] || { echo "run_lf: dir listed:"; echo "$d"; exit 1; }
+[ "$(echo "$d" | tr -s ' \n' ' ')" = "notes.txt 3000 LFBlocks.fb4 262144 " ] || { echo "run_lf: dir listed:"; echo "$d"; exit 1; }
 printf 'dir\nbye\n' | "$LF" -o 3 -k copy.fb4 2>&1 | grep -q "ior=-90" || { echo "run_lf: dir on a plain block file didn't fail"; exit 1; }
 echo "run_lf: lf finds lfblocks.fb4 on the card image ($blocks blocks), reads the same data, loads core.f from it, and lists it with dir"

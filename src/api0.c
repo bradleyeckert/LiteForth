@@ -314,12 +314,27 @@ static int blockStatus(void) {
     return vmPush(blk_status());
 }
 
-/* One name per line for `dir`, directories with a trailing / */
+/* One entry per line for `dir`: directories with a trailing /, files with
+   their size in bytes, right-aligned so a column of sizes lines up */
 static int dirLine(void *ctx, const char *name, const exfat_file *file) {
     (void)ctx;
     lf_puts(name);
     if (file->flags & EXFAT_DIRECTORY) {
         lf_puts("/");
+    } else {
+        char buf[24];
+        int i = (int)sizeof buf;
+        uint64_t v = file->length;
+        buf[--i] = '\0';
+        do {
+            buf[--i] = (char)('0' + (int)(v % 10));
+            v /= 10;
+        } while (v && i > 0);
+        int pad = 32 - (int)strlen(name) - ((int)sizeof buf - 1 - i);
+        while (pad-- > 0) {
+            lf_putc(' ');
+        }
+        lf_puts(&buf[i]);
     }
     lfCR();
     return 0;

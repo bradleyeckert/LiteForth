@@ -318,6 +318,7 @@ static int recovering;                  /* stage1_boot said STAGE1_RECOVERY */
 static int forced;                      /* by Ctrl+X x3 twice: on request, or the V5F got stuck */
 static int locked_out;                  /* level 2 and not locked down */
 static char why_recovery[220];
+static void say(const char *s);         /* prints to the debug port and the terminal */
 
 /* The V5F stays off: recovery, in stage1_poll */
 static int enter_recovery(const char *why) {
@@ -451,7 +452,10 @@ static int boot(void) {
                  "type reset to carry on", result);
         return enter_recovery(msg);
     }
-    if (waiting || busy || result != UPD_START || strcmp(msg, "update: nothing to do") != 0) {
+    if (waiting) {
+        say(msg);                     /* a package was sent: tell the terminal too, not just
+                                         the debug port, so a refused install isn't silent */
+    } else if (busy || result != UPD_START || strcmp(msg, "update: nothing to do") != 0) {
         printf("V3F %s\r\n", msg);    /* anything it did: an install, a rollback, an adopt */
     }
     if (result == UPD_START) {

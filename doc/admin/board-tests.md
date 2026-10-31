@@ -3102,6 +3102,93 @@ force the fault (a writability probe, left out by project rule); the
 locked `pmpaddr3` readback is the hardware proof instead. Part 4 (the
 machine-mode root signature, SYS-SEC-14) is in B32.
 
+### B33. No bus master runs for user mode: the clock fence and the ECDC service (31 October 2026)
+
+**Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
+`SECURITY_LEVEL` 0, built in MounRiver from branch `sys-sec-13-busmasters`
+(commit `92ef0db`: the start-up clock fence and the machine-mode ECDC
+service, on top of the store guard in `c4cbaa1`) and flashed by the user.
+Only the V5F changed; the V3F is as on `main`.
+
+| Image | Size | sha256 |
+|---|---|---|
+| `LiteForth_V5F.bin` | 112372 | `fa8f503229d3ae12a03512d5b5d335f8586c8e9af0b71ed000fa75ac0e0ae60b` |
+
+**Why:** part 2 of the PMP plan (SYS-SEC-13, `doc/admin/firmware-updates.md`
+section 8): a bus master isn't bound by the PMP, so user mode must not run
+one. A peripheral without its clock neither takes register writes nor runs,
+so the clock is the fence for a master outside PMP entry 2 (the ECDC at
+0x40016C00, whose registers user mode can otherwise write). The store guard
+refuses any user-mode RCC write that would turn a master's clock on
+(`guard_rcc_turns_on_master`, 279 checks in `unit_tests/guard`); the start-up
+code turns them all off (`clock_fence`); and the machine-mode services turn
+on only the master they use, for the one transfer, and off again -- Guarded
+DMA in `burn`, and a new ECDC service (`PMP_SVC_ECDC`, `ecdc_serve`) that
+`ctr_hw_crypt` calls, driving the engine on its own DTCM buffer and copying
+to and from a checked user buffer.
+
+**Expected:** `ecdc-test` encrypts a 4 KB block with AES and SM4 and through
+`ctr_crypt_block` (the path packages take), all matching software, with the
+engine in use -- so crypto works even though user mode can no longer clock
+the engine, because the service runs it in machine mode. The card still
+reads (Guarded DMA, now dropping the DMA clock after each transfer). At
+idle every fenced master's clock reads off in RCC, including after the
+engine and the card have been used.
+
+**Run.** Cli port (COM17):
+
+```
+> revision .
+0 ok>
+> ecdc-test
+AES via the service: 256/256 units match software; 548 us, software 2458 us
+SM4 via the service: 256/256 units match software; 1553 us, software 815 us
+AES via ctr_crypt_block (first use: checks the engine): 256/256 units match software; 2230 us, software 2461 us
+AES via ctr_crypt_block again: 256/256 units match software; 1535 us, software 2464 us
+SM4 via ctr_crypt_block (first use): 256/256 units match software; 1133 us, software 810 us
+ctr_crypt_block uses the engine for AES: yes, SM4: yes
+ok>
+> dir
+lfblocks.fb4              495616
+lfstage.bin              1048576
+lfbackup.bin             1048576
+System Volume Information/
+ok>
+> 100 block drop .s
+ok>
+```
+
+The fenced clocks read off at idle, after the engine (ecdc-test) and the
+card (dir, block) have both been used. RCC is read-only to user mode (PMP
+entry 2), so these are plain reads, through VM page 5: a register at
+`0x40000000 + 4c` is at VM address `(5 << 19) + c`. `RCC->CTLR` (offset 0,
+VM `288400`) is the addressing check -- its HSION bit is always set:
+
+```
+> hex 288400 @ .                 ( RCC->CTLR: HSION et al. )
+3336983H ok>
+> 288407 @ .                     ( RCC->HB2PCENR: ECDC bit 04000000 )
+440FDH ok>                       ( 440FD & 04000000 = 0: ECDC clock off )
+> 288406 @ . decimal             ( RCC->HBPCENR: DMA1 1, DMA2 2 )
+20004H ok>                       ( 20004 & 3 = 0: DMA clocks off )
+```
+
+**Result:** pass. `ecdc-test` matches software for AES and SM4 on every
+path, with the engine in use for both -- so the machine-mode ECDC service
+decrypts correctly, and user mode gets its crypto without ever clocking the
+engine itself. The card reads through Guarded DMA with the new per-transfer
+clock drop. With the addressing confirmed by `RCC->CTLR` (HSION set), both
+clock-enable registers show every fenced master off at idle -- and the ECDC
+and DMA clocks read off *after* the engine and the card were used, so the
+services turn their master's clock on only while they use it. Not tested: a
+deliberate user-mode write to turn a master's clock on, to force the guard's
+refusal (an escalation probe, left out by project rule as in B31); the
+fence's logic is covered by `unit_tests/guard` (279 checks, including
+`HB2PCENR enables ECDC`), its wiring into the fault handler by inspection
+(`emulate_store`, `ch32h417_it.c`), and the readback above shows the clocks
+off. This completes the four-part PMP plan (parts 1-4: B29, B33, B30/B31,
+B32).
+
 ### B32. Level 2: the machine-mode region's root signature (30 October 2026)
 
 **Board and firmware:** a second board, UID `e52116647f9c7a22`, at

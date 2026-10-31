@@ -87,7 +87,16 @@ enum {
     PMP_SVC_FLASH_PROGRAM = 1,
     PMP_SVC_REBOOT        = 2,
     PMP_SVC_STANDBY       = 3,
+    PMP_SVC_ECDC          = 4,  /* the AES/SM4 engine, a bus master (ecdc.c) */
 };
+
+/**
+ * Called by the start-up code (startup_ch32h417_v5f.S) in machine mode,
+ * after pmp_lock: turns off every fenced bus master's clock (SYS-SEC-13),
+ * so none is running when user mode starts. The machine-mode services turn
+ * on only the master they use, for the one transfer, and off again.
+ */
+void clock_fence(void);
 
 /**
  * Sets up the V5F's interrupt enables in the start-up code, in machine mode

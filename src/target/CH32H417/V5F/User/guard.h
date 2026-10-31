@@ -49,6 +49,26 @@ int guard_store_allowed(const guard_store *s);
 #define GUARD_CRC_BASE      0x40023000u
 #define GUARD_WINDOW_SIZE   0x400u
 
+/* RCC's clock-enable registers inside the RCC window, and the bus masters
+   whose clocks user mode must not turn on (SYS-SEC-13,
+   firmware-updates.md section 8 part 2): a store that would leave any of
+   these bits set is refused, so user mode can't start a DMA engine, the
+   ECDC, a USB controller, etc. to reach memory the PMP fences. Machine
+   mode turns on only what a service uses, and off again. */
+#define GUARD_RCC_HBPCENR   (GUARD_RCC_BASE + 0x18u)    /* AHB clock enables */
+#define GUARD_RCC_HB2PCENR  (GUARD_RCC_BASE + 0x1Cu)    /* AHB2 clock enables */
+#define GUARD_HB_MASTERS    0x005C7D03u /* DMA1/2, FMC, SDMMC, USBHS/SS, DVP, ETH, UHSIF, USBPD, SerDes, PIOC */
+#define GUARD_HB2_MASTERS   0x4C000002u /* HSADC, ECDC, GPHA, LTDC */
+
+/**
+ * Nonzero if the store s, merged into `current` (the value now of the RCC
+ * clock-enable register it lands in), would leave a fenced bus master's
+ * clock on (SYS-SEC-13). The handler reads the register, calls this, and
+ * refuses the store when it returns nonzero. A store that doesn't land in
+ * a clock-enable register returns 0 (and `current` is ignored).
+ */
+int guard_rcc_turns_on_master(const guard_store *s, uint32_t current);
+
 /**
  * Nonzero if the buffer [p, p + n) is one machine mode may copy to or
  * from for user mode: n > 0, p 4-byte aligned, all of it within

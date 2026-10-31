@@ -7,6 +7,7 @@
 #include "options.h"                    /* FLASH_PAGE_CELLS */
 #include "pmp.h"
 #include "gdma.h"                       /* gdma_serve */
+#include "ecdc.h"                       /* ecdc_serve */
 #include "guard.h"                      /* GUARD_BLOCK_BASE, GUARD_BLOCK_SIZE */
 #include "security.h"                   /* SEC_LOCKED_PAGES (Common/) */
 #include "cdc_shared.h"                 /* CDC_SHARED_ADDR, outside entry 1 */
@@ -87,6 +88,21 @@ MMODE void pmp_lock(void)
     __asm volatile ("csrc pmpcfg0, %0" : : "r"(0xFFu));
     __asm volatile ("csrr %0, pmpcfg0" : "=r"(kept_cfg));
     __asm volatile ("csrr %0, pmpaddr0" : "=r"(kept_addr0));
+}
+
+/* Run from the start-up code in machine mode, after pmp_lock: turns off
+   every fenced bus master's clock (SYS-SEC-13, firmware-updates.md section 8
+   part 2), so none runs while user mode does. User mode can no longer turn
+   them on (the store guard refuses it, guard_rcc_turns_on_master), and the
+   machine-mode services (Guarded DMA, the ECDC service) turn on only what
+   they use, and off again. Clearing DMA1/DMA2 here is safe: the V3F uses no
+   DMA (only the RNG, which isn't a master), and the V5F's own DMA goes
+   through Guarded DMA, which clocks it per transfer. MMODE, since the
+   start-up code (.handle_reset) calls it. */
+MMODE void clock_fence(void)
+{
+    RCC->HBPCENR &= ~(uint32_t)GUARD_HB_MASTERS;
+    RCC->HB2PCENR &= ~(uint32_t)GUARD_HB2_MASTERS;
 }
 
 /* Run from the start-up code in machine mode, after pmp_lock and before the
@@ -211,6 +227,9 @@ MMODE static int32_t serve(uint32_t n, uint32_t a, uint32_t b, uint32_t c)
     }
     if (n == PMP_SVC_STANDBY) {         /* deep sleep then reset (PFIC/SCB) */
         return lf_standby_service();
+    }
+    if (n == PMP_SVC_ECDC) {            /* the AES/SM4 engine, a bus master (ecdc.c) */
+        return ecdc_serve(a);
     }
     if (n >= GDMA_SVC_START && n <= GDMA_SVC_LAST) {
         return gdma_serve(n, a, b, c);  /* Guarded DMA */

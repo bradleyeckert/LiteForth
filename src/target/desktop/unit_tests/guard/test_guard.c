@@ -200,10 +200,43 @@ static void test_buffer(void) {
     CHECK(!guard_buffer_ok(0xFFFFFF00u, 0x200, 0, 0xFFFFFFFFu, 0, 0), "wraps around");
 }
 
+static int turns_on(uint32_t addr, uint32_t value, int size, uint32_t current) {
+    guard_store s = { addr, value, size, 4 };
+    return guard_rcc_turns_on_master(&s, current);
+}
+
+static void test_clock_fence(void) {
+    /* SYS-SEC-13: a user-mode store that would leave a fenced bus master's
+       clock on is refused. HBPCENR at 0x40021018, HB2PCENR at 0x4002101C. */
+    CHECK(turns_on(0x40021018, 0x00000001, 4, 0), "HBPCENR enables DMA1");
+    CHECK(turns_on(0x40021018, 0x00000002, 4, 0), "HBPCENR enables DMA2");
+    CHECK(turns_on(0x40021018, 0x00000400, 4, 0), "HBPCENR enables SDMMC");
+    CHECK(turns_on(0x40021018, 0x00000800, 4, 0), "HBPCENR enables USBHS");
+    CHECK(turns_on(0x40021018, 0x00400000, 4, 0), "HBPCENR enables PIOC");
+    CHECK(turns_on(0x4002101C, 0x04000000, 4, 0), "HB2PCENR enables ECDC");
+    CHECK(turns_on(0x4002101C, 0x40000000, 4, 0), "HB2PCENR enables LTDC");
+    CHECK(turns_on(0x4002101C, 0x00000002, 4, 0), "HB2PCENR enables HSADC");
+    /* partial stores that set a fenced bit */
+    CHECK(turns_on(0x40021018, 0x01, 1, 0), "HBPCENR byte 0 sets DMA1");
+    CHECK(turns_on(0x4002101A, 0x40, 1, 0), "HBPCENR byte 2 sets PIOC");
+    CHECK(turns_on(0x4002101F, 0x04, 1, 0), "HB2PCENR byte 3 sets ECDC");
+    CHECK(turns_on(0x4002101E, 0x0400, 2, 0), "HB2PCENR high half sets ECDC");
+    /* a partial store that leaves an already-on fenced bit on is still refused */
+    CHECK(turns_on(0x40021018, 0x00, 1, 0x00000100), "byte 0 leaves FMC (byte 1) on");
+    /* allowed: only non-fenced bits, or clearing a fenced bit */
+    CHECK(!turns_on(0x40021018, 0x00000000, 4, 0), "HBPCENR all off");
+    CHECK(!turns_on(0x40021018, 0x00000020, 4, 0), "HBPCENR non-fenced bit only");
+    CHECK(!turns_on(0x40021018, 0x00, 1, 0x00000001), "byte 0 clears DMA1");
+    /* not a clock-enable register at all */
+    CHECK(!turns_on(0x40021000, 0xFFFFFFFFu, 4, 0), "RCC_CTLR isn't a clock register");
+    CHECK(!turns_on(0x40023008, 0xFFFFFFFFu, 4, 0), "CRC_CTLR isn't a clock register");
+}
+
 int main(void) {
     test_decode();
     test_allowed();
     test_buffer();
+    test_clock_fence();
     printf("guard: %d checks, %d failures\n", checks, failures);
     return failures != 0;
 }

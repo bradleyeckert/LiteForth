@@ -278,7 +278,19 @@ system:
 
 | Phase | Runs in | Trusted? | Does |
 |---|---|---|---|
-| A. Fetch | V5F | No | `-2 ymodem` (kwai: `~x FILE -2`) writes a package into `lfstage.bin`, block 0 last; reads it back; checks it as stage 1 will (`blk_stage_check`, all but the minimum version); if it passes, sets `update` in the shared SRAM block to `CDC_UPDATE_MAGIC` (`blk_stage_ready`). Or the package is copied there in a PC. Then a reset starts the install. In recovery, stage 1 takes the package itself (section 7) |
+| A. Fetch | V5F | No | `-2 ymodem` (kwai: `~x FILE -2`) writes a package into `lfstage.bin`, block 0 last; reads it back; checks it as stage 1 will (`blk_stage_check`, all but the minimum version); if it passes, sets `update` in the shared SRAM block to `CDC_UPDATE_MAGIC` (`blk_stage_ready`). Or the package is copied there in a PC. Then a reset starts the install. In recovery, stage 1 takes the package itself (section 7). A package left on the card as `update.lfu` is another fetch: see below |
+
+**Update from the card (`update.lfu`).** At every boot, with no `-2 ymodem`
+pending and no update in progress, stage 1 looks for `update.lfu` in the
+card's root. If it is there, validly signed for this board (signature,
+product, recipient, block hashes, by `sealed_verify_package`) and its
+version is later than the installed one, stage 1 installs it from the card
+exactly as a staged package -- phases B to F, on trial with backup and
+rollback -- so dropping a package on the card and power-cycling updates the
+board with no terminal. The version check is the gate: once the file is the
+running version it is not reinstalled, and a version that just rolled back
+is not retried (so a bad `update.lfu` can't boot-loop). The file is left on
+the card; replacing it with a newer-versioned one triggers the next update.
 | B. Check | Stage 1 | Yes | Block 0 as `sealed_mount` checks it, plus the component, the hardware revision, and the version against the minimum. Then every content block against its hash. Any failure: drop it, record why, boot as before |
 | C. Back up | Stage 1 | Yes | The current V5F image into `lfbackup.bin`, encrypted with K_encard and MACed with K_maccard, with its version; read back and check before going on |
 | D. Install | Stage 1 | Yes | Erase and program block by block, reading each block from the card again and checking its hash just before it's programmed, so a card changed after phase B can't slip anything in; read back; store the new MAC and version |

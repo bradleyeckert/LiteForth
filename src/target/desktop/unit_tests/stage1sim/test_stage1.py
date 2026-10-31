@@ -127,6 +127,8 @@ def gen():
                      '--file', 'lfbackup.bin,size=262144'],
             'nobackup': ['--file', 'lfblocks.fb4', '--file', 'lfstage.bin,size=1048576'],
             'nostage': ['--file', 'lfblocks.fb4', '--file', 'lfbackup.bin,size=262144'],
+            'cardupd': ['--file', 'lfblocks.fb4', '--file', 'lfstage.bin,size=1048576',
+                        '--file', 'lfbackup.bin,size=262144', '--file', 'update.lfu=v3.lfu'],
         }
         for name, args in cards.items():
             subprocess.check_call([sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py'),
@@ -395,6 +397,31 @@ def s_install():
     r.stop()
     check(line == 'V3F stage 1: security level 0, installed version 1',
           f'install: the boot log gives the level and the installed version ({line})')
+
+
+def s_card_update():
+    """Update from the card: an update.lfu newer than the installed version
+    is verified and installed at boot, like `~x update.lfu -2`, and the
+    persistent file doesn't reinstall once it is the running version."""
+    b = Board('card-update', card='cardupd')    # update.lfu is v3
+    b.stage('v1')                                # a record first, via -2 ymodem
+    r = b.boot()
+    check(r.wait_debug(r'version 1 installed, on trial') is not None,
+          'card-update: v1 installed via -2 ymodem (the card update waits its turn)')
+    check(r.wait_debug(r'version 1 confirmed') is not None, 'card-update: v1 confirmed')
+    r.stop()
+    r = b.boot()                                 # no -2 ymodem: update.lfu (v3) is newer
+    check(r.wait_debug(r'update\.lfu version 3 is newer; installing') is not None,
+          'card-update: update.lfu v3 picked up at boot')
+    check(r.wait_debug(r'version 3 installed, on trial') is not None, 'card-update: v3 installed')
+    check(r.wait_debug(r'version 3 confirmed') is not None, 'card-update: v3 confirmed')
+    r.stop()
+    check(b.has('v3'), 'card-update: v3 in flash')
+    r = b.boot()                                 # update.lfu is now the running version
+    line = r.wait_debug(r'V5F: LiteForth starting|update\.lfu|recovery mode')
+    r.stop()
+    check(line is not None and 'update.lfu' not in line,
+          f'card-update: v3 not reinstalled once it is the running version ({line})')
 
 
 def s_rollback():
@@ -857,8 +884,8 @@ def s_power_cuts(stride):
     print(f'power cuts: {tried} tried, {new} new, {old} old')
 
 
-SCENARIOS = [s_enroll, s_fresh, s_install, s_rollback, s_rollback_unattended, s_nostart, s_reboot,
-             s_refusals, s_recovery_card,
+SCENARIOS = [s_enroll, s_fresh, s_install, s_card_update, s_rollback, s_rollback_unattended,
+             s_nostart, s_reboot, s_refusals, s_recovery_card,
              s_recovery_ram_and_ctrl_x, s_recovery_commands, s_lockdown, s_lockdown_command]
 
 

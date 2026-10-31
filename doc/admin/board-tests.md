@@ -3471,3 +3471,77 @@ and booted straight through to the V5F -- the version gate stopped a
 re-install of the persistent file. Not retested here (covered by B35 and the
 desktop `s_card_update` scenario): a package that is not newer is ignored,
 and a card update that fails rolls back like a `-2 ymodem` install.
+
+### B37. Rollback of a level-2 app package that never confirms (31 October 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, at
+`SECURITY_LEVEL` 2, the same build as B35/B36 (branch `update-from-card`,
+commit `8a2f718`, `built Oct 31 2026 13:29:37, GCC 12.2.0`). Starting state:
+version 1 installed and confirmed.
+
+| File | Size | sha256 |
+|---|---|---|
+| `HANG.lfu` (revision 3, app) | 385024 | `b0b646e858f968b69fa789d79d2b55184ce257d17d01688fd287fae4abe923ca` |
+| `hang-v5f.bin` (the V5F slot image) | 114688 | `1211534a26f2a5e9a7dacbdf2c0203250000aac8cfac42d5810c282a9d066337` |
+
+**Why:** SYS-UPD-03 on real level-2 hardware. B4 showed rollback of a
+never-confirming image, but on a 4 KB V5F-only package before
+`SECURITY_LEVEL` 2. At level 2 only full app packages install
+(`SEC_LOCKED_PAGES`, `SEC_SIGNED_BOOT`), so this repeats the test with a
+376832-byte app image whose V5F slot is the loop instruction `jal x0,0`
+(`0x0000006f`) throughout -- it passes every check (release signature,
+recipient, block hashes, image hash, and the machine-mode region's root
+signature, all made with the real keys) but the core only spins, so it
+never confirms. The package is revision 3, newer than the installed 1, and
+was built with `sealblocks.py mmode-sign` + `package --component app
+--revision 3 --mmode-sig`.
+
+**Expected:** version 3 installs on trial; the V5F doesn't start, so stage 1
+resets the chip after each 3 s timeout and the trial advances by itself
+(boots 1, 2, 3 of 3); after the third, stage 1 restores version 1 from the
+encrypted `lfbackup.bin`, which runs and does not confirm (nothing is on
+trial).
+
+**Run.** Staged from the running v1 LiteForth with `~x HANG.lfu -2`, then
+`reboot`; the board was then left untouched. Debug port, verbatim:
+
+```
+V3F update: version 3 installed, on trial
+V3F stage 1: security level 2, installed version 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: version 3 on trial, boot 1 of 3
+V3F stage 1: security level 2, installed version 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: version 3 on trial, boot 2 of 3
+V3F stage 1: security level 2, installed version 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: version 3 on trial, boot 3 of 3
+V3F stage 1: security level 2, installed version 3
+V3F: starting the V5F
+V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip
+V3F update: rolled back to version 1
+V3F stage 1: security level 2, installed version 1
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 12; the previous run left 7083 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 0FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 31 2026 13:29:37, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 14720 (exFAT)
+V5F: LiteForth starting, security level 2, booting from flash
+V3F: USB configured
+```
+
+**Result:** pass. The hanging version 3 was installed and given four boots
+(the install, then trial boots 1 to 3) without a confirm, the V5F failing to
+start each time. After the third trial boot stage 1 restored version 1 from
+the encrypted backup; it passed its MAC check, LiteForth started from flash,
+and USB came up with no "confirmed" line (nothing on trial). A level-2 board
+with an image that never runs recovers itself to the last good version with
+no operator action -- the reset-on-timeout drives the trial automatically,
+where B4 needed the reset button. Not an anti-rollback test (SYS-UPD-06):
+this is the trial-failure path restoring the backup, not the version floor
+refusing an old package; the packages here carried the default
+`--min-version 0`.

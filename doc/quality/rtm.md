@@ -7,7 +7,7 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 77 | 56 | 18 | 3 | 22 |
+| System requirements (SYS) | 77 | 57 | 17 | 3 | 22 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -111,7 +111,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-UPD-10](system.md#sys-upd-10-the-installed-version) The installed version | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime) | B20<br>B25 | verified |
 | [SYS-UPD-11](system.md#sys-upd-11-development-boards-adopt-what-the-debugger-flashed) Development boards adopt what the debugger flashed | [UN-11](needs.md#un-11-convenient-development-locked-production) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_debugger_adopt`<br>unit:`update::test_blank_without_adopt`<br>B20 | verified |
 | [SYS-UPD-12](system.md#sys-upd-12-the-backup-on-the-card-cant-be-read-or-changed) The backup on the card can't be read or changed | [UN-07](needs.md#un-07-updates-that-never-brick-a-device), [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | integ:`update::test_backup_on_card`<br>integ:`update::a changed backup isn't restored`<br>integ:`update::a backup claiming another version isn't restored` | partial |
-| [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot) Update from the card at boot | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | **none** | integ:`stage1sim::s_card_update` | partial |
+| [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot) Update from the card at boot | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | **none** | integ:`stage1sim::s_card_update`<br>B36 | verified |
 | [SYS-VM-01](system.md#sys-vm-01-one-vm-two-implementations) One VM, two implementations | [UN-02](needs.md#un-02-the-same-system-on-a-pc) | [ARC-VM](architecture.md#arc-vm-the-forth-virtual-machine) | integ:`vmasm::vm_rv32.S matches vm.c` | verified |
 | [SYS-VM-02](system.md#sys-vm-02-compiled-code-stays-valid-across-releases) Compiled code stays valid across releases | [UN-01](needs.md#un-01-interactive-forth-on-a-cheap-board), [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-FORTH](architecture.md#arc-forth-the-interpreter-compiler-and-dictionary) | sys:`api0::api0 order test passed` | verified |
 | [SYS-VM-03](system.md#sys-vm-03-forth-reaches-only-allowed-peripherals) Forth reaches only allowed peripherals | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted), [UN-11](needs.md#un-11-convenient-development-locked-production) | [ARC-VM](architecture.md#arc-vm-the-forth-virtual-machine) | unit:`ioguard`<br>B7 | verified |
@@ -268,6 +268,8 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B32. Level 2: the machine-mode region's root signature | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) |
 | B33. No bus master runs for user mode: the clock fence and the ECDC service | [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma), [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) |
 | B34. Turnkey root-of-trust hardness test (hardness.py) | [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test) |
+| B35. USB re-enumerates after a software reset; the card recovery install | **nothing traced** |
+| B36. Update from the card at boot: update.lfu installs if newer, once | [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot) |
 
 ## Gaps
 
@@ -309,10 +311,10 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-UPD-06](system.md#sys-upd-06-no-downgrade-below-the-minimum): partial: the minimum is kept in stage 1's record, which isn't hardware-protected; firmware-updates.md section 10
 - [SYS-UPD-12](system.md#sys-upd-12-the-backup-on-the-card-cant-be-read-or-changed): partial: unit level only; not on the simulated board or a board
 - [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot): no architecture element traces to it
-- [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot): partial: board run pending: a newer `update.lfu` on a level-2 board installs at boot, and the same file doesn't reinstall once it is the running version
 - [UN-05](needs.md#un-05-text-on-small-graphic-displays): partial: no board run logged
 - [UN-07](needs.md#un-07-updates-that-never-brick-a-device): partial: power cuts during an update are tested on the desktop and the simulated board, not on a board
 - [UN-08](needs.md#un-08-only-the-vendors-firmware-runs): partial: a changed image refused is shown on the desktop and the simulated board, not on a board (a locked board's flash can't be changed by the debugger)
 - [UN-09](needs.md#un-09-secrets-that-cant-be-extracted): partial: bus masters and machine mode's data aren't fenced (SYS-SEC-01, SYS-SEC-11)
 - [UN-10](needs.md#un-10-recorded-data-only-the-data-owner-can-read): partial: the board side (stage 1's key service, the Forth words, I2S capture) isn't built; no board run
 - [UN-14](needs.md#un-14-provisioning-new-boards): partial: no board run: provision.py has run on simulated boards only
+- board test B35: traces to no item

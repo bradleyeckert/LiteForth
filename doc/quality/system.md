@@ -313,9 +313,8 @@ keeps the persistent file from reinstalling every boot, and a version that
 just rolled back is not retried.
 
 - **Parent:** UN-07
-- **Verified by:** integ:stage1sim::s_card_update
-- **Status:** partial
-- **Gap:** board run pending: a newer `update.lfu` on a level-2 board installs at boot, and the same file doesn't reinstall once it is the running version
+- **Verified by:** integ:stage1sim::s_card_update, board:B36
+- **Status:** verified
 
 ### SYS-UPD-08: Application packages
 A package can carry the V5F firmware with LiteForth's flash pages, the

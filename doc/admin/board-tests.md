@@ -3341,3 +3341,129 @@ off by default because on a locked board it needs a power cycle afterward;
 `lockdown.py check` reads the same bytes), and the out-of-scope classes --
 physical attacks (glitching, side channels, decapsulation) and attacks
 needing the root or release private key, which the desktop tests cover.
+
+### B35. USB re-enumerates after a software reset; the card recovery install (31 October 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, at
+`SECURITY_LEVEL` 2, built in MounRiver from branch `update-from-card`
+(commit `8a2f718`: the USB boot-time detach, the `block_io` retry, and the
+card update, with the flash-fit string trims), reporting `built Oct 31 2026
+13:29:37, GCC 12.2.0`, and flashed by the user. The MounRiver (WCH gcc)
+images aren't reproducible from the upstream toolchain here, so the build is
+pinned by commit and the board's build line rather than an image hash.
+
+| File | Size | sha256 |
+|---|---|---|
+| `GOOD.lfu` (revision 1) | 385024 | `b8924caae4b9fd383ed9e1f159f43d0f0272fe227d4f956464687c1d24a8864f` |
+
+**Why:** two changes needed a board run. (1) A software reset (`reboot`, or
+stage 1 restarting to try a freshly installed image) left the USB device
+pull-up enabled, so the host never saw a disconnect and the CDC port didn't
+re-enumerate until a power cycle; `hardware.c` now forces a detach at boot
+(`USBFS_Device_Init(DISABLE)`, a short delay, then `ENABLE`) so the host
+re-enumerates. (2) A single transient SD read/write (a card busy after a
+prior write, an occasional CRC or timeout) aborted a whole recovery package;
+`block_io` now retries a block up to `BLOCK_IO_TRIES` (4) times with a short
+settle, so the YMODEM install completes in one pass.
+
+**Expected:** a `~x FILE -2` package into recovery is received in one pass,
+installed on trial, and stage 1 restarts to try it; across that software
+reset the CDC port drops and comes back (re-enumerates) without a power
+cycle; the trial boot confirms and the port is reconfigured.
+
+**Run.** Recovery console (the V5F is off at level 2 until an image is
+installed), then the debug port, verbatim:
+
+```
+enroll: new key made
+enroll: boards.csv line:
+e52116647f9c7a22,30b4c38450d309c645e56195a5b8152a088a8ca0ebf80a681599e5bdcbab5304
+recovery ok> ~x D:\Brad\adminLF\test\GOOD.lfu -2
+-2 ymodem
+
+[kwai: sending D:\Brad\adminLF\test\GOOD.lfu: 385024 bytes]
+[kwai: 376/376]
+[kwai: sent D:\Brad\adminLF\test\GOOD.lfu]
+ymodem: GOOD.lfu: 385024 bytes received
+update: version 1 installed, on trial
+recovery: installed; restarting to try it
+
+[kwai: COM6 lost; waiting for it to come back]
+
+[kwai: COM6 is back]
+
+V3F ymodem: GOOD.lfu: 385024 bytes received
+V3F update: version 1 installed, on trial
+V3F recovery: installed; restarting to try it
+V3F update: version 1 on trial, boot 1 of 3
+V3F stage 1: security level 2, installed version 1
+V3F: starting the V5F
+V5F crumbs: reset by software power; none from before (power-up)
+V3F: the V5F is running
+V3F: built Oct 31 2026 13:29:37, GCC 12.2.0
+V5F: LiteForth starting, security level 2, booting from flash
+V3F update: version 1 confirmed
+V3F: USB configured
+```
+
+**Result:** pass. The 385024-byte package was received in a single pass
+(`[kwai: 376/376]`, no retry surfaced), installed on trial, and stage 1
+restarted. Across that software reset the host logged `COM6 lost` then
+`COM6 is back` -- the port re-enumerated with no power cycle, which before
+the boot-time detach it did not. The trial boot reached `version 1
+confirmed` and `V3F: USB configured`.
+
+### B36. Update from the card at boot: update.lfu installs if newer, once (31 October 2026)
+
+**Board and firmware:** the same board and build as B35 (branch
+`update-from-card`, commit `8a2f718`, `built Oct 31 2026 13:29:37, GCC
+12.2.0`), carrying on from B35 with revision 1 installed and running.
+
+| File | Size | sha256 |
+|---|---|---|
+| `update.lfu` (revision 2) | 385024 | `b9cc074dfa964f15e4a209d2c83a3252dcc3cebe16347f880e51fb24a54a0c29` |
+
+**Why:** SYS-UPD-13. At boot, before waking the V5F, stage 1 looks for
+`update.lfu` in the card's exFAT root; if it is a valid package for this
+board (signature, product and recipient, checked by the same
+`sealed_mount_package` the installer uses) and its version is later than the
+installed one (and later than any version that just rolled back), stage 1
+installs it with the normal backup, trial and rollback -- functionally
+`~x update.lfu -2`. Because the file is persistent, the version gate must
+also stop it re-installing every boot.
+
+**Expected:** with `update.lfu` revision 2 on the card and revision 1
+running, the next boot reports the newer version and installs it, the trial
+confirms; the boot after that sees revision 2 both on the card and
+installed, so it does not re-install and boots straight through.
+
+**Run.** Debug port, verbatim, across the two boots:
+
+```
+V3F update: update.lfu version 2 is newer; installing
+V3F update: version 2 installed, on trial
+V3F stage 1: security level 2, installed version 2
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 1; the previous run left 67 crumbs
+V3F: the V5F is running
+V3F: built Oct 31 2026 13:29:37, GCC 12.2.0
+V5F: LiteForth starting, security level 2, booting from flash
+V3F update: version 2 confirmed
+V3F: USB configured
+V3F stage 1: security level 2, installed version 2
+V3F: starting the V5F
+V5F crumbs: reset by pin, boot 2; the previous run left 71 crumbs
+V3F: the V5F is running
+V3F: built Oct 31 2026 13:29:37, GCC 12.2.0
+V5F: LiteForth starting, security level 2, booting from flash
+V3F: USB configured
+```
+
+**Result:** pass. The first boot found `update.lfu` revision 2 newer than
+the installed revision 1 (`update.lfu version 2 is newer; installing`),
+installed it on trial and confirmed it (`version 2 confirmed`). The next
+boot, with revision 2 both on the card and installed, printed no update line
+and booted straight through to the V5F -- the version gate stopped a
+re-install of the persistent file. Not retested here (covered by B35 and the
+desktop `s_card_update` scenario): a package that is not newer is ignored,
+and a card update that fails rolls back like a `-2 ymodem` install.

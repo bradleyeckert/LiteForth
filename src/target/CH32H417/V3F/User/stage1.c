@@ -41,6 +41,7 @@
 static card_map map;
 static uint32_t card_sectors;
 static uint32_t stage_base, backup_base;
+static uint32_t update_base, update_blocks;     /* update.lfu on the card, if present */
 static uint32_t io_buf[UPD_BLOCK / 4] __attribute__((aligned(32)));
 
 /* ------------------------------------------------------------------------
@@ -143,6 +144,10 @@ static int s_read(uint32_t blk, uint8_t *buf) {
 
 static int b_read(uint32_t blk, uint8_t *buf) {
     return block_io(backup_base, io.backup_blocks, blk, buf, 0);
+}
+
+static int u_read(uint32_t blk, uint8_t *buf) {     /* update.lfu, for the card auto-update */
+    return block_io(update_base, update_blocks, blk, buf, 0);
 }
 
 static int s_write(uint32_t blk, const uint8_t *buf) {
@@ -267,6 +272,10 @@ static void card_open(void) {
     if (card_find_file(card_read, card_sectors, &map, CARD_BACKUP_FILE, &backup_base,
                        &io.backup_blocks) != 0) {
         io.backup_blocks = 0;
+    }
+    if (card_find_file(card_read, card_sectors, &map, CARD_UPDATE_FILE, &update_base,
+                       &update_blocks) != 0) {
+        update_blocks = 0;
     }
 }
 
@@ -450,6 +459,35 @@ static int boot(void) {
     }
     int busy = (r == 0 && rec.state != UPD_IDLE);
     card_open();                            /* a record exists, or a package waits */
+    /* Update from the card: with no `-2 ymodem` pending and nothing already
+       in progress, an update.lfu on the card that is validly signed for this
+       board and newer than the installed version is installed, exactly as
+       `~x update.lfu -2` would. sealed_verify_package does the signature,
+       product, recipient and block-hash checks in one call; setting its
+       version floor to one above the installed version (and above a version
+       that just rolled back) is the "install only if later" gate, and keeps
+       the persistent file from re-installing every boot or boot-looping a bad
+       image. On a pass the install source is pointed at update.lfu and the
+       normal upd_boot installs it with backup, trial and rollback. */
+    if (!waiting && !busy && update_blocks != 0) {
+        sealed_package pkg;
+        /* install only a version later than the installed one; don't retry a
+           version that just rolled back (sealed_verify_package validates the
+           signature, product, recipient and block hashes but ignores
+           min_revision, so the version is compared here) */
+        uint32_t floor = rec.v5f_version;
+        if (rec.result == UPD_R_ROLLED_BACK && rec.pkg_version > floor) {
+            floor = rec.pkg_version;
+        }
+        if (sealed_verify_package(update_blocks, &keys, u_read, (uint8_t *)io_buf, &pkg,
+                                  msg, sizeof msg) == 0 && pkg.version > floor) {
+            printf("V3F update: " CARD_UPDATE_FILE " version %lu is newer; installing\r\n",
+                   (unsigned long)pkg.version);
+            stage_base = update_base;       /* install from update.lfu, not lfstage.bin */
+            io.stage_blocks = update_blocks;
+            waiting = 1;
+        }
+    }
     int result = upd_boot(&io, &keys, waiting, &rec, msg, sizeof msg);
     crypto_wipe(&keys, sizeof keys);
     publish_revision(rec.v5f_version);      /* as it is now: installed, or rolled back */

@@ -304,6 +304,19 @@ start is sent there after a few failed starts.
 - **Verified by:** integ:stage1sim::s_recovery_card, integ:stage1sim::s_recovery_ram_and_ctrl_x, integ:stage1sim::s_recovery_commands, integ:stage1sim::s_nostart, unit:update::test_recovery, board:B5, board:B6
 - **Status:** verified
 
+### SYS-UPD-13: Update from the card at boot
+At startup, if the card holds `update.lfu`, stage 1 installs it when it is
+validly signed for this board (signature, product, recipient) and its
+version is later than the installed one -- the same install, on trial with
+backup and rollback, as a package staged by `-2 ymodem`. The version check
+keeps the persistent file from reinstalling every boot, and a version that
+just rolled back is not retried.
+
+- **Parent:** UN-07
+- **Verified by:** integ:stage1sim::s_card_update
+- **Status:** partial
+- **Gap:** board run pending: a newer `update.lfu` on a level-2 board installs at boot, and the same file doesn't reinstall once it is the running version
+
 ### SYS-UPD-08: Application packages
 A package can carry the V5F firmware with LiteForth's flash pages, the
 Forth application, installed, backed up and rolled back as one image.

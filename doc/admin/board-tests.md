@@ -3620,3 +3620,54 @@ takes", nothing was programmed, and `revision .` still reported 2. The
 floor is sticky by design: this board will not take version 1 again. Not
 shown here (covered by the unit and sim tests in SYS-UPD-06): a rollback
 refusing a backup older than the floor.
+
+### B39. Level-2 console refusals: flash writes and standby without an alarm (31 October 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, at
+`SECURITY_LEVEL` 2, the same build as B35-B38 (branch `update-from-card`,
+commit `8a2f718`, `built Oct 31 2026 13:29:37, GCC 12.2.0`), running version
+2 with the anti-rollback floor at 2 (B38). No package is installed here;
+these are console checks. The commands were sent over the V3F's USB CDC
+terminal through `lfmcp.py`'s `forth` tool (SYS-TOOL-03), the board's output
+quoted verbatim.
+
+**Why:** two requirements whose board half was still open.
+- SYS-STO-07: at level 2 the flash-page words must refuse. `open-flash`,
+  `close-flash` and `save-pages` go through `flash_locked` and return -20
+  (`ior` "write address prohibited"), so the pages change only through an
+  update package. B28 had shown an older build's `close-flash` answering
+  `ok` -- a no-op -- before the fix (`be529e1`).
+- SYS-TIME-02: `standby` sleeps until the RTC alarm, and with no alarm set
+  it must refuse rather than sleep forever.
+
+**Expected:** each of `0 open-flash`, `close-flash`, `save-pages` is refused
+with -20 and the board stays at the prompt; with `alarm?` reading 0 (no
+alarm), `standby` is refused and the board stays awake.
+
+**Run.** Verbatim over the terminal:
+
+```
+> revision . alarm?
+2 ( 0 ) ok>
+> 0 open-flash
+Error: ior=-20 write address prohibited
+ok>
+> close-flash
+Error: ior=-20 write address prohibited
+ok>
+> save-pages
+Error: ior=-20 write address prohibited
+ok>
+> standby
+Error: ior=-24 invalid numeric argument
+ok>
+> revision . alarm?
+2 ( 0 ) ok>
+```
+
+**Result:** pass. At level 2 all three flash-page words refused with -20
+(SYS-STO-07): the pages can be written only by an update package, and the
+`close-flash` no-op B28 recorded on the old build is gone. `standby` with no
+alarm refused with -24 and the board stayed awake and responsive
+(SYS-TIME-02's refusal half; the standby sleep current is still to be
+measured with a meter, which this run does not cover).

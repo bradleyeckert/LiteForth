@@ -189,9 +189,8 @@ only by machine mode's service, which checks the address range; at level
 refuse with -20, and only update packages write the pages.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** board:B14, board:B19, board:B28, sys:locked::locked tests passed, unit:update::test_app_locked
-- **Status:** partial
-- **Gap:** on the board, `close-flash` refusing at level 2 (be529e1) isn't on a board yet; B28 showed it answering `ok`, a no-op
+- **Verified by:** board:B14, board:B19, board:B28, board:B39, sys:locked::locked tests passed, unit:update::test_app_locked
+- **Status:** verified
 
 ### SYS-STO-08: Shared memory for occasional buffers
 Buffers needed only now and then, and the data logs' buffers, come from
@@ -612,9 +611,9 @@ words convert them to and from dates and times.
 keeping the time; without an alarm set it refuses.
 
 - **Parent:** UN-06
-- **Verified by:** sys:rtc::[woke], board:B27
+- **Verified by:** sys:rtc::[woke], board:B27, board:B39
 - **Status:** partial
-- **Gap:** the refusal without an alarm isn't shown on the board; standby's current isn't measured
+- **Gap:** standby's sleep current isn't measured (needs a meter); the refusal without an alarm is shown on the board (B39)
 
 ## TOOL: the PC tools
 

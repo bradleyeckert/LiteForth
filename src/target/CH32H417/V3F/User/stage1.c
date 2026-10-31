@@ -613,8 +613,8 @@ static void lock_down(int really) {
     volatile uint16_t *src = (volatile uint16_t *)OB;
     uint16_t ob[8];
     if (!really) {
-        say("lockdown yes: write-protect the V3F's sectors, turn the boot ROM's downloads off");
-        say("and read protection on, and reset. Only a chip erase undoes it.");
+        say("lockdown yes: write-protect sectors, read protection on, downloads off, reset.");
+        say("Only a chip erase undoes it.");
         return;
     }
     for (int i = 0; i < 8; i++) {
@@ -653,10 +653,10 @@ static void help(void) {
         say("reset: start again.");
         return;
     }
-    say("~x FILE -2: send an update package (or put update.lfu on the card).");
-    say("enroll: this board's boards.csv line (makes the key at level 2).");
+    say("~x FILE -2: send a package (or put update.lfu on the card).");
+    say("enroll: this board's boards.csv line (the key at level 2).");
 #if SEC_ADOPT
-    say("adopt: take the flash V5F image as-is (levels 0 and 1).");
+    say("adopt: take the flash V5F image as-is.");
 #endif
     say("reset: start again.");
 }
@@ -739,10 +739,10 @@ static void enroll(void) {
         memset(&none, 0, sizeof none);
         int err = upd_boot(&io, &none, 0, &rec, msg, sizeof msg);
         if (err < 0 || upd_record_load(&io, &rec) != 0) {
-            say("enroll: can't make the security record (the RNG, or the flash)");
+            say("enroll: can't make the security record");
             return;
         }
-        say("enroll: new key made (a new security record and device token)");
+        say("enroll: new key made");
         blank = 0;
     }
 #endif
@@ -751,7 +751,7 @@ static void enroll(void) {
         return;
     }
 #if SEC_UID_KEY
-    say("enroll: security level below 2: the key comes from the UID, not the RNG");
+    say("enroll: level below 2: the key comes from the UID");
 #endif
     say("enroll: boards.csv line:");
     put_hex(line, (const uint8_t *)UID_ADDR, 8);

@@ -394,8 +394,16 @@ def h_rollback(rig, a):
     ok, text = rig.stage(a.hang)
     check(ok, 'the hanging image staged')
     rig.log(start, u0)
-    line, start = rig.reset_and_wait(r'V3F update: .*(installed, on trial|refused)', 60)
-    check(line and 'installed, on trial' in line, f'installed ({line})')
+    line, start = rig.reset_and_wait(r'installed, on trial|refused|recovery mode', 60)
+    # The "installed, on trial" line can be missed across the install reset's
+    # USB drop (as in h_survival), so it isn't required on its own: a 'refused'
+    # or 'recovery mode' verdict is a real failure, but a missed line is not --
+    # the trial-boot sequence below is the proof the image installed.
+    bad = line is not None and 'installed, on trial' not in line
+    check(not bad, f'installed on trial ({line})')
+    if bad:
+        rig.log(start)
+        return
     for what in (r"didn't start within", 'boot 1 of 3', 'boot 2 of 3', 'boot 3 of 3',
                  'rolled back to version', 'LiteForth starting'):
         line = rig.debug.wait(what, start, 30)

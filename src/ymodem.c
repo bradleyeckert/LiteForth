@@ -813,6 +813,13 @@ static int ymodemRun(uint32_t first, uint8_t* data) {
     memset(&bin, 0, sizeof(bin));
     bin.next = first;
 
+    /* Re-mount the block space before the transfer, so the staging and
+       install sizes (blk_stage_space, blk_space) come from the card as it is
+       now, not a view left stale by an earlier operation. On the board a
+       stale view gave spurious -92 (ERR_BLK_BOUNDS) that a reset cleared;
+       this clears it without one. */
+    blk_remount(&g_block_capacity);
+
     lf_puts("ymodem: send the file(s) now (YMODEM)");
     lfCR();
     report_len = 0;

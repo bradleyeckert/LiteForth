@@ -757,20 +757,37 @@ fix doesn't need it shown.
    *Built so far:* the fault handler switches to the machine-mode stack
    (above), confirmed on the board (B29, 28 October 2026); the
    fast-interrupt handlers still use HPE and come with part 3.
-2. **No bus master runs for user mode.** User mode can't write RCC: entry 2
-   makes it read-only, and `guard.c` does the stores user mode is allowed.
-   A peripheral without its clock neither takes register writes nor runs.
-   - **The guard refuses a store that would turn on a bus master's clock:**
-     ECDC, LTDC, GPHA, HSADC, SDMMC, USBHS, USBSS, USBPD, ETH, DVP, SerDes,
-     UHSIF, QSPI1/2, FMC and PIOC, as well as DMA1/2. It computes the
-     register's value after the store.
-   - **The start-up code turns all of them off.**
-   - **Machine-mode services turn on only what they use,** and turn it off
-     again before returning: Guarded DMA (DMA2) as now, and a new ECDC
-     service that `ctr_hw_crypt` calls. That service takes the key, the
-     counter and a buffer, checked as Guarded DMA checks its buffers. The
-     engine then only ever runs inside machine mode.
-   - **The V3F shares RCC and is trusted.** Its USBFS is inside entry 2.
+2. **No bus master runs for user mode.** *(Built; board test pending.)* User
+   mode can't write RCC: entry 2 makes it read-only, and `guard.c` does the
+   stores user mode is allowed. A peripheral without its clock neither takes
+   register writes nor runs, so withholding the clock is the fence a bus
+   master outside entry 2 needs -- the ECDC (0x40016C00), say, whose
+   registers user mode can otherwise write.
+   - **The guard refuses a store that would turn on a bus master's clock**
+     (`guard_rcc_turns_on_master`, `guard.c`, `unit_tests/guard`): a store
+     to RCC's `HBPCENR` or `HB2PCENR` is merged into the register's current
+     value and refused if the result would leave any master's clock bit set
+     -- DMA1/2, FMC, SDMMC, USBHS/SS, DVP, ETH, UHSIF, USBPD, SerDes, PIOC
+     (`HBPCENR`, mask 0x005C7D03) or HSADC, ECDC, GPHA, LTDC (`HB2PCENR`,
+     mask 0x4C000002). The handler (`ch32h417_it.c`) reads the register,
+     calls it, and leaves the store a fault if it returns nonzero.
+   - **The start-up code turns all of them off** (`clock_fence`, `pmp.c`,
+     called from `.handle_reset` after `pmp_lock`): `HBPCENR &= ~mask` and
+     `HB2PCENR &= ~mask`, so none is running when user mode starts.
+   - **Machine-mode services turn on only what they use,** and off again
+     before returning: Guarded DMA clocks DMA1/2 for the one transfer and
+     drops them in `burn` (`gdma.c`); a new ECDC service (`PMP_SVC_ECDC`,
+     `ecdc_serve`, `ecdc.c`) clocks the engine, runs it, and drops it.
+     `ctr_hw_crypt` hands the service the key, the counter and a buffer,
+     checked as Guarded DMA checks its buffers (`guard_buffer_ok`); the
+     engine only ever runs in machine mode, pointed at the service's own
+     DTCM buffer, the result copied back only if the whole run succeeded
+     (so a failure leaves the user buffer for software to redo). The engine
+     driver and the service are `MMODE` and time their waits from
+     `TIM6->CNT`, since the ecall handler freezes `lfGetTimeMicroSec`.
+   - **The V3F shares RCC and is trusted.** Its USBFS is inside entry 2, and
+     it uses no DMA (only the RNG, which isn't a master), so clearing DMA1/2
+     at V5F start-up doesn't disturb it.
 3. **User mode out of the interrupt controller and the system timer.**
    *Done and confirmed on the board (B31, 29 October 2026).* Entry 3
    shrinks from all memory to the 2 GB from 0 (NAPOT `0x0FFFFFFF`), so

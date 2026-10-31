@@ -86,6 +86,30 @@ int guard_store_allowed(const guard_store *s) {
     return within(s->addr, size, GUARD_RCC_BASE) || within(s->addr, size, GUARD_CRC_BASE);
 }
 
+int guard_rcc_turns_on_master(const guard_store *s, uint32_t current) {
+    uint32_t reg = s->addr & ~3u;
+    uint32_t mask;
+    if (reg == GUARD_RCC_HBPCENR) {
+        mask = GUARD_HB_MASTERS;
+    } else if (reg == GUARD_RCC_HB2PCENR) {
+        mask = GUARD_HB2_MASTERS;
+    } else {
+        return 0;                       /* not a clock-enable register */
+    }
+    /* merge the store into the register's current value (s->value is already
+       truncated to s->size; the address is aligned, so the field doesn't
+       cross the word) */
+    uint32_t shift = (s->addr & 3u) * 8u;
+    uint32_t post;
+    if (s->size == 4) {
+        post = s->value;
+    } else {
+        uint32_t field = ((s->size == 2) ? 0xFFFFu : 0xFFu) << shift;
+        post = (current & ~field) | ((s->value << shift) & field);
+    }
+    return (post & mask) != 0;          /* a fenced master's clock would be on */
+}
+
 int guard_buffer_ok(uint32_t p, uint32_t n, uint32_t lo, uint32_t hi,
                     uint32_t xlo, uint32_t xhi) {
     if (n == 0 || (p & 3u) || p < lo || p >= hi || n > hi - p) {

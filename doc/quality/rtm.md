@@ -7,7 +7,7 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 76 | 54 | 18 | 4 | 23 |
+| System requirements (SYS) | 76 | 56 | 17 | 3 | 21 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -65,7 +65,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-QA-05](system.md#sys-qa-05-forth-source-follows-the-coding-rules) Forth source follows the coding rules | [UN-01](needs.md#un-01-interactive-forth-on-a-cheap-board), [UN-12](needs.md#un-12-evidence-for-an-assessment) | [ARC-QA](architecture.md#arc-qa-build-test-and-evidence) | ci:`src/target/desktop/unit_tests/lintf::lintf` | partial |
 | [SYS-SEC-01](system.md#sys-sec-01-the-v5fs-cpu-cant-reach-stage-1s-secrets) The V5F's CPU can't reach stage 1's secrets | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode), [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | B18<br>B22<br>insp:`src/target/CH32H417/V5F/User/pmp.c::pmp_lock` | partial |
 | [SYS-SEC-02](system.md#sys-sec-02-the-v3fs-ram-is-fenced-from-the-v5fs-cpu) The V3F's RAM is fenced from the V5F's CPU | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B23 | partial |
-| [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma) DMA only through Guarded DMA | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | integ:`blocksim::test_guard`<br>unit:`guard::test_buffer`<br>B15<br>B17 | partial |
+| [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma) DMA only through Guarded DMA | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | integ:`blocksim::test_guard`<br>unit:`guard::test_buffer`<br>B15<br>B17<br>B33 | verified |
 | [SYS-SEC-04](system.md#sys-sec-04-machine-modes-code-cant-be-changed-by-user-mode) Machine mode's code can't be changed by user mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode), [ARC-QA](architecture.md#arc-qa-build-test-and-evidence) | ci:`scripts/mmodecheck.py`<br>ci:`scripts/ch32build.sh::mmodecheck`<br>B24 | verified |
 | [SYS-SEC-05](system.md#sys-sec-05-lock-down) Lock-down | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | integ:`stage1sim::s_lockdown`<br>integ:`stage1sim::s_lockdown_command`<br>integ:`stage1sim::lockdown.py run: a locked board refused before any flash`<br>B8<br>B25 | verified |
 | [SYS-SEC-06](system.md#sys-sec-06-only-signed-images-start-at-level-2) Only signed images start at level 2 | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_signed`<br>integ:`stage1sim::s_enroll`<br>integ:`stage1sim::a locked board with no record stays in recovery`<br>B25 | verified |
@@ -75,7 +75,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-SEC-10](system.md#sys-sec-10-a-restricted-wordlist-at-start-up) A restricted wordlist at start-up | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-FORTH](architecture.md#arc-forth-the-interpreter-compiler-and-dictionary) | - | planned |
 | [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode) User mode can't steer machine mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B29 | partial |
 | [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng) Keys only from a healthy RNG | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | insp:`src/target/CH32H417/V3F/User/stage1.c::RNG_FLAG_SECS`<br>B25 | partial |
-| [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) No bus master runs for user mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | - | planned |
+| [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) No bus master runs for user mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`guard::HB2PCENR enables ECDC`<br>unit:`guard::byte 0 leaves FMC (byte 1) on`<br>B33 | verified |
 | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) Machine mode's code is the root's | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`seal::machine-mode root signature`<br>unit:`update::unmatched machine-mode signature`<br>integ:`stage1sim::strict: the signed image starts`<br>B32 | verified |
 | [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) User mode can't reach the interrupt controller | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B30<br>B31 | verified |
 | [SYS-STO-01](system.md#sys-sto-01-the-block-file-on-the-card) The block file on the card | [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read) | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | sys:`blocks::[foreign]`<br>integ:`exfat::test_card_signed_file`<br>integ:`exfat::test_card_unsigned_file`<br>B26 | verified |
@@ -196,7 +196,7 @@ Every suite under `src/target/desktop/unit_tests/` (run by `make test`) and what
 | `exfat` | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool), [MOD-CARD](modules.md#mod-card-files-on-the-card), [MOD-EXFAT](modules.md#mod-exfat-exfat-reading), [SYS-STO-01](system.md#sys-sto-01-the-block-file-on-the-card), [SYS-STO-02](system.md#sys-sto-02-malformed-cards-are-refused-safely), [SYS-TOOL-02](system.md#sys-tool-02-blocks-fonts-and-card-images) |
 | `flash` | [MOD-DESKTOP](modules.md#mod-desktop-the-desktop-target), [SYS-LANG-03](system.md#sys-lang-03-the-dictionary-persists-in-flash-and-boots) |
 | `glyph` | [ARC-DISPLAY](architecture.md#arc-display-the-display), [MOD-CORE-F](modules.md#mod-core-f-the-forth-lexicon), [SYS-DISP-01](system.md#sys-disp-01-text-on-an-st7789-lcd) |
-| `guard` | [MOD-GUARD](modules.md#mod-guard-store-emulation-and-the-buffer-rule), [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma), [SYS-SEC-08](system.md#sys-sec-08-protected-stores-fault-into-forth) |
+| `guard` | [MOD-GUARD](modules.md#mod-guard-store-emulation-and-the-buffer-rule), [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma), [SYS-SEC-08](system.md#sys-sec-08-protected-stores-fault-into-forth), [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) |
 | `heads` | [ARC-FORTH](architecture.md#arc-forth-the-interpreter-compiler-and-dictionary), [MOD-FORTH](modules.md#mod-forth-the-text-interpreter), [SYS-LANG-05](system.md#sys-lang-05-temporary-headers) |
 | `ioguard` | [MOD-VM](modules.md#mod-vm-the-vm-in-c), [SYS-VM-03](system.md#sys-vm-03-forth-reaches-only-allowed-peripherals) |
 | `iomap` | [MOD-IOMAP](modules.md#mod-iomap-the-vms-io-ports) |
@@ -265,6 +265,7 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B30. The V5F's time base on TIM6, and standby | [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f), [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) |
 | B31. PMP entry 3 fences the PFIC and SysTick from user mode | [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) |
 | B32. Level 2: the machine-mode region's root signature | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) |
+| B33. No bus master runs for user mode: the clock fence and the ECDC service | [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma), [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) |
 | B34. Turnkey root-of-trust hardness test (hardness.py) | [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test) |
 
 ## Gaps
@@ -295,13 +296,11 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-QA-01](system.md#sys-qa-01-every-change-to-main-is-built-and-tested): partial: lf's own build doesn't fail on a warning (no -Werror)
 - [SYS-QA-03](system.md#sys-qa-03-board-tests-on-record): partial: some early entries lack hashes or part of the output (B2, B7, B8, B13, B20, B22)
 - [SYS-QA-05](system.md#sys-qa-05-forth-source-follows-the-coding-rules): partial: lintf reports problems in forth/*.f without failing
-- [SYS-SEC-01](system.md#sys-sec-01-the-v5fs-cpu-cant-reach-stage-1s-secrets): partial: bus masters the V5F's code can program (the ECDC engine, SDMMC, USBHS) aren't fenced, so this rests on that code being the vendor's (SYS-SEC-06), until SYS-SEC-13 and SYS-SEC-14; no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
-- [SYS-SEC-02](system.md#sys-sec-02-the-v3fs-ram-is-fenced-from-the-v5fs-cpu): partial: B23 shows reads faulting, not writes; bus masters aren't fenced (as SYS-SEC-01)
-- [SYS-SEC-03](system.md#sys-sec-03-dma-only-through-guarded-dma): partial: other bus masters (the ECDC, SDMMC, USBHS, ...) aren't fenced (SYS-SEC-13, planned); SYS-SEC-06 covers what that leaves
+- [SYS-SEC-01](system.md#sys-sec-01-the-v5fs-cpu-cant-reach-stage-1s-secrets): partial: SYS-SEC-14 root-signs machine-mode code (B32) and SYS-SEC-13 fences the bus masters by their clock (B33), closing the bus-master escape; what's left is that no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
+- [SYS-SEC-02](system.md#sys-sec-02-the-v3fs-ram-is-fenced-from-the-v5fs-cpu): partial: B23 shows reads faulting, not writes; the bus-master escape is now fenced (SYS-SEC-13, B33)
 - [SYS-SEC-10](system.md#sys-sec-10-a-restricted-wordlist-at-start-up): planned: not built yet
 - [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode): partial: the fault handler is on the machine-mode stack (B29); the
 - [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng): partial: no test makes the RNG fail; its quality on real parts isn't verified
-- [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode): planned: not built yet
 - [SYS-STO-07](system.md#sys-sto-07-flash-pages-written-only-through-a-checked-service): partial: on the board, `close-flash` refusing at level 2 (be529e1) isn't on a board yet; B28 showed it answering `ok`, a no-op
 - [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm): partial: the refusal without an alarm isn't shown on the board; standby's current isn't measured
 - [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes): partial: no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)

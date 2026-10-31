@@ -159,6 +159,21 @@ channel 1 through DMAMUX channel 9 (request 111, SDIO), without waiting:
 CMD18/CMD25, DMA, then CMD12 and CMD13 polls. DMA2 reaches the V5F's DTCM
 fine, as `MEMARY_CFGR` in the RM says. About 0.5-0.9 ms per 4 KB read.
 
+### The block map can go stale between operations: remount first
+
+`blk_init` reads the card's directory once and caches where the block
+space, `lfstage.bin` and `lfpages.bin` are (their first sector and length).
+If that view falls out of step with the card -- a file's length seen short,
+say -- a later block write lands past the cached length and fails with -92
+(`ERR_BLK_BOUNDS`), which a chip reset clears only because it re-reads the
+card. So the terminal's two card operations that matter, `dir` and `ymodem`,
+now call `blk_remount` first (`api0.c`, `ymodem.c`): it re-reads the
+directory, so the sizes `blk_space`/`blk_stage_space` report come from the
+card as it is, not a stale cache. `blk_remount` rewrites both `map` and its
+trusted `map_copy` together, so the stray-write guard (`map_ok`) still
+catches a change *during* an operation. Found while running
+`scripts/admin/hardness.py`, whose repeated staging hit the stale -92.
+
 ### sdio.h lacks two prototypes
 
 `CmdResp1Error` and `IsCardProgramming` are global functions in `sdio.c`

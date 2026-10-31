@@ -134,6 +134,9 @@ static int emulate_store(const uint32_t *regs, uint32_t mepc, uint32_t mtval)
   if (guard_store_decode(insn, regs, &s) != 0 || s.addr != mtval || !guard_store_allowed(&s)) {
     return 0;
   }
+  if (guard_rcc_turns_on_master(&s, *(const volatile uint32_t *)(s.addr & ~3u))) {
+    return 0;                           /* would start a fenced bus master (SYS-SEC-13): refuse */
+  }
   switch (s.size) {
   case 1: *(volatile uint8_t *)s.addr = (uint8_t)s.value; break;
   case 2: *(volatile uint16_t *)s.addr = (uint16_t)s.value; break;

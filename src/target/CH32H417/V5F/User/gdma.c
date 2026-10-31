@@ -143,6 +143,11 @@ static void burn(const channel *k) {
     for (uint32_t i = 0; i < GDMA_BUF_BYTES / 4; i++) {
         p[i] = 0;
     }
+    /* Turn DMA1 and DMA2 off again (SYS-SEC-13): no fenced bus master's
+       clock is left on while user mode runs. serve_start turns them on for
+       the one transfer; there's a single channel, so nothing else needs
+       them meanwhile. */
+    RCC->HBPCENR &= ~(uint32_t)(RCC_HBPeriph_DMA1 | RCC_HBPeriph_DMA2);
 }
 
 static int serve_start(uint32_t a, uint32_t src, uint32_t bytes) {

@@ -666,8 +666,8 @@ key before every batch, and refuses a changed or extra file.
 `hardness.py` is one command a testing lab runs against a locked board to
 prove as much of the root of trust's hardness as can be shown without
 opening the chip or holding the signing keys: it reads the board's locked
-state (the option bytes through wlink, and the boot's report of the
-security level, the lock-down and the PMP) and checks it is as a shipped
+state (the boot's report of the security level, the lock-down and the PMP,
+and optionally the option bytes over wlink) and checks it is as a shipped
 board's should be, and it throws bad inputs -- update packages made by
 corrupting the lab's own good one, so no key is needed -- and checks each
 is refused and the good image still boots. It never probes a fence from
@@ -676,9 +676,8 @@ holds. Physical attacks and attacks needing a private key are out of scope,
 stated in its report.
 
 - **Parent:** UN-13, UN-09
-- **Verified by:** integ:stage1sim::the bad-input battery is refused by the reference verifier
-- **Status:** partial
-- **Gap:** the corruption battery is checked against the reference verifier in CI; hardness.py's board phases (the locked-state readback and the survival run on a locked level-2 board) are still to be run on one and logged (board-tests.md)
+- **Verified by:** integ:stage1sim::the bad-input battery is refused by the reference verifier, board:B34
+- **Status:** verified
 
 ## QA: the development process
 

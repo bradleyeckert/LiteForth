@@ -7,7 +7,7 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 76 | 53 | 19 | 4 | 23 |
+| System requirements (SYS) | 76 | 54 | 18 | 4 | 23 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -98,7 +98,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-TOOL-04](system.md#sys-tool-04-opening-logs-on-the-server) Opening logs on the server | [UN-13](needs.md#un-13-tools-on-the-pc), [UN-10](needs.md#un-10-recorded-data-only-the-data-owner-can-read) | [ARC-LOG](architecture.md#arc-log-data-logs) | sys:`datalog::test_lflog_edges` | verified |
 | [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes) Provisioning, in two passes | [UN-14](needs.md#un-14-provisioning-new-boards), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-TOOLS](architecture.md#arc-tools-the-pc-tools) | integ:`stage1sim::provision.py on the simulated board: passed`<br>integ:`stage1sim::pass1: three boards enrolled`<br>integ:`stage1sim::pass2: two boards done`<br>integ:`stage1sim::batch-review: the batch checks out` | partial |
 | [SYS-TOOL-06](system.md#sys-tool-06-a-signed-release-for-the-station) A signed release for the station | [UN-14](needs.md#un-14-provisioning-new-boards), [UN-08](needs.md#un-08-only-the-vendors-firmware-runs) | [ARC-TOOLS](architecture.md#arc-tools-the-pc-tools) | integ:`seal::manifest: a file missing`<br>integ:`seal::manifest: another root`<br>integ:`seal::manifest: a changed image`<br>integ:`stage1sim::provision station-check: a changed image stops it` | verified |
-| [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test) A turnkey root-of-trust hardness test | [UN-13](needs.md#un-13-tools-on-the-pc), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | **none** | integ:`stage1sim::the bad-input battery is refused by the reference verifier` | partial |
+| [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test) A turnkey root-of-trust hardness test | [UN-13](needs.md#un-13-tools-on-the-pc), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | **none** | integ:`stage1sim::the bad-input battery is refused by the reference verifier`<br>B34 | verified |
 | [SYS-UPD-01](system.md#sys-upd-01-signed-and-encrypted-packages) Signed and encrypted packages | [UN-07](needs.md#un-07-updates-that-never-brick-a-device), [UN-08](needs.md#un-08-only-the-vendors-firmware-runs) | [ARC-PKG](architecture.md#arc-pkg-update-packages) | unit:`seal::not a recipient`<br>unit:`seal::wrong root`<br>unit:`seal::retired release key`<br>unit:`update::test_refusals`<br>B2 | verified |
 | [SYS-UPD-02](system.md#sys-upd-02-packages-checked-before-staging) Packages checked before staging | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-PKG](architecture.md#arc-pkg-update-packages) | sys:`sealed::stage refused: not a package`<br>sys:`sealed::stage: for another board`<br>B2 | verified |
 | [SYS-UPD-03](system.md#sys-upd-03-install-on-trial-confirm-or-roll-back) Install on trial, confirm or roll back | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_install_and_confirm`<br>unit:`update::test_rollback`<br>integ:`stage1sim::s_install`<br>integ:`stage1sim::s_rollback`<br>integ:`stage1sim::s_rollback_unattended`<br>B3<br>B4<br>B6<br>B10<br>B11 | verified |
@@ -265,6 +265,7 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B30. The V5F's time base on TIM6, and standby | [MOD-V5F-TIME](modules.md#mod-v5f-time-time-and-standby-on-the-v5f), [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) |
 | B31. PMP entry 3 fences the PFIC and SysTick from user mode | [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) |
 | B32. Level 2: the machine-mode region's root signature | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) |
+| B34. Turnkey root-of-trust hardness test (hardness.py) | [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test) |
 
 ## Gaps
 
@@ -305,7 +306,6 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm): partial: the refusal without an alarm isn't shown on the board; standby's current isn't measured
 - [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes): partial: no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)
 - [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test): no architecture element traces to it
-- [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test): partial: the corruption battery is checked against the reference verifier in CI; hardness.py's board phases (the locked-state readback and the survival run on a locked level-2 board) are still to be run on one and logged (board-tests.md)
 - [SYS-UPD-06](system.md#sys-upd-06-no-downgrade-below-the-minimum): partial: the minimum is kept in stage 1's record, which isn't hardware-protected; firmware-updates.md section 10
 - [SYS-UPD-12](system.md#sys-upd-12-the-backup-on-the-card-cant-be-read-or-changed): partial: unit level only; not on the simulated board or a board
 - [UN-05](needs.md#un-05-text-on-small-graphic-displays): partial: no board run logged

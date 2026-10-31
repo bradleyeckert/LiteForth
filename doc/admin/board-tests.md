@@ -3271,3 +3271,73 @@ test card's backup file was undersized); re-imaging the card with a 1 MB
 tested: a forged root signature (the root key is required to make one; the
 desktop `unit_tests/seal` and `unit_tests/update` cover a wrong-root and a
 mismatched-region signature).
+
+### B34. Turnkey root-of-trust hardness test (hardness.py) (31 October 2026)
+
+**Board and firmware:** the level-2 board, UID `e52116647f9c7a22` (B32's),
+at `SECURITY_LEVEL` 2, built in MounRiver and flashed by the user, with a
+good app package (version 1) installed from recovery and confirmed. Run
+with `scripts/admin/hardness.py run --good GOOD.lfu`, which drives the
+board's two serial ports with nobody at the board.
+
+| Image / package | Size | sha256 |
+|---|---|---|
+| `LiteForth_V5F.bin` (flashed) | 110328 | `3cd9a1cefccf821f5ac06bd5971ba18c7d0a00bbb7091d66fe340d757d2b7759` |
+| `GOOD.lfu` (the valid app package) | 385024 | `08bf6bd116dad1671c05928751794accf54744b68200b8ba36f14945296220f3` |
+
+**Why:** SYS-TOOL-07, a turnkey hardness test for a testing lab: one command
+that proves as much of the root of trust's hardness as can be shown without
+opening the chip or holding the signing keys. It reads the board's locked
+state and checks it is as a shipped board's should be, and it throws bad
+inputs -- update packages made by corrupting the lab's own good one, so no
+private key is needed -- and checks each is refused and the good image
+survives. It never probes a fence from inside to escalate.
+
+**Expected:** the boot reports security level 2, not "not locked down", and
+the PMP set and locked; every one of the seven corrupted packages is
+refused (at the `-2 ymodem` stage check, or -- for a package whose block 0
+is intact, like a block dropped from the end -- at install, where it rolls
+back); the good image keeps running after each; and the good package still
+installs and is confirmed.
+
+**Run.** Cli and debug ports, as `hardness.py` prints them:
+
+```
+config:
+  ok   the boot reports security level 2
+  ok   the boot does not report "not locked down"
+  ok   the PMP reads back set and locked (V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 0FFFFFFF: as set, locked (clearing entry 0 was ignored))
+bad-inputs:
+  ok   wrong-magic: block 0's package magic -> refused (refused at `-2 ymodem` (not staged))
+  ok   wrong-magic: the board kept running the good image
+  ok   truncated: the file cut mid-block (not whole 4 KB blocks) -> refused (refused at `-2 ymodem` (not staged))
+  ok   truncated: the board kept running the good image
+  ok   short: a whole block dropped from the end -> refused (refused at `-2 ymodem` (not staged))
+  ok   short: the board kept running the good image
+  ok   release-sig: the release signature (one flipped bit at 4032) -> refused (refused at `-2 ymodem` (not staged))
+  ok   release-sig: the board kept running the good image
+  ok   image-hash: the image hash (one flipped bit at 4000) -> refused (refused at `-2 ymodem` (not staged))
+  ok   image-hash: the board kept running the good image
+  ok   mmode-root-sig: the machine-mode root signature (one flipped bit at 3936) -> refused (refused at `-2 ymodem` (not staged))
+  ok   mmode-root-sig: the board kept running the good image
+  ok   content-block: a content block (one flipped bit in block 1) -> refused (refused at `-2 ymodem` (not staged))
+  ok   content-block: the board kept running the good image
+survival:
+  ok   survival: the good package staged
+  ok   survival: the good package installed
+  ok   survival: confirmed by LiteForth
+all passed
+```
+
+**Result:** pass. The board refused all seven tampered packages -- a wrong
+magic, a truncated file, a block dropped from the end, a flipped bit in the
+release signature, the image hash, the machine-mode root signature, and a
+content block -- and kept running the good image through every one, then
+installed and confirmed the good package. On this run the board happened to
+refuse `short` at the staging check; it is also correct for stage 1 to take
+it on trial and roll back, which the runner treats as a refusal too. Not
+tested here: the option-byte read over wlink (the `--option-bytes` phase,
+off by default because on a locked board it needs a power cycle afterward;
+`lockdown.py check` reads the same bytes), and the out-of-scope classes --
+physical attacks (glitching, side channels, decapsulation) and attacks
+needing the root or release private key, which the desktop tests cover.

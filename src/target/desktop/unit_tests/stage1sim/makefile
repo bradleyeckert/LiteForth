@@ -52,6 +52,7 @@ test:
 		echo "stage1sim tests skipped: python3 with the cryptography package not found"; \
 	else \
 		mkdir -p reports && python3 test_stage1.py --report reports/stage1sim.md && \
+		python3 test_hardness.py && \
 		if python3 -c "import serial" 2>/dev/null; then \
 			python3 test_hil.py && python3 test_lockdown.py && python3 test_provision.py; \
 		else \

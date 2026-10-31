@@ -356,7 +356,7 @@ write (PMP entry 0, locked).
 - **Parent:** UN-09
 - **Verified by:** board:B18, board:B22, insp:src/target/CH32H417/V5F/User/pmp.c::pmp_lock
 - **Status:** partial
-- **Gap:** SYS-SEC-14 now root-signs machine-mode code and SYS-SEC-13 fences the bus masters by their clock (built, its board run pending), so this rests on the V5F's code being the vendor's (SYS-SEC-06) only until that run; no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
+- **Gap:** SYS-SEC-14 root-signs machine-mode code (B32) and SYS-SEC-13 fences the bus masters by their clock (B33), closing the bus-master escape; what's left is that no board run reads or writes 0x08010000-0x08013FFF since the records moved there (B22 shows the PMP entry only)
 
 ### SYS-SEC-02: The V3F's RAM is fenced from the V5F's CPU
 The V5F's CPU, in either mode, can't read or write the V3F's RAM, where
@@ -365,7 +365,7 @@ stage 1 handles keys (PMP entry 1, locked).
 - **Parent:** UN-09
 - **Verified by:** board:B23
 - **Status:** partial
-- **Gap:** B23 shows reads faulting, not writes; bus masters aren't fenced (as SYS-SEC-01)
+- **Gap:** B23 shows reads faulting, not writes; the bus-master escape is now fenced (SYS-SEC-13, B33)
 
 ### SYS-SEC-03: DMA only through Guarded DMA
 User mode can't program the DMA controllers, the flash controller, USBFS
@@ -374,9 +374,8 @@ ever points the channel at its own buffer and copies to or from checked
 user buffers.
 
 - **Parent:** UN-09
-- **Verified by:** integ:blocksim::test_guard, unit:guard::test_buffer, board:B15, board:B17
-- **Status:** partial
-- **Gap:** other bus masters (the ECDC, SDMMC, USBHS, ...) are fenced by their clock (SYS-SEC-13, built; board run pending); SYS-SEC-06 covers what that leaves until then
+- **Verified by:** integ:blocksim::test_guard, unit:guard::test_buffer, board:B15, board:B17, board:B33
+- **Status:** verified
 
 ### SYS-SEC-04: Machine mode's code can't be changed by user mode
 The V5F's machine-mode code (the vector table, the handlers, the
@@ -462,9 +461,8 @@ QSPI, FMC, PIOC, DMA1/2): the guard refuses such an RCC store
 pointing the engine at their own checked buffer.
 
 - **Parent:** UN-09
-- **Verified by:** unit:guard::HB2PCENR enables ECDC, unit:guard::byte 0 leaves FMC (byte 1) on
-- **Gap:** built; the board run (the fence refusing an ECDC clock-enable, and a package still decrypting through the machine-mode service) is pending
-- **Status:** partial
+- **Verified by:** unit:guard::HB2PCENR enables ECDC, unit:guard::byte 0 leaves FMC (byte 1) on, board:B33
+- **Status:** verified
 
 ### SYS-SEC-14: Machine mode's code is the root's
 The code that runs in the V5F's machine mode (the slot's last 8 KB: the

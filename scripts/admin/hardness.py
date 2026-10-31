@@ -221,23 +221,34 @@ def alive(rig):
 
 def refused(rig, path, where):
     """Feeds the bad package and returns (was_refused, detail, rebooted).
-    Staged with `-2 ymodem`: a package the keyless stage check refuses never
-    reaches flash and the board keeps running (rebooted False). Only a
-    package that stages (a "boot"-class corruption, which our battery doesn't
-    produce) needs a reset to read stage 1's verdict."""
+
+    A package the keyless `-2 ymodem` stage check refuses never reaches flash
+    and the board keeps running (rebooted False). A package that stages -- one
+    whose block 0 is intact but whose image is wrong, like a block dropped
+    from the end -- is caught later: stage 1 either refuses it at install, or
+    installs it on trial and then rolls back when the image fails its boot
+    check (as in B32). Both are a refusal; only a corrupt image that is
+    *confirmed* would be a real failure."""
     ok, text = rig.stage(path)
     if not ok:
         if 'no cli port' in text or 'cli' in text:
             return None, 'could not reach the board to stage it (port error)', False
         return True, 'refused at `-2 ymodem` (not staged)', False
-    # It staged: reset once and read stage 1's verdict at install.
+    # It staged: reset and follow what stage 1 does with it. The verdict is on
+    # the debug port, which survives the reset even if the USB cli is slow.
     line, start = rig.reset_and_wait(
-        r'V3F update: .*(installed, on trial|refused|nothing to do)|recovery mode', 60)
+        r'refused|rolled back|nothing to do|recovery mode|installed, on trial', 60)
     if line is None:
-        return None, 'no verdict from stage 1 after the reset (port error?)', True
-    if 'installed, on trial' in line:
-        return False, f'INSTALLED a corrupt image ({line})', True
-    return True, f'refused by stage 1 at boot ({line})', True
+        return None, 'no verdict from stage 1 after the reset', True
+    if 'installed, on trial' not in line:       # refused / rolled back / recovery
+        return True, f'refused by stage 1 ({line})', True
+    # Installed on trial: a corrupt image must roll back, never confirm.
+    out = rig.debug.wait(r'rolled back|confirmed', start, 90)
+    if out is None:
+        return None, 'installed on trial, but no rollback or confirm seen', True
+    if 'confirmed' in out:
+        return False, f'a corrupt image was CONFIRMED ({out})', True
+    return True, f'installed on trial, then rolled back ({out})', True
 
 
 def h_battery(rig, a):
@@ -273,10 +284,22 @@ def h_battery(rig, a):
 # Survival: the board still updates and rolls back (hiltest's own scenarios)
 # ---------------------------------------------------------------------------
 def h_survival(rig, a):
-    """The board is still healthy after the battery: a good package installs
-    and is confirmed, and (with --hang) a hanging image rolls back."""
+    """The board is still healthy after the battery: the good package still
+    installs and is confirmed, and (with --hang) a hanging image rolls back.
+    The confirm is what proves the install took; the intermediate "installed,
+    on trial" line can be missed across the install reset's USB drop, so it's
+    not required on its own."""
     hiltest, _ = deps()
-    hiltest.h_install(rig, a)
+    check = hiltest.check
+    start = rig.debug.mark()
+    ok, text = rig.stage(a.good)
+    check(ok, 'survival: the good package staged')
+    line, s2 = rig.reset_and_wait(r'installed, on trial|refused|recovery mode', 60)
+    confirmed = rig.debug.wait(r'confirmed', s2, 60) is not None
+    installed = (line is not None and 'installed, on trial' in line) or confirmed
+    check(installed, f'survival: the good package installed ({line})')
+    check(confirmed, 'survival: confirmed by LiteForth')
+    rig.log(start)
     if a.hang:
         hiltest.h_rollback(rig, a)
 

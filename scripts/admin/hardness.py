@@ -4,16 +4,19 @@ testing lab: one command that proves as much of the RoT's hardness as can
 be shown without opening the chip or holding the signing keys.
 
     hardness.py --list
-    hardness.py check [--debug PORT] [--cli PORT] [--wlink PATH]
-    hardness.py run --good GOOD.lfu [--hang HANG.lfu] [--report FILE] [...]
+    hardness.py check [--debug PORT] [--cli PORT]
+    hardness.py run --good GOOD.lfu [--hang HANG.lfu] [--option-bytes] [...]
 
 It proves hardness two ways, and only these two (see "Out of scope" below):
 
   - it READS the board's locked state and checks it is as a shipped board
-    should be: the option bytes (read protection on, the boot-ROM downloads
-    off, the write-protect mask set), and the boot's own report of the
-    security level, the lock-down, and the PMP (all four entries set and
-    locked);
+    should be: the boot's own report of the security level, the lock-down,
+    and the PMP (all four entries set and locked); and, only with
+    --option-bytes, the option bytes over wlink (read protection on, the
+    boot-ROM downloads off, the write-protect mask set). The option-byte
+    read is off by default and runs last, because wlink halts the core and
+    resets the chip, which on a locked board needs a power cycle before the
+    serial ports come back -- so the default run stays repeatable;
 
   - it THROWS BAD INPUTS at the one surface a field attacker has, a
     firmware update package over the terminal, and checks the board refuses
@@ -28,14 +31,13 @@ no privilege-escalation probe): a shipped board is the attacker's, so the
 proof that a fence holds is that its locked state reads back as set, not
 that a probe bounced off it.
 
-It is built on hiltest.py (the same two ports, the same YMODEM and report)
-and reads the option bytes through lockdown.py's wlink, so it needs what
-they need: the cli port (the board's USB terminal, 1A86:FE0C), the debug
-port (the WCH-Link's UART), the card in the board with lfstage.bin and
-lfbackup.bin, pyserial, and -- only for the option-byte read -- a WCH-Link
-(wlink); without one that one check is skipped with a note. Point it at a
-LOCKED, level-2 board: the signature and lock-down checks only mean
-something there.
+It is built on hiltest.py (the same two ports, the same YMODEM and report),
+so it needs what hiltest needs: the cli port (the board's USB terminal,
+1A86:FE0C), the debug port (the WCH-Link's UART), the card in the board with
+lfstage.bin and lfbackup.bin, and pyserial. --option-bytes also needs a
+WCH-Link (wlink, through lockdown.py). Point it at a LOCKED, level-2 board
+with its good image installed: the signature and lock-down checks only mean
+something there, and the battery needs a good image to fall back to.
 
 GOOD.lfu is a valid update package for this board (sealblocks.py package,
 the one provisioning installed). --hang HANG.lfu (an image that never
@@ -157,37 +159,42 @@ def read_option_bytes(a):
             pass
 
 
-def h_locked_state(rig, a):
-    """What the board's protections read back as, without touching them: the
-    option bytes (through wlink, if one is attached) and the boot's own
-    report of the security level, the lock-down and the PMP."""
+def h_boot_config(rig, a):
+    """What the board reports about itself at boot, read on the debug port
+    (no wlink, nothing touched): the security level, the lock-down, and the
+    PMP set and locked. The option bytes are read over wlink in the last
+    phase, since that halts the core."""
+    hiltest, _ = deps()
+    check = hiltest.check
+    line, start = rig.reset_and_wait(r'V5F PMP:|LiteForth starting|recovery mode', 40)
+    rig.debug.wait(r'LiteForth starting|recovery mode', start, 25)
+    lines = rig.debug.since(start)
+    joined = '\n'.join(lines)
+    check(any('security level 2' in l for l in lines), 'the boot reports security level 2')
+    check('not locked down' not in joined, 'the boot does not report "not locked down"')
+    pmp = next((l for l in lines if l.startswith('V5F PMP:')), None)
+    check(pmp is not None and 'as set' in pmp and 'locked' in pmp and 'NOT locked' not in pmp,
+          f'the PMP reads back set and locked ({pmp})')
+    rig.log(start)
+
+
+def h_option_bytes(rig, a):
+    """The option bytes, read over wlink: read protection on, the boot-ROM
+    downloads off, the write-protect mask set. Last of the phases, because
+    wlink halts the core to read and resets the chip after, so nothing
+    serial should follow it."""
     hiltest, lockdown = deps()
     note, check = hiltest.note, hiltest.check
     obr, wpr, text = read_option_bytes(a)
     if obr is None:
-        note(f'- (option bytes not read: {text})')
-        print(f'  ---- option bytes: {text}')
-    else:
-        note('wlink:\n\n```\n' + text.strip() + '\n```')
-        note(f'- {lockdown.ob_text(obr, wpr)}')
-        check(lockdown.locked(obr, wpr),
-              'the option bytes are locked down (read protection on, downloads off, '
-              'write-protect set)')
-
-    # The boot's own report, on the debug port
-    line, start = rig.reset_and_wait(r'V3F stage 1: security level|not locked down|LiteForth starting', 30)
-    lines = rig.debug.since(start)
-    joined = '\n'.join(lines)
-    level2 = any('security level 2' in l for l in lines)
-    check(level2, 'the boot reports security level 2')
-    check('not locked down' not in joined, 'the boot does not report "not locked down"')
-    pmp = next((l for l in lines if l.startswith('V5F PMP:')), None)
-    if pmp is None:
-        pmp = rig.debug.wait(r'^V5F PMP:', start, 10)
-    check(pmp is not None and 'as set' in pmp and 'locked' in pmp and 'NOT locked' not in pmp,
-          f'the PMP reads back set and locked ({pmp})')
-    rig.debug.wait(r'LiteForth starting', start, 30)
-    rig.log(start)
+        note(f'- (option bytes not read over wlink: {text})')
+        print(f'  ---- option bytes not read: {text}')
+        return
+    note('wlink:\n\n```\n' + text.strip() + '\n```')
+    note(f'- {lockdown.ob_text(obr, wpr)}')
+    check(lockdown.locked(obr, wpr),
+          'the option bytes are locked down (read protection on, downloads off, '
+          'write-protect set)')
 
 
 # ---------------------------------------------------------------------------
@@ -198,13 +205,15 @@ def refused(rig, path, where):
     `-2 ymodem`; if the board takes it (a "boot"-class corruption it can't
     see until it installs), reset and read stage 1's verdict."""
     ok, text = rig.stage(path)
-    if not ok:                                  # refused at the stage check
+    if not ok:
+        if 'no cli port' in text or 'cli' in text:
+            return None, 'could not reach the board to stage it (port error)'
         return True, 'refused at `-2 ymodem` (not staged)'
     # It staged: only a "boot"/"either" corruption should reach here.
     line, start = rig.reset_and_wait(
         r'V3F update: .*(installed, on trial|refused|nothing to do)|recovery mode', 60)
     if line is None:
-        return False, 'no verdict from stage 1 after the reset'
+        return None, 'no verdict from stage 1 after the reset (port error?)'
     if 'installed, on trial' in line:
         return False, f'INSTALLED a corrupt image ({line})'
     return True, f'refused by stage 1 at boot ({line})'
@@ -221,6 +230,10 @@ def h_battery(rig, a):
         for name, what, where, path in bad:
             start = rig.debug.mark()
             was, detail = refused(rig, path, where)
+            if was is None:                     # couldn't reach the board: not a refusal
+                check(False, f'{name}: could not test ({detail})')
+                rig.log(start)
+                continue
             check(was, f'{name}: {what} -> refused ({detail})')
             # the good image must still boot: a refused update leaves it be
             line, bstart = rig.reset_and_wait(r'LiteForth starting|recovery mode', 40)
@@ -242,10 +255,15 @@ def h_survival(rig, a):
 
 
 PHASES = [
-    ('locked-state', h_locked_state),
+    ('config', h_boot_config),
     ('bad-inputs', h_battery),
     ('survival', h_survival),
 ]
+# Run last, and only with --option-bytes: wlink halts the core to read and
+# resets the chip, which on a locked board needs a physical power cycle
+# before the serial ports come back. So it's never part of the default,
+# repeatable run.
+OPTION_BYTES_PHASE = ('option-bytes', h_option_bytes)
 
 OUT_OF_SCOPE = """\
 Out of scope for this runner, and where that hardness rests instead:
@@ -272,11 +290,15 @@ def main():
     p.add_argument('--cli', '--usb', dest='usb',
                    help="the cli port, the board's USB terminal (default: found by its USB IDs)")
     p.add_argument('--wlink', help='the wlink tool for the option-byte read (default: found)')
+    p.add_argument('--option-bytes', action='store_true',
+                   help='also read the option bytes over wlink, as a last phase. This halts the '
+                        'core and resets the chip, which on a locked board needs a power cycle '
+                        'before the serial ports come back, so it is off by default')
     p.add_argument('--reset-cmd', default=os.environ.get('HIL_RESET'),
                    help='a command line that resets the board (default: type reboot)')
     p.add_argument('--good', help='a valid update package for this board')
     p.add_argument('--hang', help='a package of a V5F image that never starts (adds rollback)')
-    p.add_argument('--only', help='run only this phase (locked-state, bad-inputs, survival)')
+    p.add_argument('--only', help='run only this phase (config, bad-inputs, survival, option-bytes)')
     p.add_argument('--report', default=time.strftime('hardness-%Y%m%d-%H%M.md'))
     a = p.parse_args()
     hiltest, lockdown = deps()
@@ -300,15 +322,30 @@ def main():
         print(f'cli port ({a.usb or hiltest.find_board_port()}): {"open" if ok else "not found"}')
         if ok:
             rig.usb.close()
-        obr, wpr, text = read_option_bytes(a)
-        print(f'wlink: {"ok, " + lockdown.ob_text(obr, wpr) if obr is not None else text}')
+        if a.option_bytes:                      # halts the board; only when asked
+            obr, wpr, text = read_option_bytes(a)
+            print(f'wlink: {"ok, " + lockdown.ob_text(obr, wpr) if obr is not None else text}')
         return 0 if line and ok else 1
     # run
     if not a.good:
         p.error('run needs --good (a valid package for this board)')
-    todo = [(n, f) for n, f in PHASES if not a.only or n == a.only]
+    phases = PHASES + ([OPTION_BYTES_PHASE] if a.option_bytes else [])
+    todo = [(n, f) for n, f in phases if not a.only or n == a.only]
     if not todo:
-        p.error(f'no such phase: {a.only}')
+        p.error(f'no such phase: {a.only} (--option-bytes enables the option-bytes phase)')
+    # The board must be reachable before anything else, or every serial check
+    # fails the same way; a clear message beats a cascade.
+    line, _ = rig.reset_and_wait(r'LiteForth starting|recovery mode|V3F', 40)
+    if line is None:
+        sys.exit('hardness.py: no response from the board after a reset (debug port). Is it '
+                 'powered with the card in, kwai and any other terminal closed, and the ports '
+                 'right? (`hardness.py --list`)')
+    if 'recovery' in line:
+        print('  ---- note: the board is in recovery (no good image yet); install --good first '
+              '(the survival phase does)')
+    if a.option_bytes:
+        print('  ---- note: the option-bytes phase will halt the board over wlink at the end; '
+              'power-cycle it afterward to get the serial ports back')
     note('# Root-of-trust hardness on the board (hardness.py)\n')
     note(f'Run {time.strftime("%Y-%m-%d %H:%M:%S")}; debug port {a.debug}, cli port '
          f'{a.usb or hiltest.find_board_port()}.\n')

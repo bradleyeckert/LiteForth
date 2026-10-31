@@ -93,13 +93,27 @@ static int card_read(uint32_t sector, uint8_t *buf) {
     return SD_ReadDisk(buf, sector, 1) == SD_OK ? 0 : ERR_BLK_READ_FAIL;
 }
 
+#define BLOCK_IO_TRIES 4                /* a card op is retried this many times */
+
 static int block_io(uint32_t base, uint32_t blocks, uint32_t blk, uint8_t *buf, int write) {
     if (blk >= blocks) {
         return ERR_BLK_BOUNDS;
     }
     uint32_t lba = base + blk * SECTORS_PER_BLOCK;
-    SD_Error e = write ? SD_WriteDisk(buf, lba, SECTORS_PER_BLOCK)
-                       : SD_ReadDisk(buf, lba, SECTORS_PER_BLOCK);
+    /* Retry a transient SD failure: a card busy after a prior write, or an
+       occasional CRC/timeout, makes one block fail where a retry succeeds.
+       Without this, ymr_receive aborts the whole package on a single hiccup
+       (seen staging a recovery package: writes failed at different blocks,
+       clean on resend), and the backup write has the same path. */
+    SD_Error e = SD_OK;
+    for (int tries = 0; tries < BLOCK_IO_TRIES; tries++) {
+        e = write ? SD_WriteDisk(buf, lba, SECTORS_PER_BLOCK)
+                  : SD_ReadDisk(buf, lba, SECTORS_PER_BLOCK);
+        if (e == SD_OK) {
+            break;
+        }
+        Delay_Ms(2);                    /* let the card finish or settle */
+    }
     return e == SD_OK ? 0 : (write ? ERR_BLK_WRITE_FAIL : ERR_BLK_READ_FAIL);
 }
 

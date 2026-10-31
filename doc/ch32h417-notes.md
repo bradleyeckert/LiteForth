@@ -422,3 +422,25 @@ Found with `pmp-test` on the V5F (details in
   of 0x08072000 from LiteForth's C code (user mode) faulted: mcause 5,
   mtval `08072000` (board-tests B13).
 
+
+### A software reset doesn't re-enumerate USB; force a detach at boot
+
+A `reboot` (`NVIC_SystemReset`) or an update install resets the chip as a
+*software* reset (`RCC->RSTSCKR` bit 28, `SFTRSTF`; `crumbs.c` reports
+"reset by software"). That does **not** reset the USBFS peripheral: its
+`USBFSD->BASE_CTRL` keeps `USBFS_UC_DEV_PU_EN`, so the D+ pull-up stays
+asserted right across the reset and the re-init. The host never sees a
+disconnect -- from its side the device just went quiet on its old address,
+which it does not re-enumerate -- so `V3F: USB configured` never fires, the
+COM port doesn't come back, and an update's confirm (which rides the USB
+loop through `stage1_poll`) stalls until a *pin* reset (bit 26, `PINRSTF`)
+clears the peripheral and drops the pull-up. `USBFS_RCC_Init` only enables
+the clock, and `USBFS_Device_Init(ENABLE)` toggles the pull-up off then on
+within microseconds -- too fast for the host to register a disconnect.
+
+**LiteForth:** `Common/hardware.c` now detaches before attaching at every
+boot -- `USBFS_Device_Init(DISABLE)`, `Delay_Ms(20)` (past the host's
+disconnect debounce), then `USBFS_Device_Init(ENABLE)` -- so a software
+reset re-enumerates like a pin reset. It's a no-op at a cold or pin reset,
+where the pull-up is already low. `cdc_standby` already detached this way
+before Stop mode, which is why standby/wake didn't show the problem.

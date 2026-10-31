@@ -462,25 +462,25 @@ static int boot(void) {
     /* Update from the card: with no `-2 ymodem` pending and nothing already
        in progress, an update.lfu on the card that is validly signed for this
        board and newer than the installed version is installed, exactly as
-       `~x update.lfu -2` would. sealed_verify_package does the signature,
-       product, recipient and block-hash checks in one call; setting its
-       version floor to one above the installed version (and above a version
-       that just rolled back) is the "install only if later" gate, and keeps
-       the persistent file from re-installing every boot or boot-looping a bad
-       image. On a pass the install source is pointed at update.lfu and the
-       normal upd_boot installs it with backup, trial and rollback. */
+       `~x update.lfu -2` would. sealed_mount_package -- the one the installer
+       already uses, so this adds no code (sealed_verify_package would be a
+       whole extra function in the V3F's nearly-full flash) -- checks block
+       0's signature, product and that this board is a recipient, and fills
+       pkg; the version is compared here (mount doesn't gate on it). Installing
+       only a later version keeps the persistent file from re-installing every
+       boot, and skipping a version that just rolled back stops a bad image
+       boot-looping. On a pass the install source is pointed at update.lfu and
+       the normal upd_boot installs it with backup, trial and rollback. */
     if (!waiting && !busy && update_blocks != 0) {
         sealed_package pkg;
-        /* install only a version later than the installed one; don't retry a
-           version that just rolled back (sealed_verify_package validates the
-           signature, product, recipient and block hashes but ignores
-           min_revision, so the version is compared here) */
         uint32_t floor = rec.v5f_version;
         if (rec.result == UPD_R_ROLLED_BACK && rec.pkg_version > floor) {
             floor = rec.pkg_version;
         }
-        if (sealed_verify_package(update_blocks, &keys, u_read, (uint8_t *)io_buf, &pkg,
-                                  msg, sizeof msg) == 0 && pkg.version > floor) {
+        if (u_read(0, (uint8_t *)io_buf) == 0
+            && sealed_mount_package((const uint8_t *)io_buf, update_blocks, &keys, u_read,
+                                    msg, sizeof msg, &pkg) == 0
+            && pkg.version > floor) {
             printf("V3F update: " CARD_UPDATE_FILE " version %lu is newer; installing\r\n",
                    (unsigned long)pkg.version);
             stage_base = update_base;       /* install from update.lfu, not lfstage.bin */
@@ -627,8 +627,8 @@ static void lock_down(int really) {
     volatile uint16_t *src = (volatile uint16_t *)OB;
     uint16_t ob[8];
     if (!really) {
-        say("lockdown yes: write-protect the V3F's sectors, turn the boot ROM's downloads off");
-        say("and read protection on, and reset. Only a chip erase undoes it.");
+        say("lockdown yes: write-protect sectors, read protection on, downloads off, reset.");
+        say("Only a chip erase undoes it.");
         return;
     }
     for (int i = 0; i < 8; i++) {
@@ -657,20 +657,20 @@ static void lock_down(int really) {
 #endif
 
 static void help(void) {
-    say("LiteForth stage 1: recovery mode. The V5F stays off:");
+    say("LiteForth stage 1: recovery mode. The V5F is off.");
     say(why_recovery);
     if (locked_out) {
         say(insecure);
 #if SEC_STRICT_RDP
-        say("lockdown: lock this board down (it says what it will do first).");
+        say("lockdown: lock this board down (it says what it does first).");
 #endif
         say("reset: start again.");
         return;
     }
-    say("In kwai, ~x FILE -2 sends a firmware update package (into lfstage.bin) to install.");
-    say("enroll: this board's line for boards.csv (at security level 2 it makes the board's key).");
+    say("~x FILE -2: send a package (or put update.lfu on the card).");
+    say("enroll: this board's boards.csv line (the key at level 2).");
 #if SEC_ADOPT
-    say("adopt: take the V5F image in flash as it is (security levels 0 and 1 only).");
+    say("adopt: take the flash V5F image as-is.");
 #endif
     say("reset: start again.");
 }
@@ -753,10 +753,10 @@ static void enroll(void) {
         memset(&none, 0, sizeof none);
         int err = upd_boot(&io, &none, 0, &rec, msg, sizeof msg);
         if (err < 0 || upd_record_load(&io, &rec) != 0) {
-            say("enroll: can't make the security record (the RNG, or the flash)");
+            say("enroll: can't make the security record");
             return;
         }
-        say("enroll: new key made (a new security record and device token)");
+        say("enroll: new key made");
         blank = 0;
     }
 #endif
@@ -765,7 +765,7 @@ static void enroll(void) {
         return;
     }
 #if SEC_UID_KEY
-    say("enroll: security level below 2: the key comes from the UID, not the RNG");
+    say("enroll: level below 2: the key comes from the UID");
 #endif
     say("enroll: boards.csv line:");
     put_hex(line, (const uint8_t *)UID_ADDR, 8);

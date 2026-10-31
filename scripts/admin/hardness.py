@@ -167,6 +167,13 @@ def h_boot_config(rig, a):
     hiltest, _ = deps()
     check = hiltest.check
     line, start = rig.reset_and_wait(r'V5F PMP:|LiteForth starting|recovery mode', 40)
+    if line is None:
+        sys.exit('hardness.py: no response from the board after a reset (debug port). Is it '
+                 'powered with the card in, kwai and any other terminal closed, and the ports '
+                 'right? (`hardness.py --list`)')
+    if 'recovery' in line:
+        print('  ---- note: the board is in recovery (no good image installed); the battery '
+              'needs a good image to fall back to -- install --good first')
     rig.debug.wait(r'LiteForth starting|recovery mode', start, 25)
     lines = rig.debug.since(start)
     joined = '\n'.join(lines)
@@ -200,23 +207,37 @@ def h_option_bytes(rig, a):
 # ---------------------------------------------------------------------------
 # The bad-input battery
 # ---------------------------------------------------------------------------
+def alive(rig):
+    """The board still answers at the cli with an `ok>` prompt (LiteForth, the
+    good image, still running). A light check with no reset, so it doesn't
+    churn the USB port."""
+    if not rig.usb.open(10):
+        return False
+    rig.usb.write('\r\n')
+    ok = rig.usb.wait('ok>', 8)
+    rig.usb.close()
+    return ok
+
+
 def refused(rig, path, where):
-    """Feeds the bad package and returns (was_refused, detail). Staged with
-    `-2 ymodem`; if the board takes it (a "boot"-class corruption it can't
-    see until it installs), reset and read stage 1's verdict."""
+    """Feeds the bad package and returns (was_refused, detail, rebooted).
+    Staged with `-2 ymodem`: a package the keyless stage check refuses never
+    reaches flash and the board keeps running (rebooted False). Only a
+    package that stages (a "boot"-class corruption, which our battery doesn't
+    produce) needs a reset to read stage 1's verdict."""
     ok, text = rig.stage(path)
     if not ok:
         if 'no cli port' in text or 'cli' in text:
-            return None, 'could not reach the board to stage it (port error)'
-        return True, 'refused at `-2 ymodem` (not staged)'
-    # It staged: only a "boot"/"either" corruption should reach here.
+            return None, 'could not reach the board to stage it (port error)', False
+        return True, 'refused at `-2 ymodem` (not staged)', False
+    # It staged: reset once and read stage 1's verdict at install.
     line, start = rig.reset_and_wait(
         r'V3F update: .*(installed, on trial|refused|nothing to do)|recovery mode', 60)
     if line is None:
-        return None, 'no verdict from stage 1 after the reset (port error?)'
+        return None, 'no verdict from stage 1 after the reset (port error?)', True
     if 'installed, on trial' in line:
-        return False, f'INSTALLED a corrupt image ({line})'
-    return True, f'refused by stage 1 at boot ({line})'
+        return False, f'INSTALLED a corrupt image ({line})', True
+    return True, f'refused by stage 1 at boot ({line})', True
 
 
 def h_battery(rig, a):
@@ -229,16 +250,22 @@ def h_battery(rig, a):
         bad = make_bad(a.good, d)
         for name, what, where, path in bad:
             start = rig.debug.mark()
-            was, detail = refused(rig, path, where)
+            was, detail, rebooted = refused(rig, path, where)
             if was is None:                     # couldn't reach the board: not a refusal
                 check(False, f'{name}: could not test ({detail})')
                 rig.log(start)
                 continue
             check(was, f'{name}: {what} -> refused ({detail})')
-            # the good image must still boot: a refused update leaves it be
-            line, bstart = rig.reset_and_wait(r'LiteForth starting|recovery mode', 40)
-            check(line is not None and 'recovery' not in line,
-                  f'{name}: the good image still boots after ({line})')
+            # the good image must still be there. A stage-refused package
+            # never rebooted the board, so just confirm it still answers (no
+            # reset: resets churn the USB port); a package refused at install
+            # already rebooted into the good image, so read that.
+            if rebooted:
+                line = rig.debug.wait(r'LiteForth starting|recovery mode', start, 30)
+                check(line is not None and 'recovery' not in line,
+                      f'{name}: the good image booted after ({line})')
+            else:
+                check(alive(rig), f'{name}: the board kept running the good image')
             rig.log(start)
 
 
@@ -333,16 +360,6 @@ def main():
     todo = [(n, f) for n, f in phases if not a.only or n == a.only]
     if not todo:
         p.error(f'no such phase: {a.only} (--option-bytes enables the option-bytes phase)')
-    # The board must be reachable before anything else, or every serial check
-    # fails the same way; a clear message beats a cascade.
-    line, _ = rig.reset_and_wait(r'LiteForth starting|recovery mode|V3F', 40)
-    if line is None:
-        sys.exit('hardness.py: no response from the board after a reset (debug port). Is it '
-                 'powered with the card in, kwai and any other terminal closed, and the ports '
-                 'right? (`hardness.py --list`)')
-    if 'recovery' in line:
-        print('  ---- note: the board is in recovery (no good image yet); install --good first '
-              '(the survival phase does)')
     if a.option_bytes:
         print('  ---- note: the option-bytes phase will halt the board over wlink at the end; '
               'power-cycle it afterward to get the serial ports back')

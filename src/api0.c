@@ -342,6 +342,7 @@ static int dirLine(void *ctx, const char *name, const exfat_file *file) {
 
 /* DIR  ( -- )  Lists the files in the root directory of the card */
 static int dir(void) {
+    blk_remount(NULL);                  /* read the card as it is now (see ymodem.c) */
     return blk_dir(dirLine, NULL);
 }
 

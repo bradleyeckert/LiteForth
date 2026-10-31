@@ -264,7 +264,7 @@ installs the new one, and starts it on trial; LiteForth starting confirms
 it, and an image not confirmed within its trial boots is rolled back.
 
 - **Parent:** UN-07
-- **Verified by:** unit:update::test_install_and_confirm, unit:update::test_rollback, integ:stage1sim::s_install, integ:stage1sim::s_rollback, integ:stage1sim::s_rollback_unattended, board:B3, board:B4, board:B6, board:B10, board:B11
+- **Verified by:** unit:update::test_install_and_confirm, unit:update::test_rollback, integ:stage1sim::s_install, integ:stage1sim::s_rollback, integ:stage1sim::s_rollback_unattended, board:B3, board:B4, board:B6, board:B10, board:B11, board:B37
 - **Status:** verified
 
 ### SYS-UPD-04: Power cuts during an update

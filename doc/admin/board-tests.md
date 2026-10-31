@@ -3545,3 +3545,78 @@ where B4 needed the reset button. Not an anti-rollback test (SYS-UPD-06):
 this is the trial-failure path restoring the backup, not the version floor
 refusing an old package; the packages here carried the default
 `--min-version 0`.
+
+### B38. Anti-rollback: the version floor refuses a downgrade (31 October 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, at
+`SECURITY_LEVEL` 2, the same build as B35-B37 (branch `update-from-card`,
+commit `8a2f718`, `built Oct 31 2026 13:29:37, GCC 12.2.0`). Starting state:
+version 1 installed and confirmed.
+
+| File | Size | sha256 |
+|---|---|---|
+| `update-min2.lfu` (revision 2, min-version 2) | 385024 | `25f5257d28a757c828e2f7add67ad7b5913595a85efd8e17a5afef3263f9773e` |
+| `GOOD.lfu` (revision 1) | 385024 | `b8924caae4b9fd383ed9e1f159f43d0f0272fe227d4f956464687c1d24a8864f` |
+
+Both carry the real running V5F image (`LiteForth_V5F.bin`, sha256
+`acac66a75397d5a5f8bab26d669ef3d5873c617a0e4869233f68eeac8150b1ce`, B35);
+`update-min2.lfu` differs from the version-2 package only in `--min-version
+2`, which raises the board's floor when it is confirmed.
+
+**Why:** SYS-UPD-06. A package older than the board's minimum version must
+be refused. The floor (`min_v5f` in stage 1's record) rises to a package's
+`min_version` when that package is confirmed (`upd_confirm`), and
+`mount_package` then refuses any package whose revision is below it
+(`sealed_mount_package`, "an older revision than this board takes"). The
+earlier B35/B36 packages carried `--min-version 0`, so the floor had never
+been raised and a version-1 package installed over version 2 (expected: the
+control was never armed). This arms it and shows the downgrade refused.
+
+**Expected:** `update-min2.lfu` (version 2, new minimum 2) installs and
+confirms, raising the floor to 2. A then-staged `GOOD.lfu` (version 1)
+passes the V5F's keyless stage check (which doesn't track the floor), but
+stage 1 refuses it at install -- "an older revision than this board takes"
+-- and the board keeps running version 2; `GOOD.lfu` never installs.
+
+**Run.** Both packages staged from the running LiteForth with `~x FILE -2`
+and a `reboot` after each. Debug port, verbatim:
+
+```
+V3F update: version 2 installed, on trial
+V3F stage 1: security level 2, installed version 2
+V3F: starting the V5F
+V5F: LiteForth starting, security level 2, booting from flash
+V3F update: version 2 confirmed
+V3F: USB configured
+V5F blocks: lfblocks.fb4, 121 blocks at sector 14720 (exFAT)
+V3F sealed file refused: an older revision than this board takes
+V3F stage 1: security level 2, installed version 2
+V3F: starting the V5F
+V5F crumbs: reset by software, boot 16; the previous run left 7049 crumbs
+V3F: the V5F is running
+V5F PMP: cfg0 9F199888, addr 02005000 08047FFF 100087FF 0FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Oct 31 2026 13:29:37, GCC 12.2.0
+V5F: LiteForth starting, security level 2, booting from flash
+V3F: USB configured
+```
+
+The USB console showed the staging of each and the refusal line directly:
+
+```
+ok>~x D:\Brad\adminLF\test\GOOD.lfu -2
+ymodem: GOOD.lfu: staged in lfstage.bin, 94 blocks, read back and checked
+ymodem: package: V5F and app image, 376832 bytes, version 1: signature, recipient and blocks check out; waiting for stage 1 to install it
+ok>reboot
+...
+sealed file refused: an older revision than this board takes
+ok>学如不及, 犹恐失之 revision .
+2 ok>
+```
+
+**Result:** pass. Confirming `update-min2.lfu` raised the floor to 2. The
+version-1 `GOOD.lfu` staged (the keyless check cannot see the floor) but
+stage 1 refused it at install with "an older revision than this board
+takes", nothing was programmed, and `revision .` still reported 2. The
+floor is sticky by design: this board will not take version 1 again. Not
+shown here (covered by the unit and sim tests in SYS-UPD-06): a rollback
+refusing a backup older than the floor.

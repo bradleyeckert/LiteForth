@@ -7,7 +7,7 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 77 | 57 | 17 | 3 | 22 |
+| System requirements (SYS) | 77 | 58 | 16 | 3 | 21 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -104,7 +104,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-UPD-03](system.md#sys-upd-03-install-on-trial-confirm-or-roll-back) Install on trial, confirm or roll back | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_install_and_confirm`<br>unit:`update::test_rollback`<br>integ:`stage1sim::s_install`<br>integ:`stage1sim::s_rollback`<br>integ:`stage1sim::s_rollback_unattended`<br>B3<br>B4<br>B6<br>B10<br>B11<br>B37 | verified |
 | [SYS-UPD-04](system.md#sys-upd-04-power-cuts-during-an-update) Power cuts during an update | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_power_cuts`<br>integ:`stage1sim::s_power_cuts` | verified |
 | [SYS-UPD-05](system.md#sys-upd-05-a-refused-update-changes-nothing) A refused update changes nothing | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_refusals`<br>unit:`update::test_package_swapped`<br>unit:`update::test_changed_while_installing`<br>integ:`stage1sim::s_refusals`<br>B5a | verified |
-| [SYS-UPD-06](system.md#sys-upd-06-no-downgrade-below-the-minimum) No downgrade below the minimum | [UN-07](needs.md#un-07-updates-that-never-brick-a-device), [UN-08](needs.md#un-08-only-the-vendors-firmware-runs) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::older revision`<br>unit:`seal::old revision`<br>integ:`stage1sim::minimum: version 1 refused` | partial |
+| [SYS-UPD-06](system.md#sys-upd-06-no-downgrade-below-the-minimum) No downgrade below the minimum | [UN-07](needs.md#un-07-updates-that-never-brick-a-device), [UN-08](needs.md#un-08-only-the-vendors-firmware-runs) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::older revision`<br>unit:`seal::old revision`<br>integ:`stage1sim::minimum: version 1 refused`<br>B38 | verified |
 | [SYS-UPD-07](system.md#sys-upd-07-recovery-over-usb) Recovery over USB | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | integ:`stage1sim::s_recovery_card`<br>integ:`stage1sim::s_recovery_ram_and_ctrl_x`<br>integ:`stage1sim::s_recovery_commands`<br>integ:`stage1sim::s_nostart`<br>unit:`update::test_recovery`<br>B5<br>B6 | verified |
 | [SYS-UPD-08](system.md#sys-upd-08-application-packages) Application packages | [UN-07](needs.md#un-07-updates-that-never-brick-a-device) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | unit:`update::test_app_locked`<br>unit:`update::test_app_development`<br>sys:`savepages`<br>B19<br>B25 | verified |
 | [SYS-UPD-09](system.md#sys-upd-09-enrolling-a-board) Enrolling a board | [UN-07](needs.md#un-07-updates-that-never-brick-a-device), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted), [UN-11](needs.md#un-11-convenient-development-locked-production) | [ARC-STAGE1](architecture.md#arc-stage1-stage-1-the-root-of-trust) | integ:`stage1sim::s_enroll`<br>sys:`sealed::enroll prints the boards.csv line`<br>B22<br>B25 | verified |
@@ -271,6 +271,7 @@ Every entry of [board-tests.md](../admin/board-tests.md), the hardware evidence,
 | B35. USB re-enumerates after a software reset; the card recovery install | **nothing traced** |
 | B36. Update from the card at boot: update.lfu installs if newer, once | [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot) |
 | B37. Rollback of a level-2 app package that never confirms | [SYS-UPD-03](system.md#sys-upd-03-install-on-trial-confirm-or-roll-back) |
+| B38. Anti-rollback: the version floor refuses a downgrade | [SYS-UPD-06](system.md#sys-upd-06-no-downgrade-below-the-minimum) |
 
 ## Gaps
 
@@ -309,7 +310,6 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm): partial: the refusal without an alarm isn't shown on the board; standby's current isn't measured
 - [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes): partial: no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)
 - [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test): no architecture element traces to it
-- [SYS-UPD-06](system.md#sys-upd-06-no-downgrade-below-the-minimum): partial: the minimum is kept in stage 1's record, which isn't hardware-protected; firmware-updates.md section 10
 - [SYS-UPD-12](system.md#sys-upd-12-the-backup-on-the-card-cant-be-read-or-changed): partial: unit level only; not on the simulated board or a board
 - [SYS-UPD-13](system.md#sys-upd-13-update-from-the-card-at-boot): no architecture element traces to it
 - [UN-05](needs.md#un-05-text-on-small-graphic-displays): partial: no board run logged

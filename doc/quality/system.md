@@ -290,9 +290,9 @@ rollback never restores a backup older than it; a package can raise the
 minimum when its image is confirmed.
 
 - **Parent:** UN-07, UN-08
-- **Verified by:** unit:update::older revision, unit:seal::old revision, integ:stage1sim::minimum: version 1 refused
-- **Status:** partial
-- **Gap:** the minimum is kept in stage 1's record, which isn't hardware-protected; firmware-updates.md section 10
+- **Verified by:** unit:update::older revision, unit:seal::old revision, integ:stage1sim::minimum: version 1 refused, board:B38
+- **Status:** verified
+- **Note:** the minimum lives in stage 1's record (not a separate hardware fuse); at level 2 the record sits under PMP entry 0 and in write-protected flash, so a running image and the debugger can't lower it, but it is not OTP -- firmware-updates.md section 10
 
 ### SYS-UPD-07: Recovery over USB
 With no working image (none, one that fails its check, a failed trial

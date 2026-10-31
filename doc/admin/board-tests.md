@@ -3348,12 +3348,16 @@ needing the root or release private key, which the desktop tests cover.
 `SECURITY_LEVEL` 2, built in MounRiver from branch `update-from-card`
 (commit `8a2f718`: the USB boot-time detach, the `block_io` retry, and the
 card update, with the flash-fit string trims), reporting `built Oct 31 2026
-13:29:37, GCC 12.2.0`, and flashed by the user. The MounRiver (WCH gcc)
-images aren't reproducible from the upstream toolchain here, so the build is
-pinned by commit and the board's build line rather than an image hash.
+13:29:37, GCC 12.2.0`, and flashed by the user. The image hashes below are
+of the user's MounRiver build (commit `8a2f718`); the WCH gcc output isn't
+reproducible from the upstream toolchain here, so they can't be regenerated
+from the source alone, but they pin the exact flashed images. The V3F is
+65504 bytes -- text 65152 + data 352, the fit the flash-trim work achieved.
 
 | File | Size | sha256 |
 |---|---|---|
+| `LiteForth_V3F.bin` | 65504 | `3eac054cd221daadb7e3b52a14367721f68d7a7d58e8c95cc65f4d1287192b0b` |
+| `LiteForth_V5F.bin` | 111232 | `acac66a75397d5a5f8bab26d669ef3d5873c617a0e4869233f68eeac8150b1ce` |
 | `GOOD.lfu` (revision 1) | 385024 | `b8924caae4b9fd383ed9e1f159f43d0f0272fe227d4f956464687c1d24a8864f` |
 
 **Why:** two changes needed a board run. (1) A software reset (`reboot`, or

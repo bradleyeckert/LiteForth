@@ -444,3 +444,29 @@ disconnect debounce), then `USBFS_Device_Init(ENABLE)` -- so a software
 reset re-enumerates like a pin reset. It's a no-op at a cold or pin reset,
 where the pull-up is already low. `cdc_standby` already detached this way
 before Stop mode, which is why standby/wake didn't show the problem.
+
+### The V3F runs code from RAM, not in place from flash (no XIP)
+
+The V3F copies `.highcode` (all its code) into `RAM_CODE` at startup
+(`startup_ch32h417_v3f.S`, `Link_v3f.ld`) and runs from there; the flash
+holds only the load image. When the V3F's image needed to grow past 64 KB,
+the obvious move was to drop the copy and execute in place from flash (XIP),
+since WCH's linker comment calls the flash "zero_wait" -- that would make
+the flash the only limit on code size and free the `RAM_CODE` SRAM.
+
+**It doesn't work: XIP stops the USB CDC from enumerating.** With the V3F
+running in place from flash, the host sees nothing at all when the cable is
+plugged in -- no device, not even a failed enumeration. The V3F itself runs
+fine from flash (stage 1, `printf`, the TIM7 tick all work), so it isn't a
+gross execution fault; it is specifically the USB device/PHY bring-up or the
+`USBFS_IRQHandler` that doesn't tolerate running from flash (the "zero_wait"
+assumption doesn't hold for USB's timing). This was confirmed on two
+different boards, and the USB/clock path has no `SECURITY_LEVEL` dependency,
+so neither the board nor the build level explains it -- only XIP.
+
+**So the V3F stays on the copy-to-RAM model.** To give it a bigger image,
+grow both `FLASH` and `RAM_CODE` together (they are 128 KB now, up from
+64 KB) rather than switching to XIP. The V5F is different: its machine-mode
+region (`.mmode`) *does* run in place from flash, but that is a small,
+non-USB, non-timing-critical slice, and WCH's flash-programming routines
+there are copied into ITCM before use (`flash_ram_begin`).

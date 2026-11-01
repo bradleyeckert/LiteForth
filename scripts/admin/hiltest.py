@@ -312,7 +312,12 @@ class Rig:
                 print(f'{" ".join(cmd)} failed:\n{r.stdout}{r.stderr}')
                 return False
             return self.debug.wait(r'^V3F', start, 10) is not None
-        if not self.usb.open(10):
+        # A reset makes the board drop and re-enumerate its USB CDC, which can
+        # take well over 10 s on Windows, more so after a run of staging resets.
+        # Be patient reopening the cli port so a slow re-enumeration isn't read
+        # as a missing board (seen in a hardness run: COM6 dropped mid-battery,
+        # came back on its own, but the 10 s reopen had already given up).
+        if not self.usb.open(45):
             print('no cli port to type reboot into')
             return False
         for line in ('\nreboot\n', '\nreset\n'):     # LiteForth, then the recovery console

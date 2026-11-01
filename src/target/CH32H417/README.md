@@ -124,8 +124,9 @@ Implements `serial_io.h` (the same interface as
 
 Build both projects, then download from the **V5F** project. Its download
 is `obj/Merge.Bin`: the V3F's image (at 0) merged with the V5F's (at
-`0x14000`, after stage 1's two record sectors), so it programs both
-cores. With wlink, the V5F's `.bin` goes at `0x08014000`. The V3F project's download erases
+`0x24000`, after the 128 KB V3F image and stage 1's two record sectors),
+so it programs both cores. With wlink, the V5F's `.bin` goes at
+`0x08024000`. The V3F project's download erases
 the whole chip and writes only the V3F image, which leaves the V5F with
 nothing to run.
 
@@ -179,8 +180,9 @@ HSEM use: HSEM0 wakes the V3F at boot, HSEM2 guards the debug UART.
 ### Flash: `V5F/User/flash.c`
 
 The code flash is mapped at `0x08000000` (960K in dual-flash mode, 480K in
-single). The V3F's image takes the first 64K and the V5F's the next 128K.
-`SRC/Ld/V5F/Link_v5f.ld` reserves the next **256K, `0x08030000`-`0x0806FFFF`**,
+single). The V3F's image takes the first 128K (run in place from flash),
+then stage 1's two record sectors and the V5F's 112K slot.
+`SRC/Ld/V5F/Link_v5f.ld` reserves the next **256K, `0x08040000`-`0x0807FFFF`**,
 for LiteForth (`__lf_flash_start`, `__lf_flash_size`), and fails the link
 if the V5F image would grow into it. That range is valid in either flash
 mode.
@@ -256,7 +258,7 @@ modifies and writes the whole register, so use whole-cell `!` on
 write-1-to-clear flags.
 
 **Downloading keeps it.** The V5F project downloads `Merge.Bin` (both
-cores' code, which ends below `0x08030000`) with Clear CodeFlash off
+cores' code, which ends below `0x08040000`) with Clear CodeFlash off
 (`"clearcodeflash": false` in `LiteForth_V5F.wvproj`), so only the sectors
 the image covers are erased: LiteForth's flash pages survive a download,
 and `1 load` isn't needed after it. `Merge.Bin` runs from 0 to the end of

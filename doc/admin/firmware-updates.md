@@ -84,7 +84,7 @@ could read it if code that isn't ours ran there.
 **At level 2 the boot check needs the signature** (`upd_io.check_signature`,
 `SEC_SIGNED_BOOT`), so it doesn't rest on the token staying secret.
 Stage 1 keeps the installed package's block 0 in its own sector
-(0x70000, `UPD_HEADER`) and checks it at every boot with
+(0x80000, `UPD_HEADER`) and checks it at every boot with
 `sealed_check_signed` (`src/sealed.c`): the root key's certificate of the
 release key, the release key's signature over block 0, the product, the
 hardware revision, the version and release key serial against the
@@ -132,9 +132,12 @@ moves the V5F and LiteForth's flash, so it changes both cores' linker
 scripts and `flash.c`. Today's layout, a step towards it, is in
 section 6. Sizes: today's V3F image (`LiteForth_V3F.bin`) is 17.3 KB.
 Stage 1 adds about 25-30 KB (SD driver, `card.c`/`exfat.c`, `sealed.c` with
-Monocypher, the installer), so about 45-50 KB, in a 68 KB slot. Stage 1
-runs from the V3F's 64 KB of RAM_CODE, which caps it at 64 KB of code
-whatever the slot size.
+Monocypher, the installer), so about 45-50 KB, in the 128 KB V3F image
+region (section 6). Stage 1 runs in place from that flash -- the flash is
+zero-wait at the V3F's clock -- so the slot size is the only limit on its
+code. It no longer copies `.highcode` into the 64 KB RAM_CODE (the old
+limit, which capped the code at 64 KB whatever the slot size), which also
+frees that SRAM.
 
 Each slot starts with the 4 KB header of the package that installed it
 (section 5), so stage 0 checks the slot exactly as it was signed.
@@ -228,7 +231,7 @@ the image's MAC.
 **App packages (component 3)** carry the Forth application with the
 firmware. The image is the V5F's slot, the `.bin` padded with 0xFF to the
 slot's size, followed by all of LiteForth's flash pages: one region in the
-code flash (0x14000 to 0x6FFFF today), which stage 1 installs, backs up,
+code flash (0x24000 to 0x7FFFF today), which stage 1 installs, backs up,
 rolls back and checks like a V5F image, just longer. Stage 1 takes one
 only if it's exactly that long. The way an application gets to a product:
 
@@ -352,17 +355,21 @@ start it, because the record says it was programming. It goes to recovery
 ### On the board now (first step)
 
 `V3F/User/stage1.c` runs this on the V3F at every reset, before it wakes
-the V5F, with today's flash map (`stage1_layout.h`):
+the V5F, with today's flash map (`stage1_layout.h`). The V3F's image is a
+128 KB region run in place from flash (not copied into the 64 KB RAM_CODE
+as it once was); raising it from 64 KB moved everything after it up by
+64 KB. Because the image region and the record locations move, this layout
+is reached by reflashing a board on the bench, not by a normal update:
 
 | Address | Size | Region |
 |---|---|---|
-| 0x00000 | 64 KB | The V3F's image (stage 0 and 1) |
-| 0x10000 | 8 KB | Security record, copy A |
-| 0x12000 | 8 KB | Security record, copy B |
-| 0x14000 | 112 KB | The V5F's slot |
-| 0x30000 | 256 KB | LiteForth's flash pages |
-| 0x70000 | 8 KB | The installed package's block 0, signed (level 2's boot check) |
-| 0x72000 | | Free |
+| 0x00000 | 128 KB | The V3F's image (stage 0 and 1), run in place from flash |
+| 0x20000 | 8 KB | Security record, copy A |
+| 0x22000 | 8 KB | Security record, copy B |
+| 0x24000 | 112 KB | The V5F's slot |
+| 0x40000 | 256 KB | LiteForth's flash pages |
+| 0x80000 | 8 KB | The installed package's block 0, signed (level 2's boot check) |
+| 0x82000 | | Free (to 0xF0000, 960 KB) |
 
 The V5F's PMP entry 0 covers everything below its slot (section 8). It
 does nothing at all on a board that has never been updated
@@ -624,8 +631,8 @@ token.
   on a bench board.
 
 - **What's set today** (`V5F/User/pmp.c`, with today's layout,
-  section 6: stage 1's records at 0x10000 and 0x12000, the V5F at
-  0x14000, LiteForth's pages at 0x30000): the start-up code calls
+  section 6: stage 1's records at 0x20000 and 0x22000, the V5F at
+  0x24000, LiteForth's pages at 0x40000): the start-up code calls
   `pmp_lock` just before its `mret`, which sets these entries:
 
   | # | Region | User | Machine | Locked |
@@ -637,7 +644,7 @@ token.
 
   Entry 0 (20 October 2026; the records under it since 21 October) is
   one TOR entry from address 0 up to the V5F's slot in the high window,
-  0x08014000: the code flash's whole low window (the V3F's image, the
+  0x08024000: the code flash's whole low window (the V3F's image, the
   records, the V5F's own image and LiteForth's pages all appear there
   too) and, in the high window, the V3F's image and stage 1's records.
   So the V5F, machine mode included, can't read stage 0, stage 1, the
@@ -664,9 +671,10 @@ token.
   `pmp_report` prints the entries at each start (`V5F PMP: ...`).
 
   Entry 1 (21 October 2026) is a locked NAPOT entry over the 256 KB from
-  0x20100000, where `Link_v3f.ld` now keeps all of the V3F's RAM: stage
-  1's code (RAM_CODE), its data, heap and stack, and so the device token,
-  the board's key while stage 1 uses it, and every return address. The
+  0x20100000, where `Link_v3f.ld` keeps all of the V3F's RAM: stage 1's
+  data, heap and stack (its code runs in place from flash now, not from a
+  RAM_CODE copy), and so the device token, the board's key while stage 1
+  uses it, and every return address. The
   V5F, machine mode included, can't read or write it. The shared block
   (0x20178000, 32 KB: the USB rings, the flags, the crumbs) lies above it
   and stays open to both; 0x20140000-0x20177FFF is unused. So a bug in
@@ -678,7 +686,7 @@ token.
   handlers (`ch32h417_it.c`, `guard.c`, the `ecall` handler and its
   services in `pmp.c`, Guarded DMA in `gdma.c`, the 1 ms tick) are in the
   last 8 KB of the V5F's slot (`.mmode`, `V5F/User/mmode.h`), run in
-  place from the code flash's high window, 0x0802E000. Nothing there
+  place from the code flash's high window, 0x0803E000. Nothing there
   calls anything else: no `memcpy` or `memcmp` (local loops), no
   `vmTrapArmed` (a flag it reads), and the V5F is built without
   `-msave-restore`, whose `__riscv_save_N` helpers would be in ITCM.
@@ -964,9 +972,12 @@ RDP 0:
    it. To check first, on the spare: that wlink flashes the V5F's image
    at 0x10000 on this dual-core part, that the option bytes load at a
    software reset (or need a power cycle), and that stage 1 and the V5F
-   can still write flash under read protection (stage 1 runs from
-   RAM_CODE, and the reference manual says code running from RAM can't
-   program flash then).
+   can still write flash under read protection. With stage 1 now running
+   in place from flash (the 128 KB V3F image, section 6), its
+   flash-programming routines must run from RAM, since the chip can't
+   program the flash it is executing from -- the same reason WCH's flash
+   routines are copied into RAM on the V5F (`flash_ram_begin`). This is a
+   migration item to verify on the spare.
 
 ## 10. To verify or decide
 

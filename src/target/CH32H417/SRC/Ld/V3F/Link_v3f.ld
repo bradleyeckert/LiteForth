@@ -9,8 +9,8 @@ MEMORY
 {
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
-	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 64K             /* zero_wait flah ,and loaded into RAM_CODE for running */
-	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 64K         /* RAM for running code*/
+	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K            /* zero_wait flash, run in place (LiteForth: XIP, no copy to RAM_CODE) */
+	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 64K         /* LiteForth: unused now; code runs in place from flash (XIP) */
 	/* LiteForth: RAM starts 16K above RAM_CODE's end, not right after RAM_LOAD, so that
 	   no code or rodata can be within 2K of __global_pointer$ (.data + 0x800). Otherwise,
 	   with RAM_CODE nearly full, ld's relaxation makes some references gp-relative while
@@ -76,7 +76,7 @@ SECTIONS
 		*(.gnu.linkonce.t.*)
 		. = ALIGN(4); 
         PROVIDE(_highcode_vma_end = .);
-    } >RAM_CODE AT>FLASH
+    } >FLASH AT>FLASH
 
 	.text :
 	{
@@ -97,7 +97,7 @@ SECTIONS
         PROVIDE(_highcode_vma_start1 = .);
 		KEEP(*(SORT_NONE(.fini)))
 		. = ALIGN(4);
-	} >RAM_CODE AT>FLASH
+	} >FLASH AT>FLASH
 
 	PROVIDE( _etext = . );
 	PROVIDE( _eitcm = . );	
@@ -107,7 +107,7 @@ SECTIONS
 	  PROVIDE_HIDDEN (__preinit_array_start = .);
 	  KEEP (*(.preinit_array))
 	  PROVIDE_HIDDEN (__preinit_array_end = .);
-	} >RAM_CODE AT>FLASH 
+	} >FLASH AT>FLASH 
 	
 	.init_array     :
 	{
@@ -115,7 +115,7 @@ SECTIONS
 	  KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
 	  KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
 	  PROVIDE_HIDDEN (__init_array_end = .);
-	} >RAM_CODE AT>FLASH 
+	} >FLASH AT>FLASH 
 	
 	.fini_array     :
 	{
@@ -123,7 +123,7 @@ SECTIONS
 	  KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
 	  KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
 	  PROVIDE_HIDDEN (__fini_array_end = .);
-	} >RAM_CODE AT>FLASH 
+	} >FLASH AT>FLASH 
 	
 	.ctors          :
 	{
@@ -145,7 +145,7 @@ SECTIONS
 	  KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
 	  KEEP (*(SORT(.ctors.*)))
 	  KEEP (*(.ctors))
-	} >RAM_CODE AT>FLASH 
+	} >FLASH AT>FLASH 
 	
 	.dtors          :
 	{
@@ -156,7 +156,7 @@ SECTIONS
 	  KEEP (*(.dtors))
 	  . = ALIGN(4); 
       PROVIDE(_highcode_vma_end1 = .);
-	} >RAM_CODE AT>FLASH 
+	} >FLASH AT>FLASH 
 
 	.dalign :
 	{

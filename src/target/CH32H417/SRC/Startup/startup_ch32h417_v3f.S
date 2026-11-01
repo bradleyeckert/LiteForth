@@ -463,30 +463,9 @@ _load_base:
     and s2,s2,s3
     beqz s2, 1b
 
-/* Load highcode code  section from flash to RAM */
-    la a0, _highcode_lma
-    la a1, _highcode_vma_start
-    la a2, _highcode_vma_end
-    bgeu a1, a2, 2f
-1:
-    lw t0, (a0)
-    sw t0, (a1)
-    addi a0, a0, 4
-    addi a1, a1, 4
-    bltu a1, a2, 1b
-
-/* Load highcode code  section from flash to RAM */
-2:
-    la a0, _highcode_lma1
-    la a1, _highcode_vma_start1
-    la a2, _highcode_vma_end1
-    bgeu a1, a2, 2f
-1:
-    lw t0, (a0)
-    sw t0, (a1)
-    addi a0, a0, 4
-    addi a1, a1, 4
-    bltu a1, a2, 1b
+/* LiteForth: .highcode and friends run in place from flash (XIP, see
+   Link_v3f.ld), so there is no copy to RAM_CODE -- copying flash to flash
+   would fault. The V3F image is 128 KB run in place. */
 
 /* Load data section from flash to RAM */
 2:

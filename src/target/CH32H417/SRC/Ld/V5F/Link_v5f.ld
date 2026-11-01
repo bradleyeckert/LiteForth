@@ -17,13 +17,13 @@ MEMORY
 {
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
-	FLASH (rx) : ORIGIN = 0x00014000, LENGTH = 104K                    /* zero_wait flah ,and loaded into RAM_CODE for running */
+	FLASH (rx) : ORIGIN = 0x00024000, LENGTH = 104K                    /* zero_wait flah ,and loaded into RAM_CODE for running */
 	/* LiteForth: the V5F's slot, after the V3F's image and stage 1's records
 	   (V3F/User/stage1_layout.h: UPD_V5F_ADDR, UPD_V5F_SLOT): this image's first
 	   104K, then 8K of machine mode's code (mmode.h), run in place from the
 	   high window, where user mode can't write it */
-	MMODE (rx) : ORIGIN = 0x0802E000, LENGTH = 8K
-	MMODE_LMA (rx) : ORIGIN = 0x0002E000, LENGTH = 8K
+	MMODE (rx) : ORIGIN = 0x0803E000, LENGTH = 8K
+	MMODE_LMA (rx) : ORIGIN = 0x0003E000, LENGTH = 8K
 	RAM_CODE (xrw) : ORIGIN = 0x200A0000, LENGTH = 124K                /*ITCM RAM for running code*/
 	/* LiteForth: WCH's flash routines, copied in from flash before each use (mmode.h) */
 	RAMFUNC (xrw) : ORIGIN = 0x200BF000, LENGTH = 4K
@@ -39,17 +39,17 @@ _pool_start = ORIGIN(POOL);             /* gdma.c and pmp.c take buffers from he
 _pool_end = ORIGIN(POOL) + LENGTH(POOL);
 ASSERT(_pool_end == 0x20178000, "the pool must end at the shared block (CDC_SHARED_ADDR)")
 
-/* LiteForth: 256K of flash right after the V5F's slot (0x00030000, read and
-   programmed through its alias 0x08030000), used by V5F/User/flash.c.
-   Nothing is linked here; the image must end below it. 0x08030000-0x0806FFFF
+/* LiteForth: 256K of flash right after the V5F's slot (0x00040000, read and
+   programmed through its alias 0x08040000), used by V5F/User/flash.c.
+   Nothing is linked here; the image must end below it. 0x08040000-0x0807FFFF
    lies within both the 480K (single) and 960K (dual) flash modes. */
-__lf_flash_start = 0x08030000;
+__lf_flash_start = 0x08040000;
 __lf_flash_size  = 256K;
 ASSERT(ORIGIN(FLASH) + LENGTH(FLASH) <= __lf_flash_start - 0x08000000,
        "V5F FLASH region overlaps the LiteForth flash")
 ASSERT(ORIGIN(MMODE_LMA) + 0x08000000 == ORIGIN(MMODE), "the machine-mode code's two addresses")
 ASSERT(ORIGIN(FLASH) + LENGTH(FLASH) == ORIGIN(MMODE_LMA), "the machine-mode code ends the slot")
-ASSERT(ORIGIN(FLASH) == 0x00014000,
+ASSERT(ORIGIN(FLASH) == 0x00024000,
        "the V5F's slot moved: change UPD_V5F_ADDR (stage1_layout.h) and V5F_SLOT_HIGH (pmp.c) too")
 
 SECTIONS
@@ -75,7 +75,7 @@ SECTIONS
 		. = ALIGN(4);
 		_mmode_end = .;
 	} >MMODE AT>MMODE_LMA
-	ASSERT(_mmode_start == 0x0802E000, "the V5F wakes at MMODE's base (UPD_V5F_ENTRY)")
+	ASSERT(_mmode_start == 0x0803E000, "the V5F wakes at MMODE's base (UPD_V5F_ENTRY)")
 
 	.ramfunc :
 	{

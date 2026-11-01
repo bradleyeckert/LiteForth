@@ -3671,3 +3671,97 @@ ok>
 alarm refused with -24 and the board stayed awake and responsive
 (SYS-TIME-02's refusal half; the standby sleep current is still to be
 measured with a meter, which this run does not cover).
+
+### B40. First level-2 provision and install on the 128 KB (copy-to-RAM) layout (1 November 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, flashed
+with the 128 KB V3F layout (branch merged to `main`, commit `645e210` "V3F
+to 128 KB (copy-to-RAM)", `built Nov 1 2026 14:31:35, GCC 12.2.0`), built in
+MounRiver and downloaded as the merged image. This is the first run of the
+new layout on hardware: the V3F's image and its RAM_CODE both grew from
+64 KB to 128 KB, so the V5F slot, stage 1's records and the machine-mode
+region all moved up by 0x10000 (slot now at 0x08024000, `.mmode` at
+0x0803E000). The board was blank and unlocked at the start; it is taken
+through lock-down, enrolment and a first app install here.
+
+| File | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` | 65488 | `ae0380c7ae0a9d05bb9d0ae3048eb2716537e0c0f5ceb07bcf3cd901b6efa45f` |
+| `LiteForth_V5F.bin` | 111232 | `e1022279c96f89f3529d707e2cb82c125784cb7f7203498896e864f775e4b7f2` |
+| `update-min2.lfu` (revision 2, min-version 2, app) | 385024 | `76a37b3a1ed09f0009d9dd2d3149e1c52157e2e3117f592d40f291870e7ea1f5` |
+
+**Why:** SYS-UPD-01/02 and SYS-PROV-01 on the new layout. The 128 KB
+migration changed every flash address stage 1, the V5F linker, `pmp.c` and
+`sealblocks.py` agree on, so the whole trust chain -- lock-down, the device
+token and board key, a signed app package's install and the PMP fence --
+has to be re-verified end to end on a locked board at the moved addresses,
+not just in the build. The package was built by `minver.bat` (`sealblocks.py
+mmode-sign` + `package --component app --revision 2 --min-version 2`), whose
+addresses now target the new layout.
+
+**Expected:** a blank board reports recovery at level 2 and refuses to start
+the V5F until locked down; `lockdown yes` programs the option bytes (the
+V3F's 16 sectors write-protected, `WRPR0 FF00`); `enroll` makes a unique
+level-2 key; `update-min2.lfu` installs on trial, the V5F starts LiteForth,
+stage 1 confirms it and the anti-rollback floor rises to 2; the V5F's PMP
+reports entry 0 (TOR) at the new slot boundary 0x08024000; USB enumerates.
+
+**Run.** Over the V3F's USB CDC terminal and the debug UART, verbatim:
+
+```
+LiteForth stage 1: recovery mode. The V5F is off.
+security level 2: this board isn't locked down, so the V5F won't start
+read protection off, the V3F's sectors not all write-protected (OBR 03FFFCFC, WPR FFFFFFFF)
+lockdown: lock this board down (it says what it does first).
+reset: start again.
+recovery ok> lockdown yes
+lockdown yes
+lockdown: option bytes now RDPR 00FF USER C03F WRPR0 FF00: ok
+lockdown: restarting (if the lock-down warning comes again, power it off and on)
+
+LiteForth stage 1: recovery mode. The V5F is off.
+no V5F image installed: type enroll, then send an app package
+~x FILE -2: send a package (or put update.lfu on the card).
+enroll: this board's boards.csv line (the key at level 2).
+reset: start again.
+recovery ok> enroll
+enroll
+enroll: new key made
+enroll: boards.csv line:
+e52116647f9c7a22,010c7784cb4eeb3e315e81a5dd909b6cf96aaa856987a49c81f64d45bed4ea7c
+recovery ok> ~x D:\Brad\adminLF\test\update-min2.lfu -2
+-2 ymodem
+ymodem: update-min2.lfu: 385024 bytes received
+update: version 2 installed, on trial
+recovery: installed; restarting to try it
+
+[幸运狐] v0.02
+ok>学如不及, 犹恐失之
+
+V3F ymodem: update-min2.lfu: 385024 bytes received
+V3F update: version 2 installed, on trial
+V3F recovery: installed; restarting to try it
+V3F update: version 2 on trial, boot 1 of 3
+V3F stage 1: security level 2, installed version 2
+V3F: starting the V5F
+V5F crumbs: reset by software power; none from before (power-up)
+V3F: the V5F is running
+V5F PMP: cfg0 9F199888, addr 02009000 08047FFF 100087FF 0FFFFFFF: as set, locked (clearing entry 0 was ignored)
+V3F: built Nov  1 2026 14:31:35, GCC 12.2.0
+V5F blocks: lfblocks.fb4, 121 blocks at sector 14720 (exFAT)
+V5F: LiteForth starting, security level 2, booting from flash
+V3F update: version 2 confirmed
+V3F: USB configured
+```
+
+**Result:** pass. The blank board refused to start the V5F until locked
+down; `lockdown yes` set `RDPR 00FF`/`WRPR0 FF00` (read protection on, the
+V3F's 128 KB = 16 sectors write-protected, mask `0xFFFF0000`); `enroll` made
+a unique level-2 key (`010c7784...`). `update-min2.lfu` installed on trial,
+the V5F booted LiteForth from flash at level 2 and stage 1 confirmed it, so
+the anti-rollback floor is now 2. The V5F PMP's entry 0 is TOR at
+`0x02009000 << 2 = 0x08024000`, the new layout's slot boundary, locked as
+set -- the fence tracks the moved address on hardware, not the old
+0x08014000. USB enumerated ("USB configured"), so copy-to-RAM holds on a
+locked board. The board is now the level-2, floor-2 board for the GOOD/HANG
+battery (`hiltest.py`, `hardness.py`).

@@ -263,7 +263,7 @@ installs the new one, and starts it on trial; LiteForth starting confirms
 it, and an image not confirmed within its trial boots is rolled back.
 
 - **Parent:** UN-07
-- **Verified by:** unit:update::test_install_and_confirm, unit:update::test_rollback, integ:stage1sim::s_install, integ:stage1sim::s_rollback, integ:stage1sim::s_rollback_unattended, board:B3, board:B4, board:B6, board:B10, board:B11, board:B37
+- **Verified by:** unit:update::test_install_and_confirm, unit:update::test_rollback, integ:stage1sim::s_install, integ:stage1sim::s_rollback, integ:stage1sim::s_rollback_unattended, board:B3, board:B4, board:B6, board:B10, board:B11, board:B37, board:B40
 - **Status:** verified
 
 ### SYS-UPD-04: Power cuts during an update
@@ -329,7 +329,7 @@ Forth application, installed, backed up and rolled back as one image.
 it; below level 2 it's derived from the UID, for development only.
 
 - **Parent:** UN-07, UN-09, UN-11
-- **Verified by:** integ:stage1sim::s_enroll, sys:sealed::enroll prints the boards.csv line, board:B22, board:B25
+- **Verified by:** integ:stage1sim::s_enroll, sys:sealed::enroll prints the boards.csv line, board:B22, board:B25, board:B40
 - **Status:** verified
 
 ### SYS-UPD-12: The backup on the card can't be read or changed
@@ -404,7 +404,7 @@ boot, and at level 2 a board that isn't locked down never starts the
 V5F. `lockdown` in recovery locks a board in one step.
 
 - **Parent:** UN-08, UN-09
-- **Verified by:** integ:stage1sim::s_lockdown, integ:stage1sim::s_lockdown_command, integ:stage1sim::lockdown.py run: a locked board refused before any flash, board:B8, board:B25
+- **Verified by:** integ:stage1sim::s_lockdown, integ:stage1sim::s_lockdown_command, integ:stage1sim::lockdown.py run: a locked board refused before any flash, board:B8, board:B25, board:B40
 - **Status:** verified
 
 ### SYS-SEC-06: Only signed images start at level 2

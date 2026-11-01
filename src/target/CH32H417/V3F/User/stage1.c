@@ -94,7 +94,8 @@ static int card_read(uint32_t sector, uint8_t *buf) {
     return SD_ReadDisk(buf, sector, 1) == SD_OK ? 0 : ERR_BLK_READ_FAIL;
 }
 
-#define BLOCK_IO_TRIES 4                /* a card op is retried this many times */
+#define BLOCK_IO_TRIES 8              /* a card op is retried up to this many times */
+#define BLOCK_IO_SETTLE_MS 2          /* back-off doubles per retry: 2, 4, 8, ... ms */
 
 static int block_io(uint32_t base, uint32_t blocks, uint32_t blk, uint8_t *buf, int write) {
     if (blk >= blocks) {
@@ -105,7 +106,13 @@ static int block_io(uint32_t base, uint32_t blocks, uint32_t blk, uint8_t *buf, 
        occasional CRC/timeout, makes one block fail where a retry succeeds.
        Without this, ymr_receive aborts the whole package on a single hiccup
        (seen staging a recovery package: writes failed at different blocks,
-       clean on resend), and the backup write has the same path. */
+       clean on resend), and the backup write has the same path. One retry
+       wasn't always enough on a fresh/slow card, so this makes several
+       attempts with an exponential back-off (2, 4, 8, ... ms): a slow card
+       often needs progressively longer to come ready, not just another poke.
+       Worst case on a genuinely bad block is BLOCK_IO_TRIES attempts and
+       ~254 ms of settle before the error propagates; the success path (first
+       try) is unchanged. */
     SD_Error e = SD_OK;
     for (int tries = 0; tries < BLOCK_IO_TRIES; tries++) {
         e = write ? SD_WriteDisk(buf, lba, SECTORS_PER_BLOCK)
@@ -113,7 +120,7 @@ static int block_io(uint32_t base, uint32_t blocks, uint32_t blk, uint8_t *buf, 
         if (e == SD_OK) {
             break;
         }
-        Delay_Ms(2);                    /* let the card finish or settle */
+        Delay_Ms(BLOCK_IO_SETTLE_MS << tries);   /* let the card finish or settle */
     }
     return e == SD_OK ? 0 : (write ? ERR_BLK_WRITE_FAIL : ERR_BLK_READ_FAIL);
 }

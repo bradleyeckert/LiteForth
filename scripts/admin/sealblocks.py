@@ -91,7 +91,7 @@ PAD = 0xFF                      # erased flash
 MMODE_SIG_AT = IMAGE_HASH_AT - 104  # the machine-mode region's root signature in block 0:
 #                                     addr (4), len (4), hash (32), signature (64)
 MMODE_PERSON = b'LFmmode'
-MMODE_ADDR = 0x0802E000         # UPD_V5F_ENTRY (stage1_layout.h); MMODE in Link_v5f.ld
+MMODE_ADDR = 0x0803E000         # UPD_V5F_ENTRY (stage1_layout.h); MMODE in Link_v5f.ld
 MMODE_LEN = 0x2000              # 8 KB: the whole MMODE window (.mmode, then .ramfunc's flash copy)
 MMODE_OFF = APP_SLOT - MMODE_LEN    # its offset in the V5F slot image: the slot's last 8 KB
 
@@ -352,7 +352,7 @@ MANIFEST_PERSON = b'LiteForth manifest 1\0'
 MANIFEST_EXTRA = {MANIFEST, 'root.pub'}   # what DIR may hold besides the files listed
 V3F_MAX = 64 * 1024                     # the V3F's image (stage 0 and 1)
 FLASH_BASE = 0x08000000
-V3F_AT, V5F_AT = FLASH_BASE, FLASH_BASE + 0x14000   # stage1_layout.h
+V3F_AT, V5F_AT = FLASH_BASE, FLASH_BASE + 0x24000   # stage1_layout.h
 CARD_MIN = 94 * BLOCK                   # lfstage.bin and lfbackup.bin: an app package today
 CARD_DEFAULT = 512 * 1024
 

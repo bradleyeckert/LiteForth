@@ -47,7 +47,7 @@ _Static_assert(PMP_SVC_FLASH_PROGRAM < GDMA_SVC_START, "the services' numbers do
    either. The V5F runs from the low window only at a cold start, before
    this (its start-up code), and nothing restarts it without a chip reset:
    Ctrl+X x3 resets the chip (Common/cdc_bridge.c). */
-#define V5F_SLOT_HIGH   0x08014000u     /* Link_v5f.ld's FLASH (it checks), in the high window */
+#define V5F_SLOT_HIGH   0x08024000u     /* Link_v5f.ld's FLASH (it checks), in the high window */
 #define PMP_ADDR0   (V5F_SLOT_HIGH >> 2)
 /* Entry 1, NAPOT, locked: the V3F's RAM (Link_v3f.ld keeps all of it, code,
    data and stack, in these 256K), where stage 1 runs with the board's key

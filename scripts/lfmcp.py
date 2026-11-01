@@ -349,7 +349,7 @@ TOOLS = [
          "command": {"type": "string",
                      "enum": ["status", "list", "regs", "dump", "reset", "flash"]},
          "address": {"type": ["integer", "string"],
-                     "description": "dump: start; flash: where a .bin goes (e.g. \"0x08014000\")"},
+                     "description": "dump: start; flash: where a .bin goes (e.g. \"0x08024000\")"},
          "length": {"type": ["integer", "string"], "description": "dump: bytes (default 64)"},
          "path": {"type": "string", "description": "flash: the firmware file"}},
          "required": ["command"]}},

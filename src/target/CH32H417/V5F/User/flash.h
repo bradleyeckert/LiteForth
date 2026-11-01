@@ -12,7 +12,7 @@
  *
  * Same interface as src/target/desktop/flash.h. The pages are
  * RAM_PAGE pages of FLASH_PAGE_CELLS cells, starting at __lf_flash_start
- * (0x08030000, defined in SRC/Ld/V5F/Link_v5f.ld), 256KB in all.
+ * (0x08040000, defined in SRC/Ld/V5F/Link_v5f.ld), 256KB in all.
  * flash_program erases and rewrites one page. The CPU reads pages from
  * FLASH_SHADOW_PAGES on in place; the ones below that from RAM copies in
  * DTCM (see flash_page), since flash reads cost wait states.

@@ -100,7 +100,7 @@ def manifest_tests():
     write('rel/LiteForth_V5F.bin', b'V5F' + bytes(9000))
     expect_ok('manifest with a V5F', 'manifest', 'rel', '--release', 'rel1.json', '--revision',
               4, '--v5f', 'LiteForth_V5F.bin', '--force')
-    expect('manifest: the V5F at its slot', any(f['use'] == 'v5f' and f['address'] == 0x08014000
+    expect('manifest: the V5F at its slot', any(f['use'] == 'v5f' and f['address'] == 0x08024000
                                                 for f in sb.check_manifest(
                                                     'rel', sb.root_public('root.pub'))['files']))
     good = read('rel/manifest.json')

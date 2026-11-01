@@ -39,12 +39,12 @@ from sender import packet, header, packets, EOT, ACK, NAK, CAN, C  # noqa: E402
 UID = '0102030405060708'
 PRODUCT = 0x4C46
 SLOT = 0x1C000                          # V3F/User/stage1_layout.h
-V5F_ADDR = 0x14000
+V5F_ADDR = 0x24000
 PAGES_LEN = 0x40000                     # LiteForth's flash pages, after the slot
 FLASH_SIZE = 0x100000
 ERASED = bytes.fromhex('39E339E3') * (FLASH_SIZE // 4)    # 0xE339E339, little-endian
 LOCKED_OBR = '%X' % (0x2 | (0x01 << 2))  # read protection on, downloads off
-LOCKED_WPR = 'FFFFFF00'                  # the V3F's 64 KB protected
+LOCKED_WPR = 'FFFF0000'                  # the V3F's 128 KB protected (16 sectors)
 TIMEOUT = 20
 
 failures = 0
@@ -778,7 +778,7 @@ def s_lockdown():
     r.stop()
     check(not any('not locked down' in l for l in r.debug), 'locked: no warning')
     for obr, wpr, what in ((LOCKED_OBR, 'FFFFFFFF', "V3F's sectors not all write-protected"),
-                           (LOCKED_OBR, 'FFFFFE00', 'sectors that updates write'),
+                           (LOCKED_OBR, 'FFFE0000', 'sectors that updates write'),
                            ('%X' % (0x2 | (0x41 << 2)), LOCKED_WPR, 'USB download on'),
                            ('%X' % (0x81 << 2), LOCKED_WPR, 'read protection off')):
         line = b.boot_until(r'not locked down', obr=obr, wpr=wpr)

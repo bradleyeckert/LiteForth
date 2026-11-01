@@ -9,14 +9,14 @@ MEMORY
 {
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
-	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 64K             /* zero_wait flah ,and loaded into RAM_CODE for running */
-	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 64K         /* RAM for running code*/
+	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K            /* zero_wait flash, loaded into RAM_CODE for running (LiteForth: 128K, was 64K) */
+	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 128K        /* RAM for running code (LiteForth: 128K, was 64K; the V3F runs .highcode from here) */
 	/* LiteForth: RAM starts 16K above RAM_CODE's end, not right after RAM_LOAD, so that
 	   no code or rodata can be within 2K of __global_pointer$ (.data + 0x800). Otherwise,
 	   with RAM_CODE nearly full, ld's relaxation makes some references gp-relative while
 	   the code is still unrelaxed (and longer), then the code shrinks and they no longer
 	   reach: "relocation truncated to fit: R_RISCV_GPREL_I". */
-	RAM (xrw) : ORIGIN = 0x20114000, LENGTH = (0x20140000 - 0x20114000) /* RAM for .data .bss section and other*/
+	RAM (xrw) : ORIGIN = 0x20124000, LENGTH = (0x20140000 - 0x20124000) /* RAM for .data .bss section and other (LiteForth: 16K above the 128K RAM_CODE) */
 	/* LiteForth: all of the V3F's RAM, code, data, heap and stack, lies in the 256K
 	   from 0x20100000, which the V5F's PMP entry 1 keeps the V5F out of (V5F/User/pmp.c).
 	   0x20140000-0x20177FFF holds only recovery's RAM staging (stage1.c's ram_stage),
@@ -25,7 +25,7 @@ MEMORY
 	   V5F, see Common/cdc_shared.h */
 	RAM_STAGE (rw) : ORIGIN = 0x20140000, LENGTH = (0x20178000 - 0x20140000)
 	RAM_SHARED (rw) : ORIGIN = 0x20178000, LENGTH = 32K
-	RAM_LOAD (xrw) : ORIGIN = 0x20110000, LENGTH = 256         /* RAM for .load section*/
+	RAM_LOAD (xrw) : ORIGIN = 0x20120000, LENGTH = 256         /* RAM for .load section (LiteForth: just above the 128K RAM_CODE) */
 }
 
 SECTIONS

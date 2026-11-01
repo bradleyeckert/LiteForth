@@ -5,7 +5,7 @@
    offsets from its start (0x08000000), before update.h's defaults
    (doc/admin/firmware-updates.md section 2):
 
-     0x00000 128 KB   the V3F's image (stage 0 and 1), run in place from flash
+     0x00000 128 KB   the V3F's image (stage 0 and 1)
      0x20000   8 KB   the security record, copy A (with the device token,
                       and so the board's key at level 2)
      0x22000   8 KB   copy B

@@ -180,7 +180,7 @@ HSEM use: HSEM0 wakes the V3F at boot, HSEM2 guards the debug UART.
 ### Flash: `V5F/User/flash.c`
 
 The code flash is mapped at `0x08000000` (960K in dual-flash mode, 480K in
-single). The V3F's image takes the first 128K (run in place from flash),
+single). The V3F's image takes the first 128K (copied to RAM_CODE and run from there),
 then stage 1's two record sectors and the V5F's 112K slot.
 `SRC/Ld/V5F/Link_v5f.ld` reserves the next **256K, `0x08040000`-`0x0807FFFF`**,
 for LiteForth (`__lf_flash_start`, `__lf_flash_size`), and fails the link

@@ -463,21 +463,30 @@ _load_base:
     and s2,s2,s3
     beqz s2, 1b
 
-/* LiteForth: .highcode runs in place from flash (XIP, see Link_v3f.ld), so
-   there is no copy to RAM. But WCH's flash routines (ch32h417_flash.o, in
-   .ramfunc) can't run from the flash they program, so copy them to RAM. */
-    la a0, _ramfunc_lma
-    la a1, _ramfunc_vma
-    la a2, _ramfunc_end
-    bgeu a1, a2, 3f
+/* Load highcode code  section from flash to RAM */
+    la a0, _highcode_lma
+    la a1, _highcode_vma_start
+    la a2, _highcode_vma_end
+    bgeu a1, a2, 2f
 1:
     lw t0, (a0)
     sw t0, (a1)
     addi a0, a0, 4
     addi a1, a1, 4
     bltu a1, a2, 1b
-3:
-    fence.i
+
+/* Load highcode code  section from flash to RAM */
+2:
+    la a0, _highcode_lma1
+    la a1, _highcode_vma_start1
+    la a2, _highcode_vma_end1
+    bgeu a1, a2, 2f
+1:
+    lw t0, (a0)
+    sw t0, (a1)
+    addi a0, a0, 4
+    addi a1, a1, 4
+    bltu a1, a2, 1b
 
 /* Load data section from flash to RAM */
 2:

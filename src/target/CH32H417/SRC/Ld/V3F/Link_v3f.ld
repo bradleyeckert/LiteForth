@@ -9,14 +9,14 @@ MEMORY
 {
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
-	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K            /* zero_wait flash, run in place (LiteForth: XIP, no copy to RAM_CODE) */
-	RAMFUNC (xrw) : ORIGIN = 0x20100000, LENGTH = 8K           /* LiteForth: WCH flash routines, run from RAM (XIP can't program the flash it runs from) */
+	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K            /* zero_wait flash, loaded into RAM_CODE for running (LiteForth: 128K, was 64K) */
+	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 128K        /* RAM for running code (LiteForth: 128K, was 64K; the V3F runs .highcode from here) */
 	/* LiteForth: RAM starts 16K above RAM_CODE's end, not right after RAM_LOAD, so that
 	   no code or rodata can be within 2K of __global_pointer$ (.data + 0x800). Otherwise,
 	   with RAM_CODE nearly full, ld's relaxation makes some references gp-relative while
 	   the code is still unrelaxed (and longer), then the code shrinks and they no longer
 	   reach: "relocation truncated to fit: R_RISCV_GPREL_I". */
-	RAM (xrw) : ORIGIN = 0x20114000, LENGTH = (0x20140000 - 0x20114000) /* RAM for .data .bss section and other*/
+	RAM (xrw) : ORIGIN = 0x20124000, LENGTH = (0x20140000 - 0x20124000) /* RAM for .data .bss section and other (LiteForth: 16K above the 128K RAM_CODE) */
 	/* LiteForth: all of the V3F's RAM, code, data, heap and stack, lies in the 256K
 	   from 0x20100000, which the V5F's PMP entry 1 keeps the V5F out of (V5F/User/pmp.c).
 	   0x20140000-0x20177FFF holds only recovery's RAM staging (stage1.c's ram_stage),
@@ -25,7 +25,7 @@ MEMORY
 	   V5F, see Common/cdc_shared.h */
 	RAM_STAGE (rw) : ORIGIN = 0x20140000, LENGTH = (0x20178000 - 0x20140000)
 	RAM_SHARED (rw) : ORIGIN = 0x20178000, LENGTH = 32K
-	RAM_LOAD (xrw) : ORIGIN = 0x20110000, LENGTH = 256         /* RAM for .load section*/
+	RAM_LOAD (xrw) : ORIGIN = 0x20120000, LENGTH = 256         /* RAM for .load section (LiteForth: just above the 128K RAM_CODE) */
 }
 
 SECTIONS
@@ -54,19 +54,6 @@ SECTIONS
 		PROVIDE(_loadcode_vma_end = .);
 	}>RAM_LOAD AT>FLASH
 
-    /* LiteForth: WCH's flash routines in RAM; they can't run from the flash
-       they program. Copied from flash to RAMFUNC at startup (startup_*.S). */
-    .ramfunc :
-    {
-        . = ALIGN(4);
-        _ramfunc_vma = .;
-        *ch32h417_flash*.o(.text .text.* .rodata .rodata.*)
-        . = ALIGN(4);
-        _ramfunc_end = .;
-    } >RAMFUNC AT>FLASH
-    _ramfunc_lma = LOADADDR(.ramfunc);
-    ASSERT(_ramfunc_end - _ramfunc_vma <= 8K, "ch32h417_flash.o does not fit in RAMFUNC (8K)")
-
     .highcodelalign : 
     {       
         . = ALIGN(4);
@@ -89,7 +76,7 @@ SECTIONS
 		*(.gnu.linkonce.t.*)
 		. = ALIGN(4); 
         PROVIDE(_highcode_vma_end = .);
-    } >FLASH AT>FLASH
+    } >RAM_CODE AT>FLASH
 
 	.text :
 	{
@@ -110,7 +97,7 @@ SECTIONS
         PROVIDE(_highcode_vma_start1 = .);
 		KEEP(*(SORT_NONE(.fini)))
 		. = ALIGN(4);
-	} >FLASH AT>FLASH
+	} >RAM_CODE AT>FLASH
 
 	PROVIDE( _etext = . );
 	PROVIDE( _eitcm = . );	
@@ -120,7 +107,7 @@ SECTIONS
 	  PROVIDE_HIDDEN (__preinit_array_start = .);
 	  KEEP (*(.preinit_array))
 	  PROVIDE_HIDDEN (__preinit_array_end = .);
-	} >FLASH AT>FLASH 
+	} >RAM_CODE AT>FLASH 
 	
 	.init_array     :
 	{
@@ -128,7 +115,7 @@ SECTIONS
 	  KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
 	  KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
 	  PROVIDE_HIDDEN (__init_array_end = .);
-	} >FLASH AT>FLASH 
+	} >RAM_CODE AT>FLASH 
 	
 	.fini_array     :
 	{
@@ -136,7 +123,7 @@ SECTIONS
 	  KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
 	  KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
 	  PROVIDE_HIDDEN (__fini_array_end = .);
-	} >FLASH AT>FLASH 
+	} >RAM_CODE AT>FLASH 
 	
 	.ctors          :
 	{
@@ -158,7 +145,7 @@ SECTIONS
 	  KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
 	  KEEP (*(SORT(.ctors.*)))
 	  KEEP (*(.ctors))
-	} >FLASH AT>FLASH 
+	} >RAM_CODE AT>FLASH 
 	
 	.dtors          :
 	{
@@ -169,7 +156,7 @@ SECTIONS
 	  KEEP (*(.dtors))
 	  . = ALIGN(4); 
       PROVIDE(_highcode_vma_end1 = .);
-	} >FLASH AT>FLASH 
+	} >RAM_CODE AT>FLASH 
 
 	.dalign :
 	{

@@ -132,12 +132,10 @@ moves the V5F and LiteForth's flash, so it changes both cores' linker
 scripts and `flash.c`. Today's layout, a step towards it, is in
 section 6. Sizes: today's V3F image (`LiteForth_V3F.bin`) is 17.3 KB.
 Stage 1 adds about 25-30 KB (SD driver, `card.c`/`exfat.c`, `sealed.c` with
-Monocypher, the installer), so about 45-50 KB, in the 128 KB V3F image
-region (section 6). Stage 1 runs in place from that flash -- the flash is
-zero-wait at the V3F's clock -- so the slot size is the only limit on its
-code. It no longer copies `.highcode` into the 64 KB RAM_CODE (the old
-limit, which capped the code at 64 KB whatever the slot size), which also
-frees that SRAM.
+Monocypher, the installer), so about 45-50 KB. The V3F's image region and
+the RAM_CODE it is copied into for running are both 128 KB now (grown from
+64 KB): the V3F still runs its code from RAM_CODE, as it always has, but
+the bigger regions lift the old 64 KB code limit.
 
 Each slot starts with the 4 KB header of the package that installed it
 (section 5), so stage 0 checks the slot exactly as it was signed.
@@ -356,14 +354,14 @@ start it, because the record says it was programming. It goes to recovery
 
 `V3F/User/stage1.c` runs this on the V3F at every reset, before it wakes
 the V5F, with today's flash map (`stage1_layout.h`). The V3F's image is a
-128 KB region run in place from flash (not copied into the 64 KB RAM_CODE
-as it once was); raising it from 64 KB moved everything after it up by
+128 KB region (grown from 64 KB), copied into a 128 KB RAM_CODE and run
+from there as before; raising it from 64 KB moved everything after it up by
 64 KB. Because the image region and the record locations move, this layout
 is reached by reflashing a board on the bench, not by a normal update:
 
 | Address | Size | Region |
 |---|---|---|
-| 0x00000 | 128 KB | The V3F's image (stage 0 and 1), run in place from flash |
+| 0x00000 | 128 KB | The V3F's image (stage 0 and 1) |
 | 0x20000 | 8 KB | Security record, copy A |
 | 0x22000 | 8 KB | Security record, copy B |
 | 0x24000 | 112 KB | The V5F's slot |
@@ -672,9 +670,8 @@ token.
 
   Entry 1 (21 October 2026) is a locked NAPOT entry over the 256 KB from
   0x20100000, where `Link_v3f.ld` keeps all of the V3F's RAM: stage 1's
-  data, heap and stack (its code runs in place from flash now, not from a
-  RAM_CODE copy), and so the device token, the board's key while stage 1
-  uses it, and every return address. The
+  code (RAM_CODE), its data, heap and stack, and so the device token, the
+  board's key while stage 1 uses it, and every return address. The
   V5F, machine mode included, can't read or write it. The shared block
   (0x20178000, 32 KB: the USB rings, the flags, the crumbs) lies above it
   and stays open to both; 0x20140000-0x20177FFF is unused. So a bug in
@@ -972,12 +969,9 @@ RDP 0:
    it. To check first, on the spare: that wlink flashes the V5F's image
    at 0x10000 on this dual-core part, that the option bytes load at a
    software reset (or need a power cycle), and that stage 1 and the V5F
-   can still write flash under read protection. With stage 1 now running
-   in place from flash (the 128 KB V3F image, section 6), its
-   flash-programming routines must run from RAM, since the chip can't
-   program the flash it is executing from -- the same reason WCH's flash
-   routines are copied into RAM on the V5F (`flash_ram_begin`). This is a
-   migration item to verify on the spare.
+   can still write flash under read protection (stage 1 runs from
+   RAM_CODE, and the reference manual says code running from RAM can't
+   program flash then).
 
 ## 10. To verify or decide
 

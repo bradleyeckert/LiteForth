@@ -463,9 +463,21 @@ _load_base:
     and s2,s2,s3
     beqz s2, 1b
 
-/* LiteForth: .highcode and friends run in place from flash (XIP, see
-   Link_v3f.ld), so there is no copy to RAM_CODE -- copying flash to flash
-   would fault. The V3F image is 128 KB run in place. */
+/* LiteForth: .highcode runs in place from flash (XIP, see Link_v3f.ld), so
+   there is no copy to RAM. But WCH's flash routines (ch32h417_flash.o, in
+   .ramfunc) can't run from the flash they program, so copy them to RAM. */
+    la a0, _ramfunc_lma
+    la a1, _ramfunc_vma
+    la a2, _ramfunc_end
+    bgeu a1, a2, 3f
+1:
+    lw t0, (a0)
+    sw t0, (a1)
+    addi a0, a0, 4
+    addi a1, a1, 4
+    bltu a1, a2, 1b
+3:
+    fence.i
 
 /* Load data section from flash to RAM */
 2:

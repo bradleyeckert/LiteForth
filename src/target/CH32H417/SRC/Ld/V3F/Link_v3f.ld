@@ -10,7 +10,7 @@ MEMORY
 	/*FLASH, RAM, and RAM-CODE can be freely configured according to project 
 	requirements;Please refer to the datasheet manual for specific allocation*/
 	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K            /* zero_wait flash, run in place (LiteForth: XIP, no copy to RAM_CODE) */
-	RAM_CODE (xrw) : ORIGIN = 0x20100000, LENGTH = 64K         /* LiteForth: unused now; code runs in place from flash (XIP) */
+	RAMFUNC (xrw) : ORIGIN = 0x20100000, LENGTH = 8K           /* LiteForth: WCH flash routines, run from RAM (XIP can't program the flash it runs from) */
 	/* LiteForth: RAM starts 16K above RAM_CODE's end, not right after RAM_LOAD, so that
 	   no code or rodata can be within 2K of __global_pointer$ (.data + 0x800). Otherwise,
 	   with RAM_CODE nearly full, ld's relaxation makes some references gp-relative while
@@ -53,6 +53,19 @@ SECTIONS
 		. = ALIGN(4); 
 		PROVIDE(_loadcode_vma_end = .);
 	}>RAM_LOAD AT>FLASH
+
+    /* LiteForth: WCH's flash routines in RAM; they can't run from the flash
+       they program. Copied from flash to RAMFUNC at startup (startup_*.S). */
+    .ramfunc :
+    {
+        . = ALIGN(4);
+        _ramfunc_vma = .;
+        *ch32h417_flash*.o(.text .text.* .rodata .rodata.*)
+        . = ALIGN(4);
+        _ramfunc_end = .;
+    } >RAMFUNC AT>FLASH
+    _ramfunc_lma = LOADADDR(.ramfunc);
+    ASSERT(_ramfunc_end - _ramfunc_vma <= 8K, "ch32h417_flash.o does not fit in RAMFUNC (8K)")
 
     .highcodelalign : 
     {       

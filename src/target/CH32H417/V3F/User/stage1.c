@@ -63,12 +63,37 @@ static int f_read(uint32_t addr, void *buf, uint32_t len) {
     return 0;
 }
 
+/* Interrupts off around a flash erase/program: the routines run from RAM
+   (.ramfunc, copied at startup), but the handlers are in flash (XIP) and
+   can't be fetched while the flash controller is busy. Mirrors the V5F's
+   flash_ram_begin/end (V5F/User/pmp.c). */
+static uint32_t flash_irq_off(void) {
+#ifdef __riscv
+    uint32_t m;
+    __asm volatile ("csrrci %0, mstatus, 8" : "=r"(m));
+    return m & 8u;
+#else
+    return 0;           /* the host sim (stage1sim) has no interrupts */
+#endif
+}
+static void flash_irq_restore(uint32_t mie) {
+#ifdef __riscv
+    if (mie) {
+        __asm volatile ("csrsi mstatus, 8");
+    }
+#else
+    (void)mie;
+#endif
+}
+
 static int f_erase(uint32_t addr) {
     if (addr % UPD_SECTOR || !in_range(addr, UPD_SECTOR)) {
         return ERR_BLK_BOUNDS;
     }
-    return FLASH_ROM_ERASE(STAGE1_FLASH_BASE + addr, UPD_SECTOR) == FLASH_COMPLETE
-           ? 0 : ERR_FLASH_WRITE_SECTOR;
+    uint32_t mie = flash_irq_off();
+    FLASH_Status s = FLASH_ROM_ERASE(STAGE1_FLASH_BASE + addr, UPD_SECTOR);
+    flash_irq_restore(mie);
+    return s == FLASH_COMPLETE ? 0 : ERR_FLASH_WRITE_SECTOR;
 }
 
 /* Programs len bytes at addr in 256-byte pages; a short last page is
@@ -83,7 +108,10 @@ static int f_write(uint32_t addr, const void *buf, uint32_t len) {
         uint32_t n = (len - at < PROGRAM_PAGE) ? len - at : PROGRAM_PAGE;
         memset(page, 0xFF, sizeof page);
         memcpy(page, p + at, n);
-        if (FLASH_ROM_WRITE(STAGE1_FLASH_BASE + addr + at, page, PROGRAM_PAGE) != FLASH_COMPLETE) {
+        uint32_t mie = flash_irq_off();
+        FLASH_Status s = FLASH_ROM_WRITE(STAGE1_FLASH_BASE + addr + at, page, PROGRAM_PAGE);
+        flash_irq_restore(mie);
+        if (s != FLASH_COMPLETE) {
             return ERR_FLASH_WRITE_SECTOR;
         }
     }

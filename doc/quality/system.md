@@ -263,7 +263,7 @@ installs the new one, and starts it on trial; LiteForth starting confirms
 it, and an image not confirmed within its trial boots is rolled back.
 
 - **Parent:** UN-07
-- **Verified by:** unit:update::test_install_and_confirm, unit:update::test_rollback, integ:stage1sim::s_install, integ:stage1sim::s_rollback, integ:stage1sim::s_rollback_unattended, board:B3, board:B4, board:B6, board:B10, board:B11, board:B37, board:B40
+- **Verified by:** unit:update::test_install_and_confirm, unit:update::test_rollback, integ:stage1sim::s_install, integ:stage1sim::s_rollback, integ:stage1sim::s_rollback_unattended, board:B3, board:B4, board:B6, board:B10, board:B11, board:B37, board:B40, board:B41
 - **Status:** verified
 
 ### SYS-UPD-04: Power cuts during an update
@@ -300,7 +300,7 @@ offers a recovery terminal over USB that takes a package; a V5F stuck at
 start is sent there after a few failed starts.
 
 - **Parent:** UN-07
-- **Verified by:** integ:stage1sim::s_recovery_card, integ:stage1sim::s_recovery_ram_and_ctrl_x, integ:stage1sim::s_recovery_commands, integ:stage1sim::s_nostart, unit:update::test_recovery, board:B5, board:B6
+- **Verified by:** integ:stage1sim::s_recovery_card, integ:stage1sim::s_recovery_ram_and_ctrl_x, integ:stage1sim::s_recovery_commands, integ:stage1sim::s_nostart, unit:update::test_recovery, board:B5, board:B6, board:B41
 - **Status:** verified
 
 ### SYS-UPD-13: Update from the card at boot

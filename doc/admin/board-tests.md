@@ -3765,3 +3765,80 @@ set -- the fence tracks the moved address on hardware, not the old
 0x08014000. USB enumerated ("USB configured"), so copy-to-RAM holds on a
 locked board. The board is now the level-2, floor-2 board for the GOOD/HANG
 battery (`hiltest.py`, `hardness.py`).
+
+### B41. hiltest full pass on the 128 KB layout; the recovery YMODEM send rides through a transient SD hiccup (1 November 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, locked at
+`SECURITY_LEVEL` 2 (B40), re-flashed with `main` at commit `ad01172`
+("stage1: more SD retries with exponential back-off in block_io", #251) and
+re-enrolled. This is the same 128 KB copy-to-RAM layout as B40 with one
+change: stage 1's `block_io` now retries a failed SD read/write up to 8
+times with a doubling back-off (2, 4, 8 ... 128 ms) instead of 4 times at a
+flat 2 ms.
+
+| File | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` (with #251) | 65496 | `f2703f248cac45b603f4c08bd5d2d1c17f56188d6336f5ec0baab984afe676cb` |
+| `LiteForth_V5F.bin` (unchanged from B40) | 111232 | `e1022279c96f89f3529d707e2cb82c125784cb7f7203498896e864f775e4b7f2` |
+| `GOOD.lfu` (revision 2, app) | 385024 | `c0864bd201db87033950b6cadca097f4198f0479b82ad1533502e14b805be411` |
+| `HANG.lfu` (revision 3, app; V5F slot is `jal x0,0`) | 385024 | `adcea227a52db510646ba4648cf8b35ff109bbec3df7a08c03d681075a67b899` |
+
+**Why:** SYS-UPD-03 and SYS-UPD-07 end to end on the new layout, and the
+hardware check of #251. In an earlier run the `recovery` scenario failed at
+`GOOD.lfu sent to stage 1`: the recovery YMODEM receive writes the package
+into `lfstage.bin`, and a transient SD write failure there aborted the whole
+transfer. #239's single-step 4x retry (flat 2 ms) was not always enough on a
+fresh/slow microSD; #251 makes several attempts with a growing back-off so a
+card that needs longer to come ready gets it. This run is `hiltest.py`'s full
+battery (install, rollback, recovery, lock-down boot) on a board carrying
+#251, on the same new card that had stumbled.
+
+**Expected:** all four scenarios pass. In particular `GOOD.lfu sent to stage
+1` -- the recovery send that failed before #251 -- now completes, the image
+is installed without a backup, started on trial and confirmed.
+
+**Run.** `py scripts\admin\hiltest.py run --good GOOD.lfu --hang HANG.lfu`,
+output verbatim:
+
+```
+install:
+  ok   staged: "waiting for stage 1 to install it"
+  ok   installed (None)
+  ok   confirmed by LiteForth
+rollback:
+  ok   the hanging image staged
+  ok   installed on trial (None)
+  ok   by itself: didn't start within (V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip)
+  ok   by itself: boot 1 of 3 (V3F update: version 3 on trial, boot 1 of 3)
+  ok   by itself: boot 2 of 3 (V3F update: version 3 on trial, boot 2 of 3)
+  ok   by itself: boot 3 of 3 (V3F update: version 3 on trial, boot 3 of 3)
+  ok   by itself: rolled back to version (V3F update: rolled back to version 2)
+  ok   by itself: LiteForth starting (V5F: LiteForth starting, security level 2, booting from flash)
+recovery:
+  ok   cli port open
+  ok   Ctrl+X x3 twice: "resetting into recovery"
+  ok   recovery mode (V3F: recovery mode: the V5F stays off; waiting for a package over USB (Ctrl+X x3 twice: recovery on request (or the V5F got stuck before LiteForth)))
+  ok   cli port open in recovery
+  ok   the recovery prompt
+  ok   GOOD.lfu sent to stage 1
+  ok   the image marked as not working
+  ok   installed
+  ok   restarted, on trial
+  ok   confirmed
+lockdown:
+  board: V5F: LiteForth starting, security level 2, booting from flash
+  ok   the boot reported
+all passed; report in hil-report-20261101-1621.md
+```
+
+**Result:** pass, all four scenarios. The `recovery` scenario's `GOOD.lfu
+sent to stage 1` -- the step that failed before #251 when the recovery
+YMODEM write hit a transient SD hiccup -- completed, and the image installed
+without a backup, ran on trial and confirmed. Install on the running
+LiteForth and the HANG three-boot trial-then-rollback to version 2 both
+passed too, so all three code paths that touch the card (the install stage,
+the trial/rollback backup, and the recovery receive) rode through on the
+same new microSD. The install and rollback "installed, on trial" lines were
+again dropped across the install reset's USB re-enumeration (reported as
+`(None)`), tolerated by the harness (#249) with the confirm and the
+trial-boot sequence as the proof.

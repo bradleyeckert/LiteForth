@@ -380,7 +380,12 @@ def h_install(rig, a):
     check(ok, 'staged: "waiting for stage 1 to install it"')
     rig.log(start, u0)
     line, start = rig.reset_and_wait(r'V3F update: .*(installed, on trial|refused)|recovery mode', 60)
-    check(line and 'installed, on trial' in line, f'installed ({line})')
+    # The "installed, on trial" line can be missed across the install reset's
+    # USB drop (as in h_rollback/h_survival), so it isn't required on its own:
+    # a 'refused' or 'recovery mode' verdict is a real failure, but a missed
+    # line is not -- the 'confirmed' check below is the proof it installed.
+    bad = line is not None and 'installed, on trial' not in line
+    check(not bad, f'installed ({line})')
     check(rig.debug.wait(r'confirmed', start, 30) is not None, 'confirmed by LiteForth')
     rig.log(start)
 

@@ -6,8 +6,8 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 
 | Level | Items | Verified | Partial | Planned | With gaps |
 |---|---|---|---|---|---|
-| Stakeholder needs (UN) | 14 | 8 | 6 | 0 | 6 |
-| System requirements (SYS) | 77 | 59 | 15 | 3 | 20 |
+| Stakeholder needs (UN) | 15 | 8 | 6 | 1 | 7 |
+| System requirements (SYS) | 78 | 59 | 15 | 4 | 21 |
 | Architecture elements (ARC) | 13 | 8 | 5 | 0 | 5 |
 | Modules (MOD) | 37 | 28 | 9 | 0 | 9 |
 
@@ -31,6 +31,7 @@ Each stakeholder need, how it's validated, and the system requirements that refi
 | [UN-12](needs.md#un-12-evidence-for-an-assessment) Evidence for an assessment | demo:`sbom.spdx.json`<br>demo:`doc/admin/board-tests.md`<br>demo:`scripts/rtm.py::Requirements Traceability Matrix` | [SYS-QA-01](system.md#sys-qa-01-every-change-to-main-is-built-and-tested), [SYS-QA-02](system.md#sys-qa-02-a-current-bill-of-materials), [SYS-QA-03](system.md#sys-qa-03-board-tests-on-record), [SYS-QA-04](system.md#sys-qa-04-a-checked-traceability-matrix), [SYS-QA-05](system.md#sys-qa-05-forth-source-follows-the-coding-rules) | verified |
 | [UN-13](needs.md#un-13-tools-on-the-pc) Tools on the PC | B25<br>B26 | [SYS-SEC-09](system.md#sys-sec-09-debug-tools-dont-unlock-boards), [SYS-TOOL-01](system.md#sys-tool-01-keys-and-packages), [SYS-TOOL-02](system.md#sys-tool-02-blocks-fonts-and-card-images), [SYS-TOOL-03](system.md#sys-tool-03-driving-a-board), [SYS-TOOL-04](system.md#sys-tool-04-opening-logs-on-the-server), [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test) | verified |
 | [UN-14](needs.md#un-14-provisioning-new-boards) Provisioning new boards | demo:`src/target/desktop/unit_tests/stage1sim::provision.py on the simulated board: passed` | [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes), [SYS-TOOL-06](system.md#sys-tool-06-a-signed-release-for-the-station) | partial |
+| [UN-15](needs.md#un-15-evidence-the-enclosure-was-opened) Evidence the enclosure was opened | - | [SYS-SEC-16](system.md#sys-sec-16-enclosure-tamper-monitoring) | planned |
 
 ## System requirements
 
@@ -78,6 +79,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-SEC-13](system.md#sys-sec-13-no-bus-master-runs-for-user-mode) No bus master runs for user mode | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`guard::HB2PCENR enables ECDC`<br>unit:`guard::byte 0 leaves FMC (byte 1) on`<br>B33 | verified |
 | [SYS-SEC-14](system.md#sys-sec-14-machine-modes-code-is-the-roots) Machine mode's code is the root's | [UN-08](needs.md#un-08-only-the-vendors-firmware-runs), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | unit:`seal::machine-mode root signature`<br>unit:`update::unmatched machine-mode signature`<br>integ:`stage1sim::strict: the signed image starts`<br>B32 | verified |
 | [SYS-SEC-15](system.md#sys-sec-15-user-mode-cant-reach-the-interrupt-controller) User mode can't reach the interrupt controller | [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-MMODE](architecture.md#arc-mmode-the-v5fs-machine-mode) | B30<br>B31 | verified |
+| [SYS-SEC-16](system.md#sys-sec-16-enclosure-tamper-monitoring) Enclosure tamper monitoring | [UN-15](needs.md#un-15-evidence-the-enclosure-was-opened) | **none** | - | planned |
 | [SYS-STO-01](system.md#sys-sto-01-the-block-file-on-the-card) The block file on the card | [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read) | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | sys:`blocks::[foreign]`<br>integ:`exfat::test_card_signed_file`<br>integ:`exfat::test_card_unsigned_file`<br>B26 | verified |
 | [SYS-STO-02](system.md#sys-sto-02-malformed-cards-are-refused-safely) Malformed cards are refused safely | [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read), [UN-09](needs.md#un-09-secrets-that-cant-be-extracted) | [ARC-BLOCKS](architecture.md#arc-blocks-blocks-the-card-and-the-memory-pool) | integ:`exfat::test_root_directory_loop`<br>integ:`exfat::test_find_ignores_bad_checksum`<br>integ:`exfat::test_volume_larger_than_partition`<br>integ:`exfat::test_first_cluster_past_the_volume`<br>integ:`exfat::test_sectors_and_fence` | verified |
 | [SYS-STO-03](system.md#sys-sto-03-card-transfers-by-dma-with-errors-reported) Card transfers by DMA, with errors reported | [UN-04](needs.md#un-04-source-and-data-on-a-card-a-pc-can-read) | [ARC-V5F](architecture.md#arc-v5f-the-v5f-runtime) | integ:`blocksim::test_faults`<br>integ:`blocksim::test_reads`<br>integ:`blocksim::test_writes`<br>B17 | verified |
@@ -310,6 +312,7 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [SYS-SEC-10](system.md#sys-sec-10-a-restricted-wordlist-at-start-up): planned: not built yet
 - [SYS-SEC-11](system.md#sys-sec-11-user-mode-cant-steer-machine-mode): partial: the fault handler is on the machine-mode stack (B29); the
 - [SYS-SEC-12](system.md#sys-sec-12-keys-only-from-a-healthy-rng): partial: no test makes the RNG fail; its quality on real parts isn't verified
+- [SYS-SEC-16](system.md#sys-sec-16-enclosure-tamper-monitoring): planned: not built yet
 - [SYS-TIME-02](system.md#sys-time-02-sleep-until-an-alarm): partial: standby's sleep current isn't measured (needs a meter); the refusal without an alarm is shown on the board (B39)
 - [SYS-TOOL-05](system.md#sys-tool-05-provisioning-in-two-passes): partial: no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)
 - [SYS-TOOL-07](system.md#sys-tool-07-a-turnkey-root-of-trust-hardness-test): no architecture element traces to it
@@ -321,4 +324,5 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [UN-09](needs.md#un-09-secrets-that-cant-be-extracted): partial: bus masters and machine mode's data aren't fenced (SYS-SEC-01, SYS-SEC-11)
 - [UN-10](needs.md#un-10-recorded-data-only-the-data-owner-can-read): partial: the board side (stage 1's key service, the Forth words, I2S capture) isn't built; no board run
 - [UN-14](needs.md#un-14-provisioning-new-boards): partial: no board run: provision.py has run on simulated boards only
+- [UN-15](needs.md#un-15-evidence-the-enclosure-was-opened): planned: not built yet
 - board test B35: traces to no item

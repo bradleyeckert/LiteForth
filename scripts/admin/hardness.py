@@ -109,8 +109,17 @@ CORRUPTIONS = [
      lambda d: bytes(d[:9]) + b'\x00' + d[10:]),
     ('truncated', 'the file cut mid-block (not whole 4 KB blocks)', 'stage',
      lambda d: d[:len(d) - BLOCK // 2]),
-    ('short', 'a whole block dropped from the end (its hash table no longer fits)', 'stage',
-     lambda d: d[:len(d) - BLOCK]),
+    # A whole block dropped after the header: the blocks after it slide down
+    # by one, so they no longer line up with block 0's signed hash table and
+    # the first shifted block mismatches. Dropped from the END instead, the
+    # test is unreliable: the board checks the staged package against the
+    # stage area's capacity, not the received length, so the missing block's
+    # slot in lfstage.bin reads stale data from a previous staging -- which, if
+    # it happens to be the correct (signed) block, makes the package the whole
+    # good image again and it installs. The signed hash table keeps that safe
+    # (a wrong block can't pass), but it isn't a corruption the board rejects.
+    ('short', 'a block dropped after the header, so the rest no longer line up', 'stage',
+     lambda d: d[:BLOCK] + d[2 * BLOCK:]),
     ('release-sig', 'the release signature (one flipped bit at 4032)', 'stage',
      lambda d: flip(d, SIG_AT)),
     ('image-hash', 'the image hash (one flipped bit at 4000)', 'stage',

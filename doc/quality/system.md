@@ -495,6 +495,18 @@ enables, `reboot` and `standby` are machine mode's.
 - **Verified by:** board:B30, board:B31
 - **Status:** verified
 
+### SYS-SEC-16: Enclosure tamper monitoring
+A tamper switch on the enclosure drives PC13, the RTC tamper input in the
+backup (VBAT) domain that stage 1 already powers, so it is watched even
+while main power is off. Each change of the switch -- the enclosure opened
+or closed -- is time-stamped from the RTC and logged, so a later reader
+sees that the enclosure was opened and when. Monitoring only: the event is
+recorded but triggers no defensive action (no key erase, no lock-out),
+since opening may be legitimate, such as replacing the backup battery.
+
+- **Parent:** UN-15
+- **Status:** planned
+
 ### SYS-SEC-12: Keys only from a healthy RNG
 Stage 1 makes the device token, and so the board's key, from RNG words
 each checked for data ready, seed and clock errors and a repeat, hashed

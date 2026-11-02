@@ -126,3 +126,13 @@ holding a private key, and with a record of each board.
 - **Verified by:** demo:src/target/desktop/unit_tests/stage1sim::provision.py on the simulated board: passed
 - **Status:** partial
 - **Gap:** no board run: provision.py has run on simulated boards only
+
+### UN-15: Evidence the enclosure was opened
+A fielded device records when its sealed enclosure is opened, so that
+opening is evident afterwards even if the enclosure was closed again.
+Opening may be legitimate -- replacing the backup battery, say -- so the
+device only logs the event and takes no defensive action. The record
+survives a loss of main power.
+
+- **Status:** planned
+- **Gap:** not implemented; the current boards have no enclosure tamper switch

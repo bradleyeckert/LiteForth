@@ -689,7 +689,7 @@ holds. Physical attacks and attacks needing a private key are out of scope,
 stated in its report.
 
 - **Parent:** UN-13, UN-09
-- **Verified by:** integ:stage1sim::the bad-input battery is refused by the reference verifier, board:B34
+- **Verified by:** integ:stage1sim::the bad-input battery is refused by the reference verifier, board:B34, board:B42
 - **Status:** verified
 
 ## QA: the development process

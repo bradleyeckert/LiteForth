@@ -128,11 +128,13 @@ holding a private key, and with a record of each board.
 - **Gap:** no board run: provision.py has run on simulated boards only
 
 ### UN-15: Evidence the enclosure was opened
-A fielded device records when its sealed enclosure is opened, so that
-opening is evident afterwards even if the enclosure was closed again.
-Opening may be legitimate -- replacing the backup battery, say -- so the
-device only logs the event and takes no defensive action. The record
-survives a loss of main power.
+A fielded device detects when its sealed enclosure is opened and records
+that it happened, so the opening is evident afterwards even if the
+enclosure was closed again. Opening may be legitimate -- replacing the
+backup battery, say -- so the device only records the event and takes no
+defensive action. Detection works while main power is off; the device
+cannot capture the moment of opening, so it notes the time it next powered
+up and found that the enclosure had been opened.
 
 - **Status:** planned
 - **Gap:** not implemented; the current boards have no enclosure tamper switch

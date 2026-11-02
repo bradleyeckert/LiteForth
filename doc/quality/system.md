@@ -497,12 +497,15 @@ enables, `reboot` and `standby` are machine mode's.
 
 ### SYS-SEC-16: Enclosure tamper monitoring
 A tamper switch on the enclosure drives PC13, the RTC tamper input in the
-backup (VBAT) domain that stage 1 already powers, so it is watched even
-while main power is off. Each change of the switch -- the enclosure opened
-or closed -- is time-stamped from the RTC and logged, so a later reader
-sees that the enclosure was opened and when. Monitoring only: the event is
-recorded but triggers no defensive action (no key erase, no lock-out),
-since opening may be legitimate, such as replacing the backup battery.
+backup (VBAT) domain that stage 1 already powers, so an opening is caught
+even while main power is off. The chip's tamper block is built to erase
+the backup registers on a tamper; LiteForth keeps no secrets there, so all
+it uses the hardware for is to latch the tamper flag -- the device takes no
+defensive action (no key erase, no lock-out), since opening may be
+legitimate. The moment of opening isn't captured, so at the next power-up
+stage 1 checks the flag, and if the enclosure was opened it records a
+tamper event stamped with the power-up time (from the RTC), then clears and
+re-arms the flag.
 
 - **Parent:** UN-15
 - **Status:** planned

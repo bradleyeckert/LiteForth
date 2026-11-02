@@ -3842,3 +3842,87 @@ same new microSD. The install and rollback "installed, on trial" lines were
 again dropped across the install reset's USB re-enumeration (reported as
 `(None)`), tolerated by the harness (#249) with the confirm and the
 trial-boot sequence as the proof.
+
+### B42. Root-of-trust hardness test on the 128 KB layout (1 November 2026)
+
+**Board and firmware:** the main board, UID `e52116647f9c7a22`, locked at
+`SECURITY_LEVEL` 2, on the 128 KB copy-to-RAM layout with #251's SD-retry
+back-off (the same firmware as B41; `hardness.py` is a host tool, so no
+reflash). Run with `scripts/admin/hardness.py run --good GOOD.lfu --hang
+HANG.lfu --cli COM6 --debug COM3`, driving the board's two serial ports
+with nobody at the board. The harness carries #253 (a 45 s wait for the
+cli port to re-enumerate after a reset) and #254 (a deterministic `short`
+corruption).
+
+| Image / package | Size | sha256 |
+|---|---|---|
+| `LiteForth_V3F.bin` (with #251) | 65496 | `f2703f248cac45b603f4c08bd5d2d1c17f56188d6336f5ec0baab984afe676cb` |
+| `LiteForth_V5F.bin` | 111232 | `e1022279c96f89f3529d707e2cb82c125784cb7f7203498896e864f775e4b7f2` |
+| `GOOD.lfu` (revision 2, app) | 385024 | `c0864bd201db87033950b6cadca097f4198f0479b82ad1533502e14b805be411` |
+| `HANG.lfu` (revision 3, app; V5F slot is `jal x0,0`) | 385024 | `adcea227a52db510646ba4648cf8b35ff109bbec3df7a08c03d681075a67b899` |
+
+**Why:** SYS-TOOL-07 on the 128 KB layout. B34 ran the hardness test on the
+64 KB layout; this repeats it after the migration, with a `--hang` package
+so `survival` also exercises the trial/rollback path, and it is the hardware
+check that the robustness fixes from this day's work hold together: #251
+(SD-write retries so a recovery/stage write rides through a transient card
+hiccup), #253 (the harness waits out the USB CDC re-enumeration after a
+reset) and #254 (the `short` corruption is a real, card-state-independent
+rejection, not a trailing-block drop that read stale stage data).
+
+**Expected:** the boot reports security level 2, not "not locked down", and
+the PMP reads back set and locked at the new slot boundary (entry 0 TOR
+`0x08024000`); every one of the seven corrupted packages is refused at the
+`-2 ymodem` stage check and the good image keeps running after each; the
+good package still installs on trial and is confirmed; and the hanging image
+installs on trial, never starts, and is rolled back to the good version.
+
+**Run.** Cli and debug ports, as `hardness.py` prints them:
+
+```
+config:
+  ok   the boot reports security level 2
+  ok   the boot does not report "not locked down"
+  ok   the PMP reads back set and locked (V5F PMP: cfg0 9F199888, addr 02009000 08047FFF 100087FF 0FFFFFFF: as set, locked (clearing entry 0 was ignored))
+bad-inputs:
+  ok   wrong-magic: block 0's package magic -> refused (refused at `-2 ymodem` (not staged))
+  ok   wrong-magic: the board kept running the good image
+  ok   truncated: the file cut mid-block (not whole 4 KB blocks) -> refused (refused at `-2 ymodem` (not staged))
+  ok   truncated: the board kept running the good image
+  ok   short: a block dropped after the header, so the rest no longer line up -> refused (refused at `-2 ymodem` (not staged))
+  ok   short: the board kept running the good image
+  ok   release-sig: the release signature (one flipped bit at 4032) -> refused (refused at `-2 ymodem` (not staged))
+  ok   release-sig: the board kept running the good image
+  ok   image-hash: the image hash (one flipped bit at 4000) -> refused (refused at `-2 ymodem` (not staged))
+  ok   image-hash: the board kept running the good image
+  ok   mmode-root-sig: the machine-mode root signature (one flipped bit at 3936) -> refused (refused at `-2 ymodem` (not staged))
+  ok   mmode-root-sig: the board kept running the good image
+  ok   content-block: a content block (one flipped bit in block 1) -> refused (refused at `-2 ymodem` (not staged))
+  ok   content-block: the board kept running the good image
+survival:
+  ok   survival: the good package staged
+  ok   survival: the good package installed (None)
+  ok   survival: confirmed by LiteForth
+  ok   the hanging image staged
+  ok   installed on trial (None)
+  ok   by itself: didn't start within (V3F: the V5F didn't start within 3000 ms (1 in a row): resetting the chip)
+  ok   by itself: boot 1 of 3 (V3F update: version 3 on trial, boot 1 of 3)
+  ok   by itself: boot 2 of 3 (V3F update: version 3 on trial, boot 2 of 3)
+  ok   by itself: boot 3 of 3 (V3F update: version 3 on trial, boot 3 of 3)
+  ok   by itself: rolled back to version (V3F update: rolled back to version 2)
+  ok   by itself: LiteForth starting (V5F: LiteForth starting, security level 2, booting from flash)
+all passed; report in hardness-20261101-1819.md
+```
+
+**Result:** pass, all phases. Config: level 2, locked, PMP set and locked
+with entry 0 at `0x08024000` (the 128 KB layout's slot boundary). Bad-inputs:
+all seven corruptions -- wrong-magic, truncated, short, release-sig,
+image-hash, mmode-root-sig, content-block -- refused at the keyless
+`-2 ymodem` stage check, with the good image still running after each; with
+#254 the `short` case (a block dropped after the header, misaligning the
+rest with block 0's signed hash table) is now a deterministic refusal rather
+than the earlier trailing-block drop that read stale `lfstage.bin` data.
+Survival: the good package installed and confirmed, and the hanging image
+ran its three trial boots and rolled back to the confirmed version. So the
+root of trust's hardness holds on the 128 KB layout, and the day's
+robustness fixes (#251, #253, #254) carry a full hardness run end to end.

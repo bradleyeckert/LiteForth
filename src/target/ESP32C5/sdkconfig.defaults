@@ -1,0 +1,23 @@
+# Defaults for the LiteForth ESP32-C5 build. `idf.py set-target esp32c5`
+# writes sdkconfig from these; keys are ESP-IDF v5.x Kconfig and may shift
+# between IDF versions -- treat this as a starting point, not gospel.
+
+CONFIG_IDF_TARGET="esp32c5"
+
+# Flash: 16 MB on the NM-CYD-C5. Default clock 80 MHz (120 MHz is gated).
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+
+# Custom partition table (two OTA app slots + the lfflash data partition).
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Console on the chip's USB Serial/JTAG (GPIO13/14), not a UART. This is the
+# LiteForth terminal for milestone 1.
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# 8 MB external PSRAM. The exact mode/speed sub-keys depend on the C5 PSRAM
+# interface and IDF version; set them once the part is confirmed.
+CONFIG_SPIRAM=y
+
+# Keep the image small; LiteForth has 384 KB SRAM to live in.
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y

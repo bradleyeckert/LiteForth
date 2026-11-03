@@ -8,15 +8,20 @@ target-contract → IDF-API mapping, the partition layout, and the milestones.
 
 ## Status
 
-**Scaffolding only — milestone 1 (REPL over USB-Serial-JTAG) in progress.**
-The build configuration and app entry are here; the target drivers
-(`serial_io.c`, `flash.c`, `lftime.c`, `board.c`, and the `lf_*.c` wrappers
-that pull in the shared `src/*.c`) are the next step and are listed, not yet
-written, in `main/CMakeLists.txt`. It does not build end to end yet.
+**Milestone 1 (REPL over the CH340 UART) — first driver pass, untested.**
+The target drivers (`serial_io.c` UART0/CH340, `flash.c` on the `lfflash`
+partition, `lftime.c`, `board.c`, `blocks.c`/`lcd.c` stubs) and `main.c` are
+written, and the shared `src/*.c` are compiled directly (no `lf_*.c`
+wrappers). The shared core and the stubs syntax-check against this target's
+`options.h` on a host compiler, but the IDF-dependent drivers have **not been
+built with `idf.py`** (no ESP-IDF toolchain in CI or the author's sandbox) —
+expect to iterate on the first `idf.py build`'s errors.
 
-This mirrors how the CH32H417 target lives in the repo as a project you build
-locally (there with MounRiver; here with `idf.py`), not in CI — CI has no
-ESP-IDF toolchain.
+The console is the **CH340 UART** (auto-reset for `idf.py flash`), not the
+USB-Serial-JTAG. SD and the ST7789 LCD are stubbed (milestones 2–3) and need
+the NM-CYD-C5 GPIO map. This mirrors how the CH32H417 target lives in the repo
+as a project you build locally (there with MounRiver; here with `idf.py`),
+not in CI.
 
 ## Build (once the drivers land)
 

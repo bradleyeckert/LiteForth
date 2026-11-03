@@ -107,6 +107,19 @@ So LiteForth is an **IDF application component**, not a from-scratch image.
   `lfflash.bin`-style blocks go on the microSD's exFAT volume, same as CH32,
   through the shared `exfat.c` + `card.c` once SD-over-SPI works.
 
+## Flashing and the download-mode eFuse
+
+Development flashing is `idf.py flash` over the CH340 (UART0), whose auto-reset
+puts the chip into the ROM download mode. For a production board the plan is
+Secure Boot v2 + flash encryption + **`DIS_DOWNLOAD_MODE`**, with updates over
+**OTA** thereafter. `DIS_DOWNLOAD_MODE` disables only the ROM's *download mode*
+(the serial/USB reflash path at reset); it does **not** disable the UART
+peripheral, so LiteForth keeps using UART0 as its data console after it is
+blown -- you just can't reflash over serial any more (OTA only). An optional
+*secure download mode* (`ENABLE_SECURITY_DOWNLOAD`) leaves a restricted,
+encrypted recovery path. Confirm the exact C5 fuse interactions (UART vs
+USB-Serial-JTAG download, secure download) against the TRM before automating.
+
 ## The target contract → IDF mapping
 
 Every target implements the same headers the desktop and CH32 ports do.

@@ -63,7 +63,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.dirname(HERE))
+sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))  # scripts/ (lfmcp)
 from hiltest import (DebugPort, UsbPort, list_ports, find_board_port,  # noqa: E402
                      find_link_uart, serial)
 from lfmcp import Wlink, OBR_RDPRT, WPR_NONE  # noqa: E402

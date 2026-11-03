@@ -63,7 +63,7 @@ import tempfile
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE))       # scripts/ (lfmcp)
+sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))  # scripts/ (lfmcp)
 sys.path.insert(0, HERE)                         # scripts/admin (hiltest, lockdown)
 
 

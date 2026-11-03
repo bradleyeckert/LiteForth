@@ -66,7 +66,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.dirname(HERE))
+sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))  # scripts/ (lfmcp)
 import sealblocks as sb  # noqa: E402
 try:                                    # the board's ports need pyserial; batch-review doesn't
     import lockdown as ld  # noqa: E402

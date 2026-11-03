@@ -75,3 +75,10 @@ src/target/CH32H417/V5F/User/sealed_root.h
 # Private keys (sealblocks.py root-key, release-key, board-key): never commit one
 *.key
 src/target/desktop/unit_tests/rtm/work/
+
+# ESP-IDF build outputs for the ESP32-C5 target (idf.py set-target / build)
+src/target/ESP32C5/build/
+src/target/ESP32C5/sdkconfig
+src/target/ESP32C5/sdkconfig.old
+src/target/ESP32C5/managed_components/
+src/target/ESP32C5/dependencies.lock

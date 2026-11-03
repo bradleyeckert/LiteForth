@@ -1,0 +1,11 @@
+# LiteForth ESP32-C5 partition table (16 MB flash). See doc/ESP32C5/esp32c5-notes.md.
+# Two OTA app slots give IDF's trial/confirm/rollback; lfflash is LiteForth's
+# own programmable flash (colon definitions, the boot image) -- never the
+# running app. Sizes are a starting point; tune once the image size is known.
+# Name,     Type, SubType,  Offset,   Size
+nvs,        data, nvs,      0x9000,   0x6000
+otadata,    data, ota,      0xf000,   0x2000
+phy_init,   data, phy,      0x11000,  0x1000
+ota_0,      app,  ota_0,    0x20000,  0x200000
+ota_1,      app,  ota_1,    0x220000, 0x200000
+lfflash,    data, fat,      0x420000, 0x100000

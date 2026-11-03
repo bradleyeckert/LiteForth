@@ -2,7 +2,7 @@
 #define STAGE1_H
 
 /*
- * Stage 1 on the V3F (doc/admin/firmware-updates.md): installing a V5F image
+ * Stage 1 on the V3F (doc/CH32H417/admin/firmware-updates.md): installing a V5F image
  * from a package that `-2 ymodem` staged in the card's lfstage.bin, with
  * src/update.c, before the V5F starts; and recovery when there's no
  * working V5F image. Not yet: stage 0, the two stage 1 slots, the new
@@ -43,7 +43,7 @@
  *   V5F: recovery says why and takes only `reset` and `lockdown`, which
  *   programs the option bytes as the check wants them (one erase and one
  *   pass, the values WCH's library would write), reads them back and
- *   resets; only a chip erase undoes it. scripts/admin/lockdown.py flashes
+ *   resets; only a chip erase undoes it. scripts/CH32H417/admin/lockdown.py flashes
  *   a board and drives this.
  *
  * It needs the card's lfstage.bin (for the package) and lfbackup.bin (at

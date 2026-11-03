@@ -42,7 +42,7 @@ details of each.
 ## 2. Setting up a product, once
 
 Do this on an offline machine for the root key, and keep the root's
-private key there. The tool is `scripts/admin/sealblocks.py` (it needs
+private key there. The tool is `scripts/CH32H417/admin/sealblocks.py` (it needs
 `pip install cryptography`).
 
 1. **The root key.** `sealblocks.py root-key root` makes `root.key`

@@ -9,7 +9,7 @@ its section 8. The desktop tests (`unit_tests/update`, `sealed`, `seal`)
 cover every refusal and a power cut at every step, and
 `unit_tests/stage1sim` plays these board scenarios on a simulated board in
 CI. This log covers what only the real board can show. From B6 on, the
-runs are meant to be made with `scripts/admin/hiltest.py`, whose report
+runs are meant to be made with `scripts/CH32H417/admin/hiltest.py`, whose report
 goes in here as it is.
 
 ## The setup
@@ -303,7 +303,7 @@ V3F: USB configured
 
 ### B6. Install, rollback, recovery and lock-down, run by hiltest.py (18 October 2026)
 
-The first run of [scripts/admin/hiltest.py](../../scripts/admin/hiltest.py) on the board. Nobody touched the board during the run: every reset was `reboot` typed to LiteForth, `reset` typed to the recovery console, or the V3F's own reset when the V5F didn't start.
+The first run of [scripts/CH32H417/admin/hiltest.py](../../scripts/CH32H417/admin/hiltest.py) on the board. Nobody touched the board during the run: every reset was `reboot` typed to LiteForth, `reset` typed to the recovery console, or the V3F's own reset when the V5F didn't start.
 
 **Firmware:**
 - `main` at PR #179: the V3F's timed wait for the V5F, `reboot`, the lock-down check, and recovery on request.
@@ -769,7 +769,7 @@ already set it.
 
 The first lock-down. The spare board, UID `e52116647f9c7a22`, went from
 fresh from WCH to read protection on, the V3F's sectors write-protected and
-both boot ROM downloads off, with `scripts/admin/lockdown.py` and stage 1's
+both boot ROM downloads off, with `scripts/CH32H417/admin/lockdown.py` and stage 1's
 `lockdown`. Only a chip erase through the WCH-LinkE undoes it.
 
 **Ports:** the cli port, COM6, is the V3F's USB terminal; the debug port,
@@ -2818,7 +2818,7 @@ been on a board yet.
 **Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
 `SECURITY_LEVEL` 0, built in MounRiver from branch `rot-plan` (commit
 `bec7026`: the fault handler on the machine-mode stack, SYS-SEC-11 part 1,
-`doc/admin/firmware-updates.md` section 8) and flashed by the user:
+`doc/CH32H417/admin/firmware-updates.md` section 8) and flashed by the user:
 
 | Image | Size | sha256 |
 |---|---|---|
@@ -2898,7 +2898,7 @@ not Forth; the fast-interrupt handlers still save at user mode's `sp`
 **Board and firmware:** the main board, UID `69a90e647f9cf6a9`, at
 `SECURITY_LEVEL` 0, built in MounRiver from branch `basic-timers`
 (commit `7fdbc44`: the time base on TIM6, SYS-SEC-15's prerequisite,
-`doc/admin/firmware-updates.md` section 8 part 3; and commit `fbf9e08`:
+`doc/CH32H417/admin/firmware-updates.md` section 8 part 3; and commit `fbf9e08`:
 the prescaler fix below) and flashed by the user:
 
 | Image | Size | sha256 |
@@ -2926,7 +2926,7 @@ that is the core clock (SYSCLK >> HPRE), while TIM6 counts HCLK (that
 the core clock on the V5F and HCLK on the V3F, which is why the V3F's
 TIM7/TIM2 prescaler (same formula) is right and this one wasn't. Fixed
 to take the prescaler from `RCC_GetClocksFreq`'s `HCLK_Frequency`
-(commit `fbf9e08`, `doc/ch32h417-notes.md`), and reflashed.
+(commit `fbf9e08`, `doc/CH32H417/ch32h417-notes.md`), and reflashed.
 
 **Expected:** after the fix, the microsecond counter tracks the RTC at
 ~1 MHz (one RTC second per 1,000,000 counts); `standby` with an alarm a
@@ -2994,7 +2994,7 @@ time base is only the prerequisite for.
 
 **Follow-up (TX timeout, 28 October 2026).** The V3F's CDC tx timeout,
 moved from TIM2 to TIM7 on this build, was exercised from the host with
-`scripts/admin/cdc_txtimeout.py` on COM17. A large `dump` read straight
+`scripts/CH32H417/admin/cdc_txtimeout.py` on COM17. A large `dump` read straight
 through delivers the whole output (303,107 bytes in 1.25 s); the same
 dump with the port left open but unread for 2 s comes back 95.9% shorter
 (12,356 bytes), and the board still answers afterward. A dead timeout
@@ -3015,7 +3015,7 @@ flashed by the user. Only the V5F changed; the V3F is as on `main`.
 | `LiteForth_V5F.bin` | 111016 | `8d5f8d90cda0dcd090f4b52a65a02598a040cd993e517cadfb1ca7c5f0a34b7e` |
 
 **Why:** part 3 of the PMP plan (SYS-SEC-15,
-`doc/admin/firmware-updates.md` section 8): the PFIC, SysTick and the
+`doc/CH32H417/admin/firmware-updates.md` section 8): the PFIC, SysTick and the
 system control register (0xE0000000 up) become machine mode's alone, so
 user mode -- even a signed but malicious V5F image -- can't steer the
 interrupt controller or the system timer. PMP entry 3 shrinks from all
@@ -3114,7 +3114,7 @@ Only the V5F changed; the V3F is as on `main`.
 |---|---|---|
 | `LiteForth_V5F.bin` | 112372 | `fa8f503229d3ae12a03512d5b5d335f8586c8e9af0b71ed000fa75ac0e0ae60b` |
 
-**Why:** part 2 of the PMP plan (SYS-SEC-13, `doc/admin/firmware-updates.md`
+**Why:** part 2 of the PMP plan (SYS-SEC-13, `doc/CH32H417/admin/firmware-updates.md`
 section 8): a bus master isn't bound by the PMP, so user mode must not run
 one. A peripheral without its clock neither takes register writes nor runs,
 so the clock is the fence for a master outside PMP entry 2 (the ECDC at
@@ -3213,7 +3213,7 @@ keys:
 | `nomm3.lfu` | 3 | none (same image, no `--mmode-sig`) | `b115933c8e1f577134ba0313c35cc3b2971362ecbc2811e46f4f870a57c83456` |
 
 **Why:** part 4 of the PMP plan (SYS-SEC-14,
-`doc/admin/firmware-updates.md` section 8). The machine-mode region -- the
+`doc/CH32H417/admin/firmware-updates.md` section 8). The machine-mode region -- the
 slot's last 8 KB, the `MMODE` window with the vector table, the bring-up to
 its `mret`, the handlers and `.ramfunc`'s flash copy, all run in place --
 carries a root Ed25519 signature over its BLAKE2s hash in block 0
@@ -3277,7 +3277,7 @@ mismatched-region signature).
 **Board and firmware:** the level-2 board, UID `e52116647f9c7a22` (B32's),
 at `SECURITY_LEVEL` 2, built in MounRiver and flashed by the user, with a
 good app package (version 1) installed from recovery and confirmed. Run
-with `scripts/admin/hardness.py run --good GOOD.lfu`, which drives the
+with `scripts/CH32H417/admin/hardness.py run --good GOOD.lfu`, which drives the
 board's two serial ports with nobody at the board.
 
 | Image / package | Size | sha256 |
@@ -3848,7 +3848,7 @@ trial-boot sequence as the proof.
 **Board and firmware:** the main board, UID `e52116647f9c7a22`, locked at
 `SECURITY_LEVEL` 2, on the 128 KB copy-to-RAM layout with #251's SD-retry
 back-off (the same firmware as B41; `hardness.py` is a host tool, so no
-reflash). Run with `scripts/admin/hardness.py run --good GOOD.lfu --hang
+reflash). Run with `scripts/CH32H417/admin/hardness.py run --good GOOD.lfu --hang
 HANG.lfu --cli COM6 --debug COM3`, driving the board's two serial ports
 with nobody at the board. The harness carries #253 (a 45 s wait for the
 cli port to re-enumerate after a reset) and #254 (a deterministic `short`

@@ -42,11 +42,11 @@ run:
     flash is protected.
 The report (--report, default lockdown-report-DATE.md) has every step and
 both ports' output word for word, the images' sha256 and the UID, for
-doc/admin/board-tests.md. Exit status 0 if the board ended up locked down.
+doc/CH32H417/admin/board-tests.md. Exit status 0 if the board ended up locked down.
 
 After it: run `enroll` (a level 2 board's key comes from the RNG), put the
 new line in boards.csv, and package a release for it. provision.py does all
-of this for a batch of new boards (doc/admin/provisioning.md).
+of this for a batch of new boards (doc/CH32H417/admin/provisioning.md).
 
 It needs wlink (scripts/README.md, lfmcp.py) and pyserial, as hiltest.py
 does. Its ports: the cli port, the board's own USB terminal (--cli, or
@@ -63,7 +63,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.dirname(HERE))
+sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))  # scripts/ (lfmcp)
 from hiltest import (DebugPort, UsbPort, list_ports, find_board_port,  # noqa: E402
                      find_link_uart, serial)
 from lfmcp import Wlink, OBR_RDPRT, WPR_NONE  # noqa: E402

@@ -1,7 +1,7 @@
 /*
  * What the V5F knows about this board (board.h). The board's private key
  * isn't here: stage 1 on the V3F holds it, below the V5F's PMP entry 0
- * (doc/admin/firmware-updates.md section 8), and gives the V5F only its
+ * (doc/CH32H417/admin/firmware-updates.md section 8), and gives the V5F only its
  * public key, for `enroll`.
  */
 #include <stdio.h>

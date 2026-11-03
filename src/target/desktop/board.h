@@ -5,7 +5,7 @@
 
 /*
  * The desktop's stand-in for what a board keeps in protected flash and
- * firmware for checking firmware update packages (doc/admin/encrypted-blocks.md): a text file,
+ * firmware for checking firmware update packages (doc/CH32H417/admin/encrypted-blocks.md): a text file,
  * given to lf with -K, that `sealblocks.py lf-board` writes. One setting
  * per line, `#` starts a comment:
  *

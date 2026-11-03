@@ -519,7 +519,7 @@ int exfat_list(exfat_read_fn read, const exfat_vol *vol, uint32_t dir,
 }
 
 /* ------------------------------------------------------------------------
- * Writing: exfat_create and exfat_trim (data logs, doc/admin/data-logs.md)
+ * Writing: exfat_create and exfat_trim (data logs, doc/CH32H417/admin/data-logs.md)
  */
 #define FLAG_ALLOC_POSSIBLE 0x01
 #define ATTR_ARCHIVE        0x20

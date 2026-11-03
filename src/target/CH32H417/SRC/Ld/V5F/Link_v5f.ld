@@ -2,7 +2,7 @@ ENTRY( _start )
 
 __stack_size = 16384;   /* LiteForth: WCH had 2048; the interpreter recurses (load, words calling the VM) */
 
-/* LiteForth: machine mode's own stack (doc/admin/firmware-updates.md
+/* LiteForth: machine mode's own stack (doc/CH32H417/admin/firmware-updates.md
    section 8). The trap handlers switch to it (mscratch) before storing
    anything, so user mode can't steer a machine-mode store by setting its
    own sp. It's in DTCM, which user mode can write, and that's fine: one
@@ -56,7 +56,7 @@ SECTIONS
 {
 	/* LiteForth: machine mode's code, in flash (mmode.h), run in place from
 	   the high window. One contiguous region so the root key can sign it
-	   (doc/admin/firmware-updates.md section 8, part 4): the vector table is
+	   (doc/CH32H417/admin/firmware-updates.md section 8, part 4): the vector table is
 	   first (so _vector_base is at MMODE's base), and its slot 0 is the wake
 	   entry -- a `j handle_reset` the V3F jumps to by waking the V5F at
 	   MMODE's base (UPD_V5F_ENTRY). handle_reset is the whole bring-up, run

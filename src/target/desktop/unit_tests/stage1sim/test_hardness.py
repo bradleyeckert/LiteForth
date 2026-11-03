@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks scripts/admin/hardness.py's bad-input battery: every package its
+"""Checks scripts/CH32H417/admin/hardness.py's bad-input battery: every package its
 make_bad() produces from a good one is rejected by the reference verifier
 (sealblocks.verify, the same checks the board's sealed_verify_package makes),
 and the good package passes. So the lab's hardness runner is known to throw
@@ -21,7 +21,7 @@ sys.path.insert(0, HERE)
 import test_stage1 as t  # noqa: E402
 
 sys.path.insert(0, os.path.join(t.ROOT, 'scripts'))
-sys.path.insert(0, os.path.join(t.ROOT, 'scripts', 'admin'))
+sys.path.insert(0, os.path.join(t.ROOT, 'scripts', 'CH32H417', 'admin'))
 import sealblocks as sb  # noqa: E402
 import hardness  # noqa: E402
 

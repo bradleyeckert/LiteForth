@@ -520,7 +520,7 @@ The check only reads. Locking a board is stage 1's `lockdown`, in a level
 wants them (one erase and one pass, with the values WCH's
 `FLASH_EnableWriteProtection`, `FLASH_UserOptionByteConfig` and
 `FLASH_ReadOutProtection` would leave), reads them back and resets.
-`scripts/admin/lockdown.py` flashes a board with wlink and drives it
+`scripts/CH32H417/admin/lockdown.py` flashes a board with wlink and drives it
 (section 9, step 3). This chip has one level of read protection: RDPR at
 0xA5 is off and anything else is on ([security-plan.md](security-plan.md)
 section 3, from the reference manual). The "RDP 2" in this document means
@@ -687,7 +687,7 @@ token.
   calls anything else: no `memcpy` or `memcmp` (local loops), no
   `vmTrapArmed` (a flag it reads), and the V5F is built without
   `-msave-restore`, whose `__riscv_save_N` helpers would be in ITCM.
-  `scripts/mmodecheck.py` checks every build for that (`ch32build.sh`,
+  `scripts/CH32H417/mmodecheck.py` checks every build for that (`ch32build.sh`,
   so CI): any direct call or jump out of machine mode's code, and any
   vector table entry outside it, fails the build. WCH's flash routines
   are the exception: the chip locks up if they run from the flash they
@@ -819,7 +819,7 @@ fix doesn't need it shown.
      October 2026):* TIM6, a basic timer (no output channels), in
      `V5F/User/lftime.c`; its microsecond rate tracks the RTC and
      survives standby. Its prescaler comes from HCLK, not the V5F's
-     `SystemCoreClock` (`doc/ch32h417-notes.md`). This was the
+     `SystemCoreClock` (`doc/CH32H417/ch32h417-notes.md`). This was the
      prerequisite for the shrink.
    - **Interrupt enables moved to the start-up code** (`v5f_irq_setup`,
      `V5F/User/pmp.c`, called in machine mode after `pmp_lock`): TIM6's to
@@ -950,7 +950,7 @@ RDP 0:
    logged in [board-tests.md](board-tests.md), with the firmware, the
    packages' hashes and the board's output.
 
-   `scripts/admin/hiltest.py` runs the board's scenarios with nobody at
+   `scripts/CH32H417/admin/hiltest.py` runs the board's scenarios with nobody at
    the board: install, rollback, recovery on request, and the lock-down
    check. It drives the USB terminal as kwai does and reads the debug
    UART. It resets the chip by typing `reboot` (or `reset` in recovery),
@@ -962,7 +962,7 @@ RDP 0:
    Anything that goes wrong is fixed with the WCH-Link. Every run is
    logged in [board-tests.md](board-tests.md), with the firmware, the
    packages' hashes and the board's output.
-3. **The spare board.** `scripts/admin/lockdown.py run`: a level 2 build
+3. **The spare board.** `scripts/CH32H417/admin/lockdown.py run`: a level 2 build
    flashed, then locked with stage 1's `lockdown` (read protection, WRPR
    on the V3F's sectors, boot ROM downloads off); then `enroll`, an
    update, a rollback and a recovery over USB. Only a chip erase undoes

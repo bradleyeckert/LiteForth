@@ -6,7 +6,7 @@ The V5F keeps writing; its tx ring (4 KB) fills; serial_putc then spins
 waiting for room. TIM7's 100 us interrupt counts the wait, and once a
 packet has waited longer than CDC_TX_TIMEOUT (1000 ticks = 100 ms) with
 the port open, the bridge discards the tx ring so the V5F never waits
-forever (doc/admin/firmware-updates.md section 8; board test B30 moved
+forever (doc/CH32H417/admin/firmware-updates.md section 8; board test B30 moved
 this tick from TIM2 to TIM7).
 
 How this exercises it: `dump` floods the terminal. We run a big dump twice.
@@ -29,9 +29,9 @@ How this exercises it: `dump` floods the terminal. We run a big dump twice.
 Run it on the machine the board is plugged into, with nothing else holding
 the CDC port (close lfmcp / a terminal first):
 
-    python3 scripts/admin/cdc_txtimeout.py            # autodetect the port
-    python3 scripts/admin/cdc_txtimeout.py --port COM17
-    python3 scripts/admin/cdc_txtimeout.py --cells 32768 --stall 3
+    python3 scripts/CH32H417/admin/cdc_txtimeout.py            # autodetect the port
+    python3 scripts/CH32H417/admin/cdc_txtimeout.py --port COM17
+    python3 scripts/CH32H417/admin/cdc_txtimeout.py --cells 32768 --stall 3
 
 Needs pyserial. Read-only on the board (`dump` reads VM memory); it leaves
 the terminal at a clean prompt. The board must be at the `ok>` prompt

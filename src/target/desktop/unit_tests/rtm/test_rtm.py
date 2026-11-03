@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """scripts/rtm.py must refuse each kind of broken item: copies of
-doc/quality's item files, each broken one way, checked with --dir/--out."""
+doc/CH32H417/quality's item files, each broken one way, checked with --dir/--out."""
 import os
 import shutil
 import subprocess
@@ -8,7 +8,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..', '..', '..'))
-QDIR = os.path.join(ROOT, 'doc', 'quality')
+QDIR = os.path.join(ROOT, 'doc', 'CH32H417', 'quality')
 WORK = os.path.join(HERE, 'work')
 RTM = [sys.executable, os.path.join(ROOT, 'scripts', 'rtm.py')]
 FILES = ['needs.md', 'system.md', 'architecture.md', 'modules.md']
@@ -75,7 +75,7 @@ def main():
            '"test_rolback" isn\'t in update')
     expect('a board test that doesn\'t exist',
            lambda: edit('system.md', 'board:B4,', 'board:B999,'),
-           'no B999 in doc/admin/board-tests.md')
+           'no B999 in doc/CH32H417/admin/board-tests.md')
     expect('a superseded board test cited as evidence',
            lambda: edit('system.md', 'board:B4,', 'board:B12,'),
            'B12 is superseded')

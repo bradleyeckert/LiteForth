@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Encrypted data logs from a board's microSD card (doc/admin/data-logs.md).
+"""Encrypted data logs from a board's microSD card (doc/CH32H417/admin/data-logs.md).
 
     lflog.py server-key OUT [--key-id N]          make the server's key pair OUT.key,
                                                    OUT.pub (X25519); keep OUT.key on
@@ -211,8 +211,8 @@ def cmd_header(a):
     pub = sb.hexbytes(key, 'public', 32, a.pub)
     rows = ',\n'.join('    ' + ', '.join('0x%02x' % b for b in pub[i:i + 8])
                       for i in range(0, 32, 8))
-    text = ('/* log_server.h, written by scripts/admin/lflog.py header from %s:\n'
-            '   the server key data logs are encrypted to (doc/admin/data-logs.md) */\n'
+    text = ('/* log_server.h, written by scripts/CH32H417/admin/lflog.py header from %s:\n'
+            '   the server key data logs are encrypted to (doc/CH32H417/admin/data-logs.md) */\n'
             '#define LOG_SERVER_KEY_ID %du\n'
             '#define LOG_SERVER_KEY { \\\n%s }\n' % (os.path.basename(a.pub), key['key_id'],
                                                   rows.replace('\n', ' \\\n')))

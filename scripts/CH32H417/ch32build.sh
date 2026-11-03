@@ -10,7 +10,7 @@
 #     warning, so those handlers don't end in mret. Build in MounRiver for
 #     the board.
 #
-# usage: scripts/ch32build.sh V3F|V5F [outdir]
+# usage: scripts/CH32H417/ch32build.sh V3F|V5F [outdir]
 #   RISCV_PREFIX  the compiler's prefix (default riscv-none-elf-, on PATH)
 # Prints the section sizes; exits 1 on an error or a warning other than
 # the interrupt attribute.
@@ -22,7 +22,7 @@ case "$CORE" in
     V5F) STD=gnu11; OTHER=V3F ;;
     *) echo "ch32build.sh: V3F or V5F, not $CORE" >&2; exit 2 ;;
 esac
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 T=$ROOT/src/target/CH32H417
 OUT=${2:-$ROOT/build/ch32/$CORE}
 CC=${RISCV_PREFIX:-riscv-none-elf-}gcc
@@ -77,7 +77,7 @@ if [ "$BAD" -ne 0 ]; then
     echo "ch32build.sh: $CORE: warnings above" >&2
     exit 1
 fi
-if [ "$CORE" = V5F ] && ! python3 "$ROOT/scripts/mmodecheck.py" "$OUT/$CORE.elf"; then
+if [ "$CORE" = V5F ] && ! python3 "$ROOT/scripts/CH32H417/mmodecheck.py" "$OUT/$CORE.elf"; then
     echo "ch32build.sh: V5F: machine mode calls code user mode can write" >&2
     exit 1
 fi

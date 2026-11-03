@@ -63,7 +63,7 @@ _Static_assert(CDC_SHARED_ADDR >= V3F_RAM + V3F_RAM_SIZE, "the shared block is o
    control register (0xE00xxxxx) -- no PMP entry matches, so that region is
    machine mode's alone (an unmatched access is allowed for M, denied for U),
    which fences the interrupt controller and the timer off from user mode
-   (SYS-SEC-15, doc/admin/firmware-updates.md section 8 part 3). User mode
+   (SYS-SEC-15, doc/CH32H417/admin/firmware-updates.md section 8 part 3). User mode
    keeps all it needs below 2 GB: flash, RAM, ITCM/DTCM and the peripherals. */
 #define PMP_ADDR3   0x0FFFFFFFu
 #define PMP_CFG0    ((PMP_L | PMP_TOR) << 0 | (PMP_L | PMP_NAPOT) << 8 | \

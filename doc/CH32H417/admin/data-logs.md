@@ -64,7 +64,7 @@ When it opens a file, the V5F:
 Every BLAKE2s here is plain BLAKE2s (RFC 7693, as Python's
 `hashlib.blake2s`) with a key and an 8-byte personalization, the digest
 32 bytes unless said otherwise. `src/datalog.c` and
-`scripts/admin/lflog.py` are the two implementations, and
+`scripts/CH32H417/admin/lflog.py` are the two implementations, and
 `unit_tests/datalog` checks that they agree.
 6. Wipes `e`, `es`, `k_auth` and `master`.
 
@@ -368,7 +368,7 @@ never overwritten.
 
 ## 7. On the server
 
-A PC tool (`scripts/admin/lflog.py`, with `cryptography`, like
+A PC tool (`scripts/CH32H417/admin/lflog.py`, with `cryptography`, like
 `sealblocks.py`):
 
 - `open LOG --server-key s.key --boards boards.csv -o OUT`: checks the
@@ -398,7 +398,7 @@ The server keeps every `s` it has ever used, by key ID, for old logs.
 | Forth words | `log-open ( c-addr u -- ior )`, `log-close`, `log-recover`, and the application header |
 | I2S capture | A machine-mode service to start and stop the I2S DMA channels into the pool (section 4), and the I2S/SAI and CODEC setup |
 | The pool in general-purpose SRAM | `Link_v5f.ld` and `memalloc.c` (the pool at 0x20140000, 224 KB), Guarded DMA allowing it, the 4 KB static buffers taken from the pool instead (section 4) |
-| PC tool | `scripts/admin/lflog.py` (done) |
+| PC tool | `scripts/CH32H417/admin/lflog.py` (done) |
 | Tests | `unit_tests/datalog` (done): round trips with `lflog.py`, the bitmap checked independently, every tamper (a byte, a reorder, a record from another file, one framed to fit, the identity, the application header, the wrong board), and power cuts every 5 sector writes through making, writing and closing, with recovery on `mkexfat.py` images |
 
 ## 9. To decide

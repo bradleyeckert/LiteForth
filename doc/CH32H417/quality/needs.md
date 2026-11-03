@@ -106,7 +106,7 @@ build setting, not a fork.
 The auditor gets a bill of materials, a record of the security tests with
 their results, and the trace from each requirement to its tests.
 
-- **Verified by:** demo:sbom.spdx.json, demo:doc/admin/board-tests.md, demo:scripts/rtm.py::Requirements Traceability Matrix
+- **Verified by:** demo:sbom.spdx.json, demo:doc/CH32H417/admin/board-tests.md, demo:scripts/rtm.py::Requirements Traceability Matrix
 - **Status:** verified
 
 ### UN-13: Tools on the PC

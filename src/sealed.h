@@ -5,10 +5,10 @@
 #include <string.h>
 
 /*
- * The sealed format (doc/admin/encrypted-blocks.md): blocks encrypted
+ * The sealed format (doc/CH32H417/admin/encrypted-blocks.md): blocks encrypted
  * (AES-128 or SM4 in CTR mode) for a list of boards, with BLAKE2s hashes of
  * the encrypted blocks in hash table blocks and a block 0 signed by a
- * release key that the root key certifies. scripts/admin/sealblocks.py
+ * release key that the root key certifies. scripts/CH32H417/admin/sealblocks.py
  * makes them. Firmware update packages use it (PACKAGE_MAGIC): stage 1
  * opens them (src/update.c). Sealed block files (SEALED_MAGIC) are
  * retired: update packages carry a Forth application now (component 3),
@@ -18,7 +18,7 @@
 
 #define SEALED_MAGIC        "LITEFORTHS"
 #define SEALED_MAGIC_LEN    10
-/* A firmware update package (doc/admin/firmware-updates.md section 5): a sealed
+/* A firmware update package (doc/CH32H417/admin/firmware-updates.md section 5): a sealed
    file whose content is a firmware image, not blocks. Never mounted as a
    block file; `-1 ymodem` refuses it. Also SEALED_MAGIC_LEN long. */
 #define PACKAGE_MAGIC       "LITEFORTHF"
@@ -52,7 +52,7 @@ typedef struct {
     uint32_t min_serial;
 } sealed_board;
 
-/* A firmware update package's description (doc/admin/firmware-updates.md
+/* A firmware update package's description (doc/CH32H417/admin/firmware-updates.md
    section 5), from block 0 */
 enum { SEALED_V5F = 1, SEALED_STAGE1 = 2,
        SEALED_V5F_APP = 3 };            /* the V5F slot, padded, then LiteForth's flash pages */
@@ -63,7 +63,7 @@ typedef struct {
     uint32_t min_version;           /* the new minimum, or 0 */
     uint32_t version;               /* the revision field: the image's version */
     uint8_t image_hash[32];         /* BLAKE2s(image, 32, person "LFimage") */
-    /* The machine-mode region's root signature (doc/admin/firmware-updates.md
+    /* The machine-mode region's root signature (doc/CH32H417/admin/firmware-updates.md
        section 8, part 4; encrypted-blocks.md section 3). mmode_addr 0 means
        the package carries none; otherwise the root key (board->root) has
        signed these over the region, which sealed_check_signed verifies, and

@@ -3,14 +3,14 @@
  * (ctr_hw_crypt), and `ecdc-test`.
  *
  * The engine is a RAM-to-RAM bus master, and the PMP can't bind a bus
- * master, so under the clock fence (SYS-SEC-13, doc/admin/firmware-updates.md
+ * master, so under the clock fence (SYS-SEC-13, doc/CH32H417/admin/firmware-updates.md
  * section 8 part 2) user mode may not run it. The engine driver and the
  * ecall service (ecdc_serve) therefore run in machine mode (MMODE, in flash
  * where user mode can't write them: mmode.h), point the engine only at
  * their own DTCM buffer, and turn its clock on for the one transfer and off
  * again. ctr_hw_crypt and the engine's self-check go through the service.
  *
- * What the engine does, measured on the board (doc/ch32h417-notes.md):
+ * What the engine does, measured on the board (doc/CH32H417/ch32h417-notes.md):
  * - CTRL bit 9 set is CTR (the SDK header says ECB), bit 8 set AES, clear
  *   SM4. With DAT_MOD (bit 13) clear, RAM-to-RAM mode reads and writes
  *   memory in its own byte order, and the key and counter registers take

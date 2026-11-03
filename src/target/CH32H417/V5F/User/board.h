@@ -6,7 +6,7 @@
 
 /*
  * What the V5F knows about this board, for firmware update packages
- * (doc/admin/encrypted-blocks.md): its UID, and the root public key and
+ * (doc/CH32H417/admin/encrypted-blocks.md): its UID, and the root public key and
  * product ID, which the application's build supplies in sealed_root.h
  * (see sealed_root.example.h). Not its private key: only stage 1 on the
  * V3F holds that (V3F/User/stage1.c), in its security record, which the

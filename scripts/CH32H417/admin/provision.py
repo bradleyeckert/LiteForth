@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Provisioning new boards (doc/admin/provisioning.md): a blank CH32H417
+"""Provisioning new boards (doc/CH32H417/admin/provisioning.md): a blank CH32H417
 flashed with a release's level 2 build, locked down and enrolled (pass 1),
 then, once the vendor has packaged the release for the batch, the release
 installed (pass 2). The station holds no private key.
@@ -66,7 +66,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.dirname(HERE))
+sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))  # scripts/ (lfmcp)
 import sealblocks as sb  # noqa: E402
 try:                                    # the board's ports need pyserial; batch-review doesn't
     import lockdown as ld  # noqa: E402
@@ -803,7 +803,7 @@ def cmd_pass2(a):
 
 # ---------------------------------------------------------------------------
 def main(argv=None):
-    p = argparse.ArgumentParser(description='Provision new boards (doc/admin/provisioning.md)',
+    p = argparse.ArgumentParser(description='Provision new boards (doc/CH32H417/admin/provisioning.md)',
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
                                 epilog=__doc__.split('\n\n', 1)[1])
     sub = p.add_subparsers(dest='cmd', required=True)

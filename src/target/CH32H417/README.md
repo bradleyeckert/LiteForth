@@ -6,7 +6,7 @@ it holds two projects, `V3F` and `V5F`, one per core.
 To get started on the nanoCH32H417 board, follow [quickstart.md](quickstart.md).
 
 Where the chip, the reference manual and WCH's SDK disagree is collected
-in [doc/ch32h417-notes.md](../../../doc/ch32h417-notes.md).
+in [doc/CH32H417/ch32h417-notes.md](../../../doc/CH32H417/ch32h417-notes.md).
 
 ## Layout
 
@@ -144,9 +144,9 @@ print there; the lines appear in about this order:
 
 | Line | Means |
 |---|---|
-| `V3F security: not locked down: ...` | read protection off, write protection not as `stage1_layout.h` has it, or the boot ROM's downloads on; at `SECURITY_LEVEL` 2 (`Common/security.h`) the V5F then stays off (`doc/admin/firmware-updates.md`, *The lock-down check*) |
-| `V3F update: ...` | only when stage 1 did something: a package installed, refused, on trial, rolled back, or an image that fails its check (`V3F/User/stage1.c`, `doc/admin/firmware-updates.md`) |
-| `V3F: recovery mode: ...` | no working V5F image: the V5F stays off, and stage 1 answers on the USB terminal instead (send a package with kwai's `~x FILE -2`; `doc/admin/firmware-updates.md` section 7) |
+| `V3F security: not locked down: ...` | read protection off, write protection not as `stage1_layout.h` has it, or the boot ROM's downloads on; at `SECURITY_LEVEL` 2 (`Common/security.h`) the V5F then stays off (`doc/CH32H417/admin/firmware-updates.md`, *The lock-down check*) |
+| `V3F update: ...` | only when stage 1 did something: a package installed, refused, on trial, rolled back, or an image that fails its check (`V3F/User/stage1.c`, `doc/CH32H417/admin/firmware-updates.md`) |
+| `V3F: recovery mode: ...` | no working V5F image: the V5F stays off, and stage 1 answers on the USB terminal instead (send a package with kwai's `~x FILE -2`; `doc/CH32H417/admin/firmware-updates.md` section 7) |
 | `V3F: starting the V5F` | V3F booted, woke the V5F and went to sleep |
 | `V3F: the V5F didn't start within ...` | the V5F didn't release HSEM0 within `STAGE1_V5F_START_MS`: the V3F resets the chip (a trial boot, or after 3 in a row, recovery) |
 | `V3F: the V5F is running` | the V5F booted and released HSEM0, waking the V3F; if this never comes, look at the V5F image (flashing) |
@@ -207,7 +207,7 @@ of 8K sectors and all pages fit in the 256K; `options.h` checks both.
 
 **Stage 1's records and the board's key: `0x08010000`.** The two 8K
 sectors after the V3F's image hold stage 1's security record
-(`V3F/User/stage1_layout.h`, [doc/admin/firmware-updates.md](../../../doc/admin/firmware-updates.md)):
+(`V3F/User/stage1_layout.h`, [doc/CH32H417/admin/firmware-updates.md](../../../doc/CH32H417/admin/firmware-updates.md)):
 the device token, the installed image's MAC and version, and, at
 `SECURITY_LEVEL` 2, the board's X25519 key for update packages, which is
 one of the token's keys. Only stage 1 reads them: the V5F's PMP entry 0
@@ -228,7 +228,7 @@ application's build supplies (copy `sealed_root.example.h`, or
 `sealblocks.py root-header`; git ignores it), as far as it can without
 the private key; stage 1 checks the rest (stage 1 builds with the same
 header;
-[doc/admin/updates.md](../../../doc/admin/updates.md) covers the process).
+[doc/CH32H417/admin/updates.md](../../../doc/CH32H417/admin/updates.md) covers the process).
 
 **Security level.** `SECURITY_LEVEL` in `Common/security.h` (0, 1 or 2;
 or `-DSECURITY_LEVEL=n` in both projects) sets the security of both

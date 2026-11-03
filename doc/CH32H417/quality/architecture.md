@@ -159,5 +159,5 @@ The makefile and its test suites, CI, the board's build check
 the board-test log and the RTM.
 
 - **Parent:** SYS-QA-01, SYS-QA-02, SYS-QA-03, SYS-QA-04, SYS-QA-05, SYS-SEC-04
-- **Verified by:** ci:.github/workflows/c-cpp.yml::make test, ci:scripts/ch32build.sh::mmodecheck, sys:sbom, sys:rtm
+- **Verified by:** ci:.github/workflows/c-cpp.yml::make test, ci:scripts/CH32H417/ch32build.sh::mmodecheck, sys:sbom, sys:rtm
 - **Status:** verified

@@ -40,8 +40,8 @@ board.
 | MOD, module | The code that implements part of a component, and its design | [modules.md](modules.md) | `unit:` |
 
 The detailed design of each module is the document already beside the
-code (the module's **Design** links): `doc/admin/firmware-updates.md`,
-`doc/admin/data-logs.md`, `doc/exfat.md`, the header comments, and so on.
+code (the module's **Design** links): `doc/CH32H417/admin/firmware-updates.md`,
+`doc/CH32H417/admin/data-logs.md`, `doc/exfat.md`, the header comments, and so on.
 This folder doesn't repeat them; it ties them together.
 
 ## 2. The items
@@ -139,7 +139,7 @@ python3 scripts/rtm.py --check    # what CI runs
 4. **Trace.** Add the evidence to the items' **Verified by**, set their
    **Status**, run `scripts/rtm.py`, and commit `rtm.md` with the change.
 5. **Board.** A change to what runs on the CH32H417 is checked with
-   `scripts/ch32build.sh` before it goes to the board; a change to
+   `scripts/CH32H417/ch32build.sh` before it goes to the board; a change to
    security, updates or storage on the board gets a run logged in
    [board-tests.md](../admin/board-tests.md) (hashes, steps, expected,
    output word for word) and referenced as `board:Bnn`.

@@ -10,7 +10,7 @@
  * reads one 512-byte sector. doc/exfat.md has the plan and the on-disk
  * layout. Only exfat_create and exfat_trim write, through a function that
  * writes one: they make and trim a contiguous file in the root directory,
- * for the data logs (doc/admin/data-logs.md section 6).
+ * for the data logs (doc/CH32H417/admin/data-logs.md section 6).
  */
 
 #define EXFAT_SECTOR_BYTES  512

@@ -9,7 +9,7 @@
  *
  * SysTick was the V5F's first time base, but it lives in the core's
  * 0xE000xxxx region, which the PMP plan fences off from user mode
- * (doc/admin/firmware-updates.md section 8, part 3);
+ * (doc/CH32H417/admin/firmware-updates.md section 8, part 3);
  * `lfGetTimeMicroSec` runs in user mode, so the time base has to be an
  * ordinary peripheral it may read. TIM6 is one.
  *
@@ -279,7 +279,7 @@ int lfStandby(void) {
 
 /* The privileged tail of standby, in machine mode: everything that reaches
    the PFIC (NVIC->CSTAR, NVIC->SCTLR) or resets the chip. In .mmode so user
-   mode can't change it (doc/admin/firmware-updates.md section 8). */
+   mode can't change it (doc/CH32H417/admin/firmware-updates.md section 8). */
 MMODE int32_t lf_standby_service(void) {
     cdc_shared_t *sh = CDC_SHARED;
     /* Wait up to LFRTC_V3F_SLEEP_MS for the V3F to sleep, so Stop mode takes

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""The Requirements Traceability Matrix (doc/quality/README.md).
+"""The Requirements Traceability Matrix (doc/CH32H417/quality/README.md).
 
-    rtm.py               write doc/quality/rtm.md from the requirement files
+    rtm.py               write doc/CH32H417/quality/rtm.md from the requirement files
     rtm.py --check       exit 1 if a link is broken, a rule is broken, or
                          rtm.md isn't what this would write (as CI runs it)
     rtm.py --strict      also exit 1 for gaps (an item not verified at its
                          level, a need with no system requirement, ...)
     rtm.py --gaps        print the gaps and nothing else
 
-The items live in doc/quality/needs.md (UN), system.md (SYS),
+The items live in doc/CH32H417/quality/needs.md (UN), system.md (SYS),
 architecture.md (ARC) and modules.md (MOD), each as
 
     ### SYS-UPD-03: A title
@@ -20,7 +20,7 @@ architecture.md (ARC) and modules.md (MOD), each as
 
 and for MOD items also **Code:** and **Design:** (paths). Every link is
 checked against the repository: a test suite (and a text in it), a
-board-test entry in doc/admin/board-tests.md, a file, a symbol in a file.
+board-test entry in doc/CH32H417/admin/board-tests.md, a file, a symbol in a file.
 Standard library only.
 """
 import argparse
@@ -29,11 +29,11 @@ import re
 import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-QDIR = os.path.join(ROOT, 'doc', 'quality')
+QDIR = os.path.join(ROOT, 'doc', 'CH32H417', 'quality')
 FILES = ['needs.md', 'system.md', 'architecture.md', 'modules.md']
 OUT = os.path.join(QDIR, 'rtm.md')
 SUITES = os.path.join(ROOT, 'src', 'target', 'desktop', 'unit_tests')
-BOARD_TESTS = os.path.join(ROOT, 'doc', 'admin', 'board-tests.md')
+BOARD_TESTS = os.path.join(ROOT, 'doc', 'CH32H417', 'admin', 'board-tests.md')
 
 LEVELS = ['UN', 'SYS', 'ARC', 'MOD']
 LEVEL_NAME = {'UN': 'Stakeholder need', 'SYS': 'System requirement',
@@ -184,7 +184,7 @@ def check_ref(ref):
         return f'"{ref}": unknown kind (use {", ".join(sorted(KINDS))})'
     if kind == 'board':
         if spec not in BOARD:
-            return f'"{ref}": no {spec} in doc/admin/board-tests.md'
+            return f'"{ref}": no {spec} in doc/CH32H417/admin/board-tests.md'
         if spec in SUPERSEDED:
             return f'"{ref}": {spec} is superseded ({SUPERSEDED[spec]}): cite what superseded it'
         return None
@@ -423,7 +423,7 @@ def main(argv=None):
         except OSError:
             old = None
         if old != text:
-            print('rtm: doc/quality/rtm.md is out of date: run scripts/rtm.py', file=sys.stderr)
+            print('rtm: doc/CH32H417/quality/rtm.md is out of date: run scripts/rtm.py', file=sys.stderr)
             return 1
         if a.strict and gaps:
             print(f'rtm: {len(gaps)} gap(s) (rtm.py --gaps)', file=sys.stderr)

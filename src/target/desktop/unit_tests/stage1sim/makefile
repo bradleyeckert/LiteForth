@@ -2,14 +2,14 @@
 # (Common/cdc_bridge.c), built unchanged on a simulated board (sim.c,
 # fake/), and test_stage1.py playing every update, rollback and recovery
 # scenario on it, with resets and power cuts. test_stage1.py makes the keys
-# and packages with scripts/admin/sealblocks.py, then builds `sim` and
+# and packages with scripts/CH32H417/admin/sealblocks.py, then builds `sim` and
 # `sim_strict` (SECURITY_LEVEL 2) against them with `make sims`; its report, every
 # scenario's output word for word, goes to reports/stage1sim.md. Then
-# test_hil.py runs scripts/admin/hiltest.py, the tests for a real board,
+# test_hil.py runs scripts/CH32H417/admin/hiltest.py, the tests for a real board,
 # against the simulated one (its ports as ptys; needs pyserial), writing
-# reports/hil-sim.md, and test_lockdown.py runs scripts/admin/lockdown.py
+# reports/hil-sim.md, and test_lockdown.py runs scripts/CH32H417/admin/lockdown.py
 # on a level 2 board (sim_strict) with a fake wlink, and test_provision.py
-# runs scripts/admin/provision.py's two passes over a batch of them. Needs Linux (the
+# runs scripts/CH32H417/admin/provision.py's two passes over a batch of them. Needs Linux (the
 # board's memory is mapped at its own addresses), python3 and the
 # cryptography package; skipped otherwise.
 

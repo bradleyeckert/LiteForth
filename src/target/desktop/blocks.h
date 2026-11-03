@@ -184,7 +184,7 @@ int blk_check_image(const uint8_t *b0, uint32_t blocks, char *msg, int len);
 int blk_remount(uint32_t *capacity);
 
 /*
- * Staging a firmware update package (`-2 ymodem`, doc/admin/firmware-updates.md
+ * Staging a firmware update package (`-2 ymodem`, doc/CH32H417/admin/firmware-updates.md
  * section 6): lfstage.bin, a file made beforehand that the package is
  * written into in place. On a card (image) it's CARD_STAGE_FILE in the
  * exFAT root beside lfblocks.fb4, found by card_find_file; with a plain
@@ -219,7 +219,7 @@ int blk_stage_check(sealed_package *pkg, char *msg, int len);
 void blk_stage_ready(void);
 
 /*
- * Saving LiteForth's flash pages (`save-pages`, doc/admin/firmware-updates.md
+ * Saving LiteForth's flash pages (`save-pages`, doc/CH32H417/admin/firmware-updates.md
  * section 5): lfpages.bin, a file made beforehand that the pages are
  * written into in place, from page 0 on, for the administrator to make an
  * app package from (sealblocks.py package --component app). Found as

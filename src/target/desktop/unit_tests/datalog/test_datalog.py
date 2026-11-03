@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Data logs end to end (doc/admin/data-logs.md): dltest (src/datalog.c,
+"""Data logs end to end (doc/CH32H417/admin/data-logs.md): dltest (src/datalog.c,
 src/logfile.c and exfat_create/exfat_trim, as the board runs them) writes
-logs into card images from mkexfat.py, and scripts/admin/lflog.py, the
+logs into card images from mkexfat.py, and scripts/CH32H417/admin/lflog.py, the
 server's side, opens them. Checks:
 
 - a log round trip: the board named, every record's tag, the sample
@@ -28,7 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..', '..', '..'))
 WORK = os.path.join(HERE, 'work')
 DLTEST = os.path.join(HERE, 'dltest')
-LFLOG = [sys.executable, os.path.join(ROOT, 'scripts', 'admin', 'lflog.py')]
+LFLOG = [sys.executable, os.path.join(ROOT, 'scripts', 'CH32H417', 'admin', 'lflog.py')]
 MKEXFAT = [sys.executable, os.path.join(ROOT, 'scripts', 'mkexfat.py')]
 RECORD = 32768
 BYTES = 4 * 1024 * 1024                 # the log files here: 128 blocks (4 GB on the board)
@@ -371,7 +371,7 @@ def test_lflog_edges():
           and out.count('problem') == 0 and read('u.out') == read('u.bin.plain'),
           'an untrimmed file: one note, every record there', out)
     # a board at level 0 or 1: its key comes from its UID
-    sys.path.insert(0, os.path.join(ROOT, 'scripts', 'admin'))
+    sys.path.insert(0, os.path.join(ROOT, 'scripts', 'CH32H417', 'admin'))
     import sealblocks
     from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
     dev = sealblocks.insecure_key(bytes.fromhex(UID))

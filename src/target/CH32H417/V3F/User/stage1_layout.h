@@ -3,7 +3,7 @@
 
 /* Where stage 1's update code (src/update.c) works in the code flash, as
    offsets from its start (0x08000000), before update.h's defaults
-   (doc/admin/firmware-updates.md section 2):
+   (doc/CH32H417/admin/firmware-updates.md section 2):
 
      0x00000 128 KB   the V3F's image (stage 0 and 1)
      0x20000   8 KB   the security record, copy A (with the device token,

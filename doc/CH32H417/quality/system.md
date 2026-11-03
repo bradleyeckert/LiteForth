@@ -394,7 +394,7 @@ services) runs from flash that user mode can't write, and calls nothing
 outside itself.
 
 - **Parent:** UN-09
-- **Verified by:** ci:scripts/mmodecheck.py, ci:scripts/ch32build.sh::mmodecheck, board:B24
+- **Verified by:** ci:scripts/CH32H417/mmodecheck.py, ci:scripts/CH32H417/ch32build.sh::mmodecheck, board:B24
 - **Status:** verified
 
 ### SYS-SEC-05: Lock-down
@@ -547,7 +547,7 @@ The board's UID is in the log only encrypted, readable only with the
 server's key.
 
 - **Parent:** UN-10
-- **Verified by:** sys:datalog::test_round_trip, insp:doc/admin/data-logs.md::Identity
+- **Verified by:** sys:datalog::test_round_trip, insp:doc/CH32H417/admin/data-logs.md::Identity
 - **Status:** verified
 
 ### SYS-LOG-04: Power cuts lose at most what was being written
@@ -679,7 +679,7 @@ into `boards.csv`.
 - **Parent:** UN-14, UN-09
 - **Verified by:** integ:stage1sim::provision.py on the simulated board: passed, integ:stage1sim::pass1: three boards enrolled, integ:stage1sim::pass2: two boards done, integ:stage1sim::batch-review: the batch checks out
 - **Status:** partial
-- **Gap:** no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/admin/provisioning.md section 10)
+- **Gap:** no board run; whether wlink prints the UID in enroll's byte order, and what a new chip's flash reads, are to be seen on one (doc/CH32H417/admin/provisioning.md section 10)
 
 ### SYS-TOOL-06: A signed release for the station
 `sealblocks.py manifest` lists a release's files with their sha256 and
@@ -735,7 +735,7 @@ the steps, what was expected and the board's output word for word, and
 an entry whose design has since changed is marked superseded.
 
 - **Parent:** UN-12
-- **Verified by:** insp:doc/admin/board-tests.md::B25, insp:doc/admin/board-tests.md::Superseded
+- **Verified by:** insp:doc/CH32H417/admin/board-tests.md::B25, insp:doc/CH32H417/admin/board-tests.md::Superseded
 - **Status:** partial
 - **Gap:** some early entries lack hashes or part of the output (B2, B7, B8, B13, B20, B22)
 

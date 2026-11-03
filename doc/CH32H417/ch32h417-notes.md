@@ -172,7 +172,7 @@ directory, so the sizes `blk_space`/`blk_stage_space` report come from the
 card as it is, not a stale cache. `blk_remount` rewrites both `map` and its
 trusted `map_copy` together, so the stray-write guard (`map_ok`) still
 catches a change *during* an operation. Found while running
-`scripts/admin/hardness.py`, whose repeated staging hit the stale -92.
+`scripts/CH32H417/admin/hardness.py`, whose repeated staging hit the stale -92.
 
 ### sdio.h lacks two prototypes
 

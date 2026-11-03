@@ -1,5 +1,5 @@
-# lf on sealed block files (doc/admin/encrypted-blocks.md): test_lf.py seals a
-# copy of bin/lfblocks.fb4 with scripts/admin/sealblocks.py and runs bin/lf -K on
+# lf on sealed block files (doc/CH32H417/admin/encrypted-blocks.md): test_lf.py seals a
+# copy of bin/lfblocks.fb4 with scripts/CH32H417/admin/sealblocks.py and runs bin/lf -K on
 # it. Needs python3 and the cryptography package; skipped (with a note)
 # without them.
 

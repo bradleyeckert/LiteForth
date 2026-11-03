@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*
- * The V5F's PMP (doc/admin/firmware-updates.md section 8) and the machine-mode
+ * The V5F's PMP (doc/CH32H417/admin/firmware-updates.md section 8) and the machine-mode
  * services behind it. LiteForth runs in user mode (WCH's start-up code
  * `mret`s into `main` with MPP = 0), where the PMP CSRs can't be reached.
  *
@@ -82,7 +82,7 @@ void pmp_report(void);
    were board.c's, which held the board's key before stage 1 did.
    PMP_SVC_REBOOT and PMP_SVC_STANDBY reset or deep-sleep the chip, which
    reaches the PFIC and the system control register that part 3 of the PMP
-   plan fences from user mode (doc/admin/firmware-updates.md section 8). */
+   plan fences from user mode (doc/CH32H417/admin/firmware-updates.md section 8). */
 enum {
     PMP_SVC_FLASH_PROGRAM = 1,
     PMP_SVC_REBOOT        = 2,

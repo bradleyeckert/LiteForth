@@ -4,7 +4,7 @@ A new board arrives with a blank CH32H417. Provisioning turns it into a
 product: production firmware in flash, the chip locked down, its own key
 made and recorded in `boards.csv`, its microSD card prepared, and the
 current release installed. One person, the **provisioning operator**, does
-it at a **provisioning station**, and a script, `scripts/admin/provision.py`,
+it at a **provisioning station**, and a script, `scripts/CH32H417/admin/provision.py`,
 does every step that a person doesn't have to.
 
 This page is the procedure, and what `provision.py` does at each step
@@ -340,7 +340,7 @@ board as `UID already enrolled`. Its old report stays with the records.
 
 ## 10. The scripts
 
-`scripts/admin/provision.py` (pyserial, the cryptography package and
+`scripts/CH32H417/admin/provision.py` (pyserial, the cryptography package and
 wlink, as `lockdown.py`; `batch-review` needs no pyserial):
 
 | Command | Runs at | Does |

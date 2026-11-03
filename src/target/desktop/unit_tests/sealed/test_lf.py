@@ -15,7 +15,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, '../../../../..'))
-sys.path.insert(0, os.path.join(ROOT, 'scripts', 'admin'))
+sys.path.insert(0, os.path.join(ROOT, 'scripts', 'CH32H417', 'admin'))
 import sealblocks as sb  # noqa: E402
 sys.path.insert(0, os.path.join(HERE, '..', 'ymodem'))
 import sender  # noqa: E402

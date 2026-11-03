@@ -129,7 +129,7 @@ root directory, written in an order safe against power cuts.
 
 - **Parent:** ARC-LOG
 - **Code:** src/exfat.c::exfat_create, src/exfat.c::exfat_trim, src/exfat.c::exfat_delete
-- **Design:** doc/exfat.md#Part 3, doc/admin/data-logs.md#Closing the file in exFAT
+- **Design:** doc/exfat.md#Part 3, doc/CH32H417/admin/data-logs.md#Closing the file in exFAT
 - **Verified by:** unit:datalog::test_many_logs, unit:datalog::test_stale
 - **Status:** verified
 
@@ -169,7 +169,7 @@ a package without the key, and a block 0 alone for the boot check.
 
 - **Parent:** ARC-PKG
 - **Code:** src/sealed.c::sealed_mount_package, src/sealed.c::sealed_check_signed, src/sealed.h
-- **Design:** doc/admin/encrypted-blocks.md#On the board
+- **Design:** doc/CH32H417/admin/encrypted-blocks.md#On the board
 - **Verified by:** unit:sealed::stage: checked, unit:update::test_signed, unit:blkrun
 - **Status:** verified
 
@@ -179,7 +179,7 @@ Ed25519 and Poly1305.
 
 - **Parent:** ARC-PKG, ARC-LOG
 - **Code:** src/ctr.c, src/blake2s.c, src/monocypher.c, src/monocypher-ed25519.c
-- **Design:** doc/admin/encrypted-blocks.md#Encryption, doc/admin/sbom.md
+- **Design:** doc/CH32H417/admin/encrypted-blocks.md#Encryption, doc/CH32H417/admin/sbom.md
 - **Verified by:** unit:ctr, unit:blake2s::test_vectors, unit:update::test_signed
 - **Status:** verified
 
@@ -189,7 +189,7 @@ The record, the token, install, backup, trial, rollback, the boot check
 
 - **Parent:** ARC-STAGE1
 - **Code:** src/update.c::upd_boot, src/update.h
-- **Design:** doc/admin/firmware-updates.md#Installing an update, doc/admin/firmware-updates.md#The security sector
+- **Design:** doc/CH32H417/admin/firmware-updates.md#Installing an update, doc/CH32H417/admin/firmware-updates.md#The security sector
 - **Verified by:** unit:update::test_power_cuts, unit:update::test_signed, unit:update::test_record_copies
 - **Status:** verified
 
@@ -198,7 +198,7 @@ Receiving a package in recovery.
 
 - **Parent:** ARC-STAGE1
 - **Code:** src/ymrecv.c::ymr_receive, src/ymrecv.h
-- **Design:** doc/admin/firmware-updates.md#Recovery on the board now
+- **Design:** doc/CH32H417/admin/firmware-updates.md#Recovery on the board now
 - **Verified by:** unit:ymrecv
 - **Status:** verified
 
@@ -208,7 +208,7 @@ board's key and `enroll`, the recovery terminal, starting the V5F.
 
 - **Parent:** ARC-STAGE1
 - **Code:** src/target/CH32H417/V3F/User/stage1.c::stage1_boot, src/target/CH32H417/V3F/User/stage1_layout.h, src/target/CH32H417/Common/security.h
-- **Design:** doc/admin/firmware-updates.md#On the board now, doc/admin/firmware-updates.md#The lock-down check
+- **Design:** doc/CH32H417/admin/firmware-updates.md#On the board now, doc/CH32H417/admin/firmware-updates.md#The lock-down check
 - **Verified by:** unit:stage1sim::s_enroll, unit:stage1sim::s_lockdown_command, unit:stage1sim::s_recovery_commands
 - **Status:** verified
 
@@ -228,7 +228,7 @@ flash.
 
 - **Parent:** ARC-MMODE
 - **Code:** src/target/CH32H417/V5F/User/pmp.c::pmp_lock, src/target/CH32H417/V5F/User/mmode.h
-- **Design:** doc/admin/firmware-updates.md#Keeping the V5F out
+- **Design:** doc/CH32H417/admin/firmware-updates.md#Keeping the V5F out
 - **Verified by:** board:B1, board:B14, board:B18, board:B22, board:B23, board:B24
 - **Status:** partial
 - **Gap:** no unit test: the PMP and machine mode can only be tried on the chip (B12, B13 and B16 tried layouts since retired)
@@ -239,7 +239,7 @@ burning the channel after each transfer.
 
 - **Parent:** ARC-MMODE
 - **Code:** src/target/CH32H417/V5F/User/gdma.c, src/target/CH32H417/V5F/User/gdma.h
-- **Design:** doc/admin/firmware-updates.md#Keeping the V5F out
+- **Design:** doc/CH32H417/admin/firmware-updates.md#Keeping the V5F out
 - **Verified by:** unit:blocksim::test_guard, unit:blocksim::test_protected
 - **Status:** verified
 
@@ -282,7 +282,7 @@ The UID, the root key and product for `-2 ymodem`'s keyless check, and
 
 - **Parent:** ARC-V5F
 - **Code:** src/target/CH32H417/V5F/User/board.c
-- **Design:** doc/admin/updates.md#Both cores
+- **Design:** doc/CH32H417/admin/updates.md#Both cores
 - **Verified by:** board:B22, board:B25
 - **Status:** partial
 - **Gap:** no unit test
@@ -293,7 +293,7 @@ only in DTCM.
 
 - **Parent:** ARC-V5F, ARC-PKG
 - **Code:** src/target/CH32H417/V5F/User/ecdc.c::ctr_hw_crypt
-- **Design:** doc/ch32h417-notes.md#ECDC
+- **Design:** doc/CH32H417/ch32h417-notes.md#ECDC
 - **Verified by:** unit:datalog::record not wiped, board:B27
 - **Status:** partial
 - **Gap:** the engine exists only on the chip: `ecdc-test` (B27) compares it with software there; the desktop tests its failure handling with a stand-in
@@ -326,7 +326,7 @@ Keys, block 0, records, the end of a log after a power cut.
 
 - **Parent:** ARC-LOG
 - **Code:** src/datalog.c::dl_record, src/datalog.c::dl_find_end, src/datalog.h
-- **Design:** doc/admin/data-logs.md#Deriving the keys, doc/admin/data-logs.md#The file
+- **Design:** doc/CH32H417/admin/data-logs.md#Deriving the keys, doc/CH32H417/admin/data-logs.md#The file
 - **Verified by:** unit:datalog::test_round_trip, unit:datalog::test_tampering, unit:datalog::record not wiped
 - **Status:** verified
 
@@ -335,7 +335,7 @@ Making, closing and recovering log files on the card.
 
 - **Parent:** ARC-LOG
 - **Code:** src/logfile.c::log_recover, src/logfile.h
-- **Design:** doc/admin/data-logs.md#After a power cut
+- **Design:** doc/CH32H417/admin/data-logs.md#After a power cut
 - **Verified by:** unit:datalog::test_power_cuts, unit:datalog::test_stale
 - **Status:** verified
 
@@ -346,8 +346,8 @@ Making, closing and recovering log files on the card.
 provisioning manifest.
 
 - **Parent:** ARC-PKG
-- **Code:** scripts/admin/sealblocks.py
-- **Design:** doc/admin/encrypted-blocks.md#On the PC
+- **Code:** scripts/CH32H417/admin/sealblocks.py
+- **Design:** doc/CH32H417/admin/encrypted-blocks.md#On the PC
 - **Verified by:** unit:seal::package round trip, unit:seal::retired release key, unit:seal::manifest: a changed image
 - **Status:** verified
 
@@ -355,8 +355,8 @@ provisioning manifest.
 The server's key, the board's header for it, opening logs.
 
 - **Parent:** ARC-LOG
-- **Code:** scripts/admin/lflog.py
-- **Design:** doc/admin/data-logs.md#On the server
+- **Code:** scripts/CH32H417/admin/lflog.py
+- **Design:** doc/CH32H417/admin/data-logs.md#On the server
 - **Verified by:** unit:datalog::test_lflog_edges
 - **Status:** verified
 
@@ -373,8 +373,8 @@ The server's key, the board's header for it, opening logs.
 `hiltest.py`, `lockdown.py`, `provision.py` and `lfmcp.py`.
 
 - **Parent:** ARC-TOOLS
-- **Code:** scripts/admin/hiltest.py, scripts/admin/lockdown.py, scripts/admin/provision.py, scripts/lfmcp.py
-- **Design:** doc/admin/firmware-updates.md#without bricking anything, doc/admin/provisioning.md#Pass 1
+- **Code:** scripts/CH32H417/admin/hiltest.py, scripts/CH32H417/admin/lockdown.py, scripts/CH32H417/admin/provision.py, scripts/lfmcp.py
+- **Design:** doc/CH32H417/admin/firmware-updates.md#without bricking anything, doc/CH32H417/admin/provisioning.md#Pass 1
 - **Verified by:** unit:stage1sim::hiltest on the simulated board, unit:stage1sim::lockdown.py run: a locked board refused before any flash, unit:stage1sim::provision.py on the simulated board: passed, unit:lfmcp::wlink flash refused
 - **Status:** verified
 
@@ -382,8 +382,8 @@ The server's key, the board's header for it, opening logs.
 The SBOM, the lint, the RTM, the machine-mode check, the board build.
 
 - **Parent:** ARC-QA
-- **Code:** scripts/mksbom.py, scripts/lintf.py, scripts/rtm.py, scripts/mmodecheck.py, scripts/ch32build.sh
-- **Design:** doc/admin/sbom.md, doc/coding-rules.md, doc/quality/README.md
+- **Code:** scripts/mksbom.py, scripts/lintf.py, scripts/rtm.py, scripts/CH32H417/mmodecheck.py, scripts/CH32H417/ch32build.sh
+- **Design:** doc/CH32H417/admin/sbom.md, doc/coding-rules.md, doc/CH32H417/quality/README.md
 - **Verified by:** unit:sbom, unit:lintf, unit:rtm
 - **Status:** partial
 - **Gap:** mmodecheck.py and ch32build.sh have no test of their own; CI runs them on every pull request to main

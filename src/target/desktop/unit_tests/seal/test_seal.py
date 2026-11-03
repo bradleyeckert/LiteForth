@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Tests scripts/admin/sealblocks.py: firmware update packages, round trips with
+"""Tests scripts/CH32H417/admin/sealblocks.py: firmware update packages, round trips with
 AES and SM4, the counter layout, and each refusal a board makes
-(doc/admin/encrypted-blocks.md section 4). Runs in a temporary directory."""
+(doc/CH32H417/admin/encrypted-blocks.md section 4). Runs in a temporary directory."""
 import contextlib
 import io
 import os
@@ -13,7 +13,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, '../../../../..'))
-sys.path.insert(0, os.path.join(ROOT, 'scripts', 'admin'))
+sys.path.insert(0, os.path.join(ROOT, 'scripts', 'CH32H417', 'admin'))
 import sealblocks as sb  # noqa: E402
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402
@@ -74,7 +74,7 @@ def resign(data, release_key):
 
 
 def manifest_tests():
-    """The provisioning manifest (doc/admin/provisioning.md): signed with a
+    """The provisioning manifest (doc/CH32H417/admin/provisioning.md): signed with a
     release key, checked against the root, every file it names checked, and
     nothing in its folder that it doesn't name. Runs in main's directory,
     with its keys."""
@@ -209,7 +209,7 @@ def main():
         expect('root-header: no security flags (SECURITY_LEVEL has them)',
                not any(f in header for f in ('SEALED_ONLY', 'INSECURE', 'STRICT_RDP')), header)
 
-        # firmware update packages (doc/admin/firmware-updates.md section 5)
+        # firmware update packages (doc/CH32H417/admin/firmware-updates.md section 5)
         image = bytes((i * 7 + 3) & 255 for i in range(9000))      # not a whole block
         write('fw.bin', image)
         base_pk = ['--release', 'rel1.json', '--boards', 'boards.csv']
@@ -234,7 +234,7 @@ def main():
         expect_refused('a package for another board', 'not a recipient', 'open', 'fw.lfu',
                        'x.out', '--root', 'root.pub', '--board-key', 'c.json')
 
-        # the machine-mode root signature (doc/admin/firmware-updates.md section 8 part 4)
+        # the machine-mode root signature (doc/CH32H417/admin/firmware-updates.md section 8 part 4)
         v5f = bytes((i * 11 + 5) & 255 for i in range(sb.MMODE_OFF + 0x1300))
         write('v5f.bin', v5f)
         expect_ok('mmode-sign', 'mmode-sign', 'v5f.bin', 'mm.sig', '--root', 'root.key',
@@ -348,7 +348,7 @@ def main():
             expect(f'counter block {n} piece {i}',
                    dec == pdata[n * BLOCK + 16 * i:n * BLOCK + 16 * i + 16])
 
-        # The layout of doc/admin/encrypted-blocks.md, computed here from its formulas
+        # The layout of doc/CH32H417/admin/encrypted-blocks.md, computed here from its formulas
         # and offsets rather than with sealblocks.py's own helpers.
         b0 = sdata[:BLOCK]
         ver, ciph, flags, prod, rev, cc, tt, rr = struct.unpack_from('<BBIIIIHH', b0, 10)

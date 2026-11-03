@@ -1,5 +1,5 @@
 /* The sealed format: mounting and reading firmware update packages
-   (doc/admin/encrypted-blocks.md; sealed block files are retired).
+   (doc/CH32H417/admin/encrypted-blocks.md; sealed block files are retired).
    The layout constants below are the table in its section 3. */
 #include <stdio.h>
 #include <string.h>
@@ -200,7 +200,7 @@ static int mount(const uint8_t *b0, uint32_t file_blocks, const sealed_board *bo
         return fail(msg, len, "an older revision than this board takes");
     }
 
-    /* the machine-mode region's root signature (doc/admin/encrypted-blocks.md
+    /* the machine-mode region's root signature (doc/CH32H417/admin/encrypted-blocks.md
        section 3). All-zero means the package carries none; otherwise the root
        signs product, the region's address and length, and its hash. The
        caller hashes that flash span and compares it with mmode_hash. */

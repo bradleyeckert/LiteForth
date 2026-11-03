@@ -45,7 +45,7 @@ starts, as in hiltest) adds the rollback-survival check.
 
 The report (--report, default hardness-DATE.md) records every check, the
 board's output word for word, and the out-of-scope list, ready for a lab
-file or doc/admin/board-tests.md. Exit status 0 if every check passed.
+file or doc/CH32H417/admin/board-tests.md. Exit status 0 if every check passed.
 
 Out of scope, and why:
   - Physical attacks -- voltage or clock glitching, side channels, fault
@@ -80,7 +80,7 @@ def deps():
 
 
 # ---------------------------------------------------------------------------
-# The sealed package's block 0 (doc/admin/encrypted-blocks.md section 3;
+# The sealed package's block 0 (doc/CH32H417/admin/encrypted-blocks.md section 3;
 # sealblocks.py keeps the authoritative copy). Only the offsets a corruption
 # needs are here; test_hardness.py asserts they still match sealblocks.py.
 # ---------------------------------------------------------------------------

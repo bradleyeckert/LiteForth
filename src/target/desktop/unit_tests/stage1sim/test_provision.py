@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Runs scripts/admin/provision.py (doc/admin/provisioning.md) on simulated
+"""Runs scripts/CH32H417/admin/provision.py (doc/CH32H417/admin/provisioning.md) on simulated
 level 2 boards (sim_strict) with a fake wlink, as test_lockdown.py does
 for lockdown.py: a station with a signed release, a batch, a card, pass 1
 over boards that pass and boards it must refuse, the vendor's review and
@@ -24,7 +24,7 @@ sys.path.insert(0, HERE)
 import test_stage1 as t  # noqa: E402
 import test_lockdown as tl  # noqa: E402
 
-PROVISION = os.path.join(t.ROOT, 'scripts', 'admin', 'provision.py')
+PROVISION = os.path.join(t.ROOT, 'scripts', 'CH32H417', 'admin', 'provision.py')
 STATION = os.path.join(t.WORK, 'station')
 UIDS = {'a': '0a0b0c0d0e0f1011', 'b': '2122232425262728', 'c': '1112131415161718',
         'd': '3132333435363738', 'e': '4142434445464748', 'f': '5152535455565758',
@@ -199,7 +199,7 @@ def provision(*args):
 
 
 def sealblocks(*args):
-    r = subprocess.run([sys.executable, os.path.join(t.ROOT, 'scripts', 'admin', 'sealblocks.py'),
+    r = subprocess.run([sys.executable, os.path.join(t.ROOT, 'scripts', 'CH32H417', 'admin', 'sealblocks.py'),
                         *[str(x) for x in args]], capture_output=True, text=True, cwd=t.WORK)
     if r.returncode:
         sys.exit(f'sealblocks {args}: {r.stdout}{r.stderr}')

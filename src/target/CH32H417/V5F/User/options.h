@@ -55,7 +55,7 @@
     SRAM: 0x20140000-0x20177FFF, above the V3F's RAM (PMP entry 1) and below the
     shared block. Stage 1 uses that RAM only in recovery, while the V5F is off.
     Buffers that are needed only now and then (ymodem's, the package check's)
-    come from the pool too, and data logging (doc/admin/data-logs.md) takes
+    come from the pool too, and data logging (doc/CH32H417/admin/data-logs.md) takes
     what's left while no flash page is open. Guarded DMA (gdma.c) and the
     flash service (pmp.c) take buffers from the pool as from DTCM.
 

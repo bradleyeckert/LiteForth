@@ -1,7 +1,7 @@
-# Data logs (doc/admin/data-logs.md): src/datalog.c, src/logfile.c and
+# Data logs (doc/CH32H417/admin/data-logs.md): src/datalog.c, src/logfile.c and
 # exfat.c's exfat_create/exfat_trim, built into dltest and driven by
 # test_datalog.py on card images from scripts/mkexfat.py, against
-# scripts/admin/lflog.py (the server's side). Needs python3 and the
+# scripts/CH32H417/admin/lflog.py (the server's side). Needs python3 and the
 # cryptography package; skipped without them.
 
 SRC = ../../../..

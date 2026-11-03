@@ -103,11 +103,11 @@ Visual Studio builds without the makefile.
 - [Tutorial](doc/tutorial.md): a first look at using LiteForth (rough draft)
 - [Glossary](doc/glossary.md): Forth words and VM constants
 - [Architecture](doc/popthehood.md): how the QUIT loop, VM and execution tokens fit together
-- [Security plan](doc/admin/security-plan.md): root of trust, signed images, device keys, updates, provisioning (draft)
-- [Quality: the V-model and the RTM](doc/quality/README.md): stakeholder needs, system requirements, architecture and modules, each traced to its tests and board runs in a checked Requirements Traceability Matrix ([rtm.md](doc/quality/rtm.md))
-- [Software Bill of Materials](doc/admin/sbom.md): the third-party code and data in LiteForth and their licenses (`sbom.spdx.json`, SPDX 2.3)
-- [Updating a board's blocks](doc/admin/updates.md): block files, setting up a product, enrolling boards, and installing over the terminal (`-1 ymodem`), and the build options
-- [The sealed format](doc/admin/encrypted-blocks.md): encrypted, signed firmware update packages, and their keys (the design; sealed block files are retired)
+- [Security plan](doc/CH32H417/admin/security-plan.md): root of trust, signed images, device keys, updates, provisioning (draft)
+- [Quality: the V-model and the RTM](doc/CH32H417/quality/README.md): stakeholder needs, system requirements, architecture and modules, each traced to its tests and board runs in a checked Requirements Traceability Matrix ([rtm.md](doc/CH32H417/quality/rtm.md))
+- [Software Bill of Materials](doc/CH32H417/admin/sbom.md): the third-party code and data in LiteForth and their licenses (`sbom.spdx.json`, SPDX 2.3)
+- [Updating a board's blocks](doc/CH32H417/admin/updates.md): block files, setting up a product, enrolling boards, and installing over the terminal (`-1 ymodem`), and the build options
+- [The sealed format](doc/CH32H417/admin/encrypted-blocks.md): encrypted, signed firmware update packages, and their keys (the design; sealed block files are retired)
 - [Blocks](doc/blocks.md): the block wordset and LiteForth's 4 KB blocks
 - [Recording to microSD](doc/storage.md): streaming audio to exFAT at 1 MB/s, buffer sizing, card choice (draft)
 - [Multitasking](doc/multitasking.md): user areas, `pause`, `task` and `activate`

@@ -2,7 +2,7 @@
 #define LOGFILE_H
 
 /*
- * Data log files on the card's exFAT volume (doc/admin/data-logs.md
+ * Data log files on the card's exFAT volume (doc/CH32H417/admin/data-logs.md
  * sections 5 and 6): making one, closing it, and closing any that a power
  * cut left open. The file format and keys are datalog.h's; the volume is
  * exfat.h's. Shared by the board and the desktop tests (unit_tests/datalog).

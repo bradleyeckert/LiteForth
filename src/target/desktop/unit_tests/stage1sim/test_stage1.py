@@ -30,7 +30,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, '..', '..', '..', '..', '..'))
 WORK = os.path.join(HERE, 'work')
-sys.path.insert(0, os.path.join(ROOT, 'scripts', 'admin'))
+sys.path.insert(0, os.path.join(ROOT, 'scripts', 'CH32H417', 'admin'))
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 sys.path.insert(0, os.path.join(HERE, '..', 'ymodem'))
 import sealblocks as sb  # noqa: E402

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Runs scripts/admin/lockdown.py against the simulated board (a level 2
+"""Runs scripts/CH32H417/admin/lockdown.py against the simulated board (a level 2
 build: sim_strict), with a fake wlink, so the script that locks boards
 down is itself tested. The board's serial ports are ptys, and this rig
 restarts the simulation whenever the chip resets. The fake wlink (written
@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import test_stage1 as t  # noqa: E402
 
-LOCKDOWN = os.path.join(t.ROOT, 'scripts', 'admin', 'lockdown.py')
+LOCKDOWN = os.path.join(t.ROOT, 'scripts', 'CH32H417', 'admin', 'lockdown.py')
 
 FAKE_WLINK = r'''#!PYTHON
 import os, signal, sys

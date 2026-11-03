@@ -54,7 +54,7 @@ void Hardware(void)
        (USBFS_UC_DEV_PU_EN) asserted -- only a pin or power reset clears the
        USBFS peripheral -- so without this the host never sees a disconnect
        after a software reset and won't re-enumerate (no COM port, and an
-       update's confirm stalls, until a manual reset; doc/ch32h417-notes.md).
+       update's confirm stalls, until a manual reset; doc/CH32H417/ch32h417-notes.md).
        Dropping the pull-up and waiting past the host's disconnect debounce
        gives a clean enumeration every boot; it's a no-op at a cold or pin
        reset, where the pull-up is already low. */

@@ -2,7 +2,7 @@
 #define UPDATE_H
 
 /*
- * Installing firmware updates: stage 1's logic (doc/admin/firmware-updates.md
+ * Installing firmware updates: stage 1's logic (doc/CH32H417/admin/firmware-updates.md
  * sections 3, 4 and 6), in plain C. It reaches the board's flash and the
  * card's two files only through the callbacks in upd_io, so the desktop
  * tests it (unit_tests/update) with simulated flash and power cuts, and
@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include "sealed.h"
 
-/* The layout (doc/admin/firmware-updates.md section 2): addresses in the code
+/* The layout (doc/CH32H417/admin/firmware-updates.md section 2): addresses in the code
    flash, from 0 */
 #ifndef UPD_SECTOR
 #define UPD_SECTOR          8192u       /* erase unit */

@@ -5,13 +5,13 @@
 
 /*
  * The CH32H417's AES/SM4 engine (ECDC) in CTR mode, driven through its
- * registers as doc/ch32h417-notes.md describes them (WCH's driver has the
+ * registers as doc/CH32H417/ch32h417-notes.md describes them (WCH's driver has the
  * CTR/ECB bit the wrong way round and its interrupt constants truncated).
  * ctr.c's ctr_hw_crypt (ctr.h, CTR_HW) is here too, so packages are
  * decrypted by the engine, after a check against software.
  *
  * The engine is a RAM-to-RAM bus master, which the PMP can't bind, so under
- * the clock fence (SYS-SEC-13, doc/admin/firmware-updates.md section 8 part
+ * the clock fence (SYS-SEC-13, doc/CH32H417/admin/firmware-updates.md section 8 part
  * 2) user mode may not run it: the store guard refuses any write that would
  * turn its clock on (guard_rcc_turns_on_master), and start-up leaves the
  * clock off. The engine is driven entirely in machine mode, by an ecall

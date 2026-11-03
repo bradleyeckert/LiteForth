@@ -1,6 +1,6 @@
-# The Requirements Traceability Matrix (doc/quality/README.md):
+# The Requirements Traceability Matrix (doc/CH32H417/quality/README.md):
 # scripts/rtm.py --check on the real items (every link resolves, the
-# levels and parents are right, doc/quality/rtm.md is current), then
+# levels and parents are right, doc/CH32H417/quality/rtm.md is current), then
 # test_rtm.py, which breaks copies of the items one way at a time and
 # expects rtm.py to fail each time with the right message.
 

@@ -1,6 +1,6 @@
-/* Tests src/update.c, stage 1's install logic (doc/admin/firmware-updates.md),
+/* Tests src/update.c, stage 1's install logic (doc/CH32H417/admin/firmware-updates.md),
  * with the board's flash, lfstage.bin and lfbackup.bin simulated in RAM,
- * and packages made by gen.py with scripts/admin/sealblocks.py.
+ * and packages made by gen.py with scripts/CH32H417/admin/sealblocks.py.
  *
  * Power cuts: every erase and write (flash or card) counts as one step,
  * and a cut at step k stops the run there, leaving that step half done (a

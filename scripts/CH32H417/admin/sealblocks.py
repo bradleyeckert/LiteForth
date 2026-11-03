@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Firmware update packages: encrypted, signed images in the sealed format
-(doc/admin/encrypted-blocks.md, doc/admin/firmware-updates.md section 5).
+(doc/CH32H417/admin/encrypted-blocks.md, doc/CH32H417/admin/firmware-updates.md section 5).
 
     sealblocks.py root-key ROOT                    make root key pair ROOT.key, ROOT.pub
     sealblocks.py release-key ROOT.key SERIAL OUT --product P
@@ -21,7 +21,7 @@
                   --revision N [--hw-rev N] [--min-version N] [--cipher aes|sm4]
                   [--pages lfpages.bin] [--slot N] [--pages-len N]
                                                    make a firmware update package from a .bin
-                                                   (doc/admin/firmware-updates.md section 5);
+                                                   (doc/CH32H417/admin/firmware-updates.md section 5);
                                                    app: the V5F .bin padded to its slot, then
                                                    LiteForth's flash pages (save-pages)
     sealblocks.py check PACKAGE --root ROOT.pub    check everything that needs no board key
@@ -32,7 +32,7 @@
     sealblocks.py manifest DIR --release R --revision N [--v3f F] [--v5f F] [--blocks F]
                   [--stage-size N] [--backup-size N]
                                                    write and sign DIR/manifest.json: a release's
-                                                   files for provisioning (doc/admin/provisioning.md)
+                                                   files for provisioning (doc/CH32H417/admin/provisioning.md)
     sealblocks.py check-manifest DIR --root ROOT.pub
                                                    check DIR's manifest and every file it names
 
@@ -71,7 +71,7 @@ except ImportError:
 BLOCK = 4096
 SIGNATURE = b'LITEFORTH'
 SEALED_MARK = b'S'              # a sealed block file: retired, refused
-PACKAGE_MARK = b'F'             # a firmware update package (doc/admin/firmware-updates.md)
+PACKAGE_MARK = b'F'             # a firmware update package (doc/CH32H417/admin/firmware-updates.md)
 FORMAT_VERSION = 1
 CIPHERS = {'aes': 1, 'sm4': 2}
 CIPHER_NAMES = {v: k for k, v in CIPHERS.items()}
@@ -339,7 +339,7 @@ def unwrap(h, board):
 # The provisioning manifest -----------------------------------------------
 #
 # DIR/manifest.json lists a release's files for the provisioning station
-# (doc/admin/provisioning.md): the images it flashes, the block file it
+# (doc/CH32H417/admin/provisioning.md): the images it flashes, the block file it
 # copies to each card, and the sizes of the card's other files. It's signed
 # with a release key and carries that key's certificate, so the station
 # checks it against root.pub alone. The signature covers MANIFEST_PERSON and
@@ -536,9 +536,9 @@ def cmd_root_header(a):
     pub = hexbytes(read_json(a.root, 'root'), 'public', 32, a.root)
     rows = ',\n'.join('    ' + ', '.join('0x%02x' % b for b in pub[i:i + 8])
                       for i in range(0, 32, 8))
-    text = ('/* sealed_root.h, written by scripts/admin/sealblocks.py root-header from %s:\n'
+    text = ('/* sealed_root.h, written by scripts/CH32H417/admin/sealblocks.py root-header from %s:\n'
             '   the root public key and product ID this build checks firmware update\n'
-            '   packages with (doc/admin/encrypted-blocks.md, V5F/User/board.h). */\n'
+            '   packages with (doc/CH32H417/admin/encrypted-blocks.md, V5F/User/board.h). */\n'
             '#ifndef SEALED_ROOT_H\n#define SEALED_ROOT_H\n\n'
             '#define SEALED_ROOT_KEY { \\\n%s }\n\n'
             '#define SEALED_PRODUCT 0x%08xu\n\n#endif /* SEALED_ROOT_H */\n'

@@ -9,9 +9,9 @@ We built a root of trust for firmware updates on the CH32H417. The dual
 QingKe cores map well onto the job: the V3F runs stage 1 (secure boot,
 update install, rollback) and holds the keys, and the V5F runs the
 application (a Forth system) in user mode, fenced from the V3F's secrets by
-PMP. The design and its reasoning are in `doc/admin/firmware-updates.md`
-(section 8) and `doc/quality/`; chip behaviour that differed from the
-reference manual is in `doc/ch32h417-notes.md`.
+PMP. The design and its reasoning are in `doc/CH32H417/admin/firmware-updates.md`
+(section 8) and `doc/CH32H417/quality/`; chip behaviour that differed from the
+reference manual is in `doc/CH32H417/ch32h417-notes.md`.
 
 Doing this exposed the edges of what the hardware lets software enforce.
 Several of our security properties rest on software scaffolding that works,
@@ -72,7 +72,7 @@ in DTCM and set in the start-up code) *before it stores anything*. That
 closes the hole for the fault handler, but the hardware-vectored fast-
 interrupt handlers still stack at user mode's `sp` through the HPE prologue,
 which we cannot intercept — so that part of the property is still open (see
-`SYS-SEC-11` in `doc/quality/system.md`).
+`SYS-SEC-11` in `doc/CH32H417/quality/system.md`).
 
 **What to add.** A machine-mode scratch stack-pointer that the hardware swaps
 in on a trap from a less-privileged mode — the RISC-V `mscratchcsw`/
@@ -322,7 +322,7 @@ has to re-derive, and one less place to get device keys wrong.
   (and overlaps with item 1).
 - **Peripheral registers that read as 0 without faulting.** Reads of some
   unused peripheral addresses return 0 rather than faulting (see
-  `doc/ch32h417-notes.md`), which makes "is this peripheral present/clocked"
+  `doc/CH32H417/ch32h417-notes.md`), which makes "is this peripheral present/clocked"
   harder to detect defensively.
 - **Document the security-relevant defaults.** The reset state of the PFIC
   allocation registers, the SysTick ownership between cores, and which bus
@@ -342,6 +342,6 @@ peripherals** — the interrupt controller and a hardware trap-stack switch
 today stands between an attacker and the keys.
 
 We'd be glad to talk through any of this in detail, and to share the specific
-code and the test evidence (`doc/admin/board-tests.md`) behind each point.
+code and the test evidence (`doc/CH32H417/admin/board-tests.md`) behind each point.
 
 — The LiteForth project

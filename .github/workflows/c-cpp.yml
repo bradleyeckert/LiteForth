@@ -37,7 +37,7 @@ jobs:
 
   # The CH32H417's V3F and V5F images, built with upstream GCC: not the
   # images to flash (no XW opcodes, WCH's interrupt attribute ignored; see
-  # scripts/ch32build.sh), but it catches what doesn't compile, new
+  # scripts/CH32H417/ch32build.sh), but it catches what doesn't compile, new
   # warnings, and an image whose RAM no longer fits, before the board does.
   ch32-images:
     runs-on: ubuntu-latest
@@ -65,5 +65,5 @@ jobs:
     - name: Build the V3F and V5F images
       run: |
         export RISCV_PREFIX=~/${XPACK}/bin/riscv-none-elf-
-        scripts/ch32build.sh V3F
-        scripts/ch32build.sh V5F
+        scripts/CH32H417/ch32build.sh V3F
+        scripts/CH32H417/ch32build.sh V5F

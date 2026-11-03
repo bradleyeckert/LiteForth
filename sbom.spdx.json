@@ -3,14 +3,14 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "LiteForth",
-  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/100155499c9910ad2803fbb4ae50fe4f",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/81410becfa50e2cc4cccbdb017ddb940",
   "creationInfo": {
-    "created": "2026-11-01T17:23:40Z",
+    "created": "2026-11-02T04:25:02Z",
     "creators": [
       "Tool: scripts/mksbom.py",
       "Person: Bradley N Eckert"
     ],
-    "comment": "Made by scripts/mksbom.py from its component list; doc/admin/sbom.md describes it."
+    "comment": "Made by scripts/mksbom.py from its component list; doc/CH32H417/admin/sbom.md describes it."
   },
   "hasExtractedLicensingInfos": [
     {
@@ -232,7 +232,7 @@
       ],
       "filesAnalyzed": true,
       "packageVerificationCode": {
-        "packageVerificationCodeValue": "29895068be54bc435df87370d64cf4e5994514fc"
+        "packageVerificationCodeValue": "e8a6f6048595044860694ad9c51eb57417609a47"
       },
       "licenseInfoFromFiles": [
         "NOASSERTION"
@@ -292,7 +292,7 @@
       "licenseConcluded": "Apache-2.0 OR BSD-3-Clause",
       "licenseDeclared": "Apache-2.0 OR BSD-3-Clause",
       "copyrightText": "NOASSERTION",
-      "summary": "Used by scripts/admin/sealblocks.py and its tests; not part of this repository",
+      "summary": "Used by scripts/CH32H417/admin/sealblocks.py and its tests; not part of this repository",
       "primaryPackagePurpose": "LIBRARY",
       "externalRefs": [
         {
@@ -312,7 +312,7 @@
       "licenseConcluded": "BSD-3-Clause",
       "licenseDeclared": "BSD-3-Clause",
       "copyrightText": "NOASSERTION",
-      "summary": "Used by scripts/admin/hiltest.py and its test on the simulated board; not part of this repository",
+      "summary": "Used by scripts/CH32H417/admin/hiltest.py and its test on the simulated board; not part of this repository",
       "primaryPackagePurpose": "LIBRARY",
       "externalRefs": [
         {
@@ -603,11 +603,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "148dce6a9628172638d4500d7f5e45d4d0174520"
+          "checksumValue": "ba7d61425423490a5d2b43187b0a3597b69ccecb"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "dd8257ec7cf6ada4152af6778c7cc9ae376d96b154c2b564a2d982ceac4b54eb"
+          "checksumValue": "4180fa5e0cdd5b84a88dab0267c84bf3a494c644847b4d6f3e894d93518dd6b3"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",
@@ -781,11 +781,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "56ead43de5b6664763b8d844ef56ebb9b20fdb69"
+          "checksumValue": "adec4252404ff4f3721b8fe7c730b9e176b3bc3f"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "cdc6743a02f0fb0810b594133cfc538eafb4d98d651126adfbaa4df25e200e4b"
+          "checksumValue": "d7f9a855dafcaed2f76024a44f93d71ee30690af14ef2ecd97838e1570e89550"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",
@@ -2340,11 +2340,11 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "7b48f9a29d00add23cef1f4b862904a505e6b84b"
+          "checksumValue": "112ca5f32ed54677f8cd0ea8bdb97dd6cff56ff6"
         },
         {
           "algorithm": "SHA256",
-          "checksumValue": "f426010092cb51a637fb622417f0229f66fb59b4996fd704f24c68326269108f"
+          "checksumValue": "1c54199215bbafbe1544aca9d7b10d5b43b3663a71517b69ddfd95371597c922"
         }
       ],
       "licenseConcluded": "LicenseRef-WCH-EVT",

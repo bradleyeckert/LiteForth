@@ -3,8 +3,8 @@
 
 /*
  * SECURITY_LEVEL: one setting for the security of both cores' builds
- * (doc/admin/updates.md section 6, doc/admin/firmware-updates.md section 8,
- * doc/admin/security-plan.md 5.6). Each level adds to the one below it.
+ * (doc/CH32H417/admin/updates.md section 6, doc/CH32H417/admin/firmware-updates.md section 8,
+ * doc/CH32H417/admin/security-plan.md 5.6). Each level adds to the one below it.
  *
  *                               core    0         1         2
  *   Forth reaches peripherals   V5F     all       allowlist allowlist
@@ -30,7 +30,7 @@
  *   the bus masters the PMP doesn't fence (the ECDC, SDMMC, ETH, LTDC, the
  *   USB controllers...), which reach all memory: the device token, stage
  *   1, machine-mode code. Never for a board that runs untrusted Forth
- *   (doc/admin/firmware-updates.md section 8).
+ *   (doc/CH32H417/admin/firmware-updates.md section 8).
  * 1, development with the product's I/O: as 0, but Forth reaches only the
  *   peripherals in V5F/User/io_allow.h: GPIO, timers, serial ports and the
  *   like, not the flash controller, DMA, SDIO, the ECDC, the RNG, RCC/PWR

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Runs scripts/admin/hiltest.py, the hardware-in-the-loop tests, against
+"""Runs scripts/CH32H417/admin/hiltest.py, the hardware-in-the-loop tests, against
 the simulated board instead of a real one, so the lab's script is itself
 tested: the board's two serial ports are ptys, and this rig restarts the
 simulation whenever the chip resets itself (`reboot`, the recovery
@@ -41,7 +41,7 @@ def main():
     threading.Thread(target=rig, daemon=True).start()
     os.makedirs(os.path.join(HERE, 'reports'), exist_ok=True)
     report = os.path.join(HERE, 'reports', 'hil-sim.md')
-    hil = os.path.join(t.ROOT, 'scripts', 'admin', 'hiltest.py')
+    hil = os.path.join(t.ROOT, 'scripts', 'CH32H417', 'admin', 'hiltest.py')
     common = ['--debug', os.ttyname(dbg_s), '--usb', os.ttyname(usb_s)]
     r = subprocess.run([sys.executable, hil, 'check', *common], timeout=120)
     ok = r.returncode == 0

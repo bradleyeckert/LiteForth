@@ -3,7 +3,7 @@
 
 /*
  * Encrypted, authenticated data logs on the microSD card
- * (doc/admin/data-logs.md): the file format, its keys, and finding the end
+ * (doc/CH32H417/admin/data-logs.md): the file format, its keys, and finding the end
  * of a log after a power cut. Plain C: the caller owns the buffers and the
  * card, so the board writes records by DMA while it fills the next one,
  * and the desktop tests it all on card images (unit_tests/datalog).

@@ -1,4 +1,4 @@
-/* Encrypted, authenticated data logs (datalog.h, doc/admin/data-logs.md) */
+/* Encrypted, authenticated data logs (datalog.h, doc/CH32H417/admin/data-logs.md) */
 #include <string.h>
 #include "datalog.h"
 #include "blake2s.h"

@@ -2,8 +2,8 @@
  * An example of sealed_root.h, which the application's build supplies
  * beside board.c: the root public key that certifies release keys, and
  * the product ID, for checking firmware update packages before stage 1
- * does (`-2 ymodem`; doc/admin/encrypted-blocks.md).
- * `scripts/admin/sealblocks.py root-header ROOT.pub --product P` writes one.
+ * does (`-2 ymodem`; doc/CH32H417/admin/encrypted-blocks.md).
+ * `scripts/CH32H417/admin/sealblocks.py root-header ROOT.pub --product P` writes one.
  *
  * Copy it to sealed_root.h (which git ignores) with your own values.
  * Without sealed_root.h the board can't check packages. Never build a

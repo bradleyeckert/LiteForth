@@ -1,5 +1,5 @@
 /* Installing firmware updates: stage 1's logic. See update.h and
-   doc/admin/firmware-updates.md sections 3, 4 and 6. */
+   doc/CH32H417/admin/firmware-updates.md sections 3, 4 and 6. */
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>

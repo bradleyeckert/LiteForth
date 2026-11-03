@@ -12,7 +12,7 @@ where it came from, its license, and which files of this repository hold
 it. The script adds each file's SHA-1 and SHA-256, so the SBOM records
 exactly what's here; --check (run by `make test`, unit_tests/sbom) fails
 when a listed file changes, so a change to third-party code gets noticed
-and the list kept right. doc/admin/sbom.md describes the components.
+and the list kept right. doc/CH32H417/admin/sbom.md describes the components.
 
 The document's creation time is the last commit's time, so the file only
 changes when the components do; --check ignores it.
@@ -130,14 +130,14 @@ COMPONENTS = [
         'download': 'https://pypi.org/project/cryptography/',
         'purl': 'pkg:pypi/cryptography', 'license': 'Apache-2.0 OR BSD-3-Clause',
         'copyright': 'NOASSERTION', 'files': [],
-        'summary': 'Used by scripts/admin/sealblocks.py and its tests; not part of this repository',
+        'summary': 'Used by scripts/CH32H417/admin/sealblocks.py and its tests; not part of this repository',
     },
     {
         'id': 'python-pyserial', 'name': 'pyserial', 'version': 'NOASSERTION', 'kind': 'tool',
         'supplier': 'Person: Chris Liechti',
         'download': 'https://pypi.org/project/pyserial/', 'purl': 'pkg:pypi/pyserial',
         'license': 'BSD-3-Clause', 'copyright': 'NOASSERTION', 'files': [],
-        'summary': 'Used by scripts/admin/hiltest.py and its test on the simulated board; '
+        'summary': 'Used by scripts/CH32H417/admin/hiltest.py and its test on the simulated board; '
                    'not part of this repository',
     },
     {
@@ -281,7 +281,7 @@ def build():
             'created': created or '1970-01-01T00:00:00Z',
             'creators': ['Tool: scripts/mksbom.py', 'Person: Bradley N Eckert'],
             'comment': 'Made by scripts/mksbom.py from its component list; '
-                       'doc/admin/sbom.md describes it.'},
+                       'doc/CH32H417/admin/sbom.md describes it.'},
         'hasExtractedLicensingInfos': [{
             'licenseId': 'LicenseRef-WCH-EVT', 'name': 'WCH EVT notice',
             'extractedText': WCH_NOTICE,

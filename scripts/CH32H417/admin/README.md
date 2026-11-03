@@ -11,8 +11,8 @@ the Windows launcher, run in this folder; on Linux and macOS use
 | `sealblocks.py` | Makes and checks firmware update packages (encrypted, signed), their keys, and the signed manifest of a release for provisioning |
 | `hiltest.py` | Runs stage 1's update, rollback and recovery tests on a real board, with nobody at it, and writes the report |
 | `lockdown.py` | Flashes a board with a `SECURITY_LEVEL` 2 build and locks it down (read protection, write protection, boot ROM downloads off), and writes the report |
-| `provision.py` | Provisions new boards in two passes: flash, lock and enroll, then install the release ([doc/admin/provisioning.md](../../doc/admin/provisioning.md)) |
-| `lflog.py` | The server's side of the data logs: its key, the board's header, opening logs ([doc/admin/data-logs.md](../../doc/admin/data-logs.md)) |
+| `provision.py` | Provisions new boards in two passes: flash, lock and enroll, then install the release ([doc/CH32H417/admin/provisioning.md](../../doc/CH32H417/admin/provisioning.md)) |
+| `lflog.py` | The server's side of the data logs: its key, the board's header, opening logs ([doc/CH32H417/admin/data-logs.md](../../doc/CH32H417/admin/data-logs.md)) |
 
 ## sealblocks.py
 
@@ -30,7 +30,7 @@ py sealblocks.py root-header root.pub --product 0x4C46 -o ..\..\src\target\CH32H
 
 Makes a firmware update package from a V5F image (with LiteForth's flash
 pages, for an app package), in the format of
-[doc/admin/encrypted-blocks.md](../../doc/admin/encrypted-blocks.md): the content blocks
+[doc/CH32H417/admin/encrypted-blocks.md](../../doc/CH32H417/admin/encrypted-blocks.md): the content blocks
 encrypted (AES-128 or SM4 in CTR mode) with a new key for each release,
 that key wrapped for each board in `boards.csv` (`UID,public key,name` in
 hex), the block hashes in hash table blocks after the content, and block 0
@@ -44,7 +44,7 @@ board would, and `root-header` the `sealed_root.h` a CH32H417 build reads
 them with. On the board, `enroll` prints its `boards.csv` line. `manifest`
 signs the list of a release's files that a provisioning station flashes
 and copies to cards, and `check-manifest` checks it as the station does
-([doc/admin/provisioning.md](../../doc/admin/provisioning.md)).
+([doc/CH32H417/admin/provisioning.md](../../doc/CH32H417/admin/provisioning.md)).
 
 Key files are JSON; `.key` files hold private keys. Keep the root's
 offline: `release-key` is the only command that needs it. Needs the
@@ -61,7 +61,7 @@ py hiltest.py run --good v5f-1.lfu --hang v5f-2-hang.lfu
 ```
 
 Tests stage 1 on a real CH32H417 board from the PC
-([doc/admin/firmware-updates.md](../../doc/admin/firmware-updates.md) section 9). It
+([doc/CH32H417/admin/firmware-updates.md](../../doc/CH32H417/admin/firmware-updates.md) section 9). It
 needs only two serial ports: the **cli port**, the board's USB terminal
 (the V3F's USB CDC port, found by its USB IDs, 1A86:FE0C, or named with
 `--cli`), and the **debug port**, the debug UART at 9600 baud (the
@@ -87,7 +87,7 @@ debug probe and no reset button. `--reset-cmd "COMMAND"` (or the
 
   It writes a Markdown report (`--report`, default `hil-report-DATE.md`)
   with each step, both ports' output and the packages' sha256, for
-  [doc/admin/board-tests.md](../../doc/admin/board-tests.md).
+  [doc/CH32H417/admin/board-tests.md](../../doc/CH32H417/admin/board-tests.md).
 
 The card needs `lfstage.bin` and `lfbackup.bin`. The packages write the
 V5F's flash slot and the security record. Needs `pyserial`
@@ -138,7 +138,7 @@ again if it failed before writing anything; each retry is in the report.
 
 The report (`--report`, default `lockdown-report-DATE.md`) has every step,
 both ports' output, the images' sha256 and the UID, for
-[doc/admin/board-tests.md](../../doc/admin/board-tests.md). Then run `enroll` (a level
+[doc/CH32H417/admin/board-tests.md](../../doc/CH32H417/admin/board-tests.md). Then run `enroll` (a level
 2 board's key comes from the RNG), add its line to `boards.csv`, and seal
 the card's `lfblocks.fb4` and packages for it.
 
@@ -160,7 +160,7 @@ py provision.py batch-review batches\2026-11-03-A --boards boards.csv --append
 py provision.py pass2 --batch 2026-11-03-A --package batch.lfu
 ```
 
-Provisioning, as [doc/admin/provisioning.md](../../doc/admin/provisioning.md)
+Provisioning, as [doc/CH32H417/admin/provisioning.md](../../doc/CH32H417/admin/provisioning.md)
 describes it: run in the station's folder (`release/`, `boards.csv`,
 `batches/`). `pass1` flashes, locks and enrolls each board the operator
 connects; the vendor checks the batch with `batch-review` and packages the

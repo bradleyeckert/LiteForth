@@ -7,7 +7,7 @@ FDA-2021-D-1158, the February 2026 edition; "Contains Nonbinding
 Recommendations"). It is engineering documentation that organizes what the
 project already has -- the product security plan
 ([security-plan.md](security-plan.md)), the V-model requirements
-([doc/quality/](../quality/)), the board tests
+([doc/CH32H417/quality/](../quality/)), the board tests
 ([board-tests.md](board-tests.md)) and the SBOM
 ([sbom.md](sbom.md)) -- against that guidance's structure, and it calls out
 where the medical-device framing should **tighten or loosen** LiteForth's
@@ -160,7 +160,7 @@ nonces; and -- explicitly -- **"Do not rely on cyclic redundancy checks
   ([SYS-UPD-01](../quality/system.md), [encrypted-blocks.md](encrypted-blocks.md)).
   Board evidence: a tampered signature, image hash, machine-mode root
   signature or content block is refused (board:B37-battery via
-  [hardness.py](../../scripts/admin/hardness.py), [SYS-TOOL-07](../quality/system.md)).
+  [hardness.py](../../scripts/CH32H417/admin/hardness.py), [SYS-TOOL-07](../quality/system.md)).
 - **No passwords exist on the device**; there is nothing hardcoded or
   default to guess. Per-board keys are made on the board from its RNG at
   provisioning ([SYS-UPD-09](../quality/system.md),
@@ -349,7 +349,7 @@ release.
   integration and system tests, plus the board tests
   ([board-tests.md](board-tests.md)); every requirement traces to its tests
   ([rtm.md](../quality/rtm.md)).
-- **Penetration / hardness testing.** [hardness.py](../../scripts/admin/hardness.py)
+- **Penetration / hardness testing.** [hardness.py](../../scripts/CH32H417/admin/hardness.py)
   is a turnkey root-of-trust hardness test a lab runs against a locked board:
   it reads the locked state and throws a battery of corrupted packages,
   checking each is refused and the good image still boots, without any
@@ -454,7 +454,7 @@ be treated as a new threat model, not an increment.
 
 The user asked whether the medical-device focus should loosen or tighten the
 existing requirements. It does both. These are recommendations, to adopt
-into [doc/quality/](../quality/) deliberately, not yet applied.
+into [doc/CH32H417/quality/](../quality/) deliberately, not yet applied.
 
 ### Tighten / add
 
@@ -537,4 +537,4 @@ from the FDA control categories into that matrix.
   [encrypted-blocks.md](encrypted-blocks.md), [data-logs.md](data-logs.md),
   [provisioning.md](provisioning.md), [sbom.md](sbom.md),
   [board-tests.md](board-tests.md), and the V-model
-  ([doc/quality/](../quality/))
+  ([doc/CH32H417/quality/](../quality/))

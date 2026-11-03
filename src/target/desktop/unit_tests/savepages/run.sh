@@ -1,6 +1,6 @@
 #!/bin/sh
 # save-pages test: copies LiteForth's flash pages into lfpages.bin, as an
-# app package needs them (doc/admin/firmware-updates.md section 5), and
+# app package needs them (doc/CH32H417/admin/firmware-updates.md section 5), and
 # refuses with no lfpages.bin or with a page open. Usage: run.sh path/to/lf
 set -e
 LF=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")

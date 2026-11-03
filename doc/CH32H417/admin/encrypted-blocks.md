@@ -274,7 +274,7 @@ AES (35 of SM4); with the copies into and out of its aligned buffer,
 
 ## 5. On the PC
 
-One script, `scripts/admin/sealblocks.py` (needs `cryptography`; BLAKE2s is in
+One script, `scripts/CH32H417/admin/sealblocks.py` (needs `cryptography`; BLAKE2s is in
 `hashlib`):
 
 | Command | Does |
@@ -301,7 +301,7 @@ a text file that `sealblocks.py lf-board` writes (format in
 `src/target/desktop/board.h`):
 
 ```
-python3 scripts/admin/sealblocks.py lf-board a.lfb --board-key a.key --root root.pub --product 0x4C46
+python3 scripts/CH32H417/admin/sealblocks.py lf-board a.lfb --board-key a.key --root root.pub --product 0x4C46
 ./bin/lf -k card.img -K a.lfb
 ```
 

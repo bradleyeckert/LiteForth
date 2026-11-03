@@ -357,7 +357,7 @@ static int revision(void) {
 
 /* SAVE-PAGES  ( -- )  Writes LiteForth's flash pages, 0 to RAM_PAGE-1, into
    lfpages.bin from its block 0 on, for an app update package
-   (blk_pages_write, doc/admin/firmware-updates.md section 5). A page must
+   (blk_pages_write, doc/CH32H417/admin/firmware-updates.md section 5). A page must
    not be open: close-flash first. Each 4 KB block goes through a buffer
    from the pool (the CH32H417's Guarded DMA moves only .data and .bss
    buffers, and the pages are in flash). */

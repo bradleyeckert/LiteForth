@@ -53,11 +53,29 @@ used initially.
 
 **Open — the GPIO map.** The AliExpress manual PDF is high-level only and the
 product page is robots-blocked, so the exact GPIO assignments (panel
-SPI/DC/CS/RST/backlight, touch I2C, SD SPI/CS, RGB LED, FPC) are **not yet
+SPI/DC/CS/RST/backlight, touch, SD SPI/CS, RGB LED, FPC) are **not yet
 known**. The USB console (GPIO13/14) and the system flash do not need it, so
-the REPL milestone is unblocked; the LCD/SD/RGB drivers do need it. Get the
-board schematic, or reverse it from the CYD-compatibility claim and confirm
-pin by pin.
+the REPL milestone is unblocked; the LCD/SD/RGB drivers do need it.
+
+The witnessmenow CYD project is a good reference for the board's *peripheral
+set and connector layout* (https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display,
+pins at `PINS.md`), **but its GPIO numbers are for the original ESP32-WROOM
+CYD and do not apply to the C5.** That board puts the display on IO2/12/13/14/15,
+touch (XPT2046, *resistive*) on IO25/32/33/36/39, the microSD on IO5/18/19/23,
+the RGB LED on IO4/16/17, an LDR on IO34 and the boot button on IO0 -- all
+ESP32 pins. The C5 has only 29 GPIOs and a different map (e.g. the CYD's
+display IO13/14 are the C5's USB D-/D+), and the NM-CYD-C5 advertises
+*capacitive* touch, not XPT2046. So use that repo for *what* is on the board
+and roughly where, and get the **NM-CYD-C5 schematic** for the actual C5 pins
+before writing the LCD/SD/touch/RGB drivers.
+
+## ESP-IDF version
+
+**ESP32-C5 needs ESP-IDF v5.4 or later (v5.5 recommended for stable support);
+v5.3.x does not support the C5** -- `idf.py set-target esp32c5` fails on it.
+Check with `idf.py --list-targets` (esp32c5 must appear). Pin the exact
+version here once chosen. (If a build hits the `setuptools<71.0.1` constraint
+the installer warns about, run ESP-IDF's `install.bat`.)
 
 ## Why ESP-IDF, and how LiteForth fits into it
 
@@ -145,8 +163,9 @@ is known.
 
 ## Open questions to resolve before coding past milestone 1
 
-- The board **schematic / GPIO map** (panel, touch, SD, RGB, FPC).
+- The **NM-CYD-C5 schematic / GPIO map** (panel, touch, SD, RGB, FPC) -- the
+  witnessmenow CYD pins are ESP32-WROOM, not C5 (see above).
 - The **chip revision** (SDIO host and secure-boot key manager depend on it).
 - Touch controller part and bus; panel bus width and backlight pin.
 - Whether `vm_rv32.S` assembles cleanly under `riscv32-esp-elf`.
-- ESP-IDF version to pin (v5.x with ESP32-C5 support).
+- ESP-IDF version to pin (must be v5.4+; v5.5 recommended -- see above).

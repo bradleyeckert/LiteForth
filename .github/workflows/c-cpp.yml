@@ -36,9 +36,12 @@ jobs:
         # make + make test: the shared core (src/<file>), the desktop target,
         # forth/, any script (the tests drive scripts/), Makefile, bin images,
         # and the files make test checks but doesn't build -- each target's
-        # V-model items and board-tests (unit_tests/rtm) and the SBOM
-        # (unit_tests/sbom) -- so a stale rtm.md/SBOM can't slip past.
-        build_re='^(src/[^/]+$|src/target/desktop/|forth/|scripts/|Makefile$|bin/|doc/[^/]+/quality/|doc/[^/]+/admin/board-tests\.md$|sbom\.spdx\.json$|\.github/workflows/c-cpp\.yml$)'
+        # V-model items and board-tests (unit_tests/rtm), the SBOM
+        # (unit_tests/sbom), and the ESP32-C5 config/SOUP inputs that
+        # unit_tests/seccheck and unit_tests/soup validate (sdkconfig overlay,
+        # soup.lock.json, advisories.json, soup.spdx.json) -- so a stale
+        # rtm.md/SBOM or a regressed gate can't slip past.
+        build_re='^(src/[^/]+$|src/target/desktop/|src/target/ESP32C5/|forth/|scripts/|Makefile$|bin/|doc/[^/]+/quality/|doc/[^/]+/admin/board-tests\.md$|sbom\.spdx\.json$|\.github/workflows/c-cpp\.yml$)'
         # ch32build V3F/V5F: the shared core and the CH32H417 target + its build.
         ch32_re='^(src/[^/]+$|src/target/CH32H417/|scripts/CH32H417/(ch32build\.sh|mmodecheck\.py)$|\.github/workflows/c-cpp\.yml$)'
         # Empty diff (e.g. a brand-new branch push): run everything, to be safe.

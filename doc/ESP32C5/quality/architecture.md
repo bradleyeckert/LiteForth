@@ -87,14 +87,15 @@ any profile. The gate runs in CI, so a regressed control fails the build.
 
 ### ARC-SOUP: The SOUP controls for ESP-IDF
 ESP-IDF and its bundled libraries are managed as SOUP: a pinned version and
-lockfile, an inventory of the linked attack surface, an SBOM of the platform
-and its upstreams, and CVE monitoring against them. Interfaces: the pinned
-IDF version, the (future) SBOM, and the plan's control list.
+lockfile (`soup.lock.json`) with the linked attack surface marked, an SBOM
+(`soup_sbom.py` → `soup.spdx.json`), and CVE monitoring (`cvecheck.py`, an
+offline backstop plus a scheduled live OSV query). Interfaces: the pinned
+manifest, the SPDX SBOM, and the monitor's verdict.
 
 - **Parent:** SYS-SEC-06
-- **Verified by:** insp:doc/ESP32C5/admin/security-plan.md::SOUP
-- **Status:** planned
-- **Gap:** controls defined in the plan; SBOM and CVE monitoring not yet built
+- **Verified by:** ci:soup::offline cvecheck of the pinned SOUP is clean, insp:src/target/ESP32C5/soup.spdx.json::SPDX-2.3
+- **Status:** partial
+- **Gap:** SBOM + monitor built and automated; the field patch path (OTA) not yet, and some manifest versions need confirming against the install
 
 ### ARC-OTA: Over-the-air update and anti-rollback
 The update mechanism: a signed image written to the inactive OTA slot,

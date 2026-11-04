@@ -106,8 +106,9 @@ surface tracked, an SBOM kept, and its CVEs monitored, so a platform
 vulnerability is found and patched rather than shipped and forgotten.
 
 - **Parent:** UN-06
-- **Verified by:** insp:doc/ESP32C5/admin/security-plan.md::SOUP
+- **Verified by:** ci:soup::offline cvecheck of the pinned SOUP is clean, insp:src/target/ESP32C5/soup.lock.json::linked, insp:doc/ESP32C5/admin/soup.md::CVE monitor
 - **Status:** partial
+- **Gap:** the SBOM and CVE monitor are built and automated; the field patch path (OTA) is not, so a found CVE can't yet be shipped as a fix
 - **Gap:** controls defined in the plan; SBOM and CVE monitoring not yet built
 
 ### SYS-SEC-07: No insecure build escapes, in any profile

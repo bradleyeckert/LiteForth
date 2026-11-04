@@ -1,0 +1,121 @@
+{
+  "schema": "liteforth-soup-1",
+  "target": "ESP32C5",
+  "_comment": [
+    "The pinned SOUP (software of unknown provenance) for the ESP32-C5 build:",
+    "ESP-IDF and the third-party code it bundles. This is the single source of",
+    "truth, maintained by hand like scripts/mksbom.py's COMPONENTS. From it,",
+    "scripts/ESP32C5/soup_sbom.py writes the SPDX SBOM (soup.spdx.json) and",
+    "scripts/ESP32C5/cvecheck.py matches the pinned versions against advisories.",
+    "See doc/ESP32C5/admin/soup.md (security-plan.md section 4).",
+    "",
+    "'linked' is the attack surface that matters (plan section 4.2):",
+    "  app       - linked into the application image",
+    "  bootloader- linked into the 2nd-stage bootloader (secure-boot path)",
+    "  unlinked  - present in ESP-IDF but garbage-collected out of the current",
+    "              (milestone-1, no Wi-Fi/BLE) image; becomes linked when the",
+    "              feature that needs it is turned on. cvecheck reports these as",
+    "              informational, not failures.",
+    "'confirm' names where to read the true version in a local ESP-IDF install",
+    "($IDF_PATH); run `soup_sbom.py --verify-idf $IDF_PATH` to check them."
+  ],
+  "framework": {
+    "name": "esp-idf",
+    "version": "5.5.6",
+    "git_commit": "CONFIRM: git -C $IDF_PATH rev-parse HEAD (record the v5.5.6 tag commit)",
+    "toolchain": "CONFIRM: riscv32-esp-elf GCC from this IDF's tools (idf.py --version / toolchain --version)",
+    "lockfiles": ["dependencies.lock", "managed_components/"],
+    "cpe": "cpe:2.3:a:espressif:esp-idf:5.5.6:*:*:*:*:*:*:*",
+    "note": "Pin one exact IDF version; capture dependencies.lock and the managed_components set for a reproducible image (plan section 4.1)."
+  },
+  "components": [
+    {
+      "name": "esp-idf",
+      "version": "5.5.6",
+      "upstream": "https://github.com/espressif/esp-idf",
+      "license": "Apache-2.0",
+      "cpe": "cpe:2.3:a:espressif:esp-idf:5.5.6:*:*:*:*:*:*:*",
+      "purl": "pkg:github/espressif/esp-idf@v5.5.6",
+      "linked": "app",
+      "surface": "The framework runtime (esp_system, esp_hal, heap, spi_flash, esp_rom, log, bootloader support). Espressif security advisories target this.",
+      "confirm": "$IDF_PATH/version.txt or `git -C $IDF_PATH describe`"
+    },
+    {
+      "name": "freertos-kernel",
+      "version": "11.1.0",
+      "upstream": "https://github.com/FreeRTOS/FreeRTOS-Kernel",
+      "license": "MIT",
+      "cpe": "cpe:2.3:a:amazon:freertos:11.1.0:*:*:*:*:*:*:*",
+      "purl": "pkg:github/FreeRTOS/FreeRTOS-Kernel@V11.1.0",
+      "linked": "app",
+      "surface": "The RTOS kernel the application task runs on. Always linked.",
+      "confirm": "tskKERNEL_VERSION_NUMBER in $IDF_PATH/components/freertos/FreeRTOS-Kernel/include/task.h"
+    },
+    {
+      "name": "newlib",
+      "version": "4.3.0",
+      "upstream": "https://sourceware.org/newlib/",
+      "license": "BSD-like (newlib)",
+      "cpe": "cpe:2.3:a:gnu:newlib:4.3.0:*:*:*:*:*:*:*",
+      "purl": null,
+      "linked": "app",
+      "surface": "C library (printf/scanf, string, malloc wrappers). Linked into the image.",
+      "confirm": "the esp toolchain's newlib; _NEWLIB_VERSION in $IDF_PATH/components/newlib or the toolchain sysroot"
+    },
+    {
+      "name": "mbedtls",
+      "version": "3.6.3",
+      "upstream": "https://github.com/Mbed-TLS/mbedtls",
+      "license": "Apache-2.0",
+      "cpe": "cpe:2.3:a:arm:mbed_tls:3.6.3:*:*:*:*:*:*:*",
+      "purl": "pkg:github/Mbed-TLS/mbedtls@v3.6.3",
+      "linked": "bootloader",
+      "surface": "Secure Boot v2 / app-signature verification in the bootloader; the TLS stack (unlinked) once networking lands. Confirmed v3.6.3 in the IDF v5.5 line.",
+      "confirm": "MBEDTLS_VERSION_STRING in $IDF_PATH/components/mbedtls/mbedtls/include/mbedtls/build_info.h"
+    },
+    {
+      "name": "lwip",
+      "version": "2.2.0",
+      "upstream": "https://git.savannah.nongnu.org/git/lwip.git (Espressif fork: https://github.com/espressif/esp-lwip)",
+      "license": "BSD-3-Clause",
+      "cpe": "cpe:2.3:a:lwip_project:lwip:2.2.0:*:*:*:*:*:*:*",
+      "purl": null,
+      "linked": "unlinked",
+      "surface": "TCP/IP stack. Not linked in the no-networking image; becomes linked with Wi-Fi. Espressif fork of lwIP 2.2.0.",
+      "confirm": "LWIP_VERSION_* in $IDF_PATH/components/lwip/lwip/src/include/lwip/init.h"
+    },
+    {
+      "name": "wpa_supplicant",
+      "version": "2.11",
+      "upstream": "https://w1.fi/wpa_supplicant/ (Espressif fork)",
+      "license": "BSD-3-Clause",
+      "cpe": "cpe:2.3:a:w1.fi:wpa_supplicant:2.11:*:*:*:*:*:*:*",
+      "purl": null,
+      "linked": "unlinked",
+      "surface": "Wi-Fi supplicant / WPA. Not linked without Wi-Fi. Espressif fork.",
+      "confirm": "$IDF_PATH/components/wpa_supplicant (version in its component/readme)"
+    },
+    {
+      "name": "zlib",
+      "version": "1.3.1",
+      "upstream": "https://github.com/madler/zlib",
+      "license": "Zlib",
+      "cpe": "cpe:2.3:a:zlib:zlib:1.3.1:*:*:*:*:*:*:*",
+      "purl": "pkg:github/madler/zlib@v1.3.1",
+      "linked": "unlinked",
+      "surface": "Compression. Not linked unless a component that uses it is pulled in.",
+      "confirm": "ZLIB_VERSION in $IDF_PATH/components/zlib (or the managed component)"
+    },
+    {
+      "name": "tinyusb",
+      "version": "0.18.0",
+      "upstream": "https://github.com/hathach/tinyusb",
+      "license": "MIT",
+      "cpe": "cpe:2.3:a:tinyusb_project:tinyusb:0.18.0:*:*:*:*:*:*:*",
+      "purl": "pkg:github/hathach/tinyusb@0.18.0",
+      "linked": "unlinked",
+      "surface": "USB device stack. The C5 console is the CH340 UART, so TinyUSB is not linked; would be linked only for a USB-device build.",
+      "confirm": "$IDF_PATH managed component espressif/tinyusb version, or components/tinyusb"
+    }
+  ]
+}

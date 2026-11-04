@@ -208,6 +208,14 @@ checklist, since eFuse burns are one-way.
 
 ## 10. Open decisions
 
+**Decided (the C5 log/crypto profile, NIST-approved end to end,
+[data-logs.md](data-logs.md)):** AES-256-GCM AEAD (SP 800-38D); HKDF-SHA256
+per-file keys (SP 800-56C) and SP 800-108 HMAC-SHA256 key rooting from the eFuse
+key; X25519 key agreement (SP 800-186); a SP 800-90A DRBG; **LMS/HSS**
+(SP 800-208) for the signatures we verify. AES-256 and LMS are the deliberate
+quantum hedge. The portable BLAKE2s/Poly1305/Ed25519 profile stays for the
+software path. Still open below.
+
 - Secure Boot v2 signature scheme on the C5: RSA-3072 vs ECDSA-P256/384.
 - Restricted startup wordlist for the console at the production level (the
   interpreter must not be an arbitrary read/write back door).

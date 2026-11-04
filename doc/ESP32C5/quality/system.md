@@ -194,10 +194,12 @@ the developer against a real IDF install.)
 
 ### SYS-LOG-01: Encrypted, authenticated recordings using the C5 hardware
 The device records CODEC and other data streams to the card as encrypted,
-authenticated logs: each file's keys come from a one-off X25519 key and the
-server's public key, the bulk cipher runs on the C5 AES accelerator, and the
-board's long-term key is rooted in C5 hardware (eFuse/HMAC/DS). The on-card
-format is the shared, cipher-agile log format (`src/datalog.c`).
+authenticated logs. The C5 profile is NIST-approved: AES-256-GCM on the AES
+accelerator, per-file keys by HKDF-SHA256 from a one-off X25519 key to the
+server's public key, and the board's long-term key rooted in C5 hardware
+(eFuse HMAC key via SP 800-108 KBKDF, DS peripheral). The on-card structure is
+the shared, cipher-agile log format (`src/datalog.c`); the portable
+AES-CTR/Poly1305/BLAKE2s profile stays for the software path.
 
 - **Parent:** UN-09
 - **Verified by:** sys:datalog::test_round_trip, insp:doc/ESP32C5/admin/data-logs.md::AES accelerator

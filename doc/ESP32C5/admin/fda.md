@@ -224,6 +224,16 @@ Strong, standard cryptography.
   used without being read), so a private key never sits in readable memory
   ([SYS-SEC-09](../quality/system.md), [SYS-SEC-10](../quality/system.md),
   planned).
+- **A NIST-approved profile, quantum-hedged.** The C5's own log/crypto profile is
+  NIST-approved end to end — **AES-256-GCM** (SP 800-38D), **HKDF-SHA256**
+  (SP 800-56C) and **SP 800-108** HMAC-SHA256 key rooting, HMAC-SHA256
+  (FIPS 198-1) / SHA-256 (FIPS 180-4), X25519 (SP 800-186), a SP 800-90A DRBG,
+  and LMS (SP 800-208) for signatures — and every KDF's security is stated
+  against its standard ([data-logs.md §3.6](data-logs.md)). AES-256 (not 128) and
+  the hash-based LMS are the deliberate quantum hedge: a break of the hardness
+  assumptions under ECDSA/RSA would not degrade gracefully, so the design rests
+  on symmetric/hash-based primitives whose only quantum threat (Grover) is a
+  bounded, key-length problem AES-256 already answers.
 
 ### 5.4 Code, data and execution integrity
 

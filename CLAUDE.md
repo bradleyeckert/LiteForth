@@ -69,6 +69,13 @@ make clean      # leaves the tracked bin/*.bin images alone
   **Verified by**; then run `scripts/rtm.py` and commit `rtm.md`.
   `rtm.py --gaps` lists what isn't verified at its level. When you rename
   a test or a check's message, grep `doc/CH32H417/quality` for it.
+  The ESP32-C5 has its own V-model (`doc/ESP32C5/quality/`, mostly `planned`
+  until a board exists); generate/check it with `rtm.py --dir
+  doc/ESP32C5/quality --out doc/ESP32C5/quality/rtm.md --board-tests
+  doc/ESP32C5/admin/board-tests.md`. `unit_tests/rtm` checks both targets; a
+  suite one target owns (e.g. `seccheck`) shows as "traced in the other
+  V-model" rather than a gap. A change under any `doc/*/quality/` or a
+  `board-tests.md` now triggers `make test` in CI (so a stale `rtm.md` fails).
 - Security tests on the board (updates, rollback, PMP, protection) are
   logged in `doc/CH32H417/admin/board-tests.md`, as evidence for a cybersecurity document:
   firmware build and hashes, packages' sha256, steps, expected, and the

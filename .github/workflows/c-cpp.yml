@@ -7,24 +7,76 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # Work out what changed, so the heavy jobs skip work they can't be affected
+  # by (a doc-only or ESP32-C5-only change needs neither the desktop build/test
+  # nor the CH32H417 images). The jobs below always run -- so their check names
+  # always report -- but gate their expensive steps on these outputs.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.f.outputs.build }}
+      ch32: ${{ steps.f.outputs.ch32 }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - id: f
+      shell: bash
+      run: |
+        set -u
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          git fetch -q origin "${{ github.base_ref }}"
+          range="origin/${{ github.base_ref }}...HEAD"
+        else
+          before="${{ github.event.before }}"
+          case "$before" in ""|0000000000000000000000000000000000000000) range="";; *) range="$before ${{ github.sha }}";; esac
+        fi
+        if [ -n "$range" ]; then files=$(git diff --name-only $range); else files=""; fi
+        echo "changed files:"; echo "$files"
+        # make + make test: the shared core (src/<file>), the desktop target,
+        # forth/, any script (the tests drive scripts/), Makefile, bin images.
+        build_re='^(src/[^/]+$|src/target/desktop/|forth/|scripts/|Makefile$|bin/|\.github/workflows/c-cpp\.yml$)'
+        # ch32build V3F/V5F: the shared core and the CH32H417 target + its build.
+        ch32_re='^(src/[^/]+$|src/target/CH32H417/|scripts/CH32H417/(ch32build\.sh|mmodecheck\.py)$|\.github/workflows/c-cpp\.yml$)'
+        # Empty diff (e.g. a brand-new branch push): run everything, to be safe.
+        if [ -z "$files" ]; then
+          build=true; ch32=true
+        else
+          echo "$files" | grep -qE "$build_re" && build=true || build=false
+          echo "$files" | grep -qE "$ch32_re" && ch32=true || ch32=false
+        fi
+        echo "build=$build" >> "$GITHUB_OUTPUT"
+        echo "ch32=$ch32" >> "$GITHUB_OUTPUT"
+        echo "decided: build=$build ch32=$ch32"
+
   build-and-test:
+    needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 30                 # a passing run takes about 3
 
     steps:
+    - name: Nothing to build (no change to the desktop build or tests)
+      if: needs.changes.outputs.build != 'true'
+      run: echo "Skipped - no change affects make or make test."
+
     - name: Checkout repository
+      if: needs.changes.outputs.build == 'true'
       uses: actions/checkout@v7
 
     - name: Compile lf executable
+      if: needs.changes.outputs.build == 'true'
       run: make
 
     - name: Python's cryptography package, for the sealblocks.py tests
+      if: needs.changes.outputs.build == 'true'
       run: python3 -c "import cryptography" || (sudo apt-get update && sudo apt-get install -y python3-cryptography)
 
     - name: Python's pyserial, for running hiltest.py on the simulated board
+      if: needs.changes.outputs.build == 'true'
       run: python3 -c "import serial" || (sudo apt-get update && sudo apt-get install -y python3-serial)
 
     - name: Run primitives test and unit tests
+      if: needs.changes.outputs.build == 'true'
       shell: bash
       # On a failure, the end of the output also goes into an annotation,
       # which the API serves (the log itself is only a download)
@@ -40,29 +92,37 @@ jobs:
   # scripts/CH32H417/ch32build.sh), but it catches what doesn't compile, new
   # warnings, and an image whose RAM no longer fits, before the board does.
   ch32-images:
+    needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       XPACK: xpack-riscv-none-elf-gcc-14.2.0-3
 
     steps:
+    - name: Nothing to build (no change to the shared core or CH32H417)
+      if: needs.changes.outputs.ch32 != 'true'
+      run: echo "Skipped - no change affects the CH32H417 images."
+
     - name: Checkout repository
+      if: needs.changes.outputs.ch32 == 'true'
       uses: actions/checkout@v7
 
     - name: Cache the RISC-V toolchain
       id: toolchain
+      if: needs.changes.outputs.ch32 == 'true'
       uses: actions/cache@v6
       with:
         path: ~/${{ env.XPACK }}
         key: ${{ env.XPACK }}-linux-x64
 
     - name: Fetch the RISC-V toolchain (xPack riscv-none-elf-gcc 14.2.0-3)
-      if: steps.toolchain.outputs.cache-hit != 'true'
+      if: needs.changes.outputs.ch32 == 'true' && steps.toolchain.outputs.cache-hit != 'true'
       run: |
         curl -sSfL -o /tmp/gcc.tgz https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v14.2.0-3/${XPACK}-linux-x64.tar.gz
         tar xzf /tmp/gcc.tgz -C ~
 
     - name: Build the V3F and V5F images
+      if: needs.changes.outputs.ch32 == 'true'
       run: |
         export RISCV_PREFIX=~/${XPACK}/bin/riscv-none-elf-
         scripts/CH32H417/ch32build.sh V3F

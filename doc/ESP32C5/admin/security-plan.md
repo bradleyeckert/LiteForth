@@ -218,13 +218,21 @@ checklist, since eFuse burns are one-way.
 
 1. This plan (done, iterate).
 2. The security-config linter + a reviewed `sdkconfig` security baseline (CI
-   gate) -- highest value, needs no board.
-3. `fda.md`: the control-by-control FDA mapping for the ESP32-C5.
-4. The SOUP SBOM + CVE-monitor scaffolding.
-5. The `doc/ESP32C5/quality/` V-model items (needs/system/architecture/
+   gate) -- highest value, needs no board. **Done:**
+   `scripts/ESP32C5/seccheck.py`, `sdkconfig.secure.defaults`,
+   `unit_tests/seccheck`.
+3. The `doc/ESP32C5/quality/` V-model items (needs/system/architecture/
    modules) with security requirements, traced like the CH32 target.
+   **Done:** `doc/ESP32C5/quality/`, checked by `unit_tests/rtm`.
+4. The SOUP SBOM + CVE-monitor scaffolding. **Done:** `soup.lock.json`,
+   `scripts/ESP32C5/soup_sbom.py` (→ `soup.spdx.json`), `cvecheck.py`
+   (vs `advisories.json` + OSV), `unit_tests/soup`, the scheduled
+   `soup-cve.yml`; see [soup.md](soup.md).
+5. `fda.md`: the control-by-control FDA mapping for the ESP32-C5. **Done:**
+   [fda.md](fda.md).
 6. The provisioning flow and the on-board eFuse/boot/OTA tests + board-test
-   log, as the board and the secure-boot keys become available.
+   log, as the board and the secure-boot keys become available. *(Next;
+   board-dependent.)*
 
 ## References
 

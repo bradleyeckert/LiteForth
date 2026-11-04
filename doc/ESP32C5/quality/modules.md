@@ -93,3 +93,15 @@ and the gate can't drift apart.
 - **Design:** doc/ESP32C5/admin/security-plan.md
 - **Verified by:** unit:seccheck::satisfies the production baseline
 - **Status:** verified
+
+### MOD-SOUP: The SOUP SBOM and CVE monitor
+`soup_sbom.py` turns the pinned manifest (`soup.lock.json`) into an SPDX SBOM,
+and `cvecheck.py` matches the pinned versions against advisories (an offline
+backstop plus an optional live OSV query), failing on a linked, unpatched CVE.
+Together they are the automated part of the ESP-IDF-as-SOUP controls.
+
+- **Parent:** ARC-SOUP
+- **Code:** scripts/ESP32C5/cvecheck.py::affected, scripts/ESP32C5/soup_sbom.py::build
+- **Design:** doc/ESP32C5/admin/soup.md
+- **Verified by:** unit:soup::a linked component in an affected range fails the gate, unit:soup::a version at/above the fix is clean
+- **Status:** verified

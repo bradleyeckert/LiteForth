@@ -8,8 +8,8 @@ Written by `scripts/rtm.py` from [needs.md](needs.md), [system.md](system.md), [
 |---|---|---|---|---|---|
 | Stakeholder needs (UN) | 8 | 0 | 2 | 6 | 8 |
 | System requirements (SYS) | 14 | 2 | 9 | 3 | 12 |
-| Architecture elements (ARC) | 8 | 1 | 3 | 4 | 7 |
-| Modules (MOD) | 7 | 2 | 5 | 0 | 5 |
+| Architecture elements (ARC) | 8 | 1 | 4 | 3 | 7 |
+| Modules (MOD) | 8 | 3 | 5 | 0 | 5 |
 
 ## Needs to system requirements
 
@@ -41,7 +41,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [SYS-SEC-03](system.md#sys-sec-03-the-serial-download-back-door-is-closed) The serial download back door is closed | [UN-05](needs.md#un-05-firmware-and-secrets-cant-be-extracted) | [ARC-SECBOOT](architecture.md#arc-secboot-the-secure-boot-and-flash-encryption-chain) | insp:`src/target/ESP32C5/sdkconfig.secure.defaults::CONFIG_SECURE_DISABLE_ROM_DL_MODE` | partial |
 | [SYS-SEC-04](system.md#sys-sec-04-no-downgrade-to-a-withdrawn-image) No downgrade to a withdrawn image | [UN-03](needs.md#un-03-updates-that-never-brick-a-device) | [ARC-OTA](architecture.md#arc-ota-over-the-air-update-and-anti-rollback) | insp:`src/target/ESP32C5/sdkconfig.secure.defaults::CONFIG_BOOTLOADER_APP_ANTI_ROLLBACK` | partial |
 | [SYS-SEC-05](system.md#sys-sec-05-the-production-security-baseline-is-enforced-automatically) The production security baseline is enforced automatically | [UN-06](needs.md#un-06-stays-defensible-against-automated-attack-in-the-field) | [ARC-SECCFG](architecture.md#arc-seccfg-the-security-configuration-baseline-and-its-gate) | ci:`seccheck::compliant config: production passes`<br>insp:`scripts/ESP32C5/seccheck.py::RULES` | verified |
-| [SYS-SEC-06](system.md#sys-sec-06-esp-idf-is-treated-as-soup-with-controls) ESP-IDF is treated as SOUP, with controls | [UN-06](needs.md#un-06-stays-defensible-against-automated-attack-in-the-field) | [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf) | insp:`doc/ESP32C5/admin/security-plan.md::SOUP` | partial |
+| [SYS-SEC-06](system.md#sys-sec-06-esp-idf-is-treated-as-soup-with-controls) ESP-IDF is treated as SOUP, with controls | [UN-06](needs.md#un-06-stays-defensible-against-automated-attack-in-the-field) | [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf) | ci:`soup::offline cvecheck of the pinned SOUP is clean`<br>insp:`src/target/ESP32C5/soup.lock.json::linked`<br>insp:`doc/ESP32C5/admin/soup.md::CVE monitor` | partial |
 | [SYS-SEC-07](system.md#sys-sec-07-no-insecure-build-escapes-in-any-profile) No insecure build escapes, in any profile | [UN-06](needs.md#un-06-stays-defensible-against-automated-attack-in-the-field) | [ARC-SECCFG](architecture.md#arc-seccfg-the-security-configuration-baseline-and-its-gate) | ci:`seccheck::flags the allow-JTAG escape`<br>ci:`seccheck::dev profile still fails` | verified |
 | [SYS-SEC-08](system.md#sys-sec-08-a-restricted-console-at-production-level) A restricted console at production level | [UN-05](needs.md#un-05-firmware-and-secrets-cant-be-extracted) | **none** | - | planned |
 | [SYS-SEC-09](system.md#sys-sec-09-keys-kept-in-hardware) Keys kept in hardware | [UN-05](needs.md#un-05-firmware-and-secrets-cant-be-extracted) | [ARC-KEYS](architecture.md#arc-keys-key-storage-in-hardware) | - | planned |
@@ -58,7 +58,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [ARC-PART](architecture.md#arc-part-the-partition-and-storage-layout) The partition and storage layout | [SYS-UPD-01](system.md#sys-upd-01-signed-over-the-air-updates), [SYS-FLASH-01](system.md#sys-flash-01-persistent-dictionary-in-flash) | **none** | insp:`src/target/ESP32C5/partitions.csv::lfflash` | partial |
 | [ARC-SECBOOT](architecture.md#arc-secboot-the-secure-boot-and-flash-encryption-chain) The secure-boot and flash-encryption chain | [SYS-SEC-01](system.md#sys-sec-01-only-vendor-signed-firmware-boots), [SYS-SEC-02](system.md#sys-sec-02-firmware-and-secrets-encrypted-at-rest), [SYS-SEC-03](system.md#sys-sec-03-the-serial-download-back-door-is-closed) | **none** | insp:`src/target/ESP32C5/sdkconfig.secure.defaults::CONFIG_SECURE_FLASH_CHECK_ENC_EN_IN_APP` | planned |
 | [ARC-SECCFG](architecture.md#arc-seccfg-the-security-configuration-baseline-and-its-gate) The security-configuration baseline and its gate | [SYS-SEC-05](system.md#sys-sec-05-the-production-security-baseline-is-enforced-automatically), [SYS-SEC-07](system.md#sys-sec-07-no-insecure-build-escapes-in-any-profile) | [MOD-SECCHECK](modules.md#mod-seccheck-the-security-configuration-gate), [MOD-SECOVL](modules.md#mod-secovl-the-production-security-overlay) | ci:`seccheck::compliant config: production passes`<br>ci:`seccheck::flags the allow-JTAG escape` | verified |
-| [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf) The SOUP controls for ESP-IDF | [SYS-SEC-06](system.md#sys-sec-06-esp-idf-is-treated-as-soup-with-controls) | **none** | insp:`doc/ESP32C5/admin/security-plan.md::SOUP` | planned |
+| [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf) The SOUP controls for ESP-IDF | [SYS-SEC-06](system.md#sys-sec-06-esp-idf-is-treated-as-soup-with-controls) | [MOD-SOUP](modules.md#mod-soup-the-soup-sbom-and-cve-monitor) | ci:`soup::offline cvecheck of the pinned SOUP is clean`<br>insp:`src/target/ESP32C5/soup.spdx.json::SPDX-2.3` | partial |
 
 ## Modules
 
@@ -70,6 +70,7 @@ Left side: the need above, the architecture below. Right side: the system and in
 | [MOD-SECCHECK](modules.md#mod-seccheck-the-security-configuration-gate) The security-configuration gate | [ARC-SECCFG](architecture.md#arc-seccfg-the-security-configuration-baseline-and-its-gate) | `scripts/ESP32C5/seccheck.py::RULES` | `doc/ESP32C5/admin/security-plan.md` | unit:`seccheck::compliant config: production passes`<br>unit:`seccheck::dev profile still fails` | verified |
 | [MOD-SECOVL](modules.md#mod-secovl-the-production-security-overlay) The production security overlay | [ARC-SECCFG](architecture.md#arc-seccfg-the-security-configuration-baseline-and-its-gate) | `src/target/ESP32C5/sdkconfig.secure.defaults::CONFIG_SECURE_BOOT` | `doc/ESP32C5/admin/security-plan.md` | unit:`seccheck::satisfies the production baseline` | verified |
 | [MOD-SERIAL](modules.md#mod-serial-the-console-uart-driver) The console UART driver | [ARC-DRV](architecture.md#arc-drv-the-target-driver-layer) | `src/target/ESP32C5/main/serial_io.c::serial_getc` | `doc/ESP32C5/esp32c5-notes.md` | - | partial |
+| [MOD-SOUP](modules.md#mod-soup-the-soup-sbom-and-cve-monitor) The SOUP SBOM and CVE monitor | [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf) | `scripts/ESP32C5/cvecheck.py::affected`<br>`scripts/ESP32C5/soup_sbom.py::build` | `doc/ESP32C5/admin/soup.md` | unit:`soup::a linked component in an affected range fails the gate`<br>unit:`soup::a version at/above the fix is clean` | verified |
 | [MOD-TIME](modules.md#mod-time-time-and-reset) Time and reset | [ARC-DRV](architecture.md#arc-drv-the-target-driver-layer) | `src/target/ESP32C5/main/lftime.c::lfGetTimeMicroSec` | `doc/ESP32C5/esp32c5-notes.md` | - | partial |
 
 ## Test suites to items
@@ -117,6 +118,7 @@ Every suite under `src/target/desktop/unit_tests/` (run by `make test`) and what
 | `sealed` | traced in the CH32H417 V-model |
 | `seccheck` | [ARC-SECCFG](architecture.md#arc-seccfg-the-security-configuration-baseline-and-its-gate), [MOD-SECCHECK](modules.md#mod-seccheck-the-security-configuration-gate), [MOD-SECOVL](modules.md#mod-secovl-the-production-security-overlay), [SYS-SEC-05](system.md#sys-sec-05-the-production-security-baseline-is-enforced-automatically), [SYS-SEC-07](system.md#sys-sec-07-no-insecure-build-escapes-in-any-profile) |
 | `serial_io` | traced in the CH32H417 V-model |
+| `soup` | [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf), [MOD-SOUP](modules.md#mod-soup-the-soup-sbom-and-cve-monitor), [SYS-SEC-06](system.md#sys-sec-06-esp-idf-is-treated-as-soup-with-controls) |
 | `stage1sim` | traced in the CH32H417 V-model |
 | `traps` | traced in the CH32H417 V-model |
 | `update` | traced in the CH32H417 V-model |
@@ -142,7 +144,7 @@ What isn't verified at its level yet, or isn't traced. Planned items are here un
 - [ARC-PART](architecture.md#arc-part-the-partition-and-storage-layout): no module traces to it
 - [ARC-PART](architecture.md#arc-part-the-partition-and-storage-layout): partial: layout defined; OTA and encrypted NVS not yet exercised
 - [ARC-SECBOOT](architecture.md#arc-secboot-the-secure-boot-and-flash-encryption-chain): planned: not built yet
-- [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf): planned: not built yet
+- [ARC-SOUP](architecture.md#arc-soup-the-soup-controls-for-esp-idf): partial: SBOM + monitor built and automated; the field patch path (OTA) not yet, and some manifest versions need confirming against the install
 - [MOD-BOARD](modules.md#mod-board-board-identity): no unit evidence for a module
 - [MOD-FLASH](modules.md#mod-flash-the-flash-driver): no unit evidence for a module
 - [MOD-MAIN](modules.md#mod-main-application-entry): no unit evidence for a module

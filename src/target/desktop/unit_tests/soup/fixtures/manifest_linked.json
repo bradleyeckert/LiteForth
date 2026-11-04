@@ -1,0 +1,11 @@
+{
+  "schema": "liteforth-soup-1", "target": "TEST",
+  "framework": {"name": "esp-idf", "version": "5.5.6"},
+  "components": [
+    {"name": "foolib", "version": "1.0.0", "upstream": "https://example/foolib",
+     "license": "MIT", "cpe": "cpe:2.3:a:ex:foolib:1.0.0:*:*:*:*:*:*:*",
+     "purl": null, "linked": "app", "surface": "test"},
+    {"name": "barlib", "version": "1.0.0", "upstream": "https://example/barlib",
+     "license": "MIT", "cpe": null, "purl": null, "linked": "unlinked", "surface": "test"}
+  ]
+}

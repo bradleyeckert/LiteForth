@@ -1,0 +1,8 @@
+{
+  "schema": "liteforth-advisories-1", "updated": "2026-01-01",
+  "advisories": [
+    {"id": "CVE-TEST-0003", "component": "foolib",
+     "ranges": [{"introduced": "0", "fixed": "1.0.0"}],
+     "severity": "high", "summary": "already fixed at pinned version", "link": "https://example/3"}
+  ]
+}

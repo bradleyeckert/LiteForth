@@ -1,0 +1,230 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "LiteForth-ESP32C5-SOUP",
+  "documentNamespace": "https://github.com/bradleyeckert/LiteForth/sbom/esp32c5-soup/3f5817a9c6306f1e0247de20e7d18d86",
+  "creationInfo": {
+    "created": "2026-11-04T18:53:34Z",
+    "creators": [
+      "Tool: scripts/ESP32C5/soup_sbom.py",
+      "Person: Bradley N Eckert"
+    ]
+  },
+  "comment": "The pinned ESP-IDF SOUP for the ESP32-C5 (src/target/ESP32C5/soup.lock.json). Versions marked CONFIRM/confirm in the manifest must be checked against the pinned IDF install.",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Product-ESP32C5",
+      "name": "LiteForth-ESP32C5",
+      "versionInfo": "esp-idf 5.5.6",
+      "downloadLocation": "git+https://github.com/bradleyeckert/LiteForth",
+      "homepage": "https://github.com/bradleyeckert/LiteForth",
+      "primaryPackagePurpose": "FIRMWARE",
+      "supplier": "Person: Bradley N Eckert",
+      "comment": "The ESP32-C5 firmware product; the packages below are the SOUP it is built from (Pin one exact IDF version; capture dependencies.lock and the managed_components set for a reproducible image (plan section 4.1).)"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-esp-idf",
+      "name": "esp-idf",
+      "versionInfo": "5.5.6",
+      "downloadLocation": "https://github.com/espressif/esp-idf",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "primaryPackagePurpose": "FRAMEWORK",
+      "comment": "[app] linked into the application image. The framework runtime (esp_system, esp_hal, heap, spi_flash, esp_rom, log, bootloader support). Espressif security advisories target this.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:espressif:esp-idf:5.5.6:*:*:*:*:*:*:*"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/espressif/esp-idf@v5.5.6"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-freertos-kernel",
+      "name": "freertos-kernel",
+      "versionInfo": "11.1.0",
+      "downloadLocation": "https://github.com/FreeRTOS/FreeRTOS-Kernel",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[app] linked into the application image. The RTOS kernel the application task runs on. Always linked.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:amazon:freertos:11.1.0:*:*:*:*:*:*:*"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/FreeRTOS/FreeRTOS-Kernel@V11.1.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-newlib",
+      "name": "newlib",
+      "versionInfo": "4.3.0",
+      "downloadLocation": "https://sourceware.org/newlib/",
+      "licenseConcluded": "BSD-like (newlib)",
+      "licenseDeclared": "BSD-like (newlib)",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[app] linked into the application image. C library (printf/scanf, string, malloc wrappers). Linked into the image.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:gnu:newlib:4.3.0:*:*:*:*:*:*:*"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-mbedtls",
+      "name": "mbedtls",
+      "versionInfo": "3.6.3",
+      "downloadLocation": "https://github.com/Mbed-TLS/mbedtls",
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[bootloader] linked into the 2nd-stage bootloader (secure-boot path). Secure Boot v2 / app-signature verification in the bootloader; the TLS stack (unlinked) once networking lands. Confirmed v3.6.3 in the IDF v5.5 line.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:arm:mbed_tls:3.6.3:*:*:*:*:*:*:*"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/Mbed-TLS/mbedtls@v3.6.3"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-lwip",
+      "name": "lwip",
+      "versionInfo": "2.2.0",
+      "downloadLocation": "https://git.savannah.nongnu.org/git/lwip.git (Espressif fork: https://github.com/espressif/esp-lwip)",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[unlinked] present in ESP-IDF but not linked into the current image. TCP/IP stack. Not linked in the no-networking image; becomes linked with Wi-Fi. Espressif fork of lwIP 2.2.0.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:lwip_project:lwip:2.2.0:*:*:*:*:*:*:*"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-wpa-supplicant",
+      "name": "wpa_supplicant",
+      "versionInfo": "2.11",
+      "downloadLocation": "https://w1.fi/wpa_supplicant/ (Espressif fork)",
+      "licenseConcluded": "BSD-3-Clause",
+      "licenseDeclared": "BSD-3-Clause",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[unlinked] present in ESP-IDF but not linked into the current image. Wi-Fi supplicant / WPA. Not linked without Wi-Fi. Espressif fork.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:w1.fi:wpa_supplicant:2.11:*:*:*:*:*:*:*"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-zlib",
+      "name": "zlib",
+      "versionInfo": "1.3.1",
+      "downloadLocation": "https://github.com/madler/zlib",
+      "licenseConcluded": "Zlib",
+      "licenseDeclared": "Zlib",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[unlinked] present in ESP-IDF but not linked into the current image. Compression. Not linked unless a component that uses it is pulled in.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:zlib:zlib:1.3.1:*:*:*:*:*:*:*"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/madler/zlib@v1.3.1"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-tinyusb",
+      "name": "tinyusb",
+      "versionInfo": "0.18.0",
+      "downloadLocation": "https://github.com/hathach/tinyusb",
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "primaryPackagePurpose": "LIBRARY",
+      "comment": "[unlinked] present in ESP-IDF but not linked into the current image. USB device stack. The C5 console is the CH340 UART, so TinyUSB is not linked; would be linked only for a USB-device build.",
+      "externalRefs": [
+        {
+          "referenceCategory": "SECURITY",
+          "referenceType": "cpe23Type",
+          "referenceLocator": "cpe:2.3:a:tinyusb_project:tinyusb:0.18.0:*:*:*:*:*:*:*"
+        },
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:github/hathach/tinyusb@0.18.0"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-Product-ESP32C5",
+      "relatedSpdxElement": "SPDXRef-Package-esp-idf",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Product-ESP32C5",
+      "relatedSpdxElement": "SPDXRef-Package-freertos-kernel",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Product-ESP32C5",
+      "relatedSpdxElement": "SPDXRef-Package-newlib",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Product-ESP32C5",
+      "relatedSpdxElement": "SPDXRef-Package-mbedtls",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-lwip",
+      "relatedSpdxElement": "SPDXRef-Product-ESP32C5",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-wpa-supplicant",
+      "relatedSpdxElement": "SPDXRef-Product-ESP32C5",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-zlib",
+      "relatedSpdxElement": "SPDXRef-Product-ESP32C5",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-tinyusb",
+      "relatedSpdxElement": "SPDXRef-Product-ESP32C5",
+      "relationshipType": "OPTIONAL_DEPENDENCY_OF"
+    }
+  ]
+}

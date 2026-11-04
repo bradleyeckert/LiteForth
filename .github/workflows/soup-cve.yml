@@ -1,0 +1,42 @@
+name: ESP32-C5 SOUP CVE monitor
+
+# The standing live control from the security plan (section 4.4 / 7.2): match
+# the pinned ESP-IDF SOUP (src/target/ESP32C5/soup.lock.json) against the OSV
+# feed on a schedule, so a new CVE in a linked component surfaces even when no
+# one is building. The offline backstop (advisories.json) runs in `make test`;
+# this adds the live query, which needs the internet a hosted runner has.
+#
+# A linked, unpatched match fails this workflow (a red check on the schedule).
+# Run it by hand from the Actions tab (workflow_dispatch) any time.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'        # Mondays 06:17 UTC
+  workflow_dispatch:
+  # Also re-check when the pins or the advisory backstop change.
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/target/ESP32C5/soup.lock.json'
+      - 'src/target/ESP32C5/advisories.json'
+      - 'scripts/ESP32C5/cvecheck.py'
+      - '.github/workflows/soup-cve.yml'
+
+jobs:
+  cve-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: SBOM is current vs the manifest
+      run: python3 scripts/ESP32C5/soup_sbom.py --check
+
+    - name: Query the live OSV feed against the pinned SOUP
+      shell: bash
+      run: |
+        set -o pipefail
+        python3 scripts/ESP32C5/cvecheck.py --online 2>&1 | tee cve.log && exit 0
+        status=$?
+        tail -n 40 cve.log | python3 -c 'import sys; t = sys.stdin.read(); print("::error title=SOUP CVE monitor: a linked component is affected::" + t.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
+        exit $status

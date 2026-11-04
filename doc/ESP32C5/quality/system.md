@@ -140,6 +140,32 @@ use a key without being able to read it out.
 - **Status:** planned
 - **Gap:** not yet brought up; needs a board
 
+### SYS-SEC-10: The C5 crypto accelerators are used through checked hooks
+The C5 has accelerators the CH32H417 lacks — SHA-1..512, ECC (P-192/256/384),
+HMAC-SHA-256 and the RSA/ECDSA DS peripheral, besides AES and the TRNG. Each
+is reached through a thin target hook over the IDF/ROM driver, verified once
+against a software reference and with a software fallback kept (the pattern of
+`ctr.c`'s `CTR_HW`/ECDC seam), so no accelerator sits idle and the software
+path stays available for the self-check and portability.
+
+- **Parent:** UN-06
+- **Verified by:** insp:src/ctr.c::CTR_HW, insp:doc/ESP32C5/esp32c5-notes.md::Hardware crypto hooks
+- **Status:** partial
+- **Gap:** the AES seam exists; the SHA/HMAC/ECC/DS hooks are not built, no board
+
+### SYS-SEC-11: Quantum-resistant signatures for our own signature layer
+For the signatures LiteForth itself verifies — sealed-package / application-
+content signatures and board-identity certificates — the scheme is LMS
+(hash-based, stateful; RFC 8554 / NIST SP 800-208) rather than ECDSA, for
+quantum resistance; verification is SHA-256-heavy and rides the SHA hook
+([SYS-SEC-10](system.md)). The chip's own Secure Boot v2 stays ROM-fixed
+RSA/ECDSA, so this covers the layer above the chip's root of trust.
+
+- **Parent:** UN-04
+- **Verified by:** insp:doc/ESP32C5/esp32c5-notes.md::prefer LMS
+- **Status:** planned
+- **Gap:** scheme selected; parameters, a vetted LMS implementation (a new SOUP component) and the verifier are not built
+
 ## UPD: updates
 
 ### SYS-UPD-01: Signed over-the-air updates
@@ -163,3 +189,50 @@ the developer against a real IDF install.)
 - **Verified by:** insp:src/target/ESP32C5/README.md::idf.py
 - **Status:** partial
 - **Gap:** builds locally against IDF v5.5.6; not built in CI
+
+## LOG: data logs and the security-event log
+
+### SYS-LOG-01: Encrypted, authenticated recordings using the C5 hardware
+The device records CODEC and other data streams to the card as encrypted,
+authenticated logs: each file's keys come from a one-off X25519 key and the
+server's public key, the bulk cipher runs on the C5 AES accelerator, and the
+board's long-term key is rooted in C5 hardware (eFuse/HMAC/DS). The on-card
+format is the shared, cipher-agile log format (`src/datalog.c`).
+
+- **Parent:** UN-09
+- **Verified by:** sys:datalog::test_round_trip, insp:doc/ESP32C5/admin/data-logs.md::AES accelerator
+- **Status:** partial
+- **Gap:** format proven on the desktop; the C5 AES/HMAC/DS backend is not built, no board
+
+### SYS-LOG-02: The server proves origin and integrity; the UID stays private
+The server can prove which board wrote a log and that nothing in it was
+changed or reordered, and the board's UID never appears in the clear on the
+card.
+
+- **Parent:** UN-09
+- **Verified by:** sys:datalog::test_tampering, sys:datalog::test_round_trip
+- **Status:** partial
+- **Gap:** proven on the desktop; not yet on the C5 with hardware-rooted keys
+
+### SYS-LOG-03: Recoverable after a power cut; one file per boot
+A log is an ordinary contiguous exFAT file the board makes itself; after a
+power cut the board finds where the log ends, with no key, and closes it
+there. A log file does not span reboots.
+
+- **Parent:** UN-09
+- **Verified by:** sys:datalog::test_power_cuts, sys:datalog::test_stale
+- **Status:** partial
+- **Gap:** proven on the desktop; SD-over-SPI and a board run pending
+
+### SYS-LOG-04: A security-event log in the same format
+Security-relevant events — refused updates, rollback and anti-rollback,
+boot-integrity failures, download-mode or JTAG access attempts, tamper, and
+console anomalies — are recorded to the card in the same encrypted,
+authenticated log format, so they can be neither read nor forged by an
+attacker and the server verifies them with the same tool. This is the
+target's event-detection-and-logging control.
+
+- **Parent:** UN-10
+- **Verified by:** insp:doc/ESP32C5/admin/data-logs.md::security-event log
+- **Status:** planned
+- **Gap:** event types and the write points at each security decision not built

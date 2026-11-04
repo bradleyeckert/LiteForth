@@ -29,10 +29,18 @@ from the CH32H417's:
    *configuring them correctly, controlling ESP-IDF as SOUP, and proving both
    automatically* ([security-plan.md](security-plan.md)).
 
-The concrete medical application is not fixed — the NM-CYD-C5 is a development
-board and this is a platform port — so where the CH32H417 document reasons
-about a specific recorder, this one applies the same bar to the port and flags
-what an application would need to pin down. Status: draft, 2026-11-04.
+One main application is now fixed: like the CH32H417, the device records CODEC
+audio and other data streams to the microSD card as **encrypted, authenticated
+logs only the data owner's server can read**, using the C5's cryptographic
+hardware, and the cybersecurity system records **penetration attempts and
+other security events into a log of the same form**
+([data-logs.md](data-logs.md), [UN-09](../quality/needs.md),
+[UN-10](../quality/needs.md)). That makes this a data-recording device with
+real confidentiality/integrity stakes, and it gives the weakest control
+category — event detection and logging ([§5.6](#56-event-detection-and-logging))
+— a concrete, designed home. The NM-CYD-C5 is still a development board, so the
+hazard analysis of a finished product remains to be pinned down. Status: draft,
+2026-11-04.
 
 ---
 
@@ -119,8 +127,10 @@ ISO 14971 / ISO 13485).
   the pinned SOUP against advisories and fails on a linked, unpatched hit
   ([cvecheck.py](../../../scripts/ESP32C5/cvecheck.py)). **Gap:** no formal
   link yet to CISA's Known Exploited Vulnerabilities catalogue, and the
-  security *safety*-risk file (ISO 14971 linkage) is not written — the
-  application isn't fixed, so the hazard analysis can't be.
+  security *safety*-risk file (ISO 14971 linkage) is not written — a finished
+  product's hazard analysis needs the full application pinned down (the
+  recording application, [§1](#1-the-device-and-its-ports), is now fixed; the
+  clinical context is not).
 
 ---
 
@@ -198,8 +208,22 @@ Strong, standard cryptography.
   ([SYS-CORE-01](../quality/system.md); tested on the desktop, covered by the
   CH32H417 SBOM and `unit_tests`). Whether LiteForth's sealed format is kept
   on top of IDF's OTA is an open decision ([security-plan.md §10](security-plan.md)).
-- **Keys in hardware** via eFuse + the DS peripheral so a private key never
-  sits in readable memory ([SYS-SEC-09](../quality/system.md), planned).
+- **The C5's crypto accelerators are used through checked hooks**
+  ([SYS-SEC-10](../quality/system.md), [ARC-CRYPTO](../quality/architecture.md)).
+  The C5 has accelerators the CH32H417 lacks — **SHA-1..512, ECC (P-192/256/384),
+  HMAC-SHA-256 and the RSA/ECDSA DS peripheral**, on top of the AES accelerator
+  and TRNG ([esp32c5-notes.md](../esp32c5-notes.md)). Each is reached through a
+  thin target hook over the IDF/ROM driver, verified once against the software
+  reference with a software fallback — the pattern the shared `ctr.c`'s
+  `CTR_HW`/ECDC seam already establishes. So the bulk cipher, hashing, HMAC KDF,
+  ECDSA/ECDH identity and randomness all run on hardware where the chip offers
+  it, rather than in software. This keeps the crypto standard *and* leaves no
+  idle accelerator a design review would question.
+- **Keys in hardware** via eFuse + the **HMAC peripheral** (a burned HMAC key
+  used without being read) and the **DS peripheral** (the private asymmetric key
+  used without being read), so a private key never sits in readable memory
+  ([SYS-SEC-09](../quality/system.md), [SYS-SEC-10](../quality/system.md),
+  planned).
 
 ### 5.4 Code, data and execution integrity
 
@@ -230,16 +254,30 @@ Strong, standard cryptography.
   and board-verify the exact sequence.
 - **No per-device secret in plaintext**: keys read-protected in eFuse
   ([SYS-SEC-09](../quality/system.md), planned).
+- **Recordings are confidential**: each CODEC/data log is encrypted so only the
+  data owner's server can read it, with the board's UID kept off the card
+  ([SYS-LOG-01](../quality/system.md), [SYS-LOG-02](../quality/system.md),
+  [data-logs.md](data-logs.md)). Same format as the CH32H417, bulk cipher on the
+  C5 AES accelerator.
 
 ### 5.6 Event detection and logging
 
 The guidance asks that a device detect and log security-relevant events.
 
 - ESP-IDF's bootloader and app log boot, secure-boot and update outcomes over
-  the console. **Gap (the weakest category, as on the CH32H417):** there is no
-  persistent, queryable security-event record (failed updates, rollback,
-  tamper, boot-integrity results). Recommended as a new requirement in
-  [§11](#11-requirement-impact-what-the-fda-framing-changes).
+  the console.
+- **A security-event log is designed** ([SYS-LOG-04](../quality/system.md),
+  [data-logs.md §4](data-logs.md)): penetration attempts and security decisions
+  — refused updates, rollback/anti-rollback, boot-integrity failures,
+  download-mode/JTAG access attempts, tamper, console anomalies — are recorded to
+  the card in the **same encrypted, authenticated log format** as the data logs,
+  so an attacker can neither read nor forge the record of their own attempts, and
+  the server verifies it with the same tool. This gives the category — the
+  weakest on the CH32H417 — a concrete home on this target, reusing the logging
+  subsystem rather than a bespoke mechanism. **Gap:** designed, not built (the
+  event types and the write points at each security decision); events that must
+  survive a wiped card also need a small eFuse/NVS counter
+  ([data-logs.md §4](data-logs.md)).
 
 ### 5.7 Resiliency and recovery
 
@@ -432,9 +470,23 @@ deliberately, not yet applied.
 - **Restricted production console wordlist ([SYS-SEC-08](../quality/system.md)).**
   Still only *planned*; the serial REPL must not be an arbitrary read/write
   back door on a production unit. Design and require it.
-- **Event detection and logging (new requirement).** As on the CH32H417, the
-  weakest category: add a persistent, tamper-evident security-event record and
-  a parent need ([§5.6](#56-event-detection-and-logging)).
+- **Event detection and logging — now designed, build it.** Previously the
+  weakest category; it now has a requirement and a design: the security-event
+  log in the shared encrypted/authenticated log format
+  ([SYS-LOG-04](../quality/system.md), [data-logs.md §4](data-logs.md),
+  [§5.6](#56-event-detection-and-logging)). The remaining work is building the
+  event types, the write points, and the eFuse/NVS counter for events that must
+  survive a wiped card.
+- **Quantum-resistant signatures (LMS).** For the signature layer LiteForth
+  verifies, adopt LMS over ECDSA ([SYS-SEC-11](../quality/system.md),
+  [esp32c5-notes.md](../esp32c5-notes.md#signatures-prefer-lms-quantum-resistant-over-ecdsa)):
+  select parameters and a vetted implementation (a new SOUP/SBOM component).
+  The chip's Secure Boot v2 stays RSA/ECDSA, so state the quantum-resistance
+  claim as scoped to our own packages/content.
+- **Use the C5 accelerators through checked hooks ([SYS-SEC-10](../quality/system.md)).**
+  Build the SHA/HMAC/ECC/DS hooks (the AES seam exists), each checked once
+  against software — so a review finds no idle accelerator and the crypto runs
+  on hardware where the chip offers it.
 - **SBOM support status and EOL, and a CISA KEV cross-reference** (tighten
   [SYS-SEC-06](../quality/system.md) / [soup.md](soup.md)): add a support
   level and end-of-support date per SOUP component and a KEV check in the

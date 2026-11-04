@@ -20,9 +20,13 @@ both automatically.*
 LiteForth running as an ESP-IDF application on the ESP32-C5 (NM-CYD-C5 board).
 In scope: the boot chain, firmware/OTA updates, key storage, the console and
 other input surfaces, data at rest, and the provenance and configuration of
-ESP-IDF itself. Out of scope (stated, as the FDA asks): invasive physical
-attacks (decapsulation, FIB), and attacks that assume possession of a valid
-signing private key.
+ESP-IDF itself. A main application is recording CODEC/data streams to the card
+as encrypted, authenticated logs, with security events (penetration attempts)
+logged in the same format — designed in [data-logs.md](data-logs.md), using the
+C5's crypto accelerators through checked hooks
+([esp32c5-notes.md](esp32c5-notes.md)). Out of scope (stated, as the FDA asks):
+invasive physical attacks (decapsulation, FIB), and attacks that assume
+possession of a valid signing private key.
 
 ## 2. What drives the requirements
 
@@ -209,6 +213,14 @@ checklist, since eFuse burns are one-way.
   interpreter must not be an arbitrary read/write back door).
 - Whether any of LiteForth's sealed-package format is kept for *application/
   content* updates on top of IDF's firmware OTA, or dropped entirely.
+- **Signature scheme for LiteForth's own signature layer: prefer LMS**
+  (hash-based, quantum-resistant; RFC 8554 / NIST SP 800-208) over ECDSA, for
+  the packages/content/identity we verify — SHA-256-heavy, so it rides the C5
+  SHA accelerator; the chip's Secure Boot v2 stays RSA/ECDSA regardless. Choose
+  the LMS/HSS parameters and a vetted implementation (a new SOUP component).
+- **The hardware-crypto hooks:** reach the C5's SHA, ECC, HMAC and DS
+  accelerators (which the CH32H417 lacks) through checked seams like the AES
+  one, each verified once against software with a fallback.
 - NVS encryption key scheme (`nvs_keys` partition vs HMAC/DS-derived).
 - The exact C5 download-mode fuses (UART vs USB-Serial-JTAG, secure download)
   -- confirm against the TRM before provisioning burns them.

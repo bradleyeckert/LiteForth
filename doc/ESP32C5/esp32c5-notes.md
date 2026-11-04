@@ -204,9 +204,16 @@ self-check.
 | DS | Digital Signature peripheral | `esp_ds` | — (hardware-only key use) | sign/identity with a private key that is never readable |
 | TRNG | hardware RNG | `esp_random` | — | one-off keys, file-ids, nonces (as `flash_rndkey`) |
 
-BLAKE2s, Poly1305 and X25519/Ed25519 have no C5 hardware and stay the software
-Monocypher/blake2s path; the hooks accelerate only where the chip offers the
-matching primitive.
+BLAKE2s and Poly1305 have no C5 hardware; they stay in the portable software
+profile (desktop/CH32H417). X25519 stays software too but is NIST-approved
+(SP 800-186), so it is kept. The TRNG hook is a **SP 800-90A DRBG**
+(`esp_random`), which matters because a KDF is only as strong as the entropy
+under it. The C5's own log/crypto profile is therefore **NIST-approved end to
+end** — AES-256-GCM (SP 800-38D), HKDF-SHA256 (SP 800-56C) and SP 800-108
+HMAC-SHA256 key rooting, HMAC-SHA256 (FIPS 198-1) / SHA-256 (FIPS 180-4), the
+DRBG, and LMS (SP 800-208) for signatures — and it leans on the symmetric and
+hash-based primitives that survive a quantum break. Why each KDF is secure is in
+[data-logs.md §3.6](admin/data-logs.md).
 
 ### Signatures: prefer LMS (quantum-resistant) over ECDSA
 

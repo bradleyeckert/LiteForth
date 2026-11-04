@@ -79,25 +79,36 @@ a `ctr_hw_crypt` that hands whole aligned blocks to `esp_aes`, with the software
 `ctr_crypt_block_sw` as the checked fallback — exactly the seam the CH32H417
 uses, so `src/datalog.c` is unchanged above it.
 
-### 3.2 Record authentication — the decision (section 7)
+### 3.2 Record authentication — a C5-native AES-GCM profile (decided)
 
-Two options, both keeping the cipher-agile header:
+**Decision:** the C5 uses a native **AES-256-GCM** profile (a new `cipher` id in
+the header), not the portable AES-CTR + Poly1305 of cipher 1. GCM gives
+confidentiality *and* authentication from the one AES engine — no per-record
+software MAC — and it is **NIST-approved** (SP 800-38D), where Poly1305 is not;
+that matches the standing preference for NIST-approved functions. The portable
+cipher 1 (AES-CTR + Poly1305, software) stays defined for the desktop/CH32H417
+software path, selected by the same cipher-agile header, so nothing is lost.
 
-- **Keep cipher 1 (AES-128-CTR + Poly1305).** The AES-CTR runs on the
-  accelerator (3.1); the Poly1305 one-time-key MAC stays software (Monocypher),
-  as on the CH32H417. Fully portable, server unchanged, already tested. The only
-  non-hardware part is the MAC.
-- **Add a C5 cipher 2 (AES-GCM / AES-GMAC) on the accelerator.** Confidentiality
-  *and* authentication from the one AES engine, no per-record software MAC. This
-  is the "most compatible with the hardware" choice, **if** the C5 AES
-  peripheral's GHASH path is exposed by IDF (`esp_aes_gcm`); to confirm against
-  the TRM/IDF (section 7). The server's `lflog.py` gains a cipher-2 reader; the
-  on-card framing is otherwise the same.
+**AES-256, not 128.** Against Grover's algorithm a symmetric key loses half its
+effective strength, so AES-128 drops to a ~64-bit quantum margin while AES-256
+keeps ~128 bits. Since symmetric and hash-based primitives are the ones expected
+to survive a quantum break (the whole reason for the LMS choice, 3.5), the log
+profile spends the cheap headroom and uses AES-256.
 
-**Recommendation:** ship cipher 1 first (it already works and is portable, with
-the AES bulk on hardware), and add cipher 2 (AES-GCM) as the C5-native profile
-once the GHASH hardware path is confirmed — the header's `cipher` field makes
-this additive, not a format break.
+**GCM's one hard rule — never reuse an (key, IV) pair — is met by construction.**
+GCM is catastrophic under IV reuse, so the design makes reuse impossible rather
+than unlikely: `k_enc` is unique per file (derived from a fresh ephemeral, 3.3),
+and the 96-bit IV is `salt32 || record_sequence` — the per-file salt from the
+header times the record's monotonic sequence number — so no IV repeats within a
+file, and no key repeats across files. The record count per file (≤ 131071) is
+far inside SP 800-38D's limits for a deterministic IV. The header block and the
+application header get their own reserved sequence values, disjoint from the
+records'.
+
+**Pending:** confirm the C5 AES peripheral's GHASH path is exposed by IDF
+(`esp_aes_gcm` hardware) before committing the hardware hook; the profile and
+format are fixed regardless, and the server's `lflog.py` gains the matching
+GCM reader.
 
 ### 3.3 Key rooting — eFuse / HMAC / DS
 
@@ -113,10 +124,24 @@ such core; instead the board's long-term secret is **rooted in hardware**:
 - The one-off **`e`** and the file-id come from the **TRNG** (`esp_random`),
   matching `flash_rndkey`'s source ([esp32c5-notes.md](esp32c5-notes.md)).
 
-The per-file derivation (`k_enc`, `nonce`, `k_hdr`) keeps the shared BLAKE2s KDF
-so the derived file keys are identical to the portable definition and the server
-is unchanged; only the *source of the board's long-term key* moves into
-hardware. (A fully HMAC-SHA256 KDF is a possible later profile, section 7.)
+**Decision — the C5 profile derives keys with HMAC-SHA256, not BLAKE2s.** Both
+KDF steps use HMAC-SHA256 (NIST-approved; FIPS 198-1 over SHA-256, FIPS 180-4),
+on the SHA/HMAC hardware:
+
+- **Board long-term key, from the eFuse key** — NIST **SP 800-108** KBKDF in
+  counter mode, with HMAC-SHA256 as the PRF and the eFuse HMAC key as the
+  key-derivation key, computed by the HMAC peripheral so the root key is never
+  read. This is the C5-native source for what `b`/`k_auth` give on the CH32H417.
+- **Per-file keys, from the X25519 shared secret** — NIST **SP 800-56C Rev. 2**
+  two-step KDF (**HKDF-SHA256**: extract-then-expand). X25519 is itself
+  NIST-approved (SP 800-186), so the shared secret comes from an approved scheme;
+  HKDF-Extract concentrates it into a uniform pseudorandom key, and HKDF-Expand
+  produces `k_enc` (32 bytes, AES-256), the GCM `salt`, and `k_hdr`, each bound
+  to a distinct `info` label.
+
+This replaces the shared BLAKE2s KDF for the C5 profile, so the server's
+`lflog.py` gains a matching C5 reader; the portable BLAKE2s profile stays for
+the software path. Why these KDFs are secure is spelled out in section 3.6.
 
 ### 3.4 The other accelerators, through hooks
 
@@ -140,6 +165,48 @@ LMS verification is almost all SHA-256, so it rides the SHA hook (3.4); the
 device only verifies, so it carries none of LMS's signer-side statefulness. The
 chip's own Secure Boot v2 stays ROM-fixed RSA/ECDSA; LMS is for the signature
 layer above it.
+
+### 3.6 Why the KDFs are secure
+
+A KDF turns one secret into several keys that are each as strong as, and
+computationally independent of, the source and of one another. Both C5 KDFs rest
+on **HMAC-SHA256**, which is a pseudorandom function (PRF): without the key its
+output is indistinguishable from random, and SHA-256 has no known
+collision/preimage weakness that would undermine it. That PRF property is what
+makes each derivation below secure, and each is a named NIST construction so the
+reasoning is the standard's, not ours.
+
+- **Per-file keys — HKDF-SHA256 (SP 800-56C Rev. 2), from the X25519 secret.**
+  *Extract* (`PRK = HMAC-SHA256(salt, Z)` over the X25519 shared secret `Z`)
+  distils a non-uniform Diffie-Hellman secret — which has high entropy but is not
+  uniformly random — into a uniformly pseudorandom key `PRK`, using HMAC as a
+  randomness extractor. *Expand* then runs HMAC-SHA256 in a counter chain to
+  produce `k_enc`, the GCM `salt` and `k_hdr`. **Why secure:** each output block
+  is a PRF evaluation under `PRK` on a distinct input that includes a distinct
+  `info` label, so the three keys are pseudorandom and independent (domain
+  separation), and recovering any of them, or `Z`, would require breaking the
+  PRF. It is the NIST-approved way to derive keys from a DH shared secret, and
+  the shared secret itself is from an approved scheme (X25519, SP 800-186).
+- **Board long-term key — SP 800-108 counter-mode KBKDF, from the eFuse key.**
+  The key-derivation key is a uniformly random key burned into eFuse (from a good
+  RNG, below) and used only inside the HMAC peripheral, so it never appears in
+  readable memory. Each derived value is `HMAC-SHA256(KDK, counter || label ||
+  context)`. **Why secure:** with a uniform KDK the extract step is unnecessary,
+  so SP 800-108 applies the PRF directly; distinct labels give independent
+  outputs, and an attacker who never sees the KDK (hardware-held) cannot compute
+  or distinguish them. Compromising a derived key does not reveal the KDK or the
+  other derivations.
+- **Randomness — a SP 800-90A DRBG.** The ephemeral `e`, the per-file material
+  and the eFuse key's entropy come from the ESP RNG, a hardware-seeded DRBG
+  (`esp_random`, the TRNG hook, 3.4). A KDF's guarantees are only as good as the
+  entropy under them, so the inputs come from an approved DRBG, not a bare
+  counter or timer.
+
+Taken together the C5 profile is NIST-approved end to end — AES-256-GCM
+(SP 800-38D), HKDF-SHA256 (SP 800-56C), SP 800-108 KBKDF, HMAC-SHA256
+(FIPS 198-1) over SHA-256 (FIPS 180-4), X25519 (SP 800-186), the DRBG
+(SP 800-90A), and LMS (SP 800-208) for signatures — and it leans on exactly the
+symmetric/hash-based primitives that a quantum break would leave standing.
 
 ---
 
@@ -205,27 +272,29 @@ the forensic detail.
 
 ---
 
-## 7. To decide
+## 7. Decided and still open
 
-- **Record authentication (3.2):** keep cipher 1 (AES-CTR + software Poly1305,
-  AES on hardware) or add cipher 2 (AES-GCM on the accelerator). Confirm whether
-  IDF exposes the C5 AES peripheral's GHASH path (`esp_aes_gcm` hardware) before
-  committing to cipher 2.
-- **Key rooting (3.3):** HMAC-via-eFuse for the board's long-term key — confirm
-  the eFuse HMAC-key scheme and whether to keep the shared BLAKE2s KDF for the
-  per-file keys or move to a fully HMAC-SHA256 KDF (hardware) with a matching
-  server change.
-- **AES key length:** AES-128 (as cipher 1) or AES-256 on the C5.
+**Decided (this iteration):** the C5 cryptographic profile is NIST-approved end
+to end — **AES-256-GCM** AEAD (3.2), **HKDF-SHA256** per-file and **SP 800-108
+HMAC-SHA256** key rooting (3.3, 3.6), **X25519** key agreement, a SP 800-90A
+DRBG, and **LMS/HSS** for the signatures we verify (3.5). The portable
+AES-CTR + Poly1305 + BLAKE2s profile stays for the software/CH32H417 path.
+
+**Still open:**
+
+- **Confirm the GHASH hardware path:** that IDF exposes the C5 AES peripheral's
+  AES-GCM (`esp_aes_gcm` on hardware) before wiring the hook; the AES-256-GCM
+  *profile and on-card format* are fixed regardless (a software GCM would still
+  produce identical bytes).
+- **The eFuse HMAC-key scheme:** which eFuse block/key purpose holds the
+  key-derivation key, and the provisioning burn (confirm against the TRM).
+- **LMS parameters:** the LMS/HSS parameter set (tree height, Winternitz `w`)
+  and which vetted LMS implementation to add as a SOUP/SBOM component.
 - **Security-event log retention:** one file per boot like the data log, or a
   rolling/appended event log; and which events also need an eFuse/NVS counter
   that survives a wiped card.
-- **Relationship to IDF:** whether any of this uses IDF's own NVS/secure-storage
-  for the small counters, or stays entirely on the shared card format.
-- **Signature scheme for our own layer:** adopt **LMS/HSS** (quantum-resistant,
-  SHA-accelerated, SP 800-208) in place of Ed25519/ECDSA for the sealed-package
-  and identity signatures we verify — which LMS parameter set (tree height,
-  Winternitz `w`), and which vetted LMS implementation to add as a SOUP/SBOM
-  component. (The chip's Secure Boot v2 remains RSA/ECDSA regardless.)
+- **Relationship to IDF:** whether the small counters use IDF's NVS/secure
+  storage or stay entirely on the shared card format.
 
 ---
 

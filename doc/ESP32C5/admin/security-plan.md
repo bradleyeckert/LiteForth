@@ -233,6 +233,12 @@ software path. Still open below.
 - The exact C5 download-mode fuses (UART vs USB-Serial-JTAG, secure download)
   -- confirm against the TRM before provisioning burns them.
 - Field update transport once networking lands (TLS trust anchors = more SOUP).
+- **Post-quantum key agreement (hedge):** whether to hybridize the X25519 key
+  agreement with **ML-KEM** (FIPS 203) so confidentiality survives a future
+  break of X25519's discrete-log hardness, not just the signature layer (LMS).
+  X25519 is the one Shor-vulnerable primitive left in the profile; a belt-and-
+  suspenders X25519+ML-KEM KEM would close it. Weigh the added SOUP and the
+  server-side change against the low present risk.
 
 ## 11. Suggested order of work
 

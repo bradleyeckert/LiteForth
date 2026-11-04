@@ -295,6 +295,12 @@ AES-CTR + Poly1305 + BLAKE2s profile stays for the software/CH32H417 path.
   that survives a wiped card.
 - **Relationship to IDF:** whether the small counters use IDF's NVS/secure
   storage or stay entirely on the shared card format.
+- **Post-quantum key agreement (hedge):** whether to hybridize the per-file
+  X25519 key agreement with **ML-KEM** (FIPS 203). X25519 is the one
+  Shor-vulnerable primitive in the C5 profile (signatures are already LMS, bulk
+  is AES-256-GCM); an X25519+ML-KEM hybrid would make log confidentiality
+  quantum-durable too, at the cost of a larger header `E`/encapsulation and a
+  matching server change.
 
 ---
 

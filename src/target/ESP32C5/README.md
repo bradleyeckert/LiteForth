@@ -48,5 +48,23 @@ main/
   (later)   blocks.c (SD over SPI) lcd.c (ST7789) -- need the board GPIO map
 ```
 
-The shared interpreter/VM (`src/*.c`) compiles unchanged through `lf_*.c`
-wrappers, the same convention as the CH32H417 target.
+The shared interpreter/VM (`src/*.c`) compiles directly (no `lf_*.c`
+wrappers), the same core the CH32H417 target uses.
+
+## Security
+
+The security approach (FDA guidance as the best-practice bar; IDF-native
+Secure Boot v2 + flash encryption + OTA + eFuse; ESP-IDF treated as SOUP) is
+in `doc/ESP32C5/admin/security-plan.md`. The production configuration baseline
+lives in `sdkconfig.secure.defaults` (apply it on top of `sdkconfig.defaults`
+for a release build) and is enforced by `scripts/ESP32C5/seccheck.py`:
+
+```
+scripts/ESP32C5/seccheck.py build/sdkconfig            # gate a release build
+scripts/ESP32C5/seccheck.py --profile dev build/sdkconfig   # a dev build
+scripts/ESP32C5/seccheck.py --list                    # print the baseline
+```
+
+`unit_tests/seccheck` exercises the gate in CI. Development boards do not meet
+the production baseline (no signing keys / eFuse burns yet) — that is expected;
+use `--profile dev`, which still fails on any insecure escape.

@@ -138,12 +138,12 @@ def contains(path, text):
     return False
 
 
-def board_entries():
+def board_entries(path=BOARD_TESTS):
     """{entry: title}, and {entry: why} for those marked **Superseded:**
     (a run of a design that has since changed: kept as a record, no longer
     evidence)"""
     try:
-        text = open(BOARD_TESTS, encoding='utf-8').read()
+        text = open(path, encoding='utf-8').read()
     except OSError:
         return {}, {}
     heads = list(re.finditer(r'^### (B\d+[a-z]?)\. (.+?)(?: \(\d+ \w+ \d+\))?$', text, re.M))
@@ -157,7 +157,9 @@ def board_entries():
     return titles, superseded
 
 
+BT_PATH = BOARD_TESTS            # the board-tests file in force (set in main)
 BOARD, SUPERSEDED = board_entries()
+EXTERN_SUITES = {}               # suites owned by another target (set in main)
 
 
 def target_path(t):
@@ -184,7 +186,7 @@ def check_ref(ref):
         return f'"{ref}": unknown kind (use {", ".join(sorted(KINDS))})'
     if kind == 'board':
         if spec not in BOARD:
-            return f'"{ref}": no {spec} in doc/CH32H417/admin/board-tests.md'
+            return f'"{ref}": no {spec} in {os.path.relpath(BT_PATH, ROOT)}'
         if spec in SUPERSEDED:
             return f'"{ref}": {spec} is superseded ({SUPERSEDED[spec]}): cite what superseded it'
         return None
@@ -291,6 +293,28 @@ def suite_of(ref):
     return path if '/' not in path and '.' not in path else None
 
 
+def suites_cited_elsewhere(mydir):
+    """{suite: target name} for suites cited by another target's V-model under
+    doc/<target>/quality/. A shared suite (e.g. seccheck) owned by one target
+    is then not reported as another target's untraced gap."""
+    out = {}
+    mydir = os.path.abspath(mydir)
+    base = os.path.join(ROOT, 'doc')
+    if not os.path.isdir(base):
+        return out
+    for target in sorted(os.listdir(base)):
+        qdir = os.path.join(base, target, 'quality')
+        if not os.path.isdir(qdir) or os.path.abspath(qdir) == mydir:
+            continue
+        its, _ = parse(qdir)
+        for it in its.values():
+            for r in it.refs('Verified by'):
+                s = suite_of(r)
+                if s:
+                    out.setdefault(s, target)
+    return out
+
+
 def render(items, gaps):
     by = {lv: sorted((i for i in items.values() if i.level == lv), key=lambda i: i.id)
           for lv in LEVELS}
@@ -368,7 +392,12 @@ def render(items, gaps):
           'what it verifies. A suite nothing names is listed as a gap.', '',
           '| Suite | Verifies |', '|---|---|']
     for s in suites:
-        ids = ', '.join(link(i, items) for i in sorted(uses.get(s, ()))) or '**nothing traced**'
+        if uses.get(s):
+            ids = ', '.join(link(i, items) for i in sorted(uses[s]))
+        elif s in EXTERN_SUITES:
+            ids = f'traced in the {EXTERN_SUITES[s]} V-model'
+        else:
+            ids = '**nothing traced**'
         L.append(f'| `{s}` | {ids} |')
     L.append('')
     L += ['## Board tests to items', '',
@@ -387,7 +416,7 @@ def render(items, gaps):
     for ident, why in sorted(gaps):
         L.append(f'- {link(ident, items)}: {why}')
     for s in suites:
-        if s not in uses:
+        if s not in uses and s not in EXTERN_SUITES:
             L.append(f'- test suite `{s}`: traces to no item')
     for b in BOARD:
         if b not in boards and b not in SUPERSEDED:
@@ -403,7 +432,13 @@ def main(argv=None):
     p.add_argument('--gaps', action='store_true')
     p.add_argument('--dir', default=QDIR, help='where the item files are (tests)')
     p.add_argument('--out', default=OUT, help='the matrix to write or check (tests)')
+    p.add_argument('--board-tests', default=BOARD_TESTS,
+                   help='the board-tests.md whose Bnn entries board: evidence cites')
     a = p.parse_args(argv)
+    global BT_PATH, BOARD, SUPERSEDED, EXTERN_SUITES
+    BT_PATH = a.board_tests
+    BOARD, SUPERSEDED = board_entries(a.board_tests)
+    EXTERN_SUITES = suites_cited_elsewhere(a.dir)
     items, errors = parse(a.dir)
     more, gaps = analyse(items)
     errors += more
@@ -423,7 +458,7 @@ def main(argv=None):
         except OSError:
             old = None
         if old != text:
-            print('rtm: doc/CH32H417/quality/rtm.md is out of date: run scripts/rtm.py', file=sys.stderr)
+            print(f'rtm: {os.path.relpath(a.out, ROOT)} is out of date: run scripts/rtm.py', file=sys.stderr)
             return 1
         if a.strict and gaps:
             print(f'rtm: {len(gaps)} gap(s) (rtm.py --gaps)', file=sys.stderr)

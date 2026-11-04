@@ -84,3 +84,25 @@ ESP-IDF application at all.
 
 - **Status:** planned
 - **Gap:** not yet brought up
+
+### UN-09: Encrypted, authenticated recordings only the data owner can read
+A main application: the device records CODEC audio and other data streams to
+the microSD card so that only the data owner's server can read them, the
+server can prove which board wrote a recording and that nothing was changed
+or reordered, and the board's identity never appears in the clear on the
+card. The format uses the ESP32-C5's cryptographic hardware.
+
+- **Verified by:** demo:scripts/CH32H417/admin/lflog.py::server-key, demo:src/target/desktop/unit_tests/datalog::round trip
+- **Status:** partial
+- **Gap:** the shared log format is proven on the desktop; the C5 hardware-crypto backend, CODEC capture and a board run are not built
+
+### UN-10: A security-event log the device keeps and the server can read
+The cybersecurity system records penetration attempts and other
+security-relevant events (refused updates, rollback, boot-integrity failures,
+download/JTAG access attempts, tamper, console anomalies) to the card in the
+same encrypted, authenticated format, so an attacker can neither read nor
+forge the record of their own attempts, and the server can read and verify it
+with the same tool.
+
+- **Status:** planned
+- **Gap:** not built; depends on the log subsystem and the security write points

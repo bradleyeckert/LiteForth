@@ -115,3 +115,33 @@ the flash-encryption key, and application keys behind the DS peripheral.
 - **Parent:** SYS-SEC-09
 - **Status:** planned
 - **Gap:** not yet brought up; needs a board
+
+### ARC-LOG: The logging subsystem (data logs and security events)
+The encrypted, authenticated logging the device records to the card: the
+shared log format and recovery (`src/datalog.c`, `src/logfile.c`) over a C5
+hardware-crypto backend (the AES accelerator for the bulk cipher, the TRNG for
+randomness, and the board's long-term key rooted in eFuse/HMAC/DS), writing
+through the shared `blocks.c`/`card.c` over SD-over-SPI. The same subsystem
+writes the security-event log (penetration attempts and security decisions),
+so the data logs and the security log share one format, one server tool and
+one recovery path. Design: `doc/ESP32C5/admin/data-logs.md`.
+
+- **Parent:** SYS-LOG-01, SYS-LOG-02, SYS-LOG-03, SYS-LOG-04
+- **Verified by:** sys:datalog::test_round_trip, insp:doc/ESP32C5/admin/data-logs.md::security-event log
+- **Status:** partial
+- **Gap:** the shared format is proven on the desktop; the C5 backend, SD-over-SPI, CODEC capture and the security write points are not built
+
+### ARC-CRYPTO: The hardware-crypto backend (accelerator hooks)
+The layer that reaches the C5's crypto accelerators — AES, SHA-256, HMAC
+(eFuse-rooted), ECC and the DS peripheral, plus the TRNG — each through a thin
+hook over the IDF/ROM driver, checked once against a software reference with a
+software fallback (the `ctr.c` `CTR_HW` pattern). It also hosts the preference
+for LMS (hash-based, quantum-resistant) over ECDSA for the signatures LiteForth
+verifies, which rides the SHA hook. ARC-LOG, ARC-SECBOOT and ARC-KEYS build on
+it. Design:
+`doc/ESP32C5/esp32c5-notes.md#hardware-crypto-hooks-accelerators-the-ch32h417-lacks`.
+
+- **Parent:** SYS-SEC-10, SYS-SEC-11, SYS-SEC-02, SYS-SEC-09
+- **Verified by:** insp:src/ctr.c::CTR_HW, insp:doc/ESP32C5/esp32c5-notes.md::Hardware crypto hooks
+- **Status:** partial
+- **Gap:** the AES seam exists; the SHA/HMAC/ECC/DS hooks and the LMS verifier are not built, no board

@@ -182,3 +182,59 @@ is known.
 - Touch controller part and bus; panel bus width and backlight pin.
 - Whether `vm_rv32.S` assembles cleanly under `riscv32-esp-elf`.
 - ESP-IDF version to pin (must be v5.4+; v5.5 recommended -- see above).
+
+## Hardware crypto hooks (accelerators the CH32H417 lacks)
+
+The CH32H417 accelerates only AES (its ECDC engine, reached through
+`src/ctr.c`'s `CTR_HW` seam). The ESP32-C5 has more hardware — SHA-1..512, ECC
+(P-192/256/384), HMAC-SHA-256, the RSA/ECDSA DS peripheral, AES-128/256 with
+DMA, and a TRNG — and the design should reach each through a thin **hook** over
+the IDF/ROM driver, so no accelerator sits idle. Each hook follows the pattern
+`CTR_HW`/ECDC already set: a C5 wrapper (`lf_*.c`) over the driver, **checked
+once against the software reference** (as `ctr_crypt_block_sw` and the CH32's
+`ecdc-test` do), with the **software fallback kept** for portability and for the
+self-check.
+
+| Hook | C5 hardware | IDF/ROM driver | Software reference | Used for |
+|---|---|---|---|---|
+| AES (bulk) | AES accelerator (+DMA) | `esp_aes` | `ctr.c` (`CTR_HW` seam, exists) | log stream cipher, any bulk AES-CTR/GCM |
+| SHA-256 | SHA accelerator | `esp_sha` | a software SHA-256 | HMAC KDF, **LMS** verification (below) |
+| HMAC | HMAC peripheral + eFuse key | `esp_hmac` | software HMAC-SHA256 | key rooting (board long-term key, never read) |
+| ECC | ECC accelerator (P-256/384) | mbedTLS ECC / `esp_ecc` | Monocypher / mbedTLS sw | ECDH key agreement; IDF's own secure-boot ECDSA |
+| DS | Digital Signature peripheral | `esp_ds` | — (hardware-only key use) | sign/identity with a private key that is never readable |
+| TRNG | hardware RNG | `esp_random` | — | one-off keys, file-ids, nonces (as `flash_rndkey`) |
+
+BLAKE2s, Poly1305 and X25519/Ed25519 have no C5 hardware and stay the software
+Monocypher/blake2s path; the hooks accelerate only where the chip offers the
+matching primitive.
+
+### Signatures: prefer LMS (quantum-resistant) over ECDSA
+
+For LiteForth's **own** signature layer — the sealed-package / application-content
+signatures and any board identity *we* verify in software — prefer **LMS**
+(Leighton-Micali hash-based signatures, RFC 8554; HSS for more signatures;
+NIST SP 800-208, which approves LMS/HSS specifically for firmware/software
+signing) over ECDSA, for quantum resistance. LMS's security rests on the hash
+function, not on discrete-log/factoring, so it is not broken by Shor's
+algorithm.
+
+This fits the C5 especially well: **LMS signing and verification are almost
+entirely SHA-256**, so the SHA hook above makes verification cheap on-device —
+the device only *verifies*, so it carries none of LMS's statefulness. The
+**statefulness burden is the signer's** (the offline vendor root must never
+reuse a one-time key index); that is a key-management requirement, manageable
+for an infrequent offline firmware/content signer, and is exactly SP 800-208's
+intended use.
+
+Boundaries and caveats, stated honestly:
+
+- **The chip's Secure Boot v2 is ROM-fixed RSA-3072 / ECDSA** and cannot be made
+  to verify LMS; the boot chain stays classical. LMS applies to the signature
+  layer *above* the chip's RoT (what the CH32H417 does with Ed25519 today), so
+  the quantum-resistant claim is for LiteForth's own packages/content, not for
+  the Espressif boot ROM.
+- **No LMS in Monocypher:** adopting it adds a vetted LMS/HSS implementation as a
+  new SOUP/SBOM component (or a small audited one), tracked like the rest.
+- The ECC accelerator still earns its place for ECDH key agreement and for IDF's
+  own secure-boot ECDSA; LMS is the preference specifically for *signatures we
+  control*.

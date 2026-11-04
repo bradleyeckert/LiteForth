@@ -17,6 +17,7 @@ idf_component_register(
         lftime.c
         board.c
         blocks.c
+        lcd.c
         # --- shared LiteForth core (src/) ---
         ${LF_SRC}/vm.c
         ${LF_SRC}/forth.c

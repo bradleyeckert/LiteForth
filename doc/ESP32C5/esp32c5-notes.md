@@ -193,6 +193,17 @@ the drivers must share it (distinct CS lines, and the XPT2046 wants a slower
 clock than the panel); `IO2` is also a C5 strapping pin, fine as wired but keep
 it released at boot.
 
+**Future: a capacitive-touch variant.** The panel may later be swapped for a
+capacitive one. In that case the touch controller moves to **I²C** (not the
+shared SPI), and **`IO3` becomes the capacitive panel's IRQ** — the same pin the
+XPT2046 uses for `TP_IRQ` today, so the interrupt line is common to both. The
+I²C is the board's existing `TEMP` bus (SCL `IO8`, SDA `IO9`) unless a dedicated
+one is added; a controller reset line may also be needed (TBD when the part is
+known, e.g. GT911/FT6x36/CST816). So the touch driver should sit behind the
+target contract as a swappable back-end: an SPI/XPT2046 (resistive) back-end and
+an I²C/capacitive one, both presenting the same read-point/IRQ interface, with
+`IO3` as the shared IRQ. Only the resistive variant uses the SPI CS (`IO1`).
+
 ### Audio: how the speaker is driven
 
 There is **no DAC or codec** in the audio path (the ESP32-C5 has no built-in
@@ -215,6 +226,9 @@ higher-fidelity alternative on the same pin if PWM proves too coarse. A
 - ESP-IDF version to pin (must be v5.4+; v5.5 recommended -- see above).
 - LEDC audio details: carrier frequency, PWM resolution (bit depth), and the
   sample-feed path (timer ISR vs DMA) for `IO26`.
+- Capacitive-touch variant (if adopted): the controller part (GT911/FT6x36/
+  CST816…), whether it shares the `TEMP` I²C (`IO8`/`IO9`) or a dedicated bus,
+  and whether it needs a reset GPIO. IRQ is `IO3` either way.
 
 ## Hardware crypto hooks (accelerators the CH32H417 lacks)
 

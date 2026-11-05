@@ -43,31 +43,25 @@ used initially.
 - ESP32-C5, **16 MB flash**, **8 MB PSRAM** (external; the datasheet lists an
   in-package 8 MB flash / 2 MB PSRAM part, `ESP32-C5NF8R2LA`, but this board
   advertises 16 MB + 8 MB, so the memory is off-package).
-- **2.8" 320×240 TFT, ST7789**, with **capacitive touch** (controller and bus
-  not documented — likely SPI for the panel, I2C for touch; confirm).
-- **microSD** slot (SPI, since the C5 has no SD host).
-- One **RGB LED**; a **12-pin FPC**; "additional GPIO pins."
-- **Two USB-C:** one to the C5's USB Serial/JTAG, one to a **CH340** UART
-  bridge. Either can be the LiteForth console.
+- **2.8" 320×240 TFT, ST7789** (18-pin FPC), with **resistive touch via an
+  XPT2046** on the shared SPI bus — *not* the capacitive controller the product
+  listing implied (the schematic settles it).
+- **microSD** slot (SPI, since the C5 has no SD host), on the **same** SPI bus
+  as the panel and touch, with its own CS and a card-detect.
+- A **WS2812** addressable LED (through a 3.3→5 V level-shifter), an **SC8002B
+  mono audio power amplifier + speaker header**, an I²C "TEMP" header, and an
+  LP-UART header.
+- **Two USB-C:** one to the C5's USB Serial/JTAG, one to a **CH340C** UART
+  bridge with auto-download (DTR/RTS → EN/BOOT0). Either can be the console;
+  LiteForth uses the CH340 UART.
 - Claims dimensions/interfaces "fully compatible with the ESP32-CYD."
 
-**Open — the GPIO map.** The AliExpress manual PDF is high-level only and the
-product page is robots-blocked, so the exact GPIO assignments (panel
-SPI/DC/CS/RST/backlight, touch, SD SPI/CS, RGB LED, FPC) are **not yet
-known**. The USB console (GPIO13/14) and the system flash do not need it, so
-the REPL milestone is unblocked; the LCD/SD/RGB drivers do need it.
-
-The witnessmenow CYD project is a good reference for the board's *peripheral
-set and connector layout* (https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display,
-pins at `PINS.md`), **but its GPIO numbers are for the original ESP32-WROOM
-CYD and do not apply to the C5.** That board puts the display on IO2/12/13/14/15,
-touch (XPT2046, *resistive*) on IO25/32/33/36/39, the microSD on IO5/18/19/23,
-the RGB LED on IO4/16/17, an LDR on IO34 and the boot button on IO0 -- all
-ESP32 pins. The C5 has only 29 GPIOs and a different map (e.g. the CYD's
-display IO13/14 are the C5's USB D-/D+), and the NM-CYD-C5 advertises
-*capacitive* touch, not XPT2046. So use that repo for *what* is on the board
-and roughly where, and get the **NM-CYD-C5 schematic** for the actual C5 pins
-before writing the LCD/SD/touch/RGB drivers.
+**The GPIO map is now confirmed** from the NM-CYD-C5 v1.0 schematic
+([NM-CYD-C5-schematic.pdf](NM-CYD-C5-schematic.pdf), RockBase) — see the pin
+table below. (The witnessmenow CYD project remains a fine reference for the
+board's *peripheral set*, but its GPIO numbers are the original ESP32-WROOM
+CYD's and do not apply to the C5; the schematic supersedes them. Note the
+earlier guess of *capacitive* touch was wrong: it is a *resistive* XPT2046.)
 
 ## ESP-IDF version
 
@@ -174,14 +168,53 @@ is known.
 5. **Security**: enable Secure Boot v2 + flash encryption; decide how much of
    the sealed format wraps application/block content on top of IDF's RoT.
 
+## Pin map (NM-CYD-C5 schematic v1.0)
+
+Module: **ESP32-C5-WROOM-1-N16R8** (16 MB flash, 8 MB PSRAM). From
+[NM-CYD-C5-schematic.pdf](NM-CYD-C5-schematic.pdf). The panel, touch and SD
+share one SPI bus (SCK/MOSI/MISO) with separate chip-selects.
+
+| Function | GPIO(s) | Notes |
+|---|---|---|
+| **Shared SPI** (TFT + touch + SD) | SCK `IO6`, MOSI `IO7`, MISO `IO2` | serialize access across the three devices |
+| TFT ST7789 (18-pin FPC) | CS `IO23`, DC/RS `IO24`, BL `IO25`, RST = chip `RST` | |
+| Touch **XPT2046** (resistive) | CS `IO1`, IRQ `IO3` | on the shared SPI |
+| microSD (SPI / 1-bit) | CS `IO10`, CLK `IO6`, CMD/MOSI `IO7`, DAT0/MISO `IO2` | card-detect present |
+| **Speaker amp SC8002B** | `IO26` (net `SPEAK_IN`) | **LEDC PWM** → RC low-pass → amp (below) |
+| **WS2812** LED | `IO27` | via an AO3400A 3.3→5 V level-shifter |
+| Console UART (CH340C) | `U0TXD`/`U0RXD` | auto-download DTR/RTS → EN/BOOT0 |
+| Native USB (2nd USB-C) | D+ `IO14`, D- `IO13` | USB-Serial-JTAG |
+| I²C "TEMP" | SCL `IO8`, SDA `IO9` | header/sensor |
+| LP-UART | RXD `IO4`, TXD `IO5` | header |
+| Strap | BOOT0 `IO28` | |
+
+Cautions: `IO6`/`IO7`/`IO2` are one physical SPI bus for three peripherals, so
+the drivers must share it (distinct CS lines, and the XPT2046 wants a slower
+clock than the panel); `IO2` is also a C5 strapping pin, fine as wired but keep
+it released at boot.
+
+### Audio: how the speaker is driven
+
+There is **no DAC or codec** in the audio path (the ESP32-C5 has no built-in
+DAC). The SC8002B (`U5`, mono bridge-tied-load class-AB, VDD 3.3 V, differential
+`VO1`/`VO2` to the speaker header) takes a **single analog net `SPEAK_IN` on
+`IO26`**, fed through a two-pole RC reconstruction low-pass (`R4 4.7k`·`C11 1nF`
+and `R7 47k`·`C12 100pF`, each ~34 kHz corner) and a 330 nF AC-couple into the
+inverting input (`R8 22k`, `R9 68k` feedback, gain ≈ 6× in BTL).
+
+So the C5 **synthesizes the audio digitally on `IO26` and the RC filter averages
+it to analog.** The chosen source is **LEDC PWM** (duty = sample, high carrier
+well above the ~34 kHz corner); the sigma-delta modulator (`driver/sdm`) is the
+higher-fidelity alternative on the same pin if PWM proves too coarse. A
+`SHUTDOWN` pin on the amp allows muting when idle.
+
 ## Open questions to resolve before coding past milestone 1
 
-- The **NM-CYD-C5 schematic / GPIO map** (panel, touch, SD, RGB, FPC) -- the
-  witnessmenow CYD pins are ESP32-WROOM, not C5 (see above).
 - The **chip revision** (SDIO host and secure-boot key manager depend on it).
-- Touch controller part and bus; panel bus width and backlight pin.
 - Whether `vm_rv32.S` assembles cleanly under `riscv32-esp-elf`.
 - ESP-IDF version to pin (must be v5.4+; v5.5 recommended -- see above).
+- LEDC audio details: carrier frequency, PWM resolution (bit depth), and the
+  sample-feed path (timer ISR vs DMA) for `IO26`.
 
 ## Hardware crypto hooks (accelerators the CH32H417 lacks)
 

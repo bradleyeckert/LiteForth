@@ -103,5 +103,8 @@ The 25 MHz crystal (HSE) is being used as the timebase.
 The green board has P1 and P4 (USB-C and USB-A) wired in parallel, so they are USB-FS like the other boards.
 The trick then is to get P1 (or P4) to enumerate as CDC and use that instead of a UART.
 
+## ESP32-C5
 
-
+The ESP32-C5 port of LiteForth is based on the NM-CYD-C5, available from
+[Amazon](https://www.amazon.com/NM-CYD-C5-Development-Touchscreen-Dual-Band-Compatible/dp/B0H1QCHMW6) or
+[AliExpress](https://www.aliexpress.us/item/3256812595751183.html).

@@ -5,8 +5,8 @@
  * The card is reached through the SDIO peripheral. WCH's driver (sdio.c,
  * from EVT/EXAM/SDIO/SDIO_SD, unmodified) brings it up. Transfers use DMA
  * (BLK_DMA, below), driven from here: WCH's DMA mode waits for the
- * transfer and uses DMA1 channel 1, which the V3F's UART code also uses
- * (USART4 TX; channel 2 is its RX). This file uses DMA2 channel 1
+ * transfer and uses DMA1 channel 1 (once also the V3F's USART4 TX, since
+ * removed; ch32h417-notes.md). This file uses DMA2 channel 1
  * instead, routed to the SDIO request through DMAMUX channel 9, and only
  * through Guarded DMA (gdma.h, channel GDMA_SDIO): user mode can't write
  * the DMA registers (PMP entry 2, pmp.h). Machine mode moves the data

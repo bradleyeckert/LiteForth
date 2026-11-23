@@ -31,7 +31,7 @@ From the reference manual (CH32H417RM V1.8) and the current code:
 | SRAM | 896 KB: 128 KB ITCM and 256 KB DTCM tied to the V5F, and 512 KB general SRAM, zero-wait for both cores, which the manual suggests dividing in 128 KB units |
 | Today's split | V5F: code in ITCM, `.data`/`.bss`/stack in DTCM, LiteForth's 224 KB pool in general SRAM at 0x20140000. V3F: 256 KB of general SRAM (0x20100000-0x2013FFFF, fenced from the V5F by its PMP entry 1), and the 32 KB of shared CDC rings at 0x20178000 |
 | DMA | DMA1 and DMA2, 8 channels each. Any peripheral request can be routed to any channel (`CHANNELx_MUX`). Up to 65,535 transfers per run. DMA may read and write the TCMs (permission bits, on by default) |
-| SDIO | What the board uses now (nanoCH32H417: CLK PB11, CMD PB10, D0-D3 PE8-PE11). 1/4-bit, a 32-word FIFO filled by a general DMA channel. `blocks.c` runs WCH's `sdio.c` in polling mode, because its DMA mode would take DMA1 channel 1, which the V3F's UART uses |
+| SDIO | What the board uses now (nanoCH32H417: CLK PB11, CMD PB10, D0-D3 PE8-PE11). 1/4-bit, a 32-word FIFO filled by a general DMA channel. `blocks.c` runs WCH's `sdio.c` in polling mode, because its DMA mode would take DMA1 channel 1, which the V3F's USART4 code held then (since removed) |
 | SDMMC | A second controller: 1/4/8-bit, clock up to 200 MHz, UHS-I modes, eMMC, and its own double-buffered DMA. Different pins (**Verify** whether a production board can wire the card to it) |
 | Caches | The V5F has a 32 KB instruction cache. **Verify** there's no data cache, so DMA buffers need no cache maintenance |
 

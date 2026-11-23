@@ -78,12 +78,12 @@ manual calls the ID 96 bits, but `UNIID3` reads `E339E339`, erased flash.
 |---|---|
 | `ch32h417_usbfs_device.c/.h` | Enumeration, CDC class requests, the endpoint interrupts |
 | `usb_desc.c/.h` | Descriptors (VID 1A86, PID FE0C; the serial number is the chip's unique ID) |
-| `UART.c/.h` | The `Uart` state and packet slots the interrupt fills, and TIM2 (100 us tick) |
+| `UART.c/.h` | The `Uart` state and packet slots the interrupt fills, and TIM7 (100 us tick) |
 
-`UART_Init` sets up the `Uart` state. It also configures USART4 on PF3/PF4,
-and the driver does that again whenever the host sets the line coding, so
-those pins stay USART4. To free them, remove the USART/GPIO setup from
-`UART_CfgInit` in `UART.c`.
+`UART_ParaInit` sets up the `Uart` state. The example's USART4 (PF3/PF4,
+DMA1 channels 1 and 2) and its test output on PA15 are removed, so the V3F
+claims no pins but USB's PA11/PA12 and the debug UART's PA9: the host's line
+coding is stored and echoed back, and changes nothing.
 
 ### V5F: `V5F/User/serial_io.c`
 
@@ -310,12 +310,11 @@ and `blk_status` reports on it (0 done, negative failed, 1 reading,
 on them and wait.
 
 Block transfers run by DMA, driven from `blocks.c` rather than WCH's
-driver, whose DMA mode waits for the transfer and uses DMA1 channel 1:
-the V3F's USART4 code has DMA1 channels 1 (TX) and 2 (RX), as the DMA
-registers on a running board show. `blocks.c` uses DMA2 channel 1,
-routed to the SDIO request (111) by DMAMUX channel 9 (`DMA_MuxChannelConfig`
-stores the request minus 1: USART4's 91 and 92 read back as `5A` and
-`5B`). `blk_*_imm` sets up the data path, sends CMD18 or CMD25 and starts
+driver, whose DMA mode waits for the transfer and uses DMA1 channel 1
+(which the V3F's USART4 code used to hold, with channel 2, until it was
+removed). `blocks.c` uses DMA2 channel 1, routed to the SDIO request (111)
+by DMAMUX channel 9 (`DMA_MuxChannelConfig` stores the request minus 1:
+USART4's 91 and 92 read back as `5A` and `5B`). `blk_*_imm` sets up the data path, sends CMD18 or CMD25 and starts
 the DMA; each `blk_status` call then checks the SDIO flags, sends CMD12
 when the data is through and, for a write, asks the card (CMD13) until it
 has finished programming. No interrupts are used. A step that makes no

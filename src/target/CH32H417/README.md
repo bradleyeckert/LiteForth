@@ -8,6 +8,13 @@ To get started on the nanoCH32H417 board, follow [quickstart.md](quickstart.md).
 Where the chip, the reference manual and WCH's SDK disagree is collected
 in [doc/CH32H417/ch32h417-notes.md](../../../doc/CH32H417/ch32h417-notes.md).
 
+Every pin of the CH32H417QEU6 (QFN128), from the datasheet's pin table with
+its alternate functions, and the ones LiteForth reserves, is in
+[doc/CH32H417/ch32h417qeu6-pinout.xlsx](../../../doc/CH32H417/ch32h417qeu6-pinout.xlsx)
+(its notes on a second sheet), with the pin table as
+[CSV](../../../doc/CH32H417/ch32h417qeu6-pinout.csv) for diffs and searches.
+Pins it doesn't reserve are the application's.
+
 ## Layout
 
 | Path | What it is |

@@ -158,6 +158,8 @@ running board). The two examples can't be combined as they are.
 channel 1 through DMAMUX channel 9 (request 111, SDIO), without waiting:
 CMD18/CMD25, DMA, then CMD12 and CMD13 polls. DMA2 reaches the V5F's DTCM
 fine, as `MEMARY_CFGR` in the RM says. About 0.5-0.9 ms per 4 KB read.
+Since then the example's USART4 code is gone from the V3F (`Common/UART.c`
+keeps only the USB side), so DMA1 channels 1 and 2 are free again.
 
 ### The block map can go stale between operations: remount first
 

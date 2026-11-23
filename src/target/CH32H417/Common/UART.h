@@ -26,7 +26,6 @@ extern "C" {
 /******************************************************************************/
 /* Related macro definitions */
 /* Serial buffer related definitions */
-#define DEF_UARTx_RX_BUF_LEN       ( 4 * 512 )                                  /* Serial x receive buffer size */
 #define DEF_UARTx_TX_BUF_LEN       ( 2 * 512 )                                  /* Serial x transmit buffer size */
 #define DEF_USB_FS_PACK_LEN        DEF_USBD_FS_PACK_SIZE                        /* USB full speed mode packet size for serial x data */
 #define DEF_UARTx_TX_BUF_NUM_MAX   ( DEF_UARTx_TX_BUF_LEN / DEF_USB_FS_PACK_LEN ) /* Serial x transmit buffer size */
@@ -39,16 +38,7 @@ extern "C" {
 #define DEF_UARTx_RX_TIMEOUT       30                                           /* Serial port receive timeout, in 100uS */
 #define DEF_UARTx_USB_UP_TIMEOUT   60000                                        /* Serial port receive upload timeout, in 100uS */
 
-/* Serial port transceiver related macro definition */
-#define DEF_UART                   USART4
-
-#define DEF_UART_TX_MUX_CH         DMA_MuxChannel1
-#define DEF_UART_TX_DMA_CH         DMA1_Channel1       
-#define DEF_UART_TX_DMA_REQ        91
-
-#define DEF_UART_RX_MUX_CH         DMA_MuxChannel2   
-#define DEF_UART_RX_DMA_CH         DMA1_Channel2
-#define DEF_UART_RX_DMA_REQ        92
+/* LiteForth: no USART behind the port (UART.c), so no USART4 or DMA here */
 /************************************************************/
 /* Serial port X related structure definition */
 typedef struct __attribute__((packed)) _UART_CTL
@@ -84,22 +74,14 @@ typedef struct __attribute__((packed)) _UART_CTL
 /* Constant, variable extents */
 /* The following are serial port transmit and receive related variables and buffers */
 extern volatile UART_CTL Uart;                                                    /* Serial x control related structure */
-extern volatile uint32_t UARTx_Rx_DMACurCount;                                    /* Serial x receive DMA current count */
-extern volatile uint32_t UARTx_Rx_DMALastCount;                                   /* last count of DMA received by serial x */
-extern __attribute__ ((aligned(4))) uint8_t UART_Tx_Buf[ DEF_UARTx_TX_BUF_LEN ]; /* Serial x transmit buffer */
-extern __attribute__ ((aligned(4))) uint8_t UART_Rx_Buf[ DEF_UARTx_RX_BUF_LEN ]; /* Serial x transmit buffer */
+extern __attribute__ ((aligned(4))) uint8_t UART_Tx_Buf[ DEF_UARTx_TX_BUF_LEN ]; /* USB OUT packets from the host */
 
 /***********************************************************************************************************************/
 /* Function extensibility */
 extern uint8_t RCC_Configuration( void );
 extern void TIM7_Init( void );
-extern void UART_CfgInit( uint32_t baudrate, uint8_t stopbits, uint8_t parity ); /* UART1 initialization */
-extern void UART_ParaInit( uint8_t mode );                                       /* Serial port parameter initialization */
-extern void UART_DMAInit( uint8_t type, uint8_t *pbuf, uint32_t len );           /* Serial port 1-related DMA initialization */
-extern void UART_Init( uint8_t mode, uint32_t baudrate, uint8_t stopbits, uint8_t parity ); /* Serial port 1 initialization */
-extern void UART_DataTx_Deal( void );                                            /* Serial port 1 data sending processing  */
-extern void UART_DataRx_Deal( void );                                            /* Serial port 1 data reception processing */
-extern void UART_USB_Init( void );                                               /* USB serial port initialization*/
+extern void UART_ParaInit( uint8_t mode );                                       /* The USB side's state (Uart): mode 1 also sets the default line coding */
+extern void UART_USB_Init( void );                                               /* After SET_LINE_CODING: the state afresh, EP2 rearmed */
 #ifdef __cplusplus
 }
 #endif

@@ -39,8 +39,8 @@ typedef struct {
 static const channel channels[GDMA_CHANNELS] = {
     /* The microSD card (blocks.c): DMA2 channel 1, through DMAMUX channel
        9 (DMA_MuxChannel9), request 111 (SDIO; ch32h417-notes.md). WCH's
-       SDIO driver uses DMA1 channel 1, which the V3F's UART code also
-       uses, so this one doesn't. */
+       SDIO driver uses DMA1 channel 1, which the V3F's USART4 code used
+       to hold too, so this one doesn't. */
     [GDMA_SDIO] = {
         DMA2_Channel1, DMA2,
         DMA2_FLAG_GL1 | DMA2_FLAG_TC1 | DMA2_FLAG_HT1 | DMA2_FLAG_TE1,

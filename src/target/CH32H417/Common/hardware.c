@@ -44,8 +44,8 @@ void Hardware(void)
     /* Tim7 init (a basic timer, no PWM pins: frees TIM2 for applications) */
     TIM7_Init( );
 
-    /* USB state (Uart, used by the USB interrupt) and USART4 */
-    UART_Init( 1, DEF_UARTx_BAUDRATE, DEF_UARTx_STOPBIT, DEF_UARTx_PARITY );
+    /* USB state (Uart, used by the USB interrupt and cdc_bridge.c) */
+    UART_ParaInit( 1 );
 
     /* USB20 device init */
     USBFS_RCC_Init( );
